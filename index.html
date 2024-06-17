@@ -15,6 +15,9 @@
             border: 1px solid #000;
             padding: 10px;
             box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: center; /* 垂直居中 */
         }
         .main {
             display: flex;
@@ -42,6 +45,12 @@
             text-decoration: none; /* 去除下划线 */
             color: black; /* 文字颜色 */
         }
+        .menu-link {
+            margin-left: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            color: black;
+        }
         iframe {
             width: 100%;
             height: 100%;
@@ -52,23 +61,20 @@
 <body>
     <div class="top">
         <h1>玖数学</h1>
+        <div>
+            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('https://jiushu520.github.io/ai/')">玖数问问</a>
+            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('https://jiushu520.github.io/openai/')">玖数智能</a>
+        </div>
     </div>
     <div class="main">
         <div class="left" id="menu">
-
-
-  
-
             <a href="javascript:void(0);" class="menu-item" onclick="showContent('https://jiushu520.github.io/jiushu/')">玖数学运算</a><br>
-
-
-          <a href="javascript:void(0);" class="menu-item" onclick="showContent('https://jiushu520.github.io/differentiation/')">求导游戏</a><br>
-
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('https://jiushu520.github.io/differentiation/')">求导游戏</a><br>
         </div>
         <div class="center" id="content">
             <iframe src="https://jiushu520.github.io/jiushu/" frameborder="0"></iframe>
         </div>
-        <div class="right">
+        <div class="right" id="right-content">
             <iframe src="https://jiushu520.github.io/ai/" frameborder="0"></iframe>
         </div>
     </div>
@@ -76,6 +82,10 @@
     <script>
         function showContent(url) {
             document.getElementById('content').innerHTML = `<iframe src="${url}" frameborder="0"></iframe>`;
+        }
+
+        function showRightContent(url) {
+            document.getElementById('right-content').innerHTML = `<iframe src="${url}" frameborder="0"></iframe>`;
         }
     </script>
 </body>
