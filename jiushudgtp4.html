@@ -96,7 +96,7 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
-<h id="title">玖数智能GTP4</h><br>
+<h id="title">玖数智能GTP4-o</h><br>
     <div id="chat-container">
         <div id="messages"></div>
         <div id="input-container">
@@ -163,7 +163,7 @@
                         'Authorization': `Bearer ${apiKey}`
                     },
                     body: JSON.stringify({
-                        model: "gpt-4o-2024-05-13",  // 确保使用gpt-4o-2024-05-13模型
+                        model: "gpt-4",  // 确保使用GPT-4模型
                         messages: messages,
                         temperature: 0.3
                     })
