@@ -5,68 +5,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <title>玖数学练习</title>
-    <style>
-        body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: lightblue;
-        }
+<style>
+    body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: lightblue;
+    }
 
-        #navigation {
-            display: none;
-        }
+    #navigation {
+        display: none;
+    }
 
-        #game-container {
-            width: 100%;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+    #game-container {
+        width: 100%;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 
-        #equation, #options {
-            text-align: center;
-            width: 100%;
-            font-size: 20px;
-        }
+    #equation, #options {
+        text-align: center;
+        width: 100%;
+        font-size: 20px;
+    }
 
-        .option {
-            display: inline-block;
-            margin: 0 10px;
-            padding: 10px;
-            border: 1px solid #000;
-            cursor: pointer;
-            margin: 0 10px 20px;
-            font-size: 20px;
-        }
+    .option {
+        display: inline-block;
+        margin: 0 10px;
+        padding: 10px;
+        border: 1px solid #000;
+        cursor: pointer;
+        margin: 0 10px 20px;
+        font-size: 20px;
+    }
 
-        #button-container {
-            margin-top: 20px;
-        }
+    #button-container {
+        margin-top: 20px;
+    }
 
-        #result-table-container {
-            margin-top: 20px;
-            width: 100%;
-            height: calc(50% - 60px); /* 调整高度以适应 */
-            overflow-y: auto;
-        }
+    #result-table-container {
+        margin-top: 20px;
+        width: 100%;
+        height: calc(50% - 60px); /* 调整高度以适应 */
+        overflow-y: auto;
+        -ms-overflow-style: none;  /* for Internet Explorer, Edge */
+        scrollbar-width: none;  /* for Firefox */
+    }
 
-        #result-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+    #result-table-container::-webkit-scrollbar {
+        display: none;
+    }
 
-        #result-table th, #result-table td {
-            border: 1px solid #000;
-            padding: 8px;
-            text-align: center;
-        }
-    </style>
+    #result-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    #result-table th, #result-table td {
+        border: 1px solid #000;
+        padding: 8px;
+        text-align: center;
+    }
+</style>
 </head>
 <body>
     <div id="game-container">
@@ -82,22 +88,11 @@
             <span id="current-mode-display">当前模式: 顺序</span>
         </div>
         <div id="scoreboard">现在得分:<span id="score">0</span>,已回答:<span id="answered">0</span></div>
-        <div id="result-table-container">
-            <table id="result-table">
-                <thead>
-                    <tr>
-                        <th>题目</th>
-                        <th>你的答案</th>
-                        <th>正确答案</th>
-                        <th>结果</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
         <div id="rounds-scoreboard"></div>
     </div>
     <script>
+       
+
 const B06乘法公式06因式分解02 = [
 
 {equation: "\\[ {x^2-4xy+3y^2=?}\\]",correctOption: "(x-3y)(x-y)",incorrectOptions:["(x-2y)(x-5y)","(x-y)(x-y)","(x-y)(x-y)"]},
@@ -220,14 +215,7 @@ const B06乘法公式06因式分解02 = [
 {equation: "\\[ {x^2-xy-2y^2=?}\\]",correctOption: "(x-2y)(x+y)",incorrectOptions:["(x-3y)(x-y)","(x+y)(x+y)","(x-2y)(x+y)"]},
 
 
-
-
-
-
-
-
         ];
-
 
         let currentQuestionBank;
         let currentEquationSystem;
@@ -303,14 +291,13 @@ const B06乘法公式06因式分解02 = [
             currentEquationSystem = {
                 equationSystem: equationHTML,
                 correctIndex,
-                options,
-                correctOption
+                options
             };
         }
 
         function generateOptions() {
             const labels = ['A', 'B', 'C', 'D', ];
-            return currentEquationSystem.options.map((option, index) => `<div class="option" onclick="checkAnswer(${index}, '${option.replace(/\\/g, '\\\\')}')"><span>${labels[index]}. \\(${option}\\)</span></div>`).join('');
+            return currentEquationSystem.options.map((option, index) => `<div class="option" onclick="checkAnswer(${index})"><span>${labels[index]}. \\(${option}\\)</span></div>`).join('');
         }
 
         function displayEquationSystem() {
@@ -343,28 +330,20 @@ const B06乘法公式06因式分解02 = [
             displayEquationSystem();
         }
 
-        function checkAnswer(selectedIndex, userAnswer) {
-            let isCorrect = selectedIndex === currentEquationSystem.correctIndex;
-            let correctAnswer = currentEquationSystem.correctOption;
-
-            let resultRow = document.createElement('tr');
-            resultRow.innerHTML = `
-                <td>${currentEquationSystem.equationSystem}</td>
-                <td>\\(${userAnswer}\\)</td>
-                <td>\\(${correctAnswer}\\)</td>
-                <td style="color: ${isCorrect ? 'green' : 'red'};">${isCorrect ? '正确' : '错误'}</td>
-            `;
-            document.querySelector('#result-table tbody').insertBefore(resultRow, document.querySelector('#result-table tbody').firstChild);
-
-            if (isCorrect) {
+        function checkAnswer(selectedIndex) {
+            if (parseInt(selectedIndex) === currentEquationSystem.correctIndex) {
                 score++;
+            } else if (isChallengeMode) {
+                score = 0;
+                questionsAnswered = 0;
+                currentQuestionIndex = 0;
+                updateScoreboard();
+                startNewRound();
+                return;
             }
-
             questionsAnswered++;
             updateScoreboard();
             startNewRound();
-
-            MathJax.typeset();
         }
 
         function updateScoreboard() {
@@ -378,7 +357,7 @@ const B06乘法公式06因式分解02 = [
         }
 
         window.onload = () => {
-            loadQuestions(B06乘法公式06因式分解02, 'B06乘法公式06因式分解02');
+            loadQuestions( B06乘法公式06因式分解02, ' B06乘法公式06因式分解02');
             isChallengeMode = false;
             startNewRound();
         };
