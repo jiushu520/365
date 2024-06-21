@@ -12,7 +12,7 @@
             padding: 0;
             font-family: Arial, sans-serif;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             background-color: lightblue;
         }
@@ -48,6 +48,24 @@
         #button-container {
             margin-top: 20px;
         }
+
+        #result-table-container {
+            margin-top: 20px;
+            width: 100%;
+            height: calc(50% - 60px); /* 调整高度以适应 */
+            overflow-y: auto;
+        }
+
+        #result-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #result-table th, #result-table td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -64,11 +82,22 @@
             <span id="current-mode-display">当前模式: 顺序</span>
         </div>
         <div id="scoreboard">现在得分:<span id="score">0</span>,已回答:<span id="answered">0</span></div>
+        <div id="result-table-container">
+            <table id="result-table">
+                <thead>
+                    <tr>
+                        <th>题目</th>
+                        <th>你的答案</th>
+                        <th>正确答案</th>
+                        <th>结果</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
         <div id="rounds-scoreboard"></div>
     </div>
     <script>
-       
-
 const B05乘法公式05因式分解01 = [
 
 {equation: "\\[ {x^2+7x-8=?}\\]",correctOption: "(x-1)(x+8)",incorrectOptions:["(x-3)(x-2)","(x-2)(x-10)","(x+8)(x+1)"]},
@@ -192,7 +221,13 @@ const B05乘法公式05因式分解01 = [
 
 
 
+
+
+
+
+
         ];
+
 
         let currentQuestionBank;
         let currentEquationSystem;
@@ -268,13 +303,14 @@ const B05乘法公式05因式分解01 = [
             currentEquationSystem = {
                 equationSystem: equationHTML,
                 correctIndex,
-                options
+                options,
+                correctOption
             };
         }
 
         function generateOptions() {
             const labels = ['A', 'B', 'C', 'D', ];
-            return currentEquationSystem.options.map((option, index) => `<div class="option" onclick="checkAnswer(${index})"><span>${labels[index]}. \\(${option}\\)</span></div>`).join('');
+            return currentEquationSystem.options.map((option, index) => `<div class="option" onclick="checkAnswer(${index}, '${option.replace(/\\/g, '\\\\')}')"><span>${labels[index]}. \\(${option}\\)</span></div>`).join('');
         }
 
         function displayEquationSystem() {
@@ -307,20 +343,28 @@ const B05乘法公式05因式分解01 = [
             displayEquationSystem();
         }
 
-        function checkAnswer(selectedIndex) {
-            if (parseInt(selectedIndex) === currentEquationSystem.correctIndex) {
+        function checkAnswer(selectedIndex, userAnswer) {
+            let isCorrect = selectedIndex === currentEquationSystem.correctIndex;
+            let correctAnswer = currentEquationSystem.correctOption;
+
+            let resultRow = document.createElement('tr');
+            resultRow.innerHTML = `
+                <td>${currentEquationSystem.equationSystem}</td>
+                <td>\\(${userAnswer}\\)</td>
+                <td>\\(${correctAnswer}\\)</td>
+                <td style="color: ${isCorrect ? 'green' : 'red'};">${isCorrect ? '正确' : '错误'}</td>
+            `;
+            document.querySelector('#result-table tbody').insertBefore(resultRow, document.querySelector('#result-table tbody').firstChild);
+
+            if (isCorrect) {
                 score++;
-            } else if (isChallengeMode) {
-                score = 0;
-                questionsAnswered = 0;
-                currentQuestionIndex = 0;
-                updateScoreboard();
-                startNewRound();
-                return;
             }
+
             questionsAnswered++;
             updateScoreboard();
             startNewRound();
+
+            MathJax.typeset();
         }
 
         function updateScoreboard() {
