@@ -5,68 +5,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <title>玖数学练习</title>
-    <style>
-        body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: lightblue;
-        }
+ <style>
+    body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: lightblue;
+    }
 
-        #navigation {
-            display: none;
-        }
+    #navigation {
+        display: none;
+    }
 
-        #game-container {
-            width: 100%;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+    #game-container {
+        width: 100%;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 
-        #equation, #options {
-            text-align: center;
-            width: 100%;
-            font-size: 20px;
-        }
+    #equation, #options {
+        text-align: center;
+        width: 100%;
+        font-size: 20px;
+    }
 
-        .option {
-            display: inline-block;
-            margin: 0 10px;
-            padding: 10px;
-            border: 1px solid #000;
-            cursor: pointer;
-            margin: 0 10px 20px;
-            font-size: 20px;
-        }
+    .option {
+        display: inline-block;
+        margin: 0 10px;
+        padding: 10px;
+        border: 1px solid #000;
+        cursor: pointer;
+        margin: 0 10px 20px;
+        font-size: 20px;
+    }
 
-        #button-container {
-            margin-top: 20px;
-        }
+    #button-container {
+        margin-top: 20px;
+    }
 
-        #result-table-container {
-            margin-top: 20px;
-            width: 100%;
-            height: calc(50% - 60px); /* 调整高度以适应 */
-            overflow-y: auto;
-        }
+    #result-table-container {
+        margin-top: 20px;
+        width: 100%;
+        height: calc(50% - 60px); /* 调整高度以适应 */
+        overflow-y: auto;
+        -ms-overflow-style: none;  /* for Internet Explorer, Edge */
+        scrollbar-width: none;  /* for Firefox */
+    }
 
-        #result-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+    #result-table-container::-webkit-scrollbar {
+        display: none;
+    }
 
-        #result-table th, #result-table td {
-            border: 1px solid #000;
-            padding: 8px;
-            text-align: center;
-        }
-    </style>
+    #result-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    #result-table th, #result-table td {
+        border: 1px solid #000;
+        padding: 8px;
+        text-align: center;
+    }
+</style>
+
 </head>
 <body>
     <div id="game-container">
