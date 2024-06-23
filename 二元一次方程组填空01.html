@@ -53,8 +53,7 @@
             margin-top: 20px;
             width: 100%;
             height: calc(50% - 60px); /* 调整高度以适应 */
-          
-        }
+                    }
 
         #result-table {
             width: 100%;
@@ -65,6 +64,12 @@
             border: 1px solid #000;
             padding: 8px;
             text-align: center;
+        }
+        iframe#iframe-container {
+            width: 100%; /* 设置全屏宽度 */
+            height: 500px; /* 设置高度为500px */
+            border: none; /* 去掉边框 */
+            display: true; /* 隐藏iframe */
         }
     </style>
 </head>
@@ -89,6 +94,7 @@
             <span id="current-mode-display">当前模式: 顺序</span>
         </div>
         <div id="scoreboard">现在得分:<span id="score">0</span>,已回答:<span id="answered">0</span></div>
+        <iframe id="iframe-container" src="https://www.geogebra.org/classic"></iframe>
         <div id="result-table-container">
             <table id="result-table">
                 <thead>
