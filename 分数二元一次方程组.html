@@ -115,7 +115,7 @@
         <div id="rounds-scoreboard"></div>
     </div>
     <script>
-        const 二元一次方程组分数填空 = [
+        const 二元一次方程组分数 = [
 
 {equation: "\\[ {\\begin{cases} -\\frac{1}{4}x-2y=-22 \\\\ -\\frac{1}{2}x+3y=26\\end{cases}\\genfrac{}{}{0pt}{}{①}{②}} \\] ",correctOption:"\\begin{cases} x=8 \\\\ y=10\\end{cases} ",incorrectOptions:["\\begin{cases} x=5 \\\\ y=3\\end{cases}","\\begin{cases} x=8 \\\\ y=7\\end{cases}","\\begin{cases} x=1 \\\\ y=4\\end{cases}",]},
 
@@ -393,7 +393,7 @@ const showTemporaryMessage = (message, duration) => {
         };
 
 window.onload = () => {
-    loadQuestions(二元一次方程组分数填空, '二元一次方程组分数填空');
+    loadQuestions(二元一次方程组分数, '二元一次方程组分数');
     state.isRandomMode = true;  // 初始化为随机模式
     state.isChallengeMode = false;
     startNewRound();
