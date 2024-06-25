@@ -12,32 +12,35 @@
             margin: 0;
             background-color: #e0f7fa; /* 浅蓝色背景 */
         }
-        .top {
-            border: 1px solid #000;
-            padding: 0px; /* 减小padding以减少高度 */
-            box-sizing: border-box;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 50px; /* 设置一个固定的高度 */
-        }
         .main {
             display: flex;
             flex-grow: 1;
-            height: calc(100vh - 50px); /* 剩余高度填充 */
         }
-        .content, .right {
-            padding: 0px;
+        .left, .center {
+            border: 1px solid #000;
+            padding: 10px;
             box-sizing: border-box;
-            border: 0px solid #fff;
-            height: 100%; /* 使其高度为父容器高度 */
+            overflow: hidden;
         }
-        .content {
-            flex: 7; /* 做题界面占70% */
+        .left {
+            width: 20%; /* 初始宽度 */
+            overflow-y: auto;
         }
-        .right {
-            flex: 3; /* 人工智能回复界面占30% */
-            transition: flex 0.3s; /* 增加过渡效果 */
+        .center {
+            width: 80%;
+        }
+        .resizer {
+            width: 5px;
+            cursor: ew-resize;
+            background-color: #000;
+            position: relative;
+        }
+        .menu-item {
+            cursor: pointer;
+            margin: 10px 0;
+            padding: 5px;
+            text-decoration: none; /* 去除下划线 */
+            color: black; /* 文字颜色 */
         }
         .menu-link {
             margin-left: 10px;
@@ -50,56 +53,113 @@
             height: 100%;
             border: 0;
         }
-        .hidden {
-            display: none; /* 隐藏元素 */
-        }
-        .blue-button {
-            background-color: #2196F3; /* 蓝色背景 */
-            color: white; /* 白色文字 */
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
     </style>
 </head>
 <body>
-    <div class="top">
-        <h3>玖数学</h3>
-        <div>
-            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushuai.html')">玖数学问</a>
-            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushudsai.html')">深度求索</a>
-            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushudgtp4-o.html')">玖数求索</a>
-            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushuopenai.html')">玖数智能</a>
-            <button class="blue-button" onclick="toggleRightContent()">切换人工智能</button>
-        </div>
-    </div>
     <div class="main">
-        <div class="content" id="content">
-            <iframe src="https://jiushu520.github.io/tiku/" frameborder="0"></iframe>
+        <div class="left" id="menu">
+            分数运算<br> 
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('A01运算01分数加法.html')">A01运算01分数加法</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('A01运算02分数减法.html')">A01运算02分数减法</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('A01运算03分数乘法.html')">A01运算03分数乘法</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('A01运算04分数除法.html')">A01运算04分数除法</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('A01运算05分数加整数.html')">A01运算05分数加整数</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('A01运算06分数混合.html')">A01运算06分数混合</a><br><br>
+            乘法公式<br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('B01乘法公式整式乘法01.html')">B01乘法公式整式乘法01</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('B02乘法公式整式乘法02.html')">B02乘法公式整式乘法02</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('B03乘法公式整式乘法03.html')">B03乘法公式整式乘法03</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('B04乘法公式整式乘法04.html')">B04乘法公式整式乘法04</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('B05乘法公式05因式分解01.html')">B05乘法公式因式分解01</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('B06乘法公式06因式分解02.html')">B06乘法公式因式分解02</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('B07乘法公式07因式分解03.html')">B07乘法公式因式分解03</a><br><br>
+            线性代数<br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('C01线性代数01行列式.html')">C01线性代数行列式</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('C02线性代数02向量点乘内积.html')">C02线性代数向量点乘内积</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('C03线性代数03向量叉乘外积.html')">C03线性代数向量叉乘外积</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('C04线性代数04内外积与正切.html')">C04线性代数内外积与正切</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('C05线性代数05内积与投影长.html')">C05线性代数内积与投影长</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('复数乘法填空.html')">C06线性代数复数乘法</a><br>
+            <br>
+            函数微积分<br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('D01微积分根式运算01.html')">D01微积分根式运算01</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('D02微积分根式运算02.html')">D02微积分根式运算02</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('D03微积分根式运算03.html')">D03微积分根式运算03</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('D04坐标系01两点距离.html')">D04坐标系01两点距离</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('D05坐标系02斜率.html')">D05坐标系02斜率</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('D06坐标系03直线解析式.html')">D06坐标系03直线解析式</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('D07坐标系04点到直线距离.html')">D07坐标系04点到直线距离</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('D08坐标系05定比分点.html')">D08坐标系05定比分点</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('D09函数01二次最值.html')">D09函数01二次最值</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('D10函数02切线与求导.html')">D10函数02切线与求导</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('D11函数03二次函数切线方程.html')">D11函数03二次函数切线</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('二次函数切线填空.html')">D12函数04二次函数切线填空</a><br>
+            <br>
+            方程组<br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('二元一次方程组填空01.html')">E01二元一次方程组填空01</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('二元一次方程组填空02.html')">E02二元一次方程组填空02</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('二元一次方程组填空03.html')">E03二元一次方程组填空03</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('二元一次方程组填空04.html')">E04二元一次方程组填空04</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('二元一次方程组填空05.html')">E05二元一次方程组填空05</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('二元一次方程组填空06.html')">E06二元一次方程组填空06</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('二元一次方程组填空07.html')">E07二元一次方程组填空07</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('分数二元一次方程组.html')">E08二元一次方程组填空08</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('二元一次方程组填空09.html')">E09二元一次方程组填空09</a><br>
+            <br>
+            几何<br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('E01几何01鸟头模型.html')">F01几何01鸟头模型</a><br><br>
+            <br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('https://jiushu520.github.io/jiushu/')">玖数学运算</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('https://jiushu520.github.io/differentiation/')">求导游戏</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('egame.html')">等式练习测试</a><br>
+            <a href="javascript:void(0);" class="menu-item" onclick="showContent('https://www.onlinegdb.com/online_c++_compiler')">在线编程</a><br>
         </div>
-        <div class="right" id="right-content">
-            <iframe src="jiushudgtp4-o.html" frameborder="0"></iframe>
+        <div class="resizer" id="resizer"></div>
+        <div class="center" id="content">
+            <iframe src="二元一次方程组填空01.html" frameborder="0"></iframe>
         </div>
     </div>
     <script>
-        function showRightContent(url) {
-            document.getElementById('right-content').innerHTML = `<iframe src="${url}" frameborder="0"></iframe>`;
+        function showContent(url) {
+            document.getElementById('content').innerHTML = `<iframe src="${url}" frameborder="0"></iframe>`;
         }
 
-        function toggleRightContent() {
-            const rightContent = document.getElementById('right-content');
-            const content = document.getElementById('content');
-            if (rightContent.classList.contains('hidden')) {
-                rightContent.classList.remove('hidden');
-                content.style.flex = '7'; // 保留70%给做题界面
-                rightContent.style.flex = '3'; // 30%给人工智能回复界面
-            } else {
-                rightContent.classList.add('hidden');
-                content.style.flex = '1'; // 扩展做题界面宽度
-                rightContent.style.flex = '0'; // 隐藏人工智能回复界面
-            }
+        // 以下是实现左右两栏宽度可调节的代码
+        const resizer = document.getElementById('resizer');
+        const left = document.getElementById('menu');
+        const center = document.getElementById('content');
+
+        resizer.addEventListener('mousedown', function (e) {
+            document.addEventListener('mousemove', resize);
+            document.addEventListener('mouseup', stopResize);
+        });
+
+        function resize(e) {
+            const mainWidth = document.querySelector('.main').getBoundingClientRect().width;
+            const leftWidth = e.clientX / mainWidth * 100;
+            left.style.width = `${leftWidth}%`;
+            center.style.width = `${100 - leftWidth}%`;
         }
+
+        function stopResize() {
+            document.removeEventListener('mousemove', resize);
+            document.removeEventListener('mouseup', stopResize);
+        }
+
+        // 自动播放视频代码
+        document.addEventListener('DOMContentLoaded', function() {
+            var iframe = document.querySelector('iframe');
+            if (iframe) {
+                iframe.addEventListener('load', function() {
+                    var video = iframe.contentDocument.querySelector('video');
+                    if (video) {
+                        video.play().catch(function(error) {
+                            console.error('自动播放失败:', error);
+                        });
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>
