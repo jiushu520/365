@@ -11,7 +11,7 @@
         }
         /* 使用自定义光标 */
         .custom-cursor {
-            cursor: url('data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjMwIiB3aWR0aD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgdmVyc2lvbj0iMSIgd2lsbHRyYXZlbG9wZW49ImZhbHNlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxnPjxjaXJjbGUgcj0iMTUiIGN4PSIxNSIgY3k9IjE1IiBzdHlsZT0iZmlsbDpjYXI7IiAvPjwvZz48L3N2Zz4='), auto;
+            cursor: url('data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjMwIiB3aWR0aD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgdmVyc2lvbj0iMSIgd2lsbHRyYXZlbG9wZW5fZjT9y4ewIjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxnPjxjaXJjbGUgcj0iMTUiIGN4PSIxNSIgY3k9IjE1IiBzdHlsZT0iZmlsbDpjYXI7IiAvPjwvZz48L3N2Zz4='), auto;
         }
     </style>
 </head>
@@ -24,6 +24,7 @@
         let drawing = false;
         let erasing = false;
 
+        // 处理鼠标事件
         canvas.addEventListener('mousedown', (event) => {
             if (event.button === 2) { // 右键按下
                 erasing = true;
@@ -46,6 +47,19 @@
             event.preventDefault(); // 禁止默认的右键菜单
         });
 
+        // 处理触控事件
+        canvas.addEventListener('touchstart', (event) => {
+            drawing = true;
+            drawTouch(event); // 初始化绘制
+        });
+
+        canvas.addEventListener('touchend', (event) => {
+            drawing = false;
+            ctx.beginPath(); // 开始一个新的路径，避免线条连在一起
+        });
+
+        canvas.addEventListener('touchmove', drawTouch);
+
         function draw(event) {
             if (!drawing && !erasing) return;
             
@@ -65,6 +79,17 @@
             ctx.stroke();
             ctx.beginPath();
             ctx.moveTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
+        }
+
+        function drawTouch(event) {
+            if (!drawing) return;
+            const touch = event.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            draw(mouseEvent);
+            event.preventDefault(); // 禁止默认的触控行为（例如滚动）
         }
     </script>
 </body>
