@@ -7,33 +7,59 @@
     <style>
         canvas {
             border: 1px solid black;
+            background-color: #FFFFE0; /* 设置背景为淡黄色 */
+        }
+        /* 使用自定义光标 */
+        .custom-cursor {
+            cursor: url('data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjMwIiB3aWR0aD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgdmVyc2lvbj0iMSIgd2lsbHRyYXZlbG9wZW49ImZhbHNlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxnPjxjaXJjbGUgcj0iMTUiIGN4PSIxNSIgY3k9IjE1IiBzdHlsZT0iZmlsbDpjYXI7IiAvPjwvZz48L3N2Zz4='), auto;
         }
     </style>
 </head>
 <body>
-    <h1>玖数简单画布</h1>
-    <canvas id="drawingCanvas" width="680" height="900"></canvas>
+    <h1>玖数草稿</h1>
+    <canvas id="drawingCanvas" width="675" height="900"></canvas>
     <script>
         const canvas = document.getElementById('drawingCanvas');
         const ctx = canvas.getContext('2d');
         let drawing = false;
+        let erasing = false;
 
-        canvas.addEventListener('mousedown', () => {
-            drawing = true;
+        canvas.addEventListener('mousedown', (event) => {
+            if (event.button === 2) { // 右键按下
+                erasing = true;
+                canvas.classList.add('custom-cursor'); // 添加自定义光标样式
+            } else {
+                drawing = true;
+            }
         });
 
-        canvas.addEventListener('mouseup', () => {
+        canvas.addEventListener('mouseup', (event) => {
             drawing = false;
+            erasing = false;
             ctx.beginPath(); // 开始一个新的路径，避免线条连在一起
+            canvas.classList.remove('custom-cursor'); // 移除自定义光标样式
         });
 
         canvas.addEventListener('mousemove', draw);
 
+        canvas.addEventListener('contextmenu', (event) => {
+            event.preventDefault(); // 禁止默认的右键菜单
+        });
+
         function draw(event) {
-            if (!drawing) return;
+            if (!drawing && !erasing) return;
+            
             ctx.lineWidth = 5;
             ctx.lineCap = 'round';
-            ctx.strokeStyle = 'black';
+
+            if (erasing) {
+                ctx.lineWidth = 30; // 增加擦拭线宽
+                ctx.strokeStyle = 'white';
+                ctx.globalCompositeOperation = 'destination-out';
+            } else {
+                ctx.strokeStyle = 'black';
+                ctx.globalCompositeOperation = 'source-over';
+            }
 
             ctx.lineTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
             ctx.stroke();
