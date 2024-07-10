@@ -38,105 +38,86 @@
         <button id="eraser">橡皮擦</button>
         <button id="clear">清除</button>
     </div>
-    <canvas id="drawingCanvas" width="675" height="900"></canvas>
+    <canvas id="drawingCanvas" width="600" height="750"></canvas>
     <script>
         const canvas = document.getElementById('drawingCanvas');
         const ctx = canvas.getContext('2d');
-        let drawing = false;
-        let erasing = false;
-        let mode = 'pen'; // 新增模式变量，初始为画笔模式
-
         const penButton = document.getElementById('pen');
         const eraserButton = document.getElementById('eraser');
         const clearButton = document.getElementById('clear');
+        let drawing = false;
+        let mode = 'pen';
 
-        penButton.addEventListener('click', () => {
-            mode = 'pen';
-            erasing = false;
-            canvas.classList.remove('custom-cursor');
-            updateActiveButton(penButton);
-        });
+        const lineWidth = {
+            pen: 5,
+            eraser: 30
+        };
 
-        eraserButton.addEventListener('click', () => {
-            mode = 'eraser';
-            erasing = true;
-            canvas.classList.add('custom-cursor');
-            updateActiveButton(eraserButton);
-        });
+        const colors = {
+            pen: 'black',
+            eraser: 'white'
+        };
 
-        clearButton.addEventListener('click', () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            updateActiveButton(clearButton);
-        });
+        penButton.addEventListener('click', () => setMode('pen', penButton));
+        eraserButton.addEventListener('click', () => setMode('eraser', eraserButton));
+        clearButton.addEventListener('click', clearCanvas);
 
-        // 处理鼠标事件
-        canvas.addEventListener('mousedown', (event) => {
-            drawing = true;
-            if (event.button === 2) { // 右键按下
-                erasing = true;
-                canvas.classList.add('custom-cursor'); // 添加自定义光标样式
-            } else if (mode === 'pen') {
-                erasing = false;
-                canvas.classList.remove('custom-cursor'); // 移除自定义光标样式
-            }
-            draw(event);
-        });
-
-        canvas.addEventListener('mouseup', () => {
-            drawing = false;
-            erasing = mode === 'eraser'; // 恢复工具栏的橡皮擦模式
-            ctx.beginPath(); // 开始一个新的路径，避免线条连在一起
-            canvas.classList.remove('custom-cursor'); // 移除自定义光标样式
-        });
-
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mouseup', stopDrawing);
         canvas.addEventListener('mousemove', draw);
 
-        canvas.addEventListener('contextmenu', (event) => {
-            event.preventDefault(); // 禁止默认的右键菜单
-        });
-
-        // 处理触控事件
-        canvas.addEventListener('touchstart', (event) => {
-            drawing = true;
-            drawTouch(event); // 初始化绘制
-        });
-
-        canvas.addEventListener('touchend', () => {
-            drawing = false;
-            ctx.beginPath(); // 开始一个新的路径，避免线条连在一起
-        });
-
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchend', stopDrawing);
         canvas.addEventListener('touchmove', drawTouch);
+
+        canvas.addEventListener('contextmenu', (event) => event.preventDefault());
+
+        function setMode(newMode, button) {
+            mode = newMode;
+            updateActiveButton(button);
+            canvas.classList.toggle('custom-cursor', mode === 'eraser');
+        }
+
+        function startDrawing(event) {
+            drawing = true;
+            draw(event);
+        }
+
+        function stopDrawing() {
+            drawing = false;
+            ctx.beginPath();
+        }
 
         function draw(event) {
             if (!drawing) return;
-            
-            ctx.lineWidth = erasing ? 30 : 5;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = erasing ? 'white' : 'black';
-            ctx.globalCompositeOperation = erasing ? 'destination-out' : 'source-over';
+            const { clientX, clientY } = event.touches ? event.touches[0] : event;
 
-            ctx.lineTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
+            ctx.lineWidth = lineWidth[mode];
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = colors[mode];
+            ctx.globalCompositeOperation = mode === 'eraser' ? 'destination-out' : 'source-over';
+
+            const rect = canvas.getBoundingClientRect();
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
+
+            ctx.lineTo(x, y);
             ctx.stroke();
             ctx.beginPath();
-            ctx.moveTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
+            ctx.moveTo(x, y);
+            event.preventDefault();
         }
 
         function drawTouch(event) {
-            if (!drawing) return;
-            const touch = event.touches[0];
-            const mouseEvent = new MouseEvent('mousemove', {
-                clientX: touch.clientX,
-                clientY: touch.clientY
-            });
-            draw(mouseEvent);
-            event.preventDefault(); // 禁止默认的触控行为（例如滚动）
+            draw(event);
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
         function updateActiveButton(activeButton) {
-            penButton.classList.remove('active');
-            eraserButton.classList.remove('active');
-            clearButton.classList.remove('active');
+            [penButton, eraserButton, clearButton].forEach(button => button.classList.remove('active'));
             activeButton.classList.add('active');
         }
     </script>
