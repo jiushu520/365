@@ -7,7 +7,7 @@
     <style>
         canvas {
             border: 1px solid black;
-            background-color: #FFFFE0; /* 设置背景为淡黄色 */
+            background-color: #F5F5F5; /* 设置背景为淡黄色 */
             display: block;
             margin: 20px auto;
         }
@@ -20,10 +20,20 @@
             padding: 10px;
             font-size: 16px;
             cursor: pointer;
+            border: none; /* 移除默认边框 */
+        }
+        .tool-bar button.color-button {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid transparent; /* 初始透明边框 */
         }
         .tool-bar button.active {
             background-color: #FFFFE0; /* 高亮显示的背景色 */
             border: 1px solid #000000; /* 高亮显示的边框 */
+        }
+        .tool-bar button.selected-color {
+            border: 4px solid #FFD700; /* 选中颜色的边框 */
         }
         /* 使用自定义光标 */
         .custom-cursor {
@@ -32,15 +42,15 @@
     </style>
 </head>
 <body>
-    <h1 style="text-align: center;">玖数草稿</h1>
+    <h3 style="text-align: center;">玖数草稿</h3>
     <div class="tool-bar">
         <button id="pen" class="active">画笔</button>
         <button id="eraser">橡皮</button>
         <button id="clear">清除</button><br><br>
-        <button id="black" style="background-color: black; color: white;">黑</button>
-        <button id="red" style="background-color: red;">红</button>
-        <button id="blue" style="background-color: blue; color: white;">蓝</button>
-        <button id="green" style="background-color: green; color: white;">绿</button>
+        <button id="black" class="color-button" style="background-color: black; color: white;"></button>
+        <button id="red" class="color-button" style="background-color: red;"></button>
+        <button id="blue" class="color-button" style="background-color: blue; color: white;"></button>
+        <button id="green" class="color-button" style="background-color: green; color: white;"></button>
     </div>
     <canvas id="drawingCanvas" width="560" height="760"></canvas>
     <script>
@@ -110,7 +120,8 @@
         function setColor(color, button) {
             currentColor = color;
             colors.pen = color;
-            updateActiveButton(button);
+            updateActiveColorButton(button);
+            setMode('pen', penButton); // 自动切换到画笔模式
         }
 
         function startDrawing(event) {
@@ -152,8 +163,13 @@
         }
 
         function updateActiveButton(activeButton) {
-            [penButton, eraserButton, clearButton, blackButton, redButton, blueButton, greenButton].forEach(button => button.classList.remove('active'));
+            [penButton, eraserButton, clearButton].forEach(button => button.classList.remove('active'));
             activeButton.classList.add('active');
+        }
+
+        function updateActiveColorButton(activeButton) {
+            [blackButton, redButton, blueButton, greenButton].forEach(button => button.classList.remove('selected-color'));
+            activeButton.classList.add('selected-color');
         }
     </script>
 </body>
