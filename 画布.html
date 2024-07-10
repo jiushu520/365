@@ -21,6 +21,10 @@
             font-size: 16px;
             cursor: pointer;
         }
+        .tool-bar button.active {
+            background-color: #FFFFE0; /* 高亮显示的背景色 */
+            border: 1px solid #000000; /* 高亮显示的边框 */
+        }
         /* 使用自定义光标 */
         .custom-cursor {
             cursor: url('data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjMwIiB3aWR0aD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgdmVyc2lvbj0iMSIgd2lsbHRyYXZlbG9wZW5fZjT9y4ewIjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxnPjxjaXJjbGUgcj0iMTUiIGN4PSIxNSIgY3k9IjE1IiBzdHlsZT0iZmlsbDpjYXI7IiAvPjwvZz48L3N2Zz4='), auto;
@@ -30,7 +34,7 @@
 <body>
     <h1 style="text-align: center;">玖数草稿</h1>
     <div class="tool-bar">
-        <button id="pen">画笔</button>
+        <button id="pen" class="active">画笔</button>
         <button id="eraser">橡皮擦</button>
         <button id="clear">清除</button>
     </div>
@@ -40,30 +44,49 @@
         const ctx = canvas.getContext('2d');
         let drawing = false;
         let erasing = false;
+        let mode = 'pen'; // 新增模式变量，初始为画笔模式
 
-        document.getElementById('pen').addEventListener('click', () => {
+        const penButton = document.getElementById('pen');
+        const eraserButton = document.getElementById('eraser');
+        const clearButton = document.getElementById('clear');
+
+        penButton.addEventListener('click', () => {
+            mode = 'pen';
             erasing = false;
             canvas.classList.remove('custom-cursor');
+            updateActiveButton(penButton);
         });
 
-        document.getElementById('eraser').addEventListener('click', () => {
+        eraserButton.addEventListener('click', () => {
+            mode = 'eraser';
             erasing = true;
             canvas.classList.add('custom-cursor');
+            updateActiveButton(eraserButton);
         });
 
-        document.getElementById('clear').addEventListener('click', () => {
+        clearButton.addEventListener('click', () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            updateActiveButton(clearButton);
         });
 
         // 处理鼠标事件
         canvas.addEventListener('mousedown', (event) => {
             drawing = true;
+            if (event.button === 2) { // 右键按下
+                erasing = true;
+                canvas.classList.add('custom-cursor'); // 添加自定义光标样式
+            } else if (mode === 'pen') {
+                erasing = false;
+                canvas.classList.remove('custom-cursor'); // 移除自定义光标样式
+            }
             draw(event);
         });
 
         canvas.addEventListener('mouseup', () => {
             drawing = false;
+            erasing = mode === 'eraser'; // 恢复工具栏的橡皮擦模式
             ctx.beginPath(); // 开始一个新的路径，避免线条连在一起
+            canvas.classList.remove('custom-cursor'); // 移除自定义光标样式
         });
 
         canvas.addEventListener('mousemove', draw);
@@ -108,6 +131,13 @@
             });
             draw(mouseEvent);
             event.preventDefault(); // 禁止默认的触控行为（例如滚动）
+        }
+
+        function updateActiveButton(activeButton) {
+            penButton.classList.remove('active');
+            eraserButton.classList.remove('active');
+            clearButton.classList.remove('active');
+            activeButton.classList.add('active');
         }
     </script>
 </body>
