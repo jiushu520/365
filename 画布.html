@@ -27,7 +27,7 @@
         }
         /* 使用自定义光标 */
         .custom-cursor {
-            cursor: url('data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjMwIiB3aWR0aD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgdmVyc2lvbj0iMSIgd2lsbHRyYXZlbG9wZW5fZjT9y4ewIjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxnPjxjaXJjbGUgcj0iMTUiIGN4PSIxNSIgY3k9IjE1IiBzdHlsZT0iZmlsbDpjYXI7IiAvPjwvZz48L3N2Zz4='), auto;
+            cursor: url('data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjMwIiB3aWR0aD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgdmVyc2lvbj0iMSIgd2lsdHJhdmVsb3Blbl9mZ24iIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGc+PGNpcmNsZSByPSIxNSIgY3g9IjE1IiBjeT0iMTUiIHN0eWxlPSJmaWxsOmNhcjsiIC8+PC9nPjwvc3ZnPg=='), auto;
         }
     </style>
 </head>
@@ -37,6 +37,10 @@
         <button id="pen" class="active">画笔</button>
         <button id="eraser">橡皮擦</button>
         <button id="clear">清除</button>
+        <button id="black" style="background-color: black; color: white;">黑色</button>
+        <button id="red" style="background-color: red;">红色</button>
+        <button id="blue" style="background-color: blue; color: white;">蓝色</button>
+        <button id="green" style="background-color: green; color: white;">绿色</button>
     </div>
     <canvas id="drawingCanvas" width="560" height="760"></canvas>
     <script>
@@ -45,9 +49,15 @@
         const penButton = document.getElementById('pen');
         const eraserButton = document.getElementById('eraser');
         const clearButton = document.getElementById('clear');
+        const blackButton = document.getElementById('black');
+        const redButton = document.getElementById('red');
+        const blueButton = document.getElementById('blue');
+        const greenButton = document.getElementById('green');
+        
         let drawing = false;
         let mode = 'pen';
-        let previousMode = 'pen'; // 用于保存之前的模式
+        let previousMode = 'pen';
+        let currentColor = 'black'; // 当前颜色
 
         const lineWidth = {
             pen: 5,
@@ -62,6 +72,10 @@
         penButton.addEventListener('click', () => setMode('pen', penButton));
         eraserButton.addEventListener('click', () => setMode('eraser', eraserButton));
         clearButton.addEventListener('click', clearCanvas);
+        blackButton.addEventListener('click', () => setColor('black', blackButton));
+        redButton.addEventListener('click', () => setColor('red', redButton));
+        blueButton.addEventListener('click', () => setColor('blue', blueButton));
+        greenButton.addEventListener('click', () => setColor('green', greenButton));
 
         canvas.addEventListener('mousedown', startDrawing);
         canvas.addEventListener('mouseup', stopDrawing);
@@ -93,6 +107,12 @@
             canvas.classList.toggle('custom-cursor', mode === 'eraser');
         }
 
+        function setColor(color, button) {
+            currentColor = color;
+            colors.pen = color;
+            updateActiveButton(button);
+        }
+
         function startDrawing(event) {
             drawing = true;
             draw(event);
@@ -109,7 +129,7 @@
 
             ctx.lineWidth = lineWidth[mode];
             ctx.lineCap = 'round';
-            ctx.strokeStyle = colors[mode];
+            ctx.strokeStyle = mode === 'eraser' ? colors.eraser : currentColor;
             ctx.globalCompositeOperation = mode === 'eraser' ? 'destination-out' : 'source-over';
 
             const rect = canvas.getBoundingClientRect();
@@ -132,7 +152,7 @@
         }
 
         function updateActiveButton(activeButton) {
-            [penButton, eraserButton, clearButton].forEach(button => button.classList.remove('active'));
+            [penButton, eraserButton, clearButton, blackButton, redButton, blueButton, greenButton].forEach(button => button.classList.remove('active'));
             activeButton.classList.add('active');
         }
     </script>
