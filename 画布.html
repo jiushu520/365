@@ -38,7 +38,7 @@
         <button id="eraser">橡皮擦</button>
         <button id="clear">清除</button>
     </div>
-    <canvas id="drawingCanvas" width="600" height="750"></canvas>
+    <canvas id="drawingCanvas" width="560" height="760"></canvas>
     <script>
         const canvas = document.getElementById('drawingCanvas');
         const ctx = canvas.getContext('2d');
@@ -47,6 +47,7 @@
         const clearButton = document.getElementById('clear');
         let drawing = false;
         let mode = 'pen';
+        let previousMode = 'pen'; // 用于保存之前的模式
 
         const lineWidth = {
             pen: 5,
@@ -70,7 +71,21 @@
         canvas.addEventListener('touchend', stopDrawing);
         canvas.addEventListener('touchmove', drawTouch);
 
+        // 禁用右键菜单并处理右键功能
         canvas.addEventListener('contextmenu', (event) => event.preventDefault());
+        canvas.addEventListener('mousedown', (event) => {
+            if (event.button === 2) {
+                previousMode = mode;
+                setMode('eraser', eraserButton);
+                startDrawing(event);
+            }
+        });
+        canvas.addEventListener('mouseup', (event) => {
+            if (event.button === 2) {
+                setMode(previousMode, penButton); // 恢复之前的模式
+                stopDrawing();
+            }
+        });
 
         function setMode(newMode, button) {
             mode = newMode;
