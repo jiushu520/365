@@ -10,57 +10,40 @@
             flex-direction: column;
             height: 100vh;
             margin: 0;
-            background-color: #e0f7fa;
-            font-family: Arial, sans-serif;
+            background-color: #e0f7fa; /* 浅蓝色背景 */
         }
         .top {
-            border-bottom: 1px solid #000;
-            padding: 10px 20px;
+            border: 1px solid #000;
+            padding: 0px; /* 减小padding以减少高度 */
+            box-sizing: border-box;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background-color: #0288d1;
-            color: white;
-        }
-        .top h3 {
-            margin: 0;
-        }
-        .menu-link {
-            margin-left: 20px;
-            cursor: pointer;
-            text-decoration: none;
-            color: white;
-            transition: color 0.3s;
-        }
-        .menu-link:hover {
-            color: #ffeb3b;
-        }
-        .blue-button {
-            background-color: #ffeb3b;
-            color: #000;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        .blue-button:hover {
-            background-color: #fdd835;
+            height: 50px; /* 设置一个固定的高度 */
         }
         .main {
             display: flex;
             flex-grow: 1;
+            height: calc(100vh - 50px); /* 剩余高度填充 */
         }
         .content, .right {
-            padding: 0;
-            height: 100%;
+            padding: 0px;
+            box-sizing: border-box;
+            border: 0px solid #fff;
+            height: 100%; /* 使其高度为父容器高度 */
         }
         .content {
-            flex: 7;
+            flex: 7; /* 做题界面占70% */
         }
         .right {
-            flex: 3;
-            transition: flex 0.3s;
+            flex: 3; /* 人工智能回复界面占30% */
+            transition: flex 0.3s; /* 增加过渡效果 */
+        }
+        .menu-link {
+            margin-left: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            color: black;
         }
         iframe {
             width: 100%;
@@ -68,7 +51,15 @@
             border: 0;
         }
         .hidden {
-            display: none;
+            display: none; /* 隐藏元素 */
+        }
+        .blue-button {
+            background-color: #2196F3; /* 蓝色背景 */
+            color: white; /* 白色文字 */
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
         }
     </style>
 </head>
@@ -76,9 +67,8 @@
     <div class="top">
         <h3>玖数学</h3>
         <div>
-            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('画布.html')">草稿</a>
+            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('画布.html')">画布</a>
             <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushuai.html')">玖数学问</a>
-            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushudsai.html')">深度求索</a>
             <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushudgtp4-o.html')">玖数求索</a>
             <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushuopenai.html')">玖数智能</a>
             <button class="blue-button" onclick="toggleRightContent()">切换人工智能</button>
@@ -94,11 +84,7 @@
     </div>
     <script>
         function showRightContent(url) {
-            const rightContent = document.getElementById('right-content');
-            rightContent.classList.remove('hidden');
-            document.getElementById('content').style.flex = '7';
-            rightContent.style.flex = '3';
-            rightContent.innerHTML = `<iframe src="${url}" frameborder="0"></iframe>`;
+            document.getElementById('right-content').innerHTML = `<iframe src="${url}" frameborder="0"></iframe>`;
         }
 
         function toggleRightContent() {
@@ -106,12 +92,12 @@
             const content = document.getElementById('content');
             if (rightContent.classList.contains('hidden')) {
                 rightContent.classList.remove('hidden');
-                content.style.flex = '7';
-                rightContent.style.flex = '3';
+                content.style.flex = '7'; // 保留70%给做题界面
+                rightContent.style.flex = '3'; // 30%给人工智能回复界面
             } else {
                 rightContent.classList.add('hidden');
-                content.style.flex = '1';
-                rightContent.style.flex = '0';
+                content.style.flex = '1'; // 扩展做题界面宽度
+                rightContent.style.flex = '0'; // 隐藏人工智能回复界面
             }
         }
     </script>
