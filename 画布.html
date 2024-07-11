@@ -33,7 +33,11 @@
             border: 1px solid #000000; /* 高亮显示的边框 */
         }
         .tool-bar button.selected-color {
-            border: 4px solid #FFD700; /* 选中颜色的边框 */
+            border: 8px solid #FFD700;/* 选中颜色的边框 */
+        }
+        .tool-bar .slider {
+            margin: 10px;
+            width: 200px;
         }
         /* 使用自定义光标 */
         .custom-cursor {
@@ -42,7 +46,7 @@
     </style>
 </head>
 <body>
-    <h3 style="text-align: center;">玖数草稿</h3>
+
     <div class="tool-bar">
         <button id="pen" class="active">画笔</button>
         <button id="eraser">橡皮</button>
@@ -51,6 +55,9 @@
         <button id="red" class="color-button" style="background-color: red;"></button>
         <button id="blue" class="color-button" style="background-color: blue; color: white;"></button>
         <button id="green" class="color-button" style="background-color: green; color: white;"></button>
+        <button id="yellow" class="color-button" style="background-color: yellow;"></button><br><br>
+        <input type="range" id="thicknessSlider" class="slider" min="1" max="50" value="5">
+        <span id="thicknessValue">5</span> <!-- 显示当前笔划粗细值 -->
     </div>
     <canvas id="drawingCanvas" width="560" height="760"></canvas>
     <script>
@@ -63,11 +70,15 @@
         const redButton = document.getElementById('red');
         const blueButton = document.getElementById('blue');
         const greenButton = document.getElementById('green');
-        
+        const yellowButton = document.getElementById('yellow');
+        const thicknessSlider = document.getElementById('thicknessSlider');
+        const thicknessValue = document.getElementById('thicknessValue');
+
         let drawing = false;
         let mode = 'pen';
         let previousMode = 'pen';
         let currentColor = 'black'; // 当前颜色
+        let currentThickness = 5; // 当前笔划粗细
 
         const lineWidth = {
             pen: 5,
@@ -86,6 +97,14 @@
         redButton.addEventListener('click', () => setColor('red', redButton));
         blueButton.addEventListener('click', () => setColor('blue', blueButton));
         greenButton.addEventListener('click', () => setColor('green', greenButton));
+        yellowButton.addEventListener('click', () => setColor('yellow', yellowButton));
+
+        thicknessSlider.addEventListener('input', (event) => {
+            currentThickness = event.target.value;
+            thicknessValue.textContent = currentThickness;
+            lineWidth.pen = currentThickness; // 更新画笔粗细
+            lineWidth.eraser = currentThickness; // 更新橡皮粗细
+        });
 
         canvas.addEventListener('mousedown', startDrawing);
         canvas.addEventListener('mouseup', stopDrawing);
@@ -138,7 +157,7 @@
             if (!drawing) return;
             const { clientX, clientY } = event.touches ? event.touches[0] : event;
 
-            ctx.lineWidth = lineWidth[mode];
+            ctx.lineWidth = mode === 'eraser' ? lineWidth.eraser : lineWidth.pen;
             ctx.lineCap = 'round';
             ctx.strokeStyle = mode === 'eraser' ? colors.eraser : currentColor;
             ctx.globalCompositeOperation = mode === 'eraser' ? 'destination-out' : 'source-over';
@@ -168,7 +187,7 @@
         }
 
         function updateActiveColorButton(activeButton) {
-            [blackButton, redButton, blueButton, greenButton].forEach(button => button.classList.remove('selected-color'));
+            [blackButton, redButton, blueButton, greenButton, yellowButton].forEach(button => button.classList.remove('selected-color'));
             activeButton.classList.add('selected-color');
         }
     </script>
