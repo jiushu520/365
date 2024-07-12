@@ -7,7 +7,7 @@
     <style>
         canvas {
             border: 1px solid black;
-            background-color: #F5F5F5; /* 设置背景为淡黄色 */
+            background-color: #F5F5F5;
             display: block;
             margin: 20px auto;
         }
@@ -20,33 +20,31 @@
             padding: 10px;
             font-size: 16px;
             cursor: pointer;
-            border: none; /* 移除默认边框 */
+            border: none;
         }
         .tool-bar button.color-button {
             width: 30px;
             height: 30px;
             border-radius: 50%;
-            border: 2px solid transparent; /* 初始透明边框 */
+            border: 2px solid transparent;
         }
         .tool-bar button.active {
-            background-color: #FFFFE0; /* 高亮显示的背景色 */
-            border: 1px solid #000000; /* 高亮显示的边框 */
+            background-color: #FFFFE0;
+            border: 1px solid #000000;
         }
         .tool-bar button.selected-color {
-            border: 8px solid #FFD700;/* 选中颜色的边框 */
+            border: 8px solid #FFD700;
         }
         .tool-bar .slider {
             margin: 10px;
             width: 200px;
         }
-        /* 使用自定义光标 */
         .custom-cursor {
             cursor: url('data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjMwIiB3aWR0aD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgdmVyc2lvbj0iMSIgd2lsdHJhdmVsb3Blbl9mZ24iIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGc+PGNpcmNsZSByPSIxNSIgY3g9IjE1IiBjeT0iMTUiIHN0eWxlPSJmaWxsOmNhcjsiIC8+PC9nPjwvc3ZnPg=='), auto;
         }
     </style>
 </head>
 <body>
-
     <div class="tool-bar">
         <button id="pen" class="active">画笔</button>
         <button id="eraser">橡皮</button>
@@ -57,7 +55,7 @@
         <button id="green" class="color-button" style="background-color: green; color: white;"></button>
         <button id="yellow" class="color-button" style="background-color: yellow;"></button><br><br>
         <input type="range" id="thicknessSlider" class="slider" min="1" max="50" value="5">
-        <span id="thicknessValue">5</span> <!-- 显示当前笔划粗细值 -->
+        <span id="thicknessValue">5</span>
     </div>
     <canvas id="drawingCanvas" width="560" height="760"></canvas>
     <script>
@@ -66,81 +64,67 @@
         const penButton = document.getElementById('pen');
         const eraserButton = document.getElementById('eraser');
         const clearButton = document.getElementById('clear');
-        const blackButton = document.getElementById('black');
-        const redButton = document.getElementById('red');
-        const blueButton = document.getElementById('blue');
-        const greenButton = document.getElementById('green');
-        const yellowButton = document.getElementById('yellow');
+        const colorButtons = document.querySelectorAll('.color-button');
         const thicknessSlider = document.getElementById('thicknessSlider');
         const thicknessValue = document.getElementById('thicknessValue');
 
         let drawing = false;
         let mode = 'pen';
         let previousMode = 'pen';
-        let currentColor = 'black'; // 当前颜色
-        let currentThickness = 5; // 当前笔划粗细
+        let currentColor = 'black';
+        let currentThickness = 5;
 
         const lineWidth = {
             pen: 5,
             eraser: 30
         };
 
-        const colors = {
-            pen: 'black',
-            eraser: 'white'
-        };
-
-        penButton.addEventListener('click', () => setMode('pen', penButton));
-        eraserButton.addEventListener('click', () => setMode('eraser', eraserButton));
+        penButton.addEventListener('click', () => setMode('pen'));
+        eraserButton.addEventListener('click', () => setMode('eraser'));
         clearButton.addEventListener('click', clearCanvas);
-        blackButton.addEventListener('click', () => setColor('black', blackButton));
-        redButton.addEventListener('click', () => setColor('red', redButton));
-        blueButton.addEventListener('click', () => setColor('blue', blueButton));
-        greenButton.addEventListener('click', () => setColor('green', greenButton));
-        yellowButton.addEventListener('click', () => setColor('yellow', yellowButton));
+
+        colorButtons.forEach(button => {
+            button.addEventListener('click', () => setColor(button.style.backgroundColor, button));
+        });
 
         thicknessSlider.addEventListener('input', (event) => {
             currentThickness = event.target.value;
             thicknessValue.textContent = currentThickness;
-            lineWidth.pen = currentThickness; // 更新画笔粗细
-            lineWidth.eraser = currentThickness; // 更新橡皮粗细
+            lineWidth.pen = currentThickness;
+            lineWidth.eraser = currentThickness;
         });
 
         canvas.addEventListener('mousedown', startDrawing);
         canvas.addEventListener('mouseup', stopDrawing);
         canvas.addEventListener('mousemove', draw);
-
         canvas.addEventListener('touchstart', startDrawing);
         canvas.addEventListener('touchend', stopDrawing);
         canvas.addEventListener('touchmove', drawTouch);
-
-        // 禁用右键菜单并处理右键功能
         canvas.addEventListener('contextmenu', (event) => event.preventDefault());
         canvas.addEventListener('mousedown', (event) => {
             if (event.button === 2) {
                 previousMode = mode;
-                setMode('eraser', eraserButton);
+                setMode('eraser');
                 startDrawing(event);
             }
         });
         canvas.addEventListener('mouseup', (event) => {
             if (event.button === 2) {
-                setMode(previousMode, penButton); // 恢复之前的模式
+                setMode(previousMode);
                 stopDrawing();
             }
         });
 
-        function setMode(newMode, button) {
+        function setMode(newMode) {
             mode = newMode;
-            updateActiveButton(button);
+            updateActiveButton();
             canvas.classList.toggle('custom-cursor', mode === 'eraser');
         }
 
         function setColor(color, button) {
             currentColor = color;
-            colors.pen = color;
             updateActiveColorButton(button);
-            setMode('pen', penButton); // 自动切换到画笔模式
+            setMode('pen');
         }
 
         function startDrawing(event) {
@@ -159,7 +143,7 @@
 
             ctx.lineWidth = mode === 'eraser' ? lineWidth.eraser : lineWidth.pen;
             ctx.lineCap = 'round';
-            ctx.strokeStyle = mode === 'eraser' ? colors.eraser : currentColor;
+            ctx.strokeStyle = mode === 'eraser' ? 'white' : currentColor;
             ctx.globalCompositeOperation = mode === 'eraser' ? 'destination-out' : 'source-over';
 
             const rect = canvas.getBoundingClientRect();
@@ -181,13 +165,13 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
-        function updateActiveButton(activeButton) {
+        function updateActiveButton() {
             [penButton, eraserButton, clearButton].forEach(button => button.classList.remove('active'));
-            activeButton.classList.add('active');
+            document.getElementById(mode).classList.add('active');
         }
 
         function updateActiveColorButton(activeButton) {
-            [blackButton, redButton, blueButton, greenButton, yellowButton].forEach(button => button.classList.remove('selected-color'));
+            colorButtons.forEach(button => button.classList.remove('selected-color'));
             activeButton.classList.add('selected-color');
         }
     </script>
