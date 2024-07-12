@@ -1,5 +1,5 @@
 const accounts = {
-
+\\邓老师
 '玖数':'jiushu',
 '吴钰涵':'jiushu',
 '涂子钥':'jiushu',
@@ -65,6 +65,15 @@ const accounts = {
 '何星亿':'jiushu',
 '林采盈':'jiushu',
 '邓致':'jiushu',
+
+
+'李岱轩':'jiushu',
+'俞新旸':'jiushu',
+
+'郭家侨':'jiushu',
+'郭笑言':'jiushu',
+'杨家朗':'jiushu',
+
 
   
 
