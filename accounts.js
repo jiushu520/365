@@ -2,7 +2,7 @@ const accounts = {
 
 '玖数':'jiushu',
 '吴钰涵':'jiushu',
-'涂子钥':'jiushu',
+'涂子玥':'jiushu',
 '邓康禾':'jiushu',
 '陈思霖':'jiushu',
 '胡一诺':'jiushu',
