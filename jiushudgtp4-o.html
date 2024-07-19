@@ -136,7 +136,7 @@
         });
 
         function selectApiKey() {
-            return 'sk-OUhVhJZoEP8wZjKlA4B9Bd865d7d40989f35623eDfA24516'; // 始终使用第一个密钥
+            return 'sk-gIFuQfeIYh4V3i4e55F5593b23664fDdAc525105A898F268'; // 始终使用第一个密钥
         }
 
         function sendMessage() {
@@ -156,14 +156,14 @@
         async function getAssistantReply() {
             const apiKey = selectApiKey();
             try {
-                const response = await fetch('https://aigc.x-see.cn/v1/chat/completions', {
+                const response = await fetch('https://4.0.wokaai.com/v1/chat/completions', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${apiKey}`
                     },
                     body: JSON.stringify({
-                        model: "gpt-4",  // 确保使用GPT-4模型
+                        model: "gpt-4o-mini-2024-07-18",  // 确保使用GPT-4模型
                         messages: messages,
                         temperature: 0.3
                     })
