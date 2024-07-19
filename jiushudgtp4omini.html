@@ -15,7 +15,7 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background-color: #e0f7fa; /* 浅蓝色背景 */
+            background-color: #e0f7fa;
             overflow: hidden;
         }
         #chat-container {
@@ -103,7 +103,7 @@
             <textarea id="user-input" placeholder="输入你的消息..." rows="1"></textarea>
             <button id="send-btn" disabled>发送</button>
         </div>
-        <button id="refresh-btn">刷新</button>
+        <button id="refresh-btn">清除</button>
     </div>
 
     <script>
@@ -132,7 +132,7 @@
         });
 
         refreshBtn.addEventListener('click', () => {
-            location.reload();
+            clearMessages();
         });
 
         function selectApiKey() {
@@ -241,6 +241,13 @@
                     });
                 }
             }, intervalTime);
+        }
+
+        function clearMessages() {
+            messagesContainer.innerHTML = '';
+            messages = [
+                {"role": "system", "content": "你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型。并会给出题涉及的相关知识点。玖数 为专有名词，不可翻译成其他语言。"}
+            ];
         }
 
         window.addEventListener('resize', () => {
