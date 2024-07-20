@@ -71,15 +71,15 @@
             flex-grow: 1;
         }
         .content, .right {
-            padding: 0;
             height: 100%;
         }
         .content {
-            flex: 7;
+            flex: 1;
+            transition: flex-basis 0.3s;
         }
         .right {
-            flex: 3;
-            transition: flex 0.3s;
+            flex: 1;
+            transition: flex-basis 0.3s;
         }
         iframe {
             width: 100%;
@@ -109,6 +109,16 @@
             color: white;
             cursor: pointer;
         }
+        .width-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 5px 0;
+        }
+        .width-controls input {
+            width: 80%;
+            margin: 0 0px;
+        }
     </style>
 </head>
 <body>
@@ -123,13 +133,21 @@
     </div>
     <div class="top">
         <h3>玖数学</h3>
+
         <div>
+
             <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('画布.html')">草稿</a>
+            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('https://www.geogebra.org/classic')">ggb</a>
+            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('灵镜.html')">灵镜</a>
             <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushuai.html')">玖数学问</a>
             <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushudgtp4omini.html')">玖数求索</a>
             <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushuopenai.html')">玖数智能</a>
             <button class="blue-button" onclick="toggleRightContent()">切换人工智能</button>
         </div>
+    </div>
+    <div class="width-controls">
+        <label for="width-range"></label>
+        <input type="range" id="width-range" min="10" max="90" value="50" oninput="adjustWidth()">
     </div>
     <div class="main">
         <div class="content" id="content">
@@ -161,8 +179,7 @@
         function showRightContent(url) {
             const rightContent = document.getElementById('right-content');
             rightContent.classList.remove('hidden');
-            document.getElementById('content').style.flex = '7';
-            rightContent.style.flex = '3';
+            adjustWidth();
             rightContent.innerHTML = `<iframe src="${url}" frameborder="0"></iframe>`;
         }
 
@@ -171,13 +188,22 @@
             const content = document.getElementById('content');
             if (rightContent.classList.contains('hidden')) {
                 rightContent.classList.remove('hidden');
-                content.style.flex = '7';
-                rightContent.style.flex = '3';
+                adjustWidth();
             } else {
                 rightContent.classList.add('hidden');
-                content.style.flex = '1';
-                rightContent.style.flex = '0';
+                content.style.flexBasis = '100%';
+                rightContent.style.flexBasis = '0';
             }
+        }
+
+        function adjustWidth() {
+            const widthRange = document.getElementById('width-range').value;
+            const content = document.getElementById('content');
+            const rightContent = document.getElementById('right-content');
+            const leftWidth = widthRange;
+            const rightWidth = 100 - widthRange;
+            content.style.flexBasis = `${leftWidth}%`;
+            rightContent.style.flexBasis = `${rightWidth}%`;
         }
     </script>
 </body>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>灵镜</title>
+    <link rel="icon" href="faviconkimi.ico" type="image/x-icon">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            background-color: #f0f0f0;
+            overflow: hidden;
+        }
+        .chat-container {
+            width: 45%;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            margin: 10px;
+            height: 70vh;
+        }
+        #container {
+            display: flex;
+            width: 90%;
+            max-width: 1200px;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        #input-container {
+            display: flex;
+            align-items: center;
+            width: 90%;
+            max-width: 1200px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        #user-input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            resize: vertical;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        #send-btn {
+            padding: 10px 15px;
+            border: none;
+            background-color: #007bff;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        #send-btn:disabled {
+            background-color: #bbb;
+            cursor: not-allowed;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .user-message {
+            background-color: #daf7a6;
+        }
+        .assistant-message {
+            background-color: #ffeb99;
+        }
+        .message-time {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 5px;
+            align-self: flex-end;
+        }
+        #refresh-btn {
+            padding: 10px 15px;
+            border: none;
+            background-color: green;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>灵镜</h1>
+    <div id="container">
+        <div id="chat-container-1" class="chat-container"></div>
+        <div id="chat-container-2" class="chat-container"></div>
+    </div>
+    <div id="input-container">
+        <button id="refresh-btn">清除</button></br>
+        <textarea id="user-input" placeholder="输入你的消息..." rows="1"></textarea>
+        <button id="send-btn" disabled>发送</button>
+    </div>
+
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatContainer1 = document.getElementById('chat-container-1');
+        const chatContainer2 = document.getElementById('chat-container-2');
+        const refreshBtn = document.getElementById('refresh-btn');
+
+        let messages1 = [{"role": "system", "content": "你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型。并会给出题涉及的相关知识点。玖数 为专有名词，不可翻译成其他语言。"}];
+        let messages2 = [{"role": "system", "content": "你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型。并会给出题涉及的相关知识点。玖数 为专有名词，不可翻译成其他语言。"}];
+
+        userInput.addEventListener('input', () => {
+            sendBtn.disabled = userInput.value.trim() === '';
+        });
+
+        sendBtn.addEventListener('click', () => {
+            sendMessage();
+        });
+
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        refreshBtn.addEventListener('click', () => {
+            clearMessages();
+        });
+
+        async function sendMessage() {
+            const userMessage = userInput.value.trim();
+            if (userMessage === '') return;
+
+            displayMessage(`我：${userMessage}`, 'user-message', chatContainer1);
+            displayMessage(`我：${userMessage}`, 'user-message', chatContainer2);
+
+            messages1.push({"role": "user", "content": userMessage});
+            messages2.push({"role": "user", "content": userMessage});
+
+            userInput.value = '';
+            sendBtn.disabled = true;
+
+            await getAssistantReply(messages1, chatContainer1, 'https://api.moonshot.cn/v1/chat/completions', 'sk-f7s6H8XxvgXBGNbQ9HkRztr2IyUCmeFMyi6fqApGVM1GQK1g', "moonshot-v1-128k");
+            await getAssistantReply(messages2, chatContainer2, 'https://aigc.x-see.cn/v1/chat/completions', 'sk-OUhVhJZoEP8wZjKlA4B9Bd865d7d40989f35623eDfA24516', "gpt-4o-mini");
+        }
+
+        async function getAssistantReply(messages, chatContainer, apiUrl, apiKey, model) {
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: messages,
+                        temperature: 0.3
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error("API 请求失败:", errorData);
+                    displayMessage("玖数：对不起，发生了错误，请稍后再试。", 'assistant-message', chatContainer);
+                    return;
+                }
+
+                const data = await response.json();
+                const assistantMessage = data.choices[0].message.content;
+
+                displayMessageStepByStep(`玖数：${assistantMessage}`, 'assistant-message', chatContainer);
+            } catch (error) {
+                console.error("请求出错:", error);
+                displayMessage("玖数：对不起，发生了错误，请稍后再试。", 'assistant-message', chatContainer);
+            }
+        }
+
+        function displayMessage(message, className, container) {
+            return new Promise((resolve) => {
+                const messageElement = document.createElement('div');
+                messageElement.className = `message ${className}`;
+                const textElement = document.createElement('span');
+                textElement.innerHTML = message;
+
+                const timeElement = document.createElement('span');
+                timeElement.className = 'message-time';
+                timeElement.textContent = new Date().toLocaleTimeString();
+
+                messageElement.appendChild(textElement);
+                messageElement.appendChild(timeElement);
+
+                container.appendChild(messageElement);
+                container.scrollTop = container.scrollHeight;
+
+                MathJax.typesetPromise([messageElement]).then(() => {
+                    container.scrollTop = container.scrollHeight;
+                    resolve();
+                });
+            });
+        }
+
+        function displayMessageStepByStep(message, className, container) {
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${className}`;
+            const textElement = document.createElement('span');
+            textElement.textContent = '';
+
+            const timeElement = document.createElement('span');
+            timeElement.className = 'message-time';
+            timeElement.textContent = new Date().toLocaleTimeString();
+
+            messageElement.appendChild(textElement);
+            messageElement.appendChild(timeElement);
+
+            container.appendChild(messageElement);
+            container.scrollTop = container.scrollHeight;
+
+            let index = 0;
+            const intervalTime = 1;
+            const interval = setInterval(() => {
+                if (index < message.length) {
+                    textElement.textContent += message[index];
+                    index++;
+                    container.scrollTop = container.scrollHeight;
+                } else {
+                    clearInterval(interval);
+                    MathJax.typesetPromise([messageElement]).then(() => {
+                        container.scrollTop = container.scrollHeight;
+                    });
+                }
+            }, intervalTime);
+        }
+
+        function clearMessages() {
+            chatContainer1.innerHTML = '';
+            chatContainer2.innerHTML = '';
+            messages1 = [{"role": "system", "content": "你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型。并会给出题涉及的相关知识点。玖数 为专有名词，不可翻译成其他语言。"}];
+            messages2 = [{"role": "system", "content": "你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型。并会给出题涉及的相关知识点。玖数 为专有名词，不可翻译成其他语言。"}];
+        }
+    </script>
+</body>
+</html>
