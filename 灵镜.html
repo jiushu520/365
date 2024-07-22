@@ -158,8 +158,8 @@
             userInput.value = '';
             sendBtn.disabled = true;
 
-            await getAssistantReply(messages1, chatContainer1, 'https://api.moonshot.cn/v1/chat/completions', 'sk-f7s6H8XxvgXBGNbQ9HkRztr2IyUCmeFMyi6fqApGVM1GQK1g', "moonshot-v1-128k");
-            await getAssistantReply(messages2, chatContainer2, 'https://aigc.x-see.cn/v1/chat/completions', 'sk-OUhVhJZoEP8wZjKlA4B9Bd865d7d40989f35623eDfA24516', "gpt-4o-mini");
+            getAssistantReply(messages1, chatContainer1, 'https://api.moonshot.cn/v1/chat/completions', 'sk-f7s6H8XxvgXBGNbQ9HkRztr2IyUCmeFMyi6fqApGVM1GQK1g', "moonshot-v1-128k");
+            getAssistantReply(messages2, chatContainer2, 'https://aigc.x-see.cn/v1/chat/completions', 'sk-OUhVhJZoEP8wZjKlA4B9Bd865d7d40989f35623eDfA24516', "gpt-4o-mini");
         }
 
         async function getAssistantReply(messages, chatContainer, apiUrl, apiKey, model) {
