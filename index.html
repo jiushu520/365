@@ -5,14 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>玖数学</title>
     <style>
+        :root {
+            --primary-color: #0288d1;
+            --secondary-color: #ffeb3b;
+            --background-color: #e0f7fa;
+            --text-color: #000;
+            --border-color: #ccc;
+            --hover-color: #fdd835;
+        }
+
         body {
             display: flex;
             flex-direction: column;
             height: 100vh;
             margin: 0;
-            background-color: #e0f7fa;
+            background-color: var(--background-color);
             font-family: Arial, sans-serif;
         }
+
         .login-container {
             display: flex;
             justify-content: center;
@@ -25,25 +35,29 @@
             background-color: rgba(224, 247, 250, 0.9);
             z-index: 1000;
         }
+
         .login-box {
             background-color: white;
-            border: 1px solid #ccc;
+            border: 1px solid var(--border-color);
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+
         .top {
-            border-bottom: 1px solid #000;
+            border-bottom: 1px solid var(--border-color);
             padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background-color: #0288d1;
+            background-color: var(--primary-color);
             color: white;
         }
+
         .top h3 {
             margin: 0;
         }
+
         .menu-link {
             margin-left: 20px;
             cursor: pointer;
@@ -51,73 +65,87 @@
             color: white;
             transition: color 0.3s;
         }
+
         .menu-link:hover {
-            color: #ffeb3b;
+            color: var(--secondary-color);
         }
+
         .blue-button {
-            background-color: #ffeb3b;
-            color: #000;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
             border: none;
             padding: 10px 20px;
             cursor: pointer;
             border-radius: 5px;
             transition: background-color 0.3s;
         }
+
         .blue-button:hover {
-            background-color: #fdd835;
+            background-color: var(--hover-color);
         }
+
         .main {
             display: flex;
             flex-grow: 1;
         }
+
         .content, .right {
             height: 100%;
         }
+
         .content {
             flex: 1;
             transition: flex-basis 0.3s;
         }
+
         .right {
             flex: 1;
             transition: flex-basis 0.3s;
         }
+
         iframe {
             width: 100%;
             height: 100%;
             border: 0;
         }
+
         .hidden {
             display: none;
         }
+
         #loginForm {
             display: flex;
             flex-direction: column;
             align-items: center;
             margin-top: 20px;
         }
+
         #loginForm input {
             margin: 5px;
             padding: 5px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--border-color);
             border-radius: 5px;
         }
+
         #loginForm button {
             padding: 5px 10px;
             border: none;
             border-radius: 5px;
-            background-color: #007bff;
+            background-color: var(--primary-color);
             color: white;
             cursor: pointer;
         }
+
         .width-controls {
             display: flex;
             justify-content: center;
             align-items: center;
             margin: 5px 0;
         }
+
         .width-controls input {
             width: 80%;
-            margin: 0 0px;
+            margin: 0;
         }
     </style>
 </head>
@@ -128,14 +156,13 @@
                 <input type="text" id="username" placeholder="用户名">
                 <input type="password" id="password" placeholder="密码">
                 <button type="button" onclick="login()">登录</button>
+                <div id="error-message" style="color: red; display: none;">用户名或密码错误</div>
             </form>
         </div>
     </div>
     <div class="top">
         <h3>玖数学</h3>
-
         <div>
-
             <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('画布.html')">草稿</a>
             <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('https://www.geogebra.org/classic')">ggb</a>
             <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('灵镜.html')">灵镜</a>
@@ -147,13 +174,13 @@
     </div>
     <div class="width-controls">
         <label for="width-range"></label>
-        <input type="range" id="width-range" min="10" max="90" value="50" oninput="adjustWidth()">
+        <input type="range" id="width-range" min="10" max="90" value="65" oninput="adjustWidth()">
     </div>
     <div class="main">
-        <div class="content" id="content">
+        <div class="content" id="content" style="flex-basis: 65%;">
             <iframe src="https://jiushu520.github.io/tiku/" frameborder="0"></iframe>
         </div>
-        <div class="right" id="right-content">
+        <div class="right" id="right-content" style="flex-basis: 35%;">
             <iframe src="jiushudgtp4-o.html" frameborder="0"></iframe>
         </div>
     </div>
@@ -163,17 +190,28 @@
             if (localStorage.getItem('loggedIn') === 'true') {
                 document.getElementById('loginContainer').style.display = 'none';
             }
+            adjustWidth(); // 初始设置容器宽度
         });
 
         function login() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+            if (!username || !password) {
+                showErrorMessage('请输入用户名和密码');
+                return;
+            }
             if (accounts[username] && accounts[username] === password) {
                 localStorage.setItem('loggedIn', 'true');
                 document.getElementById('loginContainer').style.display = 'none';
             } else {
-                alert('用户名或密码错误');
+                showErrorMessage('用户名或密码错误');
             }
+        }
+
+        function showErrorMessage(message) {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
         }
 
         function showRightContent(url) {
