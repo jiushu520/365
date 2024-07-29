@@ -6,6 +6,7 @@
     <title>玖数深度求索智能</title>
     <link rel="icon" href="faviconkimi.ico" type="image/x-icon">
     <style>
+        /* 保持原有的样式不变 */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -15,7 +16,7 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background-color: #e0f7fa; /* 浅蓝色背景 */
+            background-color: #e0f7fa;
             overflow: hidden;
         }
         #chat-container {
@@ -81,7 +82,7 @@
             background-color: #bbb;
             cursor: not-allowed;
         }
-        #refresh-btn {
+        #clear-btn {
             width: 100%;
             margin: 20px auto;
             padding: 10px 15px;
@@ -103,14 +104,14 @@
             <textarea id="user-input" placeholder="输入你的消息..." rows="1"></textarea>
             <button id="send-btn" disabled>发送</button>
         </div>
-        <button id="refresh-btn">刷新</button>
+        <button id="clear-btn">清除消息</button>
     </div>
 
     <script>
         const messagesContainer = document.getElementById('messages');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
-        const refreshBtn = document.getElementById('refresh-btn');
+        const clearBtn = document.getElementById('clear-btn');
 
         let messages = [
             {"role": "system", "content": "你是 玖数 人工智能助手。有着20年数学竞赛经验的教练。回答问题时会考虑多个方面，并会给出题涉及的相关知识点。玖数 为专有名词，不可翻译成其他语言。"}
@@ -131,9 +132,16 @@
             }
         });
 
-        refreshBtn.addEventListener('click', () => {
-            location.reload();
+        clearBtn.addEventListener('click', () => {
+            clearMessages();
         });
+
+        function clearMessages() {
+            messagesContainer.innerHTML = '';
+            messages = [
+                {"role": "system", "content": "你是 玖数 人工智能助手。有着20年数学竞赛经验的教练。回答问题时会考虑多个方面，并会给出题涉及的相关知识点。玖数 为专有名词，不可翻译成其他语言。"}
+            ];
+        }
 
         function selectApiKey() {
             return 'sk-fd790ecc4101410bb877daa5b6a9a5c1'; // 始终使用第一个密钥
@@ -156,14 +164,14 @@
         async function getAssistantReply() {
             const apiKey = selectApiKey();
             try {
-                const response = await fetch('https://api.deepseek.com/v1/coder/completions', {
+                const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${apiKey}`
                     },
                     body: JSON.stringify({
-                        model: "deepseek-chat",
+                        model: "deepseek-coder",
                         messages: messages,
                         temperature: 0.3
                     })
