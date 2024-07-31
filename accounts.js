@@ -1,6 +1,13 @@
 const accounts = {
 
 '玖数':'jiushu',
+  '天佑城':'jiushu',
+  '京师':'jiushu',
+  '外滩':'jiushu',
+  '嘉信':'jiushu',
+
+
+  
 '吴钰涵':'jiushu',
 '涂子玥':'jiushu',
 '邓康禾':'jiushu',
