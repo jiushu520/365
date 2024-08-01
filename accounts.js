@@ -59,7 +59,8 @@ const accounts = {
 '李晨希':'jiushu',
 '古一铭':'jiushu',
 '卢嘉阳':'jiushu',
-
+'陈子诚':'jiushu',
+'夏吉喆':'jiushu',
 
 
 
