@@ -174,36 +174,40 @@
 
         async getAssistantReply() {
             this.loadingIndicator.style.display = 'block';
-            let models = ["gpt-4o-2024-08-06","gpt-4o-mini", "gpt-4o", "gpt-4-turbo"];
-            let response;
-            for (let model of models) {
-                try {
-                    response = await fetch(this.API_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${this.selectApiKey()}`
-                        },
-                        body: JSON.stringify({
-                            model: model,
-                            messages: this.messages,
-                            temperature: 0.3
-                        })
-                    });
-                    if (response.ok) break;
-                } catch (error) {
-                    console.error("请求出错:", error);
-                }
-            }
-            if (!response || !response.ok) {
-                await this.displayMessage("玖数：对不起，发生了错误，请稍后再试。", 'assistant-message');
-            } else {
+            const apiKey = this.selectApiKey();
+            try {
+                const response = await fetch(this.API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "gpt-4o-2024-08-06",
+                        messages: this.messages,
+                        temperature: 0.3
+                    })
+                });
+
                 const data = await response.json();
+
+                if (!response.ok) {
+                    console.error("API 请求失败:", data);
+                    await this.displayMessage("玖数：对不起，发生了错误，请稍后再试。", 'assistant-message');
+                    return;
+                }
+
+                console.log("API 请求成功:", data);
                 const assistantMessage = data.choices[0].message.content;
+
                 await this.displayMessageStepByStep(`玖数：${assistantMessage}`, 'assistant-message');
                 this.messages.push({"role": "assistant", "content": assistantMessage});
+            } catch (error) {
+                console.error("请求出错:", error);
+                await this.displayMessage("玖数：对不起，发生了错误，请稍后再试。", 'assistant-message');
+            } finally {
+                this.loadingIndicator.style.display = 'none';
             }
-            this.loadingIndicator.style.display = 'none';
         }
 
         selectApiKey() {
