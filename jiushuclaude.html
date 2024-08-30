@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>玖数4omini</title>
+    <title>玖数claude</title>
     <link rel="icon" href="faviconkimi.ico" type="image/x-icon">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-okaidia.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
@@ -135,7 +135,7 @@
     </style>
 </head>
 <body>
-    <h1 id="title">玖数4omini</h1>
+    <h1 id="title">玖数claude</h1>
     <div id="chat-container">
         <div id="messages"></div>
         <div id="input-container">
@@ -214,7 +214,7 @@
                         'Authorization': `Bearer ${apiKey}`
                     },
                     body: JSON.stringify({
-                        model: "gpt-4o-mini-2024-07-18",
+                        model: "claude-3-5-sonnet-20240620",
                         messages: this.messages,
                         temperature: 0.3
                     })

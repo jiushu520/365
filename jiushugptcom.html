@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>玖数求索</title>
     <link rel="icon" href="faviconkimi.ico" type="image/x-icon">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-python.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -19,7 +24,7 @@
         }
         #chat-container {
             width: 90%;
-            max-width: 600px;
+            max-width: 90%; /* 这将使容器占据屏幕宽度的90% */
             background-color: #fff;
             border-radius: 10px;
             box-shadow: 0 0 15px rgba(0,0,0,0.1);
@@ -99,9 +104,35 @@
             text-align: center;
             margin-top: 10px;
         }
+        .code-container {
+            background-color: #272822;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            position: relative;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: auto;
+        }
+        .code-content {
+            margin: 0;
+            padding: 0;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            background-color: #3b3b3b;
+            color: #f8f8f2;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+        .copy-btn:hover {
+            background-color: #555555;
+        }
     </style>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
     <h1 id="title">玖数求索</h1>
@@ -240,7 +271,6 @@
             messageElement.className = `message ${className}`;
             const contentElement = document.createElement('div');
             contentElement.className = 'message-content';
-            contentElement.textContent = '';
 
             const timeElement = document.createElement('span');
             timeElement.className = 'message-time';
@@ -253,13 +283,22 @@
             this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
 
             let index = 0;
-            const intervalTime = 1; // 修改这里的数值来调整回复速度，单位是毫秒
+            const intervalTime = 1;
 
             return new Promise((resolve) => {
                 const animate = () => {
                     if (index < message.length) {
-                        contentElement.textContent += message[index];
-                        index++;
+                        if (message.substr(index, 3) === '```') {
+                            const endIndex = message.indexOf('```', index + 3);
+                            if (endIndex !== -1) {
+                                const codeBlock = message.substring(index + 3, endIndex);
+                                this.createCodeContainer(contentElement, codeBlock);
+                                index = endIndex + 3;
+                            }
+                        } else {
+                            contentElement.innerHTML += message[index];
+                            index++;
+                        }
                         this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
                         requestAnimationFrame(animate);
                     } else {
@@ -271,6 +310,39 @@
                 };
                 requestAnimationFrame(animate);
             });
+        }
+
+        createCodeContainer(parentElement, codeContent) {
+            const codeContainer = document.createElement('div');
+            codeContainer.className = 'code-container';
+
+            const codeElement = document.createElement('pre');
+            codeElement.className = 'code-content';
+
+            const codeInner = document.createElement('code');
+            codeInner.className = 'language-python'; // 默认为 Python，可以根据需要更改
+            codeInner.textContent = codeContent.trim();
+
+            codeElement.appendChild(codeInner);
+
+            const copyButton = document.createElement('button');
+            copyButton.className = 'copy-btn';
+            copyButton.textContent = '复制';
+            copyButton.onclick = () => {
+                navigator.clipboard.writeText(codeContent.trim()).then(() => {
+                    copyButton.textContent = '已复制';
+                    setTimeout(() => {
+                        copyButton.textContent = '复制';
+                    }, 2000);
+                });
+            };
+
+            codeContainer.appendChild(codeElement);
+            codeContainer.appendChild(copyButton);
+            parentElement.appendChild(codeContainer);
+
+            // 应用 Prism.js 语法高亮
+            Prism.highlightElement(codeInner);
         }
 
         clearMessages() {
