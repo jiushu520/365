@@ -270,51 +270,51 @@
             });
         }
 
-async displayMessageStepByStep(message, className) {
-    const messageElement = document.createElement('div');
-    messageElement.className = `message ${className}`;
-    const contentElement = document.createElement('div');
-    contentElement.className = 'message-content';
+        async displayMessageStepByStep(message, className) {
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${className}`;
+            const contentElement = document.createElement('div');
+            contentElement.className = 'message-content';
 
-    const timeElement = document.createElement('span');
-    timeElement.className = 'message-time';
-    timeElement.textContent = new Date().toLocaleTimeString();
+            const timeElement = document.createElement('span');
+            timeElement.className = 'message-time';
+            timeElement.textContent = new Date().toLocaleTimeString();
 
-    messageElement.appendChild(contentElement);
-    messageElement.appendChild(timeElement);
+            messageElement.appendChild(contentElement);
+            messageElement.appendChild(timeElement);
 
-    this.messagesContainer.appendChild(messageElement);
-    this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+            this.messagesContainer.appendChild(messageElement);
+            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
 
-    let index = 0;
-    const chunkSize = 5;  // 改为每次显示5个字符，或根据需要调整
+            let index = 0;
+            const intervalTime = 1;
 
-    return new Promise((resolve) => {
-        const animate = () => {
-            if (index < message.length) {
-                if (message.substr(index, 3) === '```') {
-                    const endIndex = message.indexOf('```', index + 3);
-                    if (endIndex !== -1) {
-                        const codeBlock = message.substring(index + 3, endIndex);
-                        this.createCodeContainer(contentElement, codeBlock);
-                        index = endIndex + 3;
+            return new Promise((resolve) => {
+                const animate = () => {
+                    if (index < message.length) {
+                        if (message.substr(index, 3) === '```') {
+                            const endIndex = message.indexOf('```', index + 3);
+                            if (endIndex !== -1) {
+                                const codeBlock = message.substring(index + 3, endIndex);
+                                this.createCodeContainer(contentElement, codeBlock);
+                                index = endIndex + 3;
+                            }
+                        } else {
+                            contentElement.innerHTML += message[index];
+                            index++;
+                        }
+                        this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+                        requestAnimationFrame(animate);
+                    } else {
+                        MathJax.typesetPromise([messageElement]).then(() => {
+                            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+                            resolve();
+                        });
                     }
-                } else {
-                    contentElement.innerHTML += message.slice(index, index + chunkSize);  // 每次添加 chunkSize 个字符
-                    index += chunkSize;
-                }
-                this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+                };
                 requestAnimationFrame(animate);
-            } else {
-                MathJax.typesetPromise([messageElement]).then(() => {
-                    this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
-                    resolve();
-                });
-            }
-        };
-        requestAnimationFrame(animate);
-    });
-}
+            });
+        }
 
          createCodeContainer(parentElement, codeContent) {
             const codeContainer = document.createElement('div');
