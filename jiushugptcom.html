@@ -150,17 +150,7 @@
     class ChatApp {
         constructor() {
             this.API_URL = 'https://aigc.x-see.cn/v1/chat/completions';
-
-this.SYSTEM_MESSAGE = {//超级提示词
-    "role": "system",
-    "content": `
-回复问题如无要求就用中文。有不同的方法时一定另起一行。   
-你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。你面对的是一个数学基础相对薄弱的学生。每个题目一定要多种不同的方法来解答，每一种方法一定要另起一行，要换行。每种方法给出重要的思维模型。。每一步都尽可能详细地讲解过程。并会给出题涉及的相关知识点。玖数 为专有名词，不可翻译成其他语言。`
-
-};
-
-
-
+            this.SYSTEM_MESSAGE = {"role": "system", "content": "你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。你面对的是一个数学基础相对薄弱的学生。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型。每一步都尽可能详细地讲解过程。并会给出题涉及的相关知识点。玖数 为专有名词，不可翻译成其他语言。"};
             this.messages = [this.SYSTEM_MESSAGE];
             this.initElements();
             this.addEventListeners();
@@ -276,55 +266,51 @@ this.SYSTEM_MESSAGE = {//超级提示词
             });
         }
 
+        async displayMessageStepByStep(message, className) {
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${className}`;
+            const contentElement = document.createElement('div');
+            contentElement.className = 'message-content';
 
+            const timeElement = document.createElement('span');
+            timeElement.className = 'message-time';
+            timeElement.textContent = new Date().toLocaleTimeString();
 
+            messageElement.appendChild(contentElement);
+            messageElement.appendChild(timeElement);
 
-async displayMessageStepByStep(message, className) {
-    const messageElement = document.createElement('div');
-    messageElement.className = `message ${className}`;
-    const contentElement = document.createElement('div');
-    contentElement.className = 'message-content';
+            this.messagesContainer.appendChild(messageElement);
+            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
 
-    const timeElement = document.createElement('span');
-    timeElement.className = 'message-time';
-    timeElement.textContent = new Date().toLocaleTimeString();
+            let index = 0;
+            const intervalTime = 1;
 
-    messageElement.appendChild(contentElement);
-    messageElement.appendChild(timeElement);
-
-    this.messagesContainer.appendChild(messageElement);
-    this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
-
-    let index = 0;
-    const chunkSize = 5;  // 改为每次显示5个字符，或根据需要调整
-
-    return new Promise((resolve) => {
-        const animate = () => {
-            if (index < message.length) {
-                if (message.substr(index, 3) === '```') {
-                    const endIndex = message.indexOf('```', index + 3);
-                    if (endIndex !== -1) {
-                        const codeBlock = message.substring(index + 3, endIndex);
-                        this.createCodeContainer(contentElement, codeBlock);
-                        index = endIndex + 3;
+            return new Promise((resolve) => {
+                const animate = () => {
+                    if (index < message.length) {
+                        if (message.substr(index, 3) === '```') {
+                            const endIndex = message.indexOf('```', index + 3);
+                            if (endIndex !== -1) {
+                                const codeBlock = message.substring(index + 3, endIndex);
+                                this.createCodeContainer(contentElement, codeBlock);
+                                index = endIndex + 3;
+                            }
+                        } else {
+                            contentElement.innerHTML += message[index];
+                            index++;
+                        }
+                        this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+                        requestAnimationFrame(animate);
+                    } else {
+                        MathJax.typesetPromise([messageElement]).then(() => {
+                            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+                            resolve();
+                        });
                     }
-                } else {
-                    contentElement.innerHTML += message.slice(index, index + chunkSize);  // 每次添加 chunkSize 个字符
-                    index += chunkSize;
-                }
-                this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+                };
                 requestAnimationFrame(animate);
-            } else {
-                MathJax.typesetPromise([messageElement]).then(() => {
-                    this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
-                    resolve();
-                });
-            }
-        };
-        requestAnimationFrame(animate);
-    });
-}
-
+            });
+        }
 
         createCodeContainer(parentElement, codeContent) {
             const codeContainer = document.createElement('div');
