@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>玖数4omini</title>
-    <link rel="icon" href="faviconkimi.ico" type="image/x-icon">
+     <link rel="icon" href="faviconkimi.ico" type="image/x-icon">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-okaidia.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-python.min.js"></script>
@@ -136,7 +136,7 @@
 </head>
 <body>
     <h1 id="title">玖数4omini</h1>
-    <div id="chat-container">
+      <div id="chat-container">
         <div id="messages"></div>
         <div id="input-container">
             <textarea id="user-input" placeholder="输入你的消息..." rows="1"></textarea>
@@ -150,7 +150,17 @@
     class ChatApp {
         constructor() {
             this.API_URL = 'https://aigc.x-see.cn/v1/chat/completions';
-            this.SYSTEM_MESSAGE = {"role": "system", "content": "你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型。并会给出题涉及的相关知识点。玖数 为专有名词，不可翻译成其他语言。"};
+
+this.SYSTEM_MESSAGE = {//超级提示词
+    "role": "system",
+    "content": `
+回复问题如无要求就用中文。有不同的方法时一定另起一行。   
+你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。你面对的是一个数学基础相对薄弱的学生。每个题目一定要多种不同的方法来解答，每一种方法一定要另起一行，要换行。每种方法给出重要的思维模型。。每一步都尽可能详细地讲解过程。并会给出题涉及的相关知识点。玖数 为专有名词，不可翻译成其他语言。`
+
+};
+
+
+
             this.messages = [this.SYSTEM_MESSAGE];
             this.initElements();
             this.addEventListeners();
@@ -203,42 +213,38 @@
             await this.getAssistantReply();
         }
 
-        async getAssistantReply() {
+     async getAssistantReply() {
             this.loadingIndicator.style.display = 'block';
-            const apiKey = this.selectApiKey();
-            try {
-                const response = await fetch(this.API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "gpt-4o-mini-2024-07-18",
-                        messages: this.messages,
-                        temperature: 0.3
-                    })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    console.error("API 请求失败:", data);
-                    await this.displayMessage("玖数：对不起，发生了错误，请稍后再试。", 'assistant-message');
-                    return;
+            let models = ["gpt-4o-mini"];
+            let response;
+            for (let model of models) {
+                try {
+                    response = await fetch(this.API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.selectApiKey()}`
+                        },
+                        body: JSON.stringify({
+                            model: model,
+                            messages: this.messages,
+                            temperature: 0.3
+                        })
+                    });
+                    if (response.ok) break;
+                } catch (error) {
+                    console.error("请求出错:", error);
                 }
-
-                console.log("API 请求成功:", data);
+            }
+            if (!response || !response.ok) {
+                await this.displayMessage("玖数：对不起，发生了错误，请稍后再试。", 'assistant-message');
+            } else {
+                const data = await response.json();
                 const assistantMessage = data.choices[0].message.content;
-
                 await this.displayMessageStepByStep(`玖数：${assistantMessage}`, 'assistant-message');
                 this.messages.push({"role": "assistant", "content": assistantMessage});
-            } catch (error) {
-                console.error("请求出错:", error);
-                await this.displayMessage("玖数：对不起，发生了错误，请稍后再试。", 'assistant-message');
-            } finally {
-                this.loadingIndicator.style.display = 'none';
             }
+            this.loadingIndicator.style.display = 'none';
         }
 
         selectApiKey() {
@@ -269,6 +275,9 @@
                 });
             });
         }
+
+
+
 
 async displayMessageStepByStep(message, className) {
     const messageElement = document.createElement('div');
@@ -316,6 +325,7 @@ async displayMessageStepByStep(message, className) {
     });
 }
 
+
         createCodeContainer(parentElement, codeContent) {
             const codeContainer = document.createElement('div');
             codeContainer.className = 'code-container';
@@ -346,3 +356,4 @@ async displayMessageStepByStep(message, className) {
     </script>
 </body>
 </html>
+
