@@ -1,5 +1,5 @@
 const accounts = {
-
+  '':'',
 '玖数':'jiushu',
   '天佑城':'jiushu',
   '京师':'jiushu',
