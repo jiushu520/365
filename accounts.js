@@ -20,8 +20,8 @@ const accounts = {
 '李函泽':'jiushu',
 
 
-
-
+'邓语乔':'jiushu',
+'解淇茗':'jiushu',
 '胡浩轩':'jiushu',
 '梁佳颖':'jiushu',
 '黄卓雅':'jiushu',
@@ -123,7 +123,9 @@ const accounts = {
 '邓庆凯':'jiushu',
 '何凯晴':'jiushu',
 '胡妍雅':'jiushu',
-  
+
+
+'邓康柠':'jiushu',
 '李祥宇':'jiushu',
 '黎晓乐':'jiushu',
 '刘湘宇':'jiushu',
