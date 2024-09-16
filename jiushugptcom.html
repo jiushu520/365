@@ -150,7 +150,7 @@
     class ChatApp {
         constructor() {
             this.API_URL = 'https://aigc.x-see.cn/v1/chat/completions';
-            this.SYSTEM_MESSAGE = {"role": "system", "content": "你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。你面对的是一个数学基础相对薄弱的学生。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型。每一种方法都要另起一行。每一步都尽可能详细地讲解过程。并会给出题涉及的相关知识点。玖数 为专有名词，不可翻译成其他语言。"};
+            this.SYSTEM_MESSAGE = {"role": "system", "content": "你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型。并会给出题涉及的相关知识点。玖数 为专有名词，不可翻译成其他语言。"};
             this.messages = [this.SYSTEM_MESSAGE];
             this.initElements();
             this.addEventListeners();
@@ -205,7 +205,7 @@
 
         async getAssistantReply() {
             this.loadingIndicator.style.display = 'block';
-            let models = ["gpt-4o-mini","gpt-4o-2024-08-06", "gpt-4o", "gpt-4-turbo"];
+            let models = ["gpt-4o-2024-08-06","gpt-4o-mini", "gpt-4o", "gpt-4-turbo"];
             let response;
             for (let model of models) {
                 try {
@@ -266,56 +266,51 @@
             });
         }
 
-   async displayMessageStepByStep(message, className) {
-    const messageElement = document.createElement('div');
-    messageElement.className = `message ${className}`;
-    const contentElement = document.createElement('div');
-    contentElement.className = 'message-content';
+        async displayMessageStepByStep(message, className) {
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${className}`;
+            const contentElement = document.createElement('div');
+            contentElement.className = 'message-content';
 
-    const timeElement = document.createElement('span');
-    timeElement.className = 'message-time';
-    timeElement.textContent = new Date().toLocaleTimeString();
+            const timeElement = document.createElement('span');
+            timeElement.className = 'message-time';
+            timeElement.textContent = new Date().toLocaleTimeString();
 
-    messageElement.appendChild(contentElement);
-    messageElement.appendChild(timeElement);
+            messageElement.appendChild(contentElement);
+            messageElement.appendChild(timeElement);
 
-    this.messagesContainer.appendChild(messageElement);
-    this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
-
-    // 添加以下这部分代码
-    if (message.includes('```')) {
-        // 如果包含代码块标记，处理代码块
-        let index = 0;
-        while (index < message.length) {
-            if (message.substr(index, 3) === '```') {
-                const endIndex = message.indexOf('```', index + 3);
-                if (endIndex !== -1) {
-                    const codeBlock = message.substring(index + 3, endIndex);
-                    this.createCodeContainer(contentElement, codeBlock);
-                    index = endIndex + 3;
-                }
-            } else {
-                contentElement.innerHTML += message[index];
-                index++;
-            }
-        }
-    } else {
-        // 如果没有代码块，直接显示完整消息
-        contentElement.innerHTML = message;
-    }
-
-    return new Promise((resolve) => {
-        // MathJax 渲染数学公式
-        MathJax.typesetPromise([messageElement]).then(() => {
+            this.messagesContainer.appendChild(messageElement);
             this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
-            resolve();
-        });
-    });
-}
 
+            let index = 0;
+            const intervalTime = 1;
 
-
-
+            return new Promise((resolve) => {
+                const animate = () => {
+                    if (index < message.length) {
+                        if (message.substr(index, 3) === '```') {
+                            const endIndex = message.indexOf('```', index + 3);
+                            if (endIndex !== -1) {
+                                const codeBlock = message.substring(index + 3, endIndex);
+                                this.createCodeContainer(contentElement, codeBlock);
+                                index = endIndex + 3;
+                            }
+                        } else {
+                            contentElement.innerHTML += message[index];
+                            index++;
+                        }
+                        this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+                        requestAnimationFrame(animate);
+                    } else {
+                        MathJax.typesetPromise([messageElement]).then(() => {
+                            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+                            resolve();
+                        });
+                    }
+                };
+                requestAnimationFrame(animate);
+            });
+        }
 
         createCodeContainer(parentElement, codeContent) {
             const codeContainer = document.createElement('div');
