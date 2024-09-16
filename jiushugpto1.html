@@ -20,19 +20,21 @@
         }
         #title {
             text-align: center;
-            margin: 20px 0;
+            margin: 1px 0;
         }
-        #chat-container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            height: calc(100vh - 100px);
-        }
+    #chat-container {
+    min-width: 300px; /* 设置最小宽度 */
+    max-width: 90%; /* 最大宽度限制为视口的 90% */
+    margin: 0 auto;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    min-height: 800px; /* 设置一个最小高度，根据需要调整 */
+    height: auto;
+}
         #messages {
             flex: 1;
             overflow-y: auto;
@@ -150,8 +152,9 @@
     </style>
 </head>
 <body>
-    <h3 id="title">玖数推理</h3>
+    
     <div id="chat-container">
+        <h3 id="title">玖数推理</h3>
         <div id="messages"></div>
         <div id="input-container">
             <textarea id="user-input" placeholder="输入你的消息..." rows="1"></textarea>
