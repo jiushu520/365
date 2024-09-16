@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>玖数深度求索智能</title>
+    <title>深度智能</title>
     <link rel="icon" href="faviconkimi.ico" type="image/x-icon">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-okaidia.min.css" rel="stylesheet" />
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-python.min.js"></script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
@@ -15,31 +16,29 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
             background-color: #e0f7fa;
         }
-        #chat-container {
-            width: 90%;
-            max-width: 90%; /* 这将使容器占据屏幕宽度的90% */
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            resize: both;
-            overflow: auto;
+        #title {
+            text-align: center;
+            margin: 1px 0;
         }
+ #chat-container {
+    min-width: 300px; /* 设置最小宽度 */
+    max-width: 90%; /* 最大宽度限制为视口的 90% */
+    margin: 0 auto;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    min-height: 800px; /* 设置一个最小高度，根据需要调整 */
+    height: auto;
+}
         #messages {
             flex: 1;
             overflow-y: auto;
             margin-bottom: 20px;
-            min-height: 100px;
-            max-height: 60vh;
         }
         .message {
             margin: 10px 0;
@@ -47,23 +46,26 @@
             border-radius: 8px;
             display: flex;
             align-items: flex-start;
+            flex-wrap: wrap;
         }
         .user-message {
             background-color: #daf7a6;
-            justify-content: flex-end;
+            align-self: flex-end;
         }
         .assistant-message {
             background-color: #ffeb99;
-            justify-content: flex-start;
+            align-self: flex-start;
         }
         .message-content {
-            flex: 1;
+            flex: 1 1 100%;
+            word-break: break-word;
         }
         .message-time {
             font-size: 0.8em;
             color: #888;
-            margin-left: 10px;
-            align-self: flex-end;
+            margin-top: 5px;
+            text-align: right;
+            width: 100%;
         }
         #input-container {
             display: flex;
@@ -75,6 +77,7 @@
             border-radius: 5px;
             border: 1px solid #ccc;
             resize: vertical;
+            font-size: 1em;
         }
         #send-btn {
             padding: 10px 15px;
@@ -84,6 +87,7 @@
             border-radius: 5px;
             cursor: pointer;
             margin-left: 10px;
+            font-size: 1em;
         }
         #send-btn:disabled {
             background-color: #bbb;
@@ -91,13 +95,14 @@
         }
         #refresh-btn {
             width: 100%;
-            margin: 20px auto;
+            margin: 20px auto 0;
             padding: 10px 15px;
             border: none;
             background-color: #28a745;
             color: #fff;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 1em;
         }
         #loading {
             display: none;
@@ -132,12 +137,26 @@
         .copy-btn:hover {
             background-color: #555555;
         }
+        @media screen and (max-width: 600px) {
+            #chat-container {
+                height: auto;
+                min-height: calc(100vh - 40px);
+            }
+            #send-btn, #refresh-btn {
+                font-size: 0.9em;
+            }
+            #user-input {
+                font-size: 0.9em;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1 id="title">玖数深度智能</h1>
+    
     <div id="chat-container">
+        <h3 id="title">深度智能</h3>
         <div id="messages"></div>
+
         <div id="input-container">
             <textarea id="user-input" placeholder="输入你的消息..." rows="1"></textarea>
             <button id="send-btn" disabled>发送</button>
@@ -154,7 +173,6 @@
             this.messages = [this.SYSTEM_MESSAGE];
             this.initElements();
             this.addEventListeners();
-            this.adjustContainerSize();
         }
 
         initElements() {
@@ -180,14 +198,6 @@
             });
 
             this.refreshBtn.addEventListener('click', () => this.clearMessages());
-
-            window.addEventListener('resize', this.adjustContainerSize.bind(this));
-            document.addEventListener('DOMContentLoaded', this.adjustContainerSize.bind(this));
-        }
-
-        adjustContainerSize() {
-            const chatContainer = document.getElementById('chat-container');
-            chatContainer.style.width = `${Math.min(window.innerWidth * 0.9, 600)}px`;
         }
 
         async sendMessage() {
@@ -205,40 +215,36 @@
 
         async getAssistantReply() {
             this.loadingIndicator.style.display = 'block';
-            const apiKey = this.selectApiKey();
-            try {
-                const response = await fetch(this.API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "deepseek-coder",
-                        messages: this.messages,
-                        temperature: 0.3
-                    })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    console.error("API 请求失败:", data);
-                    await this.displayMessage("玖数：对不起，发生了错误，请稍后再试。", 'assistant-message');
-                    return;
+            let models = ["deepseek-coder","deepseek-chat",];
+            let response;
+            for (let model of models) {
+                try {
+                    response = await fetch(this.API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.selectApiKey()}`
+                        },
+                        body: JSON.stringify({
+                            model: model,
+                            messages: this.messages,
+                            temperature: 0.3
+                        })
+                    });
+                    if (response.ok) break;
+                } catch (error) {
+                    console.error("请求出错:", error);
                 }
-
-                console.log("API 请求成功:", data);
+            }
+            if (!response || !response.ok) {
+                await this.displayMessage("玖数：对不起，发生了错误，请稍后再试。", 'assistant-message');
+            } else {
+                const data = await response.json();
                 const assistantMessage = data.choices[0].message.content;
-
                 await this.displayMessageStepByStep(`玖数：${assistantMessage}`, 'assistant-message');
                 this.messages.push({"role": "assistant", "content": assistantMessage});
-            } catch (error) {
-                console.error("请求出错:", error);
-                await this.displayMessage("玖数：对不起，发生了错误，请稍后再试。", 'assistant-message');
-            } finally {
-                this.loadingIndicator.style.display = 'none';
             }
+            this.loadingIndicator.style.display = 'none';
         }
 
         selectApiKey() {
@@ -287,7 +293,6 @@
             this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
 
             let index = 0;
-            const intervalTime = 1;
 
             return new Promise((resolve) => {
                 const animate = () => {
@@ -316,7 +321,7 @@
             });
         }
 
-         createCodeContainer(parentElement, codeContent) {
+        createCodeContainer(parentElement, codeContent) {
             const codeContainer = document.createElement('div');
             codeContainer.className = 'code-container';
 
@@ -324,7 +329,7 @@
             codeElement.className = 'code-content';
 
             const codeInner = document.createElement('code');
-            codeInner.className = 'language-python'; // 默认为 Python，可以根据需要更改
+            codeInner.className = 'language-python';
             codeInner.textContent = codeContent.trim();
 
             codeElement.appendChild(codeInner);
@@ -332,7 +337,6 @@
             codeContainer.appendChild(codeElement);
             parentElement.appendChild(codeContainer);
 
-            // 应用 Prism.js 语法高亮
             Prism.highlightElement(codeInner);
         }
 
