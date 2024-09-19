@@ -22,19 +22,20 @@
             text-align: center;
             margin: 1px 0;
         }
-#chat-container {
-    min-width: 300px; /* 设置最小宽度 */
-    max-width: 90%; /* 最大宽度限制为视口的 90% */
-    margin: 0 auto;
-    background-color: #e0f7fa;
-    border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    min-height: 800px; /* 设置一个最小高度，根据需要调整 */
-    height: auto;
-}
+        #chat-container {
+            min-width: 300px; /* 设置最小宽度 */
+            max-width: 90%; /* 最大宽度限制为视口的 90% */
+            margin: 0 auto;
+            background-color: #e0f7fa;
+
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 800px; /* 设置一个最小高度，根据需要调整 */
+            height: auto;
+        }
 
         #messages {
             flex: 1;
@@ -150,12 +151,33 @@
                 font-size: 0.9em;
             }
         }
+        /* 新增样式 */
+        #model-selection label {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        #model-dropdown {
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+        }
     </style>
 </head>
 <body>
   
-        <div id="chat-container">
+    <div id="chat-container">
         <h3 id="title">玖数求索</h3>
+        
+        <!-- 模型选择下拉菜单 -->
+        <div id="model-selection" style="margin-bottom: 10px; text-align: center;">
+            <label for="model-dropdown">选择模型: </label>
+            <select id="model-dropdown">
+                <!-- 模型选项将由JavaScript动态生成 -->
+            </select>
+        </div>
+        
         <div id="messages"></div>
 
         <div id="input-container">
@@ -167,12 +189,25 @@
     </div>
 
     <script>
+    // 定义模型列表
+    const models = [
+        { name: "gpt-4o", value: "gpt-4o" },
+        { name: "gpt-4o-2024-05-13", value: "gpt-4o-2024-05-13" },
+        { name: "gpt-4o-mini", value: "gpt-4o-mini" },
+        { name: "gpt-4o-mini-2024-07-18", value: "gpt-4o-mini-2024-07-18" },
+        // 未来可以在此处添加更多模型
+    ];
+
     class ChatApp {
         constructor() {
             this.API_URL = 'https://aigc.x-see.cn/v1/chat/completions';
-            this.SYSTEM_MESSAGE = {"role": "system", "content": "你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型。并会给出题涉及的相关知识点。玖数 为专有名词，不可翻译成其他语言。"};
+            this.SYSTEM_MESSAGE = {
+                "role": "system",
+                "content": "你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型。并会给出题涉及的相关知识点。玖数 为专有名词，不可翻译成其他语言。"
+            };
             this.messages = [this.SYSTEM_MESSAGE];
             this.initElements();
+            this.populateModelDropdown(); // 动态生成模型选项
             this.addEventListeners();
         }
 
@@ -182,11 +217,34 @@
             this.sendBtn = document.getElementById('send-btn');
             this.refreshBtn = document.getElementById('refresh-btn');
             this.loadingIndicator = document.getElementById('loading');
+            this.modelDropdown = document.getElementById('model-dropdown');
+        }
+
+        // 动态生成模型下拉菜单选项
+        populateModelDropdown() {
+            const defaultOption = document.createElement('option');
+            defaultOption.value = "";
+            defaultOption.textContent = "--请选择模型--";
+            defaultOption.disabled = true;
+            defaultOption.selected = true;
+            this.modelDropdown.appendChild(defaultOption);
+
+            models.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model.value;
+                option.textContent = model.name;
+                this.modelDropdown.appendChild(option);
+            });
+
+            // 监听下拉菜单变化，启用发送按钮
+            this.modelDropdown.addEventListener('change', () => {
+                this.updateSendButtonState();
+            });
         }
 
         addEventListeners() {
             this.userInput.addEventListener('input', () => {
-                this.sendBtn.disabled = this.userInput.value.trim() === '';
+                this.updateSendButtonState();
             });
 
             this.sendBtn.addEventListener('click', () => this.sendMessage());
@@ -201,54 +259,64 @@
             this.refreshBtn.addEventListener('click', () => this.clearMessages());
         }
 
+        // 根据输入和模型选择状态更新发送按钮
+        updateSendButtonState() {
+            const userInputNotEmpty = this.userInput.value.trim() !== '';
+            const modelSelected = this.modelDropdown.value !== "";
+            this.sendBtn.disabled = !(userInputNotEmpty && modelSelected);
+        }
+
         async sendMessage() {
             const userMessage = this.userInput.value.trim();
             if (userMessage === '') return;
 
             await this.displayMessage(`我：${userMessage}`, 'user-message');
-            this.messages.push({"role": "user", "content": userMessage});
+            this.messages.push({ "role": "user", "content": userMessage });
 
             this.userInput.value = '';
-            this.sendBtn.disabled = true;
+            this.updateSendButtonState();
 
             await this.getAssistantReply();
         }
 
         async getAssistantReply() {
             this.loadingIndicator.style.display = 'block';
-            let models = ["gpt-4o","gpt-4o-2024-05-13","gpt-4o-mini","gpt-4o-mini-2024-07-18",];
+
+            const selectedModel = this.modelDropdown.value; // 获取用户选择的模型
+
             let response;
-            for (let model of models) {
-                try {
-                    response = await fetch(this.API_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${this.selectApiKey()}`
-                        },
-                        body: JSON.stringify({
-                            model: model,
-                            messages: this.messages,
-                            temperature: 0.3
-                        })
-                    });
-                    if (response.ok) break;
-                } catch (error) {
-                    console.error("请求出错:", error);
-                }
+            try {
+                response = await fetch(this.API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.selectApiKey()}`
+                    },
+                    body: JSON.stringify({
+                        model: selectedModel,
+                        messages: this.messages,
+                        temperature: 0.3
+                    })
+                });
+            } catch (error) {
+                console.error("请求出错:", error);
+                response = null;
             }
+
             if (!response || !response.ok) {
                 await this.displayMessage("玖数：对不起，发生了错误，请稍后再试。", 'assistant-message');
             } else {
                 const data = await response.json();
                 const assistantMessage = data.choices[0].message.content;
                 await this.displayMessageStepByStep(`玖数：${assistantMessage}`, 'assistant-message');
-                this.messages.push({"role": "assistant", "content": assistantMessage});
+                this.messages.push({ "role": "assistant", "content": assistantMessage });
             }
             this.loadingIndicator.style.display = 'none';
         }
 
         selectApiKey() {
+            // **重要提示：** 请勿在前端代码中暴露您的API密钥。
+            // 推荐的做法是将API请求转发到后端服务器，由后端处理与API的通信。
             return 'sk-OUhVhJZoEP8wZjKlA4B9Bd865d7d40989f35623eDfA24516';
         }
 
