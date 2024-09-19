@@ -221,26 +221,27 @@
         }
 
         // 动态生成模型下拉菜单选项
-        populateModelDropdown() {
-            const defaultOption = document.createElement('option');
-            defaultOption.value = "";
-            defaultOption.textContent = "--请选择模型--";
-            defaultOption.disabled = true;
-            defaultOption.selected = true;
-            this.modelDropdown.appendChild(defaultOption);
-
-            models.forEach(model => {
-                const option = document.createElement('option');
-                option.value = model.value;
-                option.textContent = model.name;
-                this.modelDropdown.appendChild(option);
-            });
-
-            // 监听下拉菜单变化，启用发送按钮
-            this.modelDropdown.addEventListener('change', () => {
-                this.updateSendButtonState();
-            });
+ populateModelDropdown() {
+    models.forEach((model, index) => {
+        const option = document.createElement('option');
+        option.value = model.value;
+        option.textContent = model.name;
+        // 默认选择第一个模型
+        if (index === 0) {
+            option.selected = true;
         }
+        this.modelDropdown.appendChild(option);
+    });
+
+    // 监听下拉菜单变化，启用发送按钮
+    this.modelDropdown.addEventListener('change', () => {
+        this.updateSendButtonState();
+    });
+
+    // 初始状态下更新发送按钮
+    this.updateSendButtonState();
+}
+
 
         addEventListeners() {
             this.userInput.addEventListener('input', () => {
