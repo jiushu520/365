@@ -1,7 +1,5 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
-
 <!-- 在 </head> 之前添加 -->
 <script>
 window.MathJax = {
@@ -201,19 +199,12 @@ window.MathJax = {
     </div>
 
     <script>
-
-
-
-
-
     // 定义模型列表
     const models = [
         { name: "o1-mini", value: "o1-mini" },
         { name: "o1-preview-2024-09-12", value: "o1-preview-2024-09-12" },
         { name: "o1-preview", value: "o1-preview" },
         { name: "o1-mini-2024-09-12", value: "o1-mini-2024-09-12" },
-
- 
         // 未来可以在此处添加更多模型
     ];
 
@@ -240,7 +231,7 @@ window.MathJax = {
         }
 
         // 动态生成模型下拉菜单选项
-populateModelDropdown() {
+ populateModelDropdown() {
     models.forEach((model, index) => {
         const option = document.createElement('option');
         option.value = model.value;
@@ -260,9 +251,6 @@ populateModelDropdown() {
     // 初始状态下更新发送按钮
     this.updateSendButtonState();
 }
-
-
-
 
 
         addEventListeners() {
