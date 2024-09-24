@@ -201,22 +201,16 @@ window.MathJax = {
     <script>
     // 定义模型列表
     const models = [
-
-        { name: "o1-mini-all", value: "o1-mini-all" },
-        { name: "o1-preview-all", value: "o1-preview-all" },
         { name: "o1-mini", value: "o1-mini" },
         { name: "o1-preview-2024-09-12", value: "o1-preview-2024-09-12" },
         { name: "o1-preview", value: "o1-preview" },
         { name: "o1-mini-2024-09-12", value: "o1-mini-2024-09-12" },
-
-
-
         // 未来可以在此处添加更多模型
     ];
 
     class ChatApp {
         constructor() {
-            this.API_URL = 'https://aigc.x-see.cn/v1/chat/completions';
+            this.API_URL = 'https://open.xiaojingai.com/v1/chat/completions';
             this.SYSTEM_MESSAGE = {
                 "role": "system",
                 "content": "你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。每个题目一定要一次性给出完整的回答，不分段回复，确保回答的内容覆盖所涉及的所有知识点。"
