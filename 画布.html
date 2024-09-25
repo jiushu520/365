@@ -3,44 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML5 Canvas Drawing</title>
+    <title>HTML5 Canvas Drawing with Enhanced Features</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
         canvas {
             border: 1px solid black;
             background-color: #F5F5F5;
             display: block;
             margin: 20px auto;
+            touch-action: none; /* Prevent touch gestures */
         }
         .tool-bar {
             text-align: center;
             margin-bottom: 10px;
         }
-        .tool-bar button {
-            margin: 0 10px;
-            padding: 10px;
+        .tool-bar button, .tool-bar input[type="button"] {
+            margin: 0 5px;
+            padding: 10px 15px;
             font-size: 16px;
             cursor: pointer;
             border: none;
+            border-radius: 4px;
+            background-color: #e0e0e0;
+            transition: background-color 0.3s;
+        }
+        .tool-bar button:hover, .tool-bar input[type="button"]:hover {
+            background-color: #d5d5d5;
         }
         .tool-bar button.color-button {
             width: 30px;
             height: 30px;
             border-radius: 50%;
             border: 2px solid transparent;
+            padding: 0;
         }
         .tool-bar button.active {
             background-color: #FFFFE0;
             border: 1px solid #000000;
         }
         .tool-bar button.selected-color {
-            border: 8px solid #FFD700;
+            border: 4px solid #FFD700;
         }
         .tool-bar .slider {
             margin: 10px;
             width: 200px;
         }
-        .custom-cursor {
-            cursor: url('data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjMwIiB3aWR0aD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgdmVyc2lvbj0iMSIgd2lsdHJhdmVsb3Blbl9mZ24iIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGc+PGNpcmNsZSByPSIxNSIgY3g9IjE1IiBjeT0iMTUiIHN0eWxlPSJmaWxsOmNhcjsiIC8+PC9nPjwvc3ZnPg=='), auto;
+        .custom-cursor-pen {
+            cursor: url('data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjMDAwMDAwIiBoZWlnaHQ9IjIwIiB3aWR0aD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNSAxMEwxNyAxMCw4IDIxTDEwIDUsMTUgMTUwLDE1IDE1VDEwVjEwWiIvPjwvc3ZnPg=='), auto;
+        }
+        .custom-cursor-eraser {
+            cursor: url('data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjRkZGRkZGIiBoZWlnaHQ9IjIwIiB3aWR0aD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMSAxOSBDMSAxOSAxIDE4IDIgMTggM1YxWiIvPjwvc3ZnPg=='), auto;
+        }
+        .tool-bar .color-picker {
+            margin: 0 10px;
+            padding: 0;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+        .tool-bar .color-picker input[type="color"] {
+            width: 30px;
+            height: 30px;
+            border: none;
+            padding: 0;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -48,132 +79,265 @@
     <div class="tool-bar">
         <button id="pen" class="active">画笔</button>
         <button id="eraser">橡皮</button>
-        <button id="clear">清除</button><br><br>
-        <button id="black" class="color-button" style="background-color: black; color: white;"></button>
+        <button id="clear">清除</button>
+        <button id="undo">撤销</button>
+        <button id="redo">重做</button><br><br>
+        <button id="black" class="color-button selected-color" style="background-color: black; color: white;"></button>
         <button id="red" class="color-button" style="background-color: red;"></button>
         <button id="blue" class="color-button" style="background-color: blue; color: white;"></button>
         <button id="green" class="color-button" style="background-color: green; color: white;"></button>
-        <button id="yellow" class="color-button" style="background-color: yellow;"></button><br><br>
+        <button id="yellow" class="color-button" style="background-color: yellow;"></button>
+        <button id="purple" class="color-button" style="background-color: purple;"></button>
+        <button id="orange" class="color-button" style="background-color: orange;"></button>
+        <button id="pink" class="color-button" style="background-color: pink;"></button>
+        <button id="brown" class="color-button" style="background-color: brown; color: white;"></button>
+        <button id="grey" class="color-button" style="background-color: grey;"></button>
+        <button id="cyan" class="color-button" style="background-color: cyan;"></button>
+        <button id="lime" class="color-button" style="background-color: lime;"></button>
+        <button id="customColor" class="color-picker">
+            <input type="color" id="customColorInput" title="选择颜色">
+        </button><br><br>
         <input type="range" id="thicknessSlider" class="slider" min="1" max="50" value="5">
         <span id="thicknessValue">5</span>
     </div>
     <canvas id="drawingCanvas" width="1040" height="760"></canvas>
-    <script>
+   <script>
         const canvas = document.getElementById('drawingCanvas');
         const ctx = canvas.getContext('2d');
         const penButton = document.getElementById('pen');
         const eraserButton = document.getElementById('eraser');
         const clearButton = document.getElementById('clear');
+        const undoButton = document.getElementById('undo');
+        const redoButton = document.getElementById('redo');
         const colorButtons = document.querySelectorAll('.color-button');
+        const customColorInput = document.getElementById('customColorInput');
         const thicknessSlider = document.getElementById('thicknessSlider');
         const thicknessValue = document.getElementById('thicknessValue');
 
         let drawing = false;
-        let mode = 'pen';
-        let previousMode = 'pen';
+        let mode = 'pen'; // 当前模式: 'pen' 或 'eraser'
         let currentColor = 'black';
         let currentThickness = 5;
+        let lastPressure = 1; // 用于压力平滑
 
-        const lineWidth = {
+        // 历史记录栈
+        const undoStack = [];
+        const redoStack = [];
+        const maxHistory = 50; // 最大历史记录数
+
+        const baseLineWidth = {
             pen: 5,
             eraser: 30
         };
 
+        // 初始化
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = currentColor;
+        ctx.lineWidth = currentThickness;
+
+        // 添加事件监听器
         penButton.addEventListener('click', () => setMode('pen'));
         eraserButton.addEventListener('click', () => setMode('eraser'));
         clearButton.addEventListener('click', clearCanvas);
+        undoButton.addEventListener('click', undo);
+        redoButton.addEventListener('click', redo);
 
         colorButtons.forEach(button => {
             button.addEventListener('click', () => setColor(button.style.backgroundColor, button));
         });
 
+        customColorInput.addEventListener('input', (event) => {
+            setColor(event.target.value, null);
+        });
+
         thicknessSlider.addEventListener('input', (event) => {
             currentThickness = event.target.value;
             thicknessValue.textContent = currentThickness;
-            lineWidth.pen = currentThickness;
-            lineWidth.eraser = currentThickness;
+            baseLineWidth.pen = currentThickness;
+            baseLineWidth.eraser = currentThickness * 6; // 调整橡皮擦的基线宽度
+            if (mode === 'pen') {
+                ctx.lineWidth = baseLineWidth.pen;
+            } else if (mode === 'eraser') {
+                ctx.lineWidth = baseLineWidth.eraser;
+            }
         });
 
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('touchstart', startDrawing);
-        canvas.addEventListener('touchend', stopDrawing);
-        canvas.addEventListener('touchmove', drawTouch);
+        // Pointer Events
+        canvas.addEventListener('pointerdown', handlePointerDown);
+        canvas.addEventListener('pointerup', handlePointerUp);
+        canvas.addEventListener('pointermove', draw);
+        canvas.addEventListener('pointerout', stopDrawing);
+        canvas.addEventListener('pointercancel', stopDrawing);
         canvas.addEventListener('contextmenu', (event) => event.preventDefault());
-        canvas.addEventListener('mousedown', (event) => {
-            if (event.button === 2) {
-                previousMode = mode;
+
+        function handlePointerDown(event) {
+            // 检测是否使用侧键（鼠标右键或 Surface Pen 2 橡皮擦按钮）
+            if (event.pointerType === 'pen' || event.pointerType === 'mouse') {
+                if (event.buttons === 2) { // 橡皮擦按钮通常对应于鼠标的第二个按钮
+                    toggleMode(); // 立即切换模式
+                }
+            }
+            startDrawing(event);
+        }
+
+        function handlePointerUp(event) {
+            stopDrawing(event);
+        }
+
+        function toggleMode() {
+            if (mode === 'pen') {
                 setMode('eraser');
-                startDrawing(event);
+            } else {
+                setMode('pen');
             }
-        });
-        canvas.addEventListener('mouseup', (event) => {
-            if (event.button === 2) {
-                setMode(previousMode);
-                stopDrawing();
-            }
-        });
+        }
 
         function setMode(newMode) {
             mode = newMode;
             updateActiveButton();
-            canvas.classList.toggle('custom-cursor', mode === 'eraser');
+            if (mode === 'eraser') {
+                canvas.classList.remove('custom-cursor-pen');
+                canvas.classList.add('custom-cursor-eraser');
+                ctx.globalCompositeOperation = 'destination-out';
+            } else {
+                canvas.classList.remove('custom-cursor-eraser');
+                canvas.classList.add('custom-cursor-pen');
+                ctx.globalCompositeOperation = 'source-over';
+            }
         }
 
         function setColor(color, button) {
             currentColor = color;
-            updateActiveColorButton(button);
-            setMode('pen');
+            if (button) {
+                updateActiveColorButton(button);
+            }
+            setMode('pen'); // 选择颜色后切换回画笔模式
         }
 
         function startDrawing(event) {
             drawing = true;
-            draw(event);
+            ctx.beginPath();
+            ctx.moveTo(getX(event), getY(event));
+            saveState(); // 保存当前状态
+            event.preventDefault();
         }
 
-        function stopDrawing() {
-            drawing = false;
-            ctx.beginPath();
+        function stopDrawing(event) {
+            if (drawing) {
+                ctx.closePath();
+                drawing = false;
+                lastPressure = 1; // 重置压力平滑
+            }
         }
 
         function draw(event) {
             if (!drawing) return;
-            const { clientX, clientY } = event.touches ? event.touches[0] : event;
 
-            ctx.lineWidth = mode === 'eraser' ? lineWidth.eraser : lineWidth.pen;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = mode === 'eraser' ? 'white' : currentColor;
-            ctx.globalCompositeOperation = mode === 'eraser' ? 'destination-out' : 'source-over';
+            const x = getX(event);
+            const y = getY(event);
+            const pressure = event.pressure || 1; // 如果设备不支持压力感应，则使用默认值
 
-            const rect = canvas.getBoundingClientRect();
-            const x = clientX - rect.left;
-            const y = clientY - rect.top;
+            // 使用非线性函数（例如平方根）来调整压力
+            const currentPressure = Math.sqrt(pressure);
+
+            // 平滑处理：平均当前压力和上一次压力
+            const smoothedPressure = (currentPressure + lastPressure) / 2;
+            lastPressure = smoothedPressure;
+
+            // 根据模式和压力调整线宽
+            if (mode === 'pen') {
+                ctx.lineWidth = baseLineWidth.pen * smoothedPressure;
+                ctx.strokeStyle = currentColor;
+                ctx.globalCompositeOperation = 'source-over';
+            } else if (mode === 'eraser') {
+                ctx.lineWidth = baseLineWidth.eraser * smoothedPressure;
+                ctx.strokeStyle = 'rgba(0,0,0,1)';
+                ctx.globalCompositeOperation = 'destination-out';
+            }
 
             ctx.lineTo(x, y);
             ctx.stroke();
             ctx.beginPath();
             ctx.moveTo(x, y);
-            event.preventDefault();
         }
 
-        function drawTouch(event) {
-            draw(event);
+        function getX(event) {
+            const rect = canvas.getBoundingClientRect();
+            return event.clientX - rect.left;
+        }
+
+        function getY(event) {
+            const rect = canvas.getBoundingClientRect();
+            return event.clientY - rect.top;
         }
 
         function clearCanvas() {
+            saveState(); // 保存当前状态
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
         function updateActiveButton() {
-            [penButton, eraserButton, clearButton].forEach(button => button.classList.remove('active'));
-            document.getElementById(mode).classList.add('active');
+            [penButton, eraserButton, clearButton, undoButton, redoButton].forEach(button => button.classList.remove('active'));
+            if (mode === 'pen') {
+                penButton.classList.add('active');
+            } else if (mode === 'eraser') {
+                eraserButton.classList.add('active');
+            }
         }
 
         function updateActiveColorButton(activeButton) {
             colorButtons.forEach(button => button.classList.remove('selected-color'));
-            activeButton.classList.add('selected-color');
+            if (activeButton) {
+                activeButton.classList.add('selected-color');
+            }
+        }
+
+        // 防止在触摸设备上绘图时滚动
+        document.body.addEventListener("touchstart", function (e) {
+            if (e.target === canvas) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        document.body.addEventListener("touchend", function (e) {
+            if (e.target === canvas) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        document.body.addEventListener("touchmove", function (e) {
+            if (e.target === canvas) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // 撤销功能
+        function undo() {
+            if (undoStack.length > 0) {
+                const lastState = undoStack.pop();
+                redoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+                ctx.putImageData(lastState, 0, 0);
+            }
+        }
+
+        // 重做功能
+        function redo() {
+            if (redoStack.length > 0) {
+                const restoredState = redoStack.pop();
+                undoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+                ctx.putImageData(restoredState, 0, 0);
+            }
+        }
+
+        // 保存当前状态到撤销栈
+        function saveState() {
+            if (undoStack.length >= maxHistory) {
+                undoStack.shift(); // 移除最旧的状态
+            }
+            undoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+            // 清空重做栈
+            redoStack.length = 0;
         }
     </script>
+
 </body>
 </html>
