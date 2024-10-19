@@ -87,20 +87,20 @@
         .main {
             display: flex;
             flex-grow: 1;
+            transition: all 0.3s;
         }
 
         .content, .right {
             height: 100%;
+            transition: flex-basis 0.3s, display 0.3s;
         }
 
         .content {
             flex: 1;
-            transition: flex-basis 0.3s;
         }
 
         .right {
             flex: 1;
-            transition: flex-basis 0.3s;
         }
 
         iframe {
@@ -130,7 +130,6 @@
     <div class="top">
         <h3>玖数学</h3>
         <div>
-
             <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('画布.html')">画布</a>
             <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('https://www.geogebra.org/classic')">ggb</a>
             <a href="javascript:void(0);" class="menu-link" onclick="window.open('https://jiushu520.github.io/geogebra/', '_blank')">ggb指令</a>
@@ -138,17 +137,15 @@
             <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushugptcom.html')">玖数求索</a>
             <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushugpto1.html')">玖数推理</a>
             <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushuzp.html')">玖数智谱</a>
-           <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushuopenai.html')">玖数智能</a>
-
+            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushuopenai.html')">玖数智能</a>
             <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('https://felo.ai/search')">felo搜索</a>
-             <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('https://metaso.cn/')">秘塔搜索</a>
-  
+            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('https://metaso.cn/')">秘塔搜索</a>
             <button class="blue-button" onclick="toggleRightContent()">切换人工智能</button>
         </div>
     </div>
     <div class="width-controls">
         <label for="width-range"></label>
-        <input type="range" id="width-range" min="10" max="90" value="55" oninput="adjustWidth()">
+        <input type="range" id="width-range" min="0" max="90" value="55" oninput="adjustWidth()">
     </div>
     <div class="main">
         <div class="content" id="content" style="flex-basis: 55%;">
@@ -163,7 +160,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             // 自动登录，不需要用户名和密码
             localStorage.setItem('loggedIn', 'true');
-            document.getElementById('loginContainer').style.display = 'none';
+            const loginContainer = document.querySelector('.login-container');
+            if (loginContainer) {
+                loginContainer.style.display = 'none';
+            }
             adjustWidth(); // 初始设置容器宽度
         });
 
@@ -188,13 +188,23 @@
         }
 
         function adjustWidth() {
-            const widthRange = document.getElementById('width-range').value;
+            const widthRange = parseInt(document.getElementById('width-range').value, 10);
+            const min = parseInt(document.getElementById('width-range').min, 10);
             const content = document.getElementById('content');
             const rightContent = document.getElementById('right-content');
-            const leftWidth = widthRange;
-            const rightWidth = 100 - widthRange;
-            content.style.flexBasis = `${leftWidth}%`;
-            rightContent.style.flexBasis = `${rightWidth}%`;
+
+            if (widthRange <= min) {
+                // 隐藏左侧容器
+                content.classList.add('hidden');
+                rightContent.style.flexBasis = '100%';
+            } else {
+                // 显示左侧容器并调整宽度
+                content.classList.remove('hidden');
+                const leftWidth = widthRange;
+                const rightWidth = 100 - leftWidth;
+                content.style.flexBasis = `${leftWidth}%`;
+                rightContent.style.flexBasis = `${rightWidth}%`;
+            }
         }
     </script>
 </body>
