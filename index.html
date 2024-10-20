@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -44,7 +44,7 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
-        .top {
+        header {
             border-bottom: 1px solid var(--border-color);
             padding: 10px 20px;
             display: flex;
@@ -54,11 +54,11 @@
             color: white;
         }
 
-        .top h3 {
+        header h3 {
             margin: 0;
         }
 
-        .menu-link {
+        nav a {
             margin-left: 20px;
             cursor: pointer;
             text-decoration: none;
@@ -66,11 +66,11 @@
             transition: color 0.3s;
         }
 
-        .menu-link:hover {
+        nav a:hover {
             color: var(--secondary-color);
         }
 
-        .blue-button {
+        .button {
             background-color: var(--secondary-color);
             color: var(--text-color);
             border: none;
@@ -80,11 +80,11 @@
             transition: background-color 0.3s;
         }
 
-        .blue-button:hover {
+        .button:hover {
             background-color: var(--hover-color);
         }
 
-        .main {
+        main {
             display: flex;
             flex-grow: 1;
             transition: all 0.3s;
@@ -127,35 +127,34 @@
     </style>
 </head>
 <body>
-    <div class="top">
+    <header>
         <h3>玖数学</h3>
-        <div>
-            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('画布.html')">画布</a>
-            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('https://www.geogebra.org/classic')">ggb</a>
-            <a href="javascript:void(0);" class="menu-link" onclick="window.open('https://jiushu520.github.io/geogebra/', '_blank')">ggb指令</a>
-            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushudsai.html')">深度智能</a>
-            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushugptcom.html')">玖数求索</a>
-            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushugpto1.html')">玖数推理</a>
-            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushuzp.html')">玖数智谱</a>
-            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('jiushuopenai.html')">玖数智能</a>
-            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('https://felo.ai/search')">felo搜索</a>
-            <a href="javascript:void(0);" class="menu-link" onclick="showRightContent('https://metaso.cn/')">秘塔搜索</a>
-            <button class="blue-button" onclick="toggleRightContent()">切换人工智能</button>
-        </div>
-    </div>
+        <nav>
+            <a href="#" class="menu-link" data-url="画布.html">画布</a>
+            <a href="#" class="menu-link" data-url="https://www.geogebra.org/classic">ggb</a>
+            <a href="https://jiushu520.github.io/geogebra/" target="_blank" class="menu-link">ggb指令</a>
+            <a href="#" class="menu-link" data-url="jiushudsai.html">深度智能</a>
+            <a href="#" class="menu-link" data-url="jiushugptcom.html">玖数求索</a>
+            <a href="#" class="menu-link" data-url="jiushugpto1.html">玖数推理</a>
+            <a href="#" class="menu-link" data-url="jiushuzp.html">玖数智谱</a>
+            <a href="#" class="menu-link" data-url="jiushuopenai.html">玖数智能</a>
+            <a href="#" class="menu-link" data-url="https://felo.ai/search">felo搜索</a>
+            <a href="#" class="menu-link" data-url="https://metaso.cn/">秘塔搜索</a>
+            <button class="button" id="toggle-button">切换人工智能</button>
+        </nav>
+    </header>
     <div class="width-controls">
         <label for="width-range"></label>
-        <input type="range" id="width-range" min="10" max="90" value="55" oninput="adjustWidth()">
+        <input type="range" id="width-range" min="10" max="90" value="55">
     </div>
-    <div class="main">
-        <div class="content" id="content" style="flex-basis: 55%;">
+    <main>
+        <section class="content" id="content" style="flex-basis: 55%;">
             <iframe src="https://jiushu520.github.io/tiku/" frameborder="0"></iframe>
-        </div>
-        <div class="right" id="right-content" style="flex-basis: 45%;">
+        </section>
+        <aside class="right" id="right-content" style="flex-basis: 45%;">
             <iframe src="https://metaso.cn/" frameborder="0"></iframe>
-        </div>
-    </div>
-    <script src="accounts.js"></script>
+        </aside>
+    </main>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // 自动登录，不需要用户名和密码
@@ -164,44 +163,86 @@
             if (loginContainer) {
                 loginContainer.style.display = 'none';
             }
-            adjustWidth(); // 初始设置容器宽度
+
+            // 缓存DOM元素
+            const rightContent = document.getElementById('right-content');
+            const content = document.getElementById('content');
+            const widthRange = document.getElementById('width-range');
+            const toggleButton = document.getElementById('toggle-button');
+
+            // 初始设置容器宽度
+            adjustWidth();
+
+            // 为所有菜单链接添加事件监听器
+            document.querySelectorAll('.menu-link').forEach(link => {
+                link.addEventListener('click', event => {
+                    event.preventDefault();
+                    const url = event.target.getAttribute('data-url');
+                    if (url) {
+                        showRightContent(url);
+                    } else {
+                        // 如果链接有href属性，直接跳转
+                        const href = event.target.getAttribute('href');
+                        if (href && href !== '#') {
+                            window.open(href, '_blank');
+                        }
+                    }
+                });
+            });
+
+            // 绑定滑块事件
+            widthRange.addEventListener('input', adjustWidth);
+
+            // 绑定按钮事件
+            toggleButton.addEventListener('click', toggleRightContent);
         });
 
         function showRightContent(url) {
             const rightContent = document.getElementById('right-content');
             rightContent.classList.remove('hidden');
             adjustWidth();
-            rightContent.innerHTML = `<iframe src="${url}" frameborder="0"></iframe>`;
+
+            // 创建新的iframe
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.frameBorder = '0';
+
+            // 清空之前的内容并添加新的iframe
+            rightContent.innerHTML = '';
+            rightContent.appendChild(iframe);
         }
 
         function toggleRightContent() {
             const rightContent = document.getElementById('right-content');
             const content = document.getElementById('content');
             const widthRange = document.getElementById('width-range');
+
             if (rightContent.classList.contains('hidden')) {
                 rightContent.classList.remove('hidden');
+                widthRange.disabled = false; // 启用滑块
                 adjustWidth();
             } else {
                 rightContent.classList.add('hidden');
                 content.style.flexBasis = '100%';
-                widthRange.value = 90; // 将滑块设置为最大值以反映右侧被隐藏
-                adjustWidth();
+                widthRange.value = 90; // 将滑块设置为最大值
+                widthRange.disabled = true; // 禁用滑块
             }
         }
 
         function adjustWidth() {
-            const widthRange = parseInt(document.getElementById('width-range').value, 10);
-            const min = parseInt(document.getElementById('width-range').min, 10);
-            const max = parseInt(document.getElementById('width-range').max, 10);
+            const widthRange = document.getElementById('width-range');
+            const value = parseInt(widthRange.value, 10);
+            const min = parseInt(widthRange.min, 10);
+            const max = parseInt(widthRange.max, 10);
             const content = document.getElementById('content');
             const rightContent = document.getElementById('right-content');
 
-            if (widthRange <= min) {
+            if (value <= min) {
                 // 隐藏左侧容器
                 content.classList.add('hidden');
                 rightContent.classList.remove('hidden');
                 rightContent.style.flexBasis = '100%';
-            } else if (widthRange >= max) {
+            } else if (value >= max) {
                 // 隐藏右侧容器
                 rightContent.classList.add('hidden');
                 content.classList.remove('hidden');
@@ -210,10 +251,8 @@
                 // 显示两个容器并调整宽度
                 content.classList.remove('hidden');
                 rightContent.classList.remove('hidden');
-                const leftWidth = widthRange;
-                const rightWidth = 100 - leftWidth;
-                content.style.flexBasis = `${leftWidth}%`;
-                rightContent.style.flexBasis = `${rightWidth}%`;
+                content.style.flexBasis = `${value}%`;
+                rightContent.style.flexBasis = `${100 - value}%`;
             }
         }
     </script>
