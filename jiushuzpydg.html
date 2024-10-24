@@ -161,32 +161,12 @@ window.MathJax = {
                 font-size: 0.9em;
             }
         }
-        /* 新增样式 */
-        #model-selection label {
-            margin-right: 10px;
-            font-weight: bold;
-        }
-
-        #model-dropdown {
-            padding: 5px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 1em;
-        }
     </style>
 </head>
 <body>
   
     <div id="chat-container">
         <h3 id="title">玖数智谱有点杠</h3>
-        
-        <!-- 模型选择下拉菜单 -->
-        <div id="model-selection" style="margin-bottom: 10px; text-align: center;">
-            <label for="model-dropdown">选择模型: </label>
-            <select id="model-dropdown">
-                <!-- 模型选项将由JavaScript动态生成 -->
-            </select>
-        </div>
         
         <div id="messages"></div>
 
@@ -199,16 +179,6 @@ window.MathJax = {
     </div>
 
     <script>
-    // 定义模型列表
-    const models = [
-    
-        { name: "glm-4-flash",value: "glm-4-flash" },
-
-
-
-        // 未来可以在此处添加更多模型
-    ];
-
     class ChatApp {
         constructor() {
             this.API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
@@ -218,7 +188,6 @@ window.MathJax = {
             };
             this.messages = [this.SYSTEM_MESSAGE];
             this.initElements();
-            this.populateModelDropdown(); // 动态生成模型选项
             this.addEventListeners();
         }
 
@@ -228,31 +197,7 @@ window.MathJax = {
             this.sendBtn = document.getElementById('send-btn');
             this.refreshBtn = document.getElementById('refresh-btn');
             this.loadingIndicator = document.getElementById('loading');
-            this.modelDropdown = document.getElementById('model-dropdown');
         }
-
-        // 动态生成模型下拉菜单选项
- populateModelDropdown() {
-    models.forEach((model, index) => {
-        const option = document.createElement('option');
-        option.value = model.value;
-        option.textContent = model.name;
-        // 默认选择第一个模型
-        if (index === 0) {
-            option.selected = true;
-        }
-        this.modelDropdown.appendChild(option);
-    });
-
-    // 监听下拉菜单变化，启用发送按钮
-    this.modelDropdown.addEventListener('change', () => {
-        this.updateSendButtonState();
-    });
-
-    // 初始状态下更新发送按钮
-    this.updateSendButtonState();
-}
-
 
         addEventListeners() {
             this.userInput.addEventListener('input', () => {
@@ -271,11 +216,10 @@ window.MathJax = {
             this.refreshBtn.addEventListener('click', () => this.clearMessages());
         }
 
-        // 根据输入和模型选择状态更新发送按钮
+        // 根据输入状态更新发送按钮
         updateSendButtonState() {
             const userInputNotEmpty = this.userInput.value.trim() !== '';
-            const modelSelected = this.modelDropdown.value !== "";
-            this.sendBtn.disabled = !(userInputNotEmpty && modelSelected);
+            this.sendBtn.disabled = !userInputNotEmpty;
         }
 
         async sendMessage() {
@@ -294,8 +238,6 @@ window.MathJax = {
         async getAssistantReply() {
             this.loadingIndicator.style.display = 'block';
 
-            const selectedModel = this.modelDropdown.value; // 获取用户选择的模型
-
             let response;
             try {
                 response = await fetch(this.API_URL, {
@@ -305,7 +247,7 @@ window.MathJax = {
                         'Authorization': `Bearer ${this.selectApiKey()}`
                     },
                     body: JSON.stringify({
-                        model: selectedModel,
+                        model: "glm-4-flash", // 默认使用的模型
                         messages: this.messages,
                         temperature: 0.3
                     })
