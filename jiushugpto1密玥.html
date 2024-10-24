@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>深度智能</title>
+    <title>玖数推理</title>
     <link rel="icon" href="faviconkimi.ico" type="image/x-icon">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-okaidia.min.css" rel="stylesheet" />
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-python.min.js"></script>
-  
+   
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         body {
@@ -22,19 +22,61 @@
             text-align: center;
             margin: 1px 0;
         }
- #chat-container {
-    min-width: 300px; /* 设置最小宽度 */
-    max-width: 90%; /* 最大宽度限制为视口的 90% */
-    margin: 0 auto;
-    background-color: #e0f7fa;
-    border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    min-height: 800px; /* 设置一个最小高度，根据需要调整 */
-    height: auto;
-}
+        #chat-container {
+            min-width: 300px;
+            max-width: 90%;
+            margin: 0 auto;
+            background-color: #e0f7fa;
+
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 800px;
+            height: auto;
+        }
+
+        /* 新增的顶部控制容器样式 */
+        #top-controls {
+            display: flex;
+            justify-content: center; /* 水平居中 */
+            align-items: center;    /* 垂直居中 */
+            flex-wrap: wrap;        /* 允许换行以适应小屏幕 */
+            gap: 20px;              /* 元素之间的间距 */
+            margin-bottom: 10px;    /* 下方的外边距 */
+        }
+
+        /* 模型选择下拉菜单 */
+        #model-selection {
+            display: flex;
+            align-items: center;
+        }
+
+        #model-selection label {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        #model-dropdown {
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+        }
+
+        /* 设置API密钥按钮 */
+        #open-api-key-btn {
+            padding: 5px 10px;
+            border: none;
+            background-color: #17a2b8;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            /* 移除 margin-bottom: 10px; */
+        }
+
         #messages {
             flex: 1;
             overflow-y: auto;
@@ -148,13 +190,93 @@
             #user-input {
                 font-size: 0.9em;
             }
+            /* 响应式调整顶部控制容器 */
+            #top-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            #model-selection, 
+            #open-api-key-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        /* API密钥设置弹窗样式 */
+        #api-key-modal {
+            display: none; /* 默认隐藏 */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        #api-key-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 10px;
+        }
+
+        #api-key-content h2 {
+            margin-top: 0;
+        }
+
+        #api-key-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+
+        #save-api-key-btn, #close-api-key-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-right: 10px;
+        }
+
+        #save-api-key-btn {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        #close-api-key-btn {
+            background-color: #dc3545;
+            color: #fff;
         }
     </style>
 </head>
 <body>
-    
+  
     <div id="chat-container">
-        <h3 id="title">深度智能</h3>
+        <h3 id="title">玖数推理</h3>
+        
+        <!-- 新增的顶部控制容器 -->
+        <div id="top-controls">
+            <!-- 模型选择下拉菜单 -->
+            <div id="model-selection">
+                <label for="model-dropdown"></label>
+                <select id="model-dropdown">
+                    <!-- 模型选项将由JavaScript动态生成 -->
+                </select>
+            </div>
+
+            <!-- 打开API密钥设置按钮 -->
+            <div>
+                <button id="open-api-key-btn">设置API密钥</button>
+            </div>
+        </div>
+
         <div id="messages"></div>
 
         <div id="input-container">
@@ -165,14 +287,44 @@
         <button id="refresh-btn">清除对话</button>
     </div>
 
+    <!-- API密钥设置弹窗 -->
+    <div id="api-key-modal">
+        <div id="api-key-content">
+            <h2>设置API密钥</h2>
+            <input type="password" id="api-key-input" placeholder="请输入您的API密钥" />
+            <div style="text-align: right;">
+                <button id="save-api-key-btn">保存</button>
+                <button id="close-api-key-btn">取消</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+    // 定义模型列表
+    const models = [
+
+        { name: "o1-mini-all", value: "o1-mini-all" },
+        { name: "o1-preview-all", value: "o1-preview-all" },
+        { name: "o1-mini", value: "o1-mini" },
+        { name: "o1-preview-2024-09-12", value: "o1-preview-2024-09-12" },
+        { name: "o1-preview", value: "o1-preview" },
+        { name: "o1-mini-2024-09-12", value: "o1-mini-2024-09-12" },
+
+        // 未来可以在此处添加更多模型
+    ];
+
     class ChatApp {
         constructor() {
-            this.API_URL = 'https://api.deepseek.com/v1/chat/completions';
-            this.SYSTEM_MESSAGE = {"role": "system", "content": "你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型。并会给出题涉及的相关知识点。玖数 为专有名词，不可翻译成其他语言。如果提问题和学习数理化学科或是编程无关则不要回复"};
+            this.API_URL = 'https://aigc.x-see.cn/v1/chat/completions';
+            this.SYSTEM_MESSAGE = {
+                "role": "system",
+                "content": "你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。每个题目一定要一次性给出完整的回答，不分段回复，确保回答的内容覆盖所涉及的所有知识点。"
+            };
             this.messages = [this.SYSTEM_MESSAGE];
             this.initElements();
+            this.populateModelDropdown(); // 动态生成模型选项
             this.addEventListeners();
+            this.checkApiKey(); // 检查API密钥
         }
 
         initElements() {
@@ -181,11 +333,41 @@
             this.sendBtn = document.getElementById('send-btn');
             this.refreshBtn = document.getElementById('refresh-btn');
             this.loadingIndicator = document.getElementById('loading');
+            this.modelDropdown = document.getElementById('model-dropdown');
+
+            // API密钥相关元素
+            this.apiKeyModal = document.getElementById('api-key-modal');
+            this.apiKeyInput = document.getElementById('api-key-input');
+            this.saveApiKeyBtn = document.getElementById('save-api-key-btn');
+            this.closeApiKeyBtn = document.getElementById('close-api-key-btn');
+            this.openApiKeyBtn = document.getElementById('open-api-key-btn');
+        }
+
+        // 动态生成模型下拉菜单选项
+        populateModelDropdown() {
+            models.forEach((model, index) => {
+                const option = document.createElement('option');
+                option.value = model.value;
+                option.textContent = model.name;
+                // 默认选择第一个模型
+                if (index === 0) {
+                    option.selected = true;
+                }
+                this.modelDropdown.appendChild(option);
+            });
+
+            // 监听下拉菜单变化，启用发送按钮
+            this.modelDropdown.addEventListener('change', () => {
+                this.updateSendButtonState();
+            });
+
+            // 初始状态下更新发送按钮
+            this.updateSendButtonState();
         }
 
         addEventListeners() {
             this.userInput.addEventListener('input', () => {
-                this.sendBtn.disabled = this.userInput.value.trim() === '';
+                this.updateSendButtonState();
             });
 
             this.sendBtn.addEventListener('click', () => this.sendMessage());
@@ -198,6 +380,19 @@
             });
 
             this.refreshBtn.addEventListener('click', () => this.clearMessages());
+
+            // API密钥弹窗按钮事件
+            this.openApiKeyBtn.addEventListener('click', () => this.openApiKeyModal());
+            this.closeApiKeyBtn.addEventListener('click', () => this.closeApiKeyModal());
+            this.saveApiKeyBtn.addEventListener('click', () => this.saveApiKey());
+        }
+
+        // 根据输入和模型选择状态更新发送按钮
+        updateSendButtonState() {
+            const userInputNotEmpty = this.userInput.value.trim() !== '';
+            const modelSelected = this.modelDropdown.value !== "";
+            const apiKeyExists = this.getApiKey() !== null;
+            this.sendBtn.disabled = !(userInputNotEmpty && modelSelected && apiKeyExists);
         }
 
         async sendMessage() {
@@ -205,50 +400,89 @@
             if (userMessage === '') return;
 
             await this.displayMessage(`我：${userMessage}`, 'user-message');
-            this.messages.push({"role": "user", "content": userMessage});
+            this.messages.push({ "role": "user", "content": userMessage });
 
             this.userInput.value = '';
-            this.sendBtn.disabled = true;
+            this.updateSendButtonState();
 
             await this.getAssistantReply();
         }
 
         async getAssistantReply() {
             this.loadingIndicator.style.display = 'block';
-            let models = ["deepseek-coder","deepseek-chat",];
-            let response;
-            for (let model of models) {
-                try {
-                    response = await fetch(this.API_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${this.selectApiKey()}`
-                        },
-                        body: JSON.stringify({
-                            model: model,
-                            messages: this.messages,
-                            temperature: 0.3
-                        })
-                    });
-                    if (response.ok) break;
-                } catch (error) {
-                    console.error("请求出错:", error);
-                }
+
+            const selectedModel = this.modelDropdown.value; // 获取用户选择的模型
+            const apiKey = this.getApiKey();
+
+            if (!apiKey) {
+                await this.displayMessage("玖数：请先设置API密钥。", 'assistant-message');
+                this.loadingIndicator.style.display = 'none';
+                return;
             }
+
+            let response;
+            try {
+                response = await fetch(this.API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: selectedModel,
+                        messages: this.messages,
+                        temperature: 0.3
+                    })
+                });
+            } catch (error) {
+                console.error("请求出错:", error);
+                response = null;
+            }
+
             if (!response || !response.ok) {
                 await this.displayMessage("玖数：对不起，发生了错误，请稍后再试。", 'assistant-message');
             } else {
                 const data = await response.json();
                 const assistantMessage = data.choices[0].message.content;
                 await this.displayMessageStepByStep(`玖数：${assistantMessage}`, 'assistant-message');
-                this.messages.push({"role": "assistant", "content": assistantMessage});
+                this.messages.push({ "role": "assistant", "content": assistantMessage });
             }
             this.loadingIndicator.style.display = 'none';
         }
 
-        selectApiKey() {
-            return 'sk-fd790ecc4101410bb877daa5b6a9a5c1';
+        // API密钥相关方法
+        checkApiKey() {
+            const apiKey = this.getApiKey();
+            if (!apiKey) {
+                this.openApiKeyModal();
+            } else {
+                this.updateSendButtonState();
+            }
+        }
+
+        getApiKey() {
+            return localStorage.getItem('apiKey');
+        }
+
+        saveApiKey() {
+            const apiKey = this.apiKeyInput.value.trim();
+            if (apiKey === '') {
+                alert('API密钥不能为空。');
+                return;
+            }
+            localStorage.setItem('apiKey', apiKey);
+            this.closeApiKeyModal();
+            this.updateSendButtonState();
+            alert('API密钥已保存成功。');
+        }
+
+        openApiKeyModal() {
+            this.apiKeyInput.value = '';
+            this.apiKeyModal.style.display = 'block';
+        }
+
+        closeApiKeyModal() {
+            this.apiKeyModal.style.display = 'none';
         }
 
         async displayMessage(message, className) {
@@ -297,14 +531,20 @@
             return new Promise((resolve) => {
                 const animate = () => {
                     if (index < message.length) {
+                        // 检测是否遇到代码块开始标记 ```
                         if (message.substr(index, 3) === '```') {
                             const endIndex = message.indexOf('```', index + 3);
                             if (endIndex !== -1) {
                                 const codeBlock = message.substring(index + 3, endIndex);
                                 this.createCodeContainer(contentElement, codeBlock);
                                 index = endIndex + 3;
+                            } else {
+                                // 如果没有找到结束标记，则将剩余部分作为普通文本
+                                contentElement.innerHTML += message.substr(index);
+                                index = message.length;
                             }
                         } else {
+                            // 普通文本逐字符显示
                             contentElement.innerHTML += message[index];
                             index++;
                         }
