@@ -10,20 +10,54 @@
             user-select: none;
             -webkit-user-select: none;
             -ms-user-select: none;
+            margin: 0; /* 移除默认的body边距 */
         }
-        canvas {
-            border: 1px solid black;
-            background-color: #F5F5F5;
-            display: block;
-            margin: 20px auto;
-            touch-action: none; /* Prevent touch gestures */
+        .container {
+            display: flex;
+            align-items: flex-start;
+            padding: 20px; /* 添加内边距来替代Canvas的margin */
         }
         .tool-bar {
-            text-align: center;
-            margin-bottom: 10px;
+            width: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
+        .tool-group, .thickness-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .tool-group button, .thickness-group input, .thickness-group span {
+            margin: 5px 0;
+        }
+        .color-group {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .color-group button {
+            margin: 5px;
+        }
+        .canvas-container {
+            flex-grow: 1;
+            /* 添加以下样式，使canvas容器撑满剩余空间 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+canvas {
+    border: 1px solid black;
+    background-color: white; /* 改成白色 */
+    touch-action: none;
+    box-sizing: border-box;
+}
+
+
         .tool-bar button, .tool-bar input[type="button"] {
-            margin: 0 5px;
             padding: 10px 15px;
             font-size: 16px;
             cursor: pointer;
@@ -51,7 +85,7 @@
         }
         .tool-bar .slider {
             margin: 10px;
-            width: 200px;
+            width: 100%;
         }
         .custom-cursor-pen {
             cursor: url('data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjMDAwMDAwIiBoZWlnaHQ9IjIwIiB3aWR0aD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNSAxMEwxNyAxMCw4IDIxTDEwIDUsMTUgMTUwLDE1IDE1VDEwVjEwWiIvPjwvc3ZnPg=='), auto;
@@ -60,7 +94,7 @@
             cursor: url('data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjRkZGRkZGIiBoZWlnaHQ9IjIwIiB3aWR0aD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMSAxOSBDMSAxOSAxIDE4IDIgMTggM1YxWiIvPjwvc3ZnPg=='), auto;
         }
         .tool-bar .color-picker {
-            margin: 0 10px;
+            margin: 5px;
             padding: 0;
             border: none;
             background: none;
@@ -76,32 +110,44 @@
     </style>
 </head>
 <body>
-    <div class="tool-bar">
-        <button id="copyToClipboard">复制</button>
-        <button id="pen" class="active">画笔</button>
-        <button id="eraser">橡皮</button>
-        <button id="clear">清除</button>
-        <button id="undo">撤销</button>
-        <button id="redo">重做</button><br><br>
-        <button id="black" class="color-button selected-color" style="background-color: black; color: white;"></button>
-        <button id="red" class="color-button" style="background-color: red;"></button>
-        <button id="blue" class="color-button" style="background-color: blue; color: white;"></button>
-        <button id="green" class="color-button" style="background-color: green; color: white;"></button>
-        <button id="yellow" class="color-button" style="background-color: yellow;"></button>
-        <button id="purple" class="color-button" style="background-color: purple;"></button>
-        <button id="orange" class="color-button" style="background-color: orange;"></button>
-        <button id="pink" class="color-button" style="background-color: pink;"></button>
-        <button id="brown" class="color-button" style="background-color: brown; color: white;"></button>
-        <button id="grey" class="color-button" style="background-color: grey;"></button>
-        <button id="cyan" class="color-button" style="background-color: cyan;"></button>
-        <button id="lime" class="color-button" style="background-color: lime;"></button>
-        <button id="customColor" class="color-picker">
-            <input type="color" id="customColorInput" title="选择颜色">
-        </button><br><br>
-        <input type="range" id="thicknessSlider" class="slider" min="1" max="50" value="5">
-        <span id="thicknessValue">5</span>
+    <div class="container">
+        <div class="tool-bar">
+            <div class="tool-group">
+                 <button id="copyToClipboard">复制</button>
+                <button id="pen" class="active">画笔</button>
+                <button id="eraser">橡皮</button>
+                <button id="clear">清除</button>
+                <button id="undo">撤销</button>
+                <button id="redo">重做</button>
+            </div>
+            <div class="color-group">
+                <button id="black" class="color-button selected-color" style="background-color: black; color: white;"></button>
+                <button id="red" class="color-button" style="background-color: red;"></button>
+                <button id="blue" class="color-button" style="background-color: blue; color: white;"></button>
+                <button id="green" class="color-button" style="background-color: green; color: white;"></button>
+                <button id="yellow" class="color-button" style="background-color: yellow;"></button>
+                <button id="purple" class="color-button" style="background-color: purple;"></button>
+                <button id="orange" class="color-button" style="background-color: orange;"></button>
+                <button id="pink" class="color-button" style="background-color: pink;"></button>
+                <button id="brown" class="color-button" style="background-color: brown; color: white;"></button>
+                <button id="grey" class="color-button" style="background-color: grey;"></button>
+                <button id="cyan" class="color-button" style="background-color: cyan;"></button>
+                <button id="lime" class="color-button" style="background-color: lime;"></button>
+                <button id="customColor" class="color-picker">
+                    <input type="color" id="customColorInput" title="选择颜色">
+                </button>
+            </div>
+            <div class="thickness-group">
+                <input type="range" id="thicknessSlider" class="slider" min="1" max="50" value="5">
+                <span id="thicknessValue">5</span>
+            </div>
+        </div>
+        <div class="canvas-container">
+    
+            <canvas id="drawingCanvas" width="1040" height="760"></canvas>
+
+        </div>
     </div>
-    <canvas id="drawingCanvas" width="1040" height="760"></canvas>
    <script>
         const canvas = document.getElementById('drawingCanvas');
         const ctx = canvas.getContext('2d');
@@ -263,14 +309,17 @@
             ctx.moveTo(x, y);
         }
 
+        // 修改后的getX和getY函数，减去canvas的边框宽度
         function getX(event) {
             const rect = canvas.getBoundingClientRect();
-            return event.clientX - rect.left;
+            const borderLeft = parseFloat(getComputedStyle(canvas).borderLeftWidth) || 0;
+            return event.clientX - rect.left - borderLeft;
         }
 
         function getY(event) {
             const rect = canvas.getBoundingClientRect();
-            return event.clientY - rect.top;
+            const borderTop = parseFloat(getComputedStyle(canvas).borderTopWidth) || 0;
+            return event.clientY - rect.top - borderTop;
         }
 
         function clearCanvas() {
@@ -341,16 +390,52 @@
 
 const copyButton = document.getElementById('copyToClipboard');
 
-copyButton.addEventListener('click', async () => {
-    canvas.toBlob(blob => {
+copyButton.addEventListener('click', () => {
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    
+    // 填充白色背景
+    tempCtx.fillStyle = "white";
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    
+    // 将原始内容绘制到临时画布上
+    tempCtx.drawImage(canvas, 0, 0);
+    
+    tempCanvas.toBlob(blob => {
         const item = new ClipboardItem({ "image/png": blob });
         navigator.clipboard.write([item]).then(() => {
-            alert("画布内容已复制到剪贴板！");
+         showTemporaryMessage("画布内容已复制到剪贴板！");
         }).catch(err => {
             console.error("复制失败：", err);
         });
     });
 });
+
+
+// 显示并自动隐藏的提示函数
+function showTemporaryMessage(message) {
+    const messageBox = document.createElement("div");
+    messageBox.textContent = message;
+    messageBox.style.position = "fixed";
+    messageBox.style.top = "20px";
+    messageBox.style.left = "50%";
+    messageBox.style.transform = "translateX(-50%)";
+    messageBox.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
+    messageBox.style.color = "white";
+    messageBox.style.padding = "10px 20px";
+    messageBox.style.borderRadius = "5px";
+    messageBox.style.zIndex = "1000";
+
+    document.body.appendChild(messageBox);
+
+    // 2秒后自动删除提示框
+    setTimeout(() => {
+        document.body.removeChild(messageBox);
+    }, 2000);
+}
+
 
 
     </script>
