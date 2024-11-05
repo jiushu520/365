@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML5 Canvas Drawing with Enhanced Features</title>
+    <title>画布</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -77,6 +77,7 @@
 </head>
 <body>
     <div class="tool-bar">
+        <button id="copyToClipboard">复制</button>
         <button id="pen" class="active">画笔</button>
         <button id="eraser">橡皮</button>
         <button id="clear">清除</button>
@@ -118,7 +119,7 @@
         let mode = 'pen'; // 当前模式: 'pen' 或 'eraser'
         let currentColor = 'black';
         let currentThickness = 5;
-        let lastPressure = 1; // 用于压力平滑
+        let lastPressure = 1.5; // 用于压力平滑
 
         // 历史记录栈
         const undoStack = [];
@@ -337,6 +338,21 @@
             // 清空重做栈
             redoStack.length = 0;
         }
+
+const copyButton = document.getElementById('copyToClipboard');
+
+copyButton.addEventListener('click', async () => {
+    canvas.toBlob(blob => {
+        const item = new ClipboardItem({ "image/png": blob });
+        navigator.clipboard.write([item]).then(() => {
+            alert("画布内容已复制到剪贴板！");
+        }).catch(err => {
+            console.error("复制失败：", err);
+        });
+    });
+});
+
+
     </script>
 
 </body>
