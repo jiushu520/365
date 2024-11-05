@@ -87,14 +87,14 @@
     });
 
     async function sendMessage() {
-      const userMessage = document.createElement('div');
-      userMessage.className = 'message user';
-      userMessage.innerHTML = textInput.innerHTML;
-      chatBox.appendChild(userMessage);
+   const userMessage = document.createElement('div');
+   userMessage.className = 'message user';
+   userMessage.innerHTML = '我：' + textInput.innerHTML;
+   chatBox.appendChild(userMessage);
 
       const assistantMessage = document.createElement('div');
       assistantMessage.className = 'message assistant';
-      assistantMessage.textContent = "生成中，请稍等...";
+      assistantMessage.textContent = "思考中，请稍等...";
       chatBox.appendChild(assistantMessage);
 
       // 获取输入内容
@@ -104,7 +104,7 @@
 
       // 如果没有文本输入，且有图片，则自动添加提示文字
       if (!textContent && imageBase64) {
-        textContent = "识别图片，并解读内容。如果内容为题目则进行解答，如果不是就进行识别";
+        textContent = "识别图片，并解读内容。并解答。";
       }
 
       // 构建消息内容
@@ -141,18 +141,13 @@
         });
 
         const result = await response.json();
-        if (result.choices && result.choices[0] && result.choices[0].message) {
-          const content = result.choices[0].message.content;
-
-          // 清空初始的“生成中，请稍等...”文本
-          assistantMessage.textContent = '';
-
-          // 逐字显示助手回复
-          typeWriter(assistantMessage, parseContent(content));
-
-        } else {
-          assistantMessage.textContent = '未能生成有效的回复内容。';
-        }
+  if (result.choices && result.choices[0] && result.choices[0].message) {
+       const content = result.choices[0].message.content;
+       assistantMessage.innerHTML = '玖数：';
+       typeWriter(assistantMessage, parseContent(content));
+     } else {
+       assistantMessage.textContent = '玖数：未能生成有效的回复内容。';
+     }
 
       } catch (error) {
         console.error("请求出错：", error);
