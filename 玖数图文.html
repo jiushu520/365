@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -270,10 +271,25 @@ h2 {
       textInput.innerHTML = '';
       updateSendButton();
 
+
+
+
+
+
+
+
       // 如果没有文本输入，且有图片，则自动添加提示文字
-      if (!textContent && imageBase64) {
-        textContent = "识别图片，并解读内容。并解答。";
-      }
+      
+// 如果没有文本输入，且有图片，则自动添加提示文字
+if (!textContent && imageBase64) {
+  textContent = "识别图片，并解读内容。并解答。如果是解答过程则进行分析，如果是题目，就给出尽可能多的解答方法，记往，你是一个有着20多年经验的数学物理竞赛教练。解题之后给出一些相关例题。语气以最严厉方式。";
+}
+
+// 如果有文本输入，但没有图片，也追加提示文字（不覆盖原有文本）
+if (textContent && !imageBase64) {
+  textContent += "\n\n如如果是题目，就给出尽可能多的解答方法。记住，你是一个有着20多年经验的数学物理竞赛教练。解题之后给出一些相关例题。语气以最严厉方式。";
+}
+
 
       // 构建消息内容
       const messages = [];
