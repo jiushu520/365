@@ -4,140 +4,94 @@
   <meta charset="UTF-8">
   <title>玖数图文</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background-color: #e0f7fa;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    .chat-container {
-      max-width: 900px;
-      width: 100%;
-      margin: 0 auto;
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      overflow: hidden;
-    }
-
-    .chat-box {
-      width: 100%;
-      border: 1px solid #ddd;
-      padding: 10px;
-      background-color: #fff;
-      border-radius: 10px;
-      flex-grow: 1;
-      overflow-y: auto;
-      animation: fadeIn 0.5s;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .message {
-      margin: 10px 0;
-      color: black;
-      padding: 10px;
-      border-radius: 10px;
-      animation: fadeIn 0.5s;
-    }
-
-.user { 
-  background-color: #d0f0c0;
-  text-align: left; /* 修改对齐方式为左对齐 */
-}
-
-.assistant { 
-  background-color: #ffffe0;
-  text-align: left; /* 修改对齐方式为左对齐 */
-}
-
-    .fixed-footer {
-      width: 100%;
-      background-color: #e0f7fa;
-      padding: 10px 20px;
-      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
-      display: flex;
-      align-items: center;
-      flex-direction: column;
-    }
-
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #e0f7fa; }
+    .chat-container { width: 100%; max-width: 900px; margin: auto; }
+    .chat-box { border: 1px solid #ddd; padding: 10px; background-color: #fff; border-radius: 10px; }
+    .message { margin: 10px 0; color: black; padding: 10px; border-radius: 10px; }
+    .assistant { background-color: #ffffe0; } /* 浅黄色 */
+    .user { background-color: #d0f0c0; } /* 浅绿色 */
     .input-area {
-      display: flex;
-      width: 100%;
-      max-width: 900px;
-      align-items: flex-start;
-    }
+    display: flex;
+    align-items: flex-start; /* 改变对齐方式 */
+    margin-top: 10px;
+  }
 
-    .text-input {
-      flex: 1;
-      min-height: 50px;
-      max-height: 200px;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      background-color: #f5f5f5;
-      overflow-y: auto;
-      resize: vertical;
-    }
 
-    #sendBtn, #uploadImageBtn, #captureImageBtn, #clearBtn {
-      padding: 10px;
-      margin: 5px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      color: white;
-      transition: background-color 0.3s ease;
-    }
 
-    #sendBtn { background-color: #4CAF50; }
-    #clearBtn { background-color: #4CAF50; width: 100%; }
-    #uploadImageBtn, #captureImageBtn { background-color: #2196F3; }
+  .text-input {
+    flex: 1;
+    min-height: 100px; /* 调整输入框高度 */
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f5f5f5;
+    overflow-y: auto;
+  }
 
-    #sendBtn:hover, #uploadImageBtn:hover, #captureImageBtn:hover, #clearBtn:hover {
-      background-color: #45a049;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
+  #sendBtn {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 10px;
+    align-self: flex-end; /* 使按钮在容器的右下方 */
+  }
+
 
     #sendBtn:disabled { background-color: #ccc; }
+    #clearBtn { padding: 10px 20px; margin-top: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; width: 100%; cursor: pointer; }
+    #uploadImageBtn, #captureImageBtn { padding: 10px 20px; margin-left: 10px; background-color: #2196F3; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
   </style>
-</head>
 
+  <!-- MathJax for rendering LaTeX -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js"></script>
+
+  <!-- Highlight.js for syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/default.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
+</head>
 <body>
+  <h2 style="text-align: center;">玖数图文</h2>
   <div class="chat-container">
     <div class="chat-box" id="chatBox">
       <div class="message assistant">您好！请在下方输入文字或粘贴图片进行对话。</div>
     </div>
-  </div>
-
-  <div class="fixed-footer">
     <div class="input-area">
-      <div class="text-input" id="textInput" contenteditable="true" placeholder="输入文字或粘贴图片..."></div>
-      <button id="sendBtn" onclick="sendMessage()" disabled>发送</button>
+      <div class="text-input" id="textInput" contenteditable="true" placeholder="输入文字或粘贴图片...">
+
+
+</div>
+ 
+     <button id="sendBtn" onclick="sendMessage()" disabled>发送</button>
+
+ 
       <input type="file" id="uploadImageInput" accept="image/*" style="display:none;">
       <input type="file" id="captureImageInput" accept="image/*" capture="camera" style="display:none;">
+
     </div>
-    <div class="input-area">
-      <button id="uploadImageBtn">上传图片</button>
+    <button id="uploadImageBtn">上传图片</button>
       <button id="captureImageBtn">拍照上传</button>
-      <button id="clearBtn" onclick="clearChat()">清除对话</button>
-    </div>
+<div class="input-area">
+    <button id="clearBtn" onclick="clearChat()">清除对话</button>
+
+  </div>
   </div>
 
-<script>
+  <script>
     const chatBox = document.getElementById('chatBox');
     const textInput = document.getElementById('textInput');
     let imageBase64 = '';
-    let conversation = [];
+    let conversation = []; // 用于存储对话历史
 
+    // 动态检测是否可以发送消息
     function updateSendButton() {
       const textContent = textInput.innerText.trim();
       document.getElementById('sendBtn').disabled = textContent === '' && !imageBase64;
@@ -145,6 +99,7 @@
 
     textInput.addEventListener('input', updateSendButton);
 
+    // 处理粘贴事件以捕获图片
     textInput.addEventListener('paste', (event) => {
       const items = event.clipboardData.items;
       for (let item of items) {
@@ -157,8 +112,8 @@
             img.style.maxWidth = '100%';
             img.style.maxHeight = '200px';
             textInput.appendChild(img);
-            imageBase64 = e.target.result.split(',')[1];
-            updateSendButton();
+            imageBase64 = e.target.result.split(',')[1];  // 去掉base64前缀
+            updateSendButton();  // 启用发送按钮
           };
           reader.readAsDataURL(blob);
           event.preventDefault();
@@ -166,6 +121,7 @@
       }
     });
 
+    // 处理上传本地图片按钮点击事件
     document.getElementById('uploadImageBtn').addEventListener('click', () => {
       document.getElementById('uploadImageInput').click();
     });
@@ -180,13 +136,14 @@
           img.style.maxWidth = '100%';
           img.style.maxHeight = '200px';
           textInput.appendChild(img);
-          imageBase64 = e.target.result.split(',')[1];
-          updateSendButton();
+          imageBase64 = e.target.result.split(',')[1];  // 去掉base64前缀
+          updateSendButton();  // 启用发送按钮
         };
         reader.readAsDataURL(file);
       }
     });
 
+    // 处理拍照上传按钮点击事件
     document.getElementById('captureImageBtn').addEventListener('click', () => {
       document.getElementById('captureImageInput').click();
     });
@@ -201,16 +158,17 @@
           img.style.maxWidth = '100%';
           img.style.maxHeight = '200px';
           textInput.appendChild(img);
-          imageBase64 = e.target.result.split(',')[1];
-          updateSendButton();
+          imageBase64 = e.target.result.split(',')[1];  // 去掉base64前缀
+          updateSendButton();  // 启用发送按钮
         };
         reader.readAsDataURL(file);
       }
     });
 
+    // 处理键盘事件
     textInput.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' && !event.shiftKey && !event.ctrlKey) {
-        event.preventDefault();
+        event.preventDefault(); // 阻止默认的换行操作
         sendMessage();
       }
     });
@@ -226,14 +184,17 @@
       assistantMessage.textContent = "思考中，请稍等...";
       chatBox.appendChild(assistantMessage);
 
+      // 获取输入内容
       let textContent = textInput.innerText.trim();
       textInput.innerHTML = '';
       updateSendButton();
 
+      // 如果没有文本输入，且有图片，则自动添加提示文字
       if (!textContent && imageBase64) {
         textContent = "识别图片，并解读内容。并解答。";
       }
 
+      // 构建消息内容
       const messages = [];
       if (textContent) {
         messages.push({ type: "text", text: textContent });
@@ -242,16 +203,19 @@
         messages.push({ type: "image_url", image_url: { url: imageBase64 } });
       }
 
+      // 确保至少有一条消息内容
       if (messages.length === 0) {
         assistantMessage.textContent = '请输入文字或粘贴图片后再发送。';
         return;
       }
 
+      // 将用户消息添加到对话历史
       conversation.push({
         role: "user",
         content: messages
       });
 
+      // 如果对话历史超过10条（5轮对话），删除最早的消息
       if (conversation.length > 10) {
         conversation = conversation.slice(conversation.length - 10);
       }
@@ -261,6 +225,7 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            // 请替换为您的API密钥，切勿将密钥暴露在客户端代码中
             'Authorization': 'Bearer 046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU'
           },
           body: JSON.stringify({
@@ -272,40 +237,81 @@
         const result = await response.json();
         if (result.choices && result.choices[0] && result.choices[0].message) {
           const content = result.choices[0].message.content;
-          conversation.push({ role: "assistant", content: content });
+
+          // 将助手的回复添加到对话历史
+          conversation.push({
+            role: "assistant",
+            content: content
+          });
+
+          // 同样限制对话历史的长度
           if (conversation.length > 10) {
             conversation = conversation.slice(conversation.length - 10);
           }
-          assistantMessage.innerHTML = '玖数：' + parseContent(content);
+
+          assistantMessage.innerHTML = '玖数：';
+          typeWriter(assistantMessage, parseContent(content));
         } else {
           assistantMessage.textContent = '玖数：未能生成有效的回复内容。';
         }
+
       } catch (error) {
         console.error("请求出错：", error);
         assistantMessage.textContent = '出错了，请稍后再试。';
       }
 
-      imageBase64 = '';
-      scrollToBottom();
+      imageBase64 = ''; // 清空图片数据
     }
 
     function parseContent(content) {
+      // 将数学公式和代码块转换为HTML
       let parsedContent = content
-        .replace(/\$\$(.*?)\$\$/gs, (match, p1) => `<span class="math">\[${p1}\]</span>`)
-        .replace(/\$(.*?)\$/g, (match, p1) => `<span class="math">\(${p1}\)</span>`)
+        .replace(/\$\$(.*?)\$\$/gs, (match, p1) => `<span class="math">\\[${p1}\\]</span>`)
+        .replace(/\$(.*?)\$/g, (match, p1) => `<span class="math">\\(${p1}\\)</span>`)
         .replace(/```([\s\S]*?)```/g, (match, p1) => `<pre><code>${p1}</code></pre>`);
       return parsedContent;
     }
 
-    function scrollToBottom() {
-      chatBox.scrollTop = chatBox.scrollHeight;
+    function typeWriter(element, htmlContent) {
+      let i = 0;
+      let speed = 10; // 调整打字速度
+
+      function type() {
+        if (i < htmlContent.length) {
+          let currentChar = htmlContent.charAt(i);
+          if (currentChar === '<') {
+            // 处理HTML标签
+            let tag = '';
+            while (currentChar !== '>' && i < htmlContent.length) {
+              tag += currentChar;
+              i++;
+              currentChar = htmlContent.charAt(i);
+            }
+            tag += '>'; // 添加闭合符号
+            element.innerHTML += tag;
+            i++;
+          } else {
+            element.innerHTML += currentChar;
+            i++;
+          }
+          setTimeout(type, speed);
+        } else {
+          // 打字完成，渲染MathJax公式和代码高亮
+          MathJax.typesetPromise().then(() => {
+            document.querySelectorAll('pre code').forEach((block) => {
+              hljs.highlightElement(block);
+            });
+          });
+        }
+      }
+
+      type();
     }
 
     function clearChat() {
       chatBox.innerHTML = '<div class="message assistant">您好！请在下方输入文字或粘贴图片进行对话。</div>';
-      conversation = [];
+      conversation = []; // 重置对话历史
     }
   </script>
-
 </body>
 </html>
