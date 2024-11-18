@@ -143,9 +143,21 @@
             </select>
         </div>
         
+        <!-- 添加语气选择器 -->
+        <div id="tone-selector-container" style="text-align: center; margin-bottom: 10px;">
+            <label for="tone-selector">选择语气：</label>
+            <select id="tone-selector">
+                <option value="杠精">杠精</option>
+                <option value="严肃">严肃</option>
+                <option value="幽默">幽默</option>
+                <option value="讽刺">讽刺</option>
+                <!-- 可以添加更多选项 -->
+            </select>
+        </div>
+
         <div id="messages"></div>
 
-         <div id="loading">正在思考中...</div>
+        <div id="loading">正在思考中...</div>
 
         <div id="input-container">
             <textarea id="user-input" placeholder="输入你的消息..." rows="1"></textarea>
@@ -158,7 +170,13 @@
     class ChatApp {
         constructor() {
             this.CONFIG = [
-    
+        {
+                    name: "Grok Beta",
+                    apiUrl: "https://api.x.ai/v1/chat/completions",
+                    apiKey: "xai-1vaHLycBuJvgZoVN2Fhwyt2LWTj3fxMy279O6DsPsOEto0ngsYRZgybenuhU0NNiQCgb8GyCbv3ool6x",
+                    model: "grok-beta",
+                    temperature: 0
+                },
                 {
                     name: "glm-4-flashX",
                     apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
@@ -166,44 +184,34 @@
                     model: "glm-4-flashX",
                     temperature: 0
                 },
-
-                  {
+                {
                     name: "glm-4-flash",
                     apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
                     apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
                     model: "glm-4-flash",
                     temperature: 0
                 },
-
+        
                 {
-                    name: "Grok Beta",
-                    apiUrl: "https://api.x.ai/v1/chat/completions",
-                    apiKey: "xai-1vaHLycBuJvgZoVN2Fhwyt2LWTj3fxMy279O6DsPsOEto0ngsYRZgybenuhU0NNiQCgb8GyCbv3ool6x",
-                    model: "grok-beta",
-                    temperature: 0
-                },
-
-                
-                  {
                     name: "qwen-plus",
                     apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
                     apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
                     model: "qwen-plus",
                     temperature: 0
                 },
-
-
-
                 // 添加更多模型配置
             ];
             this.currentConfigIndex = 0; // 默认使用第一个配置
-            this.SYSTEM_MESSAGE = {
+
+            // SYSTEM_MESSAGE 改为函数，以便动态生成
+            this.getSystemMessage = (tone) => ({
                 "role": "system",
-                "content": "你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型。并会给出题涉及的相关知识点，以强烈的杠精语气回复。如果提问题和学习数理化学科或是编程无关则以杠精的语气进行回怼！"
-            };
-            this.messages = [this.SYSTEM_MESSAGE];
+                "content": `你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型。并会给出题涉及的相关知识点，以${tone}的语气回复。如果提问题和学习数理化学科或是编程无关则以${tone}的语气进行回怼！`
+            });
+
             this.initElements();
             this.populateModelSelector();
+            this.loadToneSetting(); // 加载语气设置
             this.addEventListeners();
         }
 
@@ -214,6 +222,7 @@
             this.refreshBtn = document.getElementById('refresh-btn');
             this.loadingIndicator = document.getElementById('loading');
             this.modelSelector = document.getElementById('model-selector');
+            this.toneSelector = document.getElementById('tone-selector');
         }
 
         populateModelSelector() {
@@ -223,6 +232,20 @@
                 option.textContent = config.name;
                 this.modelSelector.appendChild(option);
             });
+        }
+
+        loadToneSetting() {
+            const storedTone = localStorage.getItem('selectedTone');
+            if (storedTone) {
+                this.selectedTone = storedTone;
+            } else {
+                // 如果没有存储的语气，选择语气选择器的第一个选项作为默认值
+                this.selectedTone = this.toneSelector.options[0].value;
+                localStorage.setItem('selectedTone', this.selectedTone);
+            }
+            this.toneSelector.value = this.selectedTone;
+            this.SYSTEM_MESSAGE = this.getSystemMessage(this.selectedTone);
+            this.messages = [this.SYSTEM_MESSAGE];
         }
 
         addEventListeners() {
@@ -239,11 +262,21 @@
                 }
             });
             this.modelSelector.addEventListener('change', (e) => this.changeModel(e.target.value));
+            this.toneSelector.addEventListener('change', (e) => this.changeTone(e.target.value));
+        }
+
+        changeTone(tone) {
+            this.selectedTone = tone;
+            localStorage.setItem('selectedTone', tone);
+            this.SYSTEM_MESSAGE = this.getSystemMessage(tone); // 更新系统消息
+            this.clearMessages();
+            this.messages = [this.SYSTEM_MESSAGE];
         }
 
         changeModel(index) {
             this.currentConfigIndex = parseInt(index);
             this.clearMessages();
+            this.SYSTEM_MESSAGE = this.getSystemMessage(this.selectedTone);
             this.messages = [this.SYSTEM_MESSAGE];
         }
 
@@ -323,7 +356,6 @@
             // 调用 MathJax 渲染
             MathJax.typesetPromise([messageElement]);
         }
-
 
         displayMessageStepByStep(message, className) {
             const isCode = message.includes("```");
