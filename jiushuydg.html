@@ -178,6 +178,27 @@
 
 
 
+    {
+                    name: "gpt-4o-2024-11-20",
+                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
+                    apiKey: "sk-PQUi1mRSyz3OtEadQ6X7PNGjVdP1sO3jDOz4cLjhhwZewjZK",
+                    model: "gpt-4o-2024-11-20",
+                    temperature: 0
+                },
+
+
+
+
+    {
+                    name: "gpt-4o",
+                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
+                    apiKey: "sk-PQUi1mRSyz3OtEadQ6X7PNGjVdP1sO3jDOz4cLjhhwZewjZK",
+                    model: "gpt-4o",
+                    temperature: 0
+                },
+
+
+
         {
                     name: "Grok Beta",
                     apiUrl: "https://api.x.ai/v1/chat/completions",
@@ -215,7 +236,7 @@
             this.getSystemMessage = (tone) => ({
                 "role": "system",
                 "content": `你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。总是以${tone}的语气思考回复问题。
-以下是你的工作流：
+
 1. 明确问题目标：
     明确问题的已知条件和要求的结论。
     找出关键公式或定理。
