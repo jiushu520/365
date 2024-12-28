@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>玖数学</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            background-color: #e0f7fa;
+        }
+        .top, .left, .center {
+            border: 1px solid #000;
+            box-sizing: border-box;
+        }
+        .top {
+            padding: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 50px;
+        }
+        .main {
+            display: flex;
+            flex-grow: 1;
+            height: calc(100vh - 50px);
+            transition: margin-left 0.3s;
+        }
+        .left {
+            flex: 0.3;
+            overflow-y: auto;
+            transition: transform 0.3s ease-in-out;
+        }
+        .left.hidden {
+            transform: translateX(-100%);
+        }
+        .center {
+            flex: 4;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: flex 0.3s;
+            overflow: hidden;
+        }
+        .top-content {
+            flex: 1 1 auto;
+            overflow: hidden;
+        }
+        .canvas-switch {
+            padding: 10px;
+            background-color: #e0f7fa;
+            text-align: center;
+            border-top: 1px solid #000;
+        }
+        .bottom-content {
+            height: 0;
+            overflow: hidden;
+            transition: height 0.3s;
+        }
+        .bottom-content iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        .menu-item {
+            cursor: pointer;
+            margin: 10px 0;
+            padding: 5px;
+            text-decoration: none;
+            color: black;
+            display: block;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        #search {
+            width: 90%;
+            padding: 5px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .collapsible {
+            background-color: #e0f7fa;
+            color: blue;
+            cursor: pointer;
+            padding: 10px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 15px;
+        }
+        .active, .collapsible:hover {
+            background-color: #b3e5fc;
+            color: blue;
+        }
+        .content {
+            padding: 0 18px;
+            display: none;
+            overflow: hidden;
+            background-color: #e0f7fa;
+        }
+        .toggle-menu-btn {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border: 1px solid #e0f7fa;
+            border-radius: 0px;
+            padding: 0px 0px;
+            cursor: pointer;
+            z-index: 1000;
+            transition: background-color 0.3s;
+        }
+        .toggle-menu-btn:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        .main.menu-hidden .left {
+            flex: 0;
+            max-width: 0;
+            overflow: hidden;
+        }
+        .main.menu-hidden .center {
+            flex: 1;
+        }
+        @media (max-width: 768px) {
+            .left {
+                position: absolute;
+                z-index: 1000;
+                background-color: #fff;
+                height: 100%;
+                width: 250px;
+                box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+            }
+            .left.hidden {
+                transform: translateX(-100%);
+            }
+            .main.menu-hidden .center {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main" id="main">
+        <div class="left" id="menu">
+            <input type="text" id="search" placeholder="搜索目录..." onkeyup="filterMenu()">
+            <!-- 菜单将通过JavaScript动态生成 -->
+        </div>
+        <div class="center" id="content">
+            <div class="toggle-menu-btn" onclick="toggleMenu()">目录</div>
+            <div class="top-content">
+                <iframe src="https://shimo.im/docs/gO3odYvGvRfzMZqD" frameborder="0"></iframe>
+            </div>
+            <div class="bottom-content" id="canvasContainer">
+                <iframe src="" frameborder="0" id="canvasIframe"></iframe>
+            </div>
+            <div class="canvas-switch">
+                <label for="canvasSwitch">画布</label>
+                <input type="checkbox" id="canvasSwitch" onchange="toggleCanvas()">
+                <label for="canvasHeight">高度(px):</label>
+                <input type="range" id="canvasHeight" value="500" min="0" max="1000" oninput="setCanvasHeight()">
+                <span id="heightValue">500</span> px
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const menuData = [
+            {
+                title: '基础运算',
+                items: [
+                    { text: 'A00四则运算阶梯训练', url: 'A00四则运算阶梯训练.html' },
+                    { text: 'A01分数运算阶梯测试训练', url: 'A01分数运算阶梯测试训练.html' },
+                    { text: 'A02有理数运算阶梯测试训练', url: 'A02有理数运算阶梯测试训练.html' },
+                    { text: 'A03根式运算阶梯测试训练', url: 'A03根式运算阶梯测试训练.html' }
+                ]
+            },
+            {
+                title: '乘法公式因式分解',
+                items: [
+                    { text: 'B01乘法公式阶梯测试训练', url: 'B01乘法公式阶梯测试训练.html' },
+                    { text: 'B02乘法公式综合阶梯测试训练', url: 'B02乘法公式综合阶梯测试训练.html' },
+                    { text: 'B03因式分解阶梯测试训练', url: 'B03因式分解阶梯测试训练.html' },
+                    { text: 'B04因式分解技巧阶梯测试训练', url: 'B04因式分解技巧阶梯测试训练.html' }
+                ]
+            },
+            {
+                title: '线性代数',
+                items: [
+                    { text: 'C01线性代数梯测试训练', url: 'C01线性代数梯测试训练.html' }
+                ]
+            },
+            {
+                title: '函数',
+                items: [
+                    { text: 'D01一次函数阶梯测试训练', url: 'D01一次函数阶梯测试训练.html' },
+                    { text: 'D02二次函数阶梯测试训练', url: 'D02二次函数阶梯测试训练.html' },
+                    { text: 'D03偏导阶梯测试训练', url: 'D03偏导阶梯测试训练.html' }
+                ]
+            },
+            {
+                title: '方程(组)',
+                items: [
+                    { text: '从小学到大学认识二元一次方程组', url: 'https://shimo.im/docs/25q5Xjpen7clnE3D' },
+                    { text: 'E01方程阶梯测试训练', url: 'E01方程阶梯测试训练.html' },
+                    { text: 'E02二元一次方程组阶梯测试训练', url: 'E02二元一次方程组阶梯测试训练.html' },
+                    { text: 'E03二元一次方程组应用题', url: 'E03二元一次方程组应用题.html' }
+                ]
+            },
+            {
+                title: '几何',
+                items: [
+                    { text: 'F01几何阶梯测试沙漏与金字塔', url: 'F01几何阶梯测试沙漏与金字塔.html' },
+                    { text: 'F02几何阶梯测试燕尾模型', url: 'F02几何阶梯测试燕尾模型.html' },
+                    { text: 'F03几何阶梯测试复杂直线形', url: 'F03几何阶梯测试复杂直线形.html' }
+                ]
+            },
+            {
+                title: '应用题',
+                items: [
+                    { text: 'G01应用题鸡兔同笼阶梯训练', url: 'G01应用题鸡兔同笼阶梯训练.html' },
+                    { text: 'G02应用题盈亏问题阶梯训练', url: 'G02应用题盈亏问题阶梯训练.html' },
+                    { text: 'G03应用题牛吃草问题阶梯训练', url: 'G03应用题牛吃草问题阶梯训练.html' },
+                    { text: 'G04应用题流水行船阶梯训练', url: 'G04应用题流水行船阶梯训练.html' },
+                    { text: 'G05应用题工程问题阶梯训练', url: 'G05应用题工程问题阶梯训练.html' },
+                    { text: 'G06分数应用题阶梯训练', url: 'G06分数应用题阶梯训练.html' },
+                    { text: 'G07浓度问题阶梯训练', url: 'G07浓度问题阶梯训练.html' },
+                    { text: 'G08年龄问题阶梯训练', url: 'G08年龄问题阶梯训练.html' },
+                    { text: 'G09比的应用阶梯训练', url: 'G09比的应用阶梯训练.html' },
+                    { text: 'G10扶梯问题阶梯训练', url: 'G10扶梯问题阶梯训练.html' }
+                ]
+            },
+            {
+                title: '行程问题',
+                items: [
+                    { text: '行程问题01相遇问题01不同时出发的相遇', url: '行程问题01相遇问题01不同时出发的相遇.html' },
+                    { text: '行程问题02相遇问题02折返相遇01', url: '行程问题02相遇问题02折返相遇01.html' },
+                    { text: '行程问题03相遇问题03折返相遇02', url: '行程问题03相遇问题03折返相遇02.html' },
+                    { text: '行程问题04相遇问题04中点相遇', url: '行程问题04相遇问题04中点相遇.html' },
+                    { text: '行程问题05相遇问题05相同点出发的多次相遇1', url: '行程问题05相遇问题05相同点出发的多次相遇1.html' },
+                    { text: '行程问题06相遇问题06相同点出发的多次相遇2', url: '行程问题06相遇问题06相同点出发的多次相遇2.html' },
+                    { text: '行程问题07追及问题01相同点出发的多次追及1', url: '行程问题07追及问题01相同点出发的多次追及1.html' },
+                    { text: '行程问题08追及问题02相同点出发的多次追及2', url: '行程问题08追及问题02相同点出发的多次追及2.html' },
+                    { text: '行程问题09追及问题03相同点出发的多次追及3', url: '行程问题09追及问题03相同点出发的多次追及3.html' },
+                    { text: '行程问题10比例行程01', url: '行程问题10比例行程01.html' },
+                    { text: '行程问题11比例行程02', url: '行程问题11比例行程02.html' },
+                    { text: '行程问题12二次相遇', url: '行程问题12二次相遇.html' },
+                    { text: '行程问题13变程行程1', url: '行程问题13变程行程1.html' },
+                    { text: '行程问题14变程行程2', url: '行程问题14变程行程2.html' },
+                    { text: '行程问题15中途停车', url: '行程问题15中途停车.html' },
+                    { text: '行程问题16行程问题中的复合比', url: '行程问题16行程问题中的复合比.html' },
+                    { text: '行程问题17不同出发点的往返相遇1', url: '行程问题17不同出发点的往返相遇1.html' },
+                    { text: '行程问题18不同出发点的往返相遇2', url: '行程问题18不同出发点的往返相遇2.html' },
+                    { text: '行程问题19不同出发点的往返追及1', url: '行程问题19不同出发点的往返追及1.html' },
+                    { text: '行程问题20不同出发点的往返追及2', url: '行程问题20不同出发点的往返追及2.html' },
+                    { text: '行程问题21行程问题综合测试', url: '行程问题21行程问题综合测试.html' }
+                ]
+            },
+            {
+                title: '计数',
+                items: [
+                    { text: '计数01等差数列基础', url: '计数01等差数列基础.html' }
+                ]
+            },
+            {
+                title: '自招文库',
+                items: [
+                    { text: '自主招生公式', url: 'https://shimo.im/docs/gO3odYvGvRfzMZqD' },
+                    { text: '2015-2024十的高考真题汇编', url: './pdf/2015-2024十的高考真题汇编.pdf' },
+                    { text: '高考数学优质解法讲义', url: './pdf/高考数学优质解法讲义.pdf' },
+                    { text: '复分析：可视化方法', url: './pdf/复分析：可视化方法.pdf' },
+                    { text: '数学B类微积分', url: './pdf/数学B类微积分.pdf' },
+                    { text: '数学B类空间向量与代数', url: './pdf/数学B类空间向量与代数.pdf' },
+                    { text: '图解线性代数', url: './pdf/图解线性代数.pdf' },
+                    { text: '正方形性质pdf', url: './pdf/正方形性质.pdf' },
+                    { text: '正方形性质', url: 'https://shimo.im/docs/dPkpdMn7p8fWnWkO' },
+                    { text: 'Z01自主招生真题三角与圆', url: 'Z01自主招生真题三角与圆.html' },
+                    { text: '在线编程', url: 'https://www.onlinegdb.com/online_c++_compiler' }
+                ]
+            },
+            {
+                title: '2024秋课程',
+                items: [
+                    { text: '基础拓展班', url: 'https://shimo.im/docs/16q8xJ0812S5o7q7' },
+                    { text: '拓展一班', url: 'https://shimo.im/docs/dPkpdZY4nOTyGlkO' },
+                    { text: '拓展二班', url: 'https://shimo.im/docs/25q5XPeJNxsDPg3D' },
+                    { text: '拓展三班', url: 'https://shimo.im/docs/e1AzdKDRJPFlEQqW' }
+                ]
+            },
+            {
+                title: '优秀笔记',
+                items: [
+                    { text: '胡浩轩', url: './pdf/胡浩轩笔记.pdf' },
+                    { text: '刘湘宇', url: './pdf/刘湘宇作业集.pdf' },
+                    { text: '李岱轩', url: './pdf/李岱轩.pdf' },
+                    { text: '欧阳铭铭', url: './pdf/欧阳铭铭.pdf' }
+                ]
+            },
+            {
+                title: '工具',
+                items: [
+                    { text: 'ggb', url: 'https://www.geogebra.org/classic' }
+                ]
+            }
+        ];
+
+        function generateMenu() {
+            const menu = document.getElementById('menu');
+            menuData.forEach(section => {
+                const button = document.createElement('button');
+                button.className = 'collapsible';
+                button.textContent = section.title;
+
+                const content = document.createElement('div');
+                content.className = 'content';
+
+                section.items.forEach(item => {
+                    const link = document.createElement('a');
+                    link.href = 'javascript:void(0);';
+                    link.className = 'menu-item';
+                    link.textContent = item.text;
+                    link.onclick = () => showContent(item.url);
+                    content.appendChild(link);
+                });
+
+                menu.appendChild(button);
+                menu.appendChild(content);
+            });
+
+            initializeCollapsible();
+        }
+
+        function initializeCollapsible() {
+            document.querySelectorAll('.collapsible').forEach(button => {
+                button.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const content = this.nextElementSibling;
+                    content.style.display = content.style.display === 'block' ? 'none' : 'block';
+                });
+            });
+        }
+
+        function showContent(url) {
+            document.querySelector('.top-content iframe').src = url;
+        }
+
+        function filterMenu() {
+            const input = document.getElementById('search');
+            const filter = input.value.toLowerCase();
+            const menuItems = document.querySelectorAll('.menu-item');
+            const sections = document.querySelectorAll('.content');
+
+            menuItems.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(filter)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            sections.forEach(section => {
+                const visibleItems = Array.from(section.querySelectorAll('.menu-item')).some(item => item.style.display !== 'none');
+                section.style.display = visibleItems ? 'block' : 'none';
+                const button = section.previousElementSibling;
+                if (button) button.classList.toggle('active', visibleItems);
+            });
+        }
+
+        function toggleMenu() {
+            const main = document.getElementById('main');
+            const menu = document.getElementById('menu');
+            main.classList.toggle('menu-hidden');
+            menu.classList.toggle('hidden');
+        }
+
+        function toggleCanvas() {
+            const isChecked = document.getElementById('canvasSwitch').checked;
+            const canvasContainer = document.getElementById('canvasContainer');
+            const canvasIframe = document.getElementById('canvasIframe');
+
+            if (isChecked) {
+                setCanvasHeight();
+                canvasIframe.src = '画布.html';
+            } else {
+                canvasContainer.style.height = '0';
+                canvasIframe.src = '';
+            }
+        }
+
+        function setCanvasHeight() {
+            const canvasContainer = document.getElementById('canvasContainer');
+            const height = document.getElementById('canvasHeight').value;
+            canvasContainer.style.height = height + 'px';
+            document.getElementById('heightValue').textContent = height;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            generateMenu();
+        });
+    </script>
+</body>
+</html>
