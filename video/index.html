@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>视频播放列表</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            margin: 0;
+        }
+
+        a {
+            text-decoration: underline; /* 下划线 */
+            color: black; /* 链接颜色 */
+            cursor: pointer;
+        }
+
+        #video-list {
+            width: 300px; /* 增加宽度以容纳两级目录 */
+            padding: 20px;
+            border-right: 1px solid #ccc;
+            height: 100vh;
+            overflow-y: auto;
+            box-sizing: border-box;
+            background-color: #f9f9f9;
+            transition: all 0.3s ease; /* 添加过渡效果 */
+        }
+
+        #video-list.hidden {
+            display: none;
+        }
+
+        #video-list h3 {
+            margin-top: 0;
+        }
+
+        /* 样式调整 */
+        #video-list ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .category-title {
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            color: #3498db; /* 主类别颜色（蓝色） */
+            cursor: pointer;
+        }
+
+        .subcategory-title {
+            font-weight: bold;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            color: #16a085; /* 子类别颜色 */
+            padding-left: 10px;
+            cursor: pointer;
+        }
+
+        /* 新增高亮样式 */
+        .active-subcategory {
+            background-color: #d1ecf1; /* 浅蓝色背景 */
+            color: #0c5460; /* 深蓝色文字 */
+            border-radius: 4px;
+        }
+
+        .video-item {
+            margin-bottom: 8px;
+            padding-left: 20px;
+        }
+
+        #video-player {
+            flex-grow: 1;
+            padding: 20px;
+            box-sizing: border-box;
+            transition: margin-left 0.3s ease; /* 添加过渡效果 */
+        }
+
+        video {
+            width: 100%;
+            height: 700px;
+            background-color: black;
+        }
+
+        .search-box {
+            margin-bottom: 10px;
+            position: sticky;
+            top: 0;
+            background-color: #f9f9f9;
+            z-index: 1;
+            padding: 5px 0;
+        }
+
+        .url-input-box {
+            margin-bottom: 10px;
+        }
+
+        #url-input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        #pdf-frame, #web-frame {
+            width: 100%;
+            height: 700px;
+            border: none;
+        }
+
+        /* 样式调整：切换按钮 */
+        #toggle-video-list {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #toggle-video-list:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="video-list">
+        <h3>视频列表</h3>
+        <div class="search-box">
+            <input type="text" id="search-input" onkeyup="filterVideos()" placeholder="搜索视频...">
+        </div>
+        <ul id="category-list">
+            <!-- 类别列表 -->
+        </ul>
+        <ul id="video-list-ul">
+            <!-- 视频列表将由JavaScript加载 -->
+        </ul>
+    </div>
+
+    <div id="video-player">
+        <button id="toggle-video-list" onclick="toggleVideoList()">隐藏视频列表</button>
+       
+        <div class="url-input-box">
+            <input type="text" id="url-input" placeholder="输入视频URL并按回车播放,网址直接输入,bilibili直接输入词条,geogebra输入ggb+词条" onkeyup="handleUrlInput(event)">
+        </div>
+        <div id="player-container">
+            <video id="video-frame" controls style="display: block;"></video>
+            <iframe id="pdf-frame" style="display: none;"></iframe>
+            <iframe id="web-frame" style="display: none;"></iframe>
+        </div>
+ <h5>正在播放:</h5>
+    </div>
+
+    <!-- 引入视频数据文件 -->
+    <script src="videoData.js"></script>
+
+    <script>
+        function playVideo(videoSrc) {
+            const videoElement = document.getElementById('video-frame');
+            const pdfElement = document.getElementById('pdf-frame');
+            const webElement = document.getElementById('web-frame');
+            const videoType = getVideoType(videoSrc);
+
+            // 停止之前的视频播放（包括声音）
+            videoElement.pause();
+            videoElement.src = ''; // 清空当前播放的视频
+
+            // 隐藏所有播放器
+            pdfElement.style.display = 'none'; 
+            videoElement.style.display = 'none'; 
+            webElement.style.display = 'none';
+
+            // 如果是PDF文件，显示iframe
+            if (videoSrc.endsWith('.pdf')) {
+                pdfElement.style.display = 'block';
+                pdfElement.src = videoSrc;
+            } else if (videoSrc.startsWith('http://') || videoSrc.startsWith('https://')) {
+                // 如果是网页地址，显示网页
+                webElement.style.display = 'block';
+                webElement.src = videoSrc;
+            } else {
+                // 否则通过<video>标签播放（仅支持mp4）
+                videoElement.style.display = 'block';
+                if (videoType === 'mp4') {
+                    videoElement.src = videoSrc;
+                    videoElement.load();
+                    videoElement.play();
+                } else {
+                    // 不支持的格式，您可以添加提示或其他处理
+                    alert('不支持的视频格式：' + videoType);
+                }
+            }
+
+            // 更新“正在播放”标题，截断过长的地址
+            const videoTitleElement = document.querySelector('#video-player h5');
+            const maxTitleLength = 120; // 设置显示的最大字符数
+            const shortTitle = videoSrc.length > maxTitleLength 
+                ? videoSrc.slice(0, maxTitleLength) + '...' 
+                : videoSrc;
+
+            videoTitleElement.textContent = '正在播放: ' + shortTitle;
+            videoTitleElement.title = '完整地址: ' + videoSrc; // 设置悬停显示完整地址
+        }
+
+        // 获取视频类型（根据文件扩展名）
+        function getVideoType(url) {
+            const extension = url.split('.').pop().toLowerCase();
+            if (extension === 'mp4') {
+                return 'mp4';
+            }
+            return 'unknown';
+        }
+
+        // 获取视频名称
+        function getVideoName(url) {
+            return url.split('/').pop();
+        }
+
+        // 过滤视频列表（支持模糊查询，空格分隔多个关键词）
+        function filterVideos() {
+            const searchQuery = document.getElementById('search-input').value.trim().toLowerCase();
+            const keywords = searchQuery.split(/\s+/); // 使用空格拆分成多个关键词
+
+            const videoList = document.querySelector('#video-list-ul');
+            videoList.innerHTML = '';
+
+            let foundVideos = false;
+
+            // 遍历所有类别
+            videoData.categories.forEach(function(category) {
+                const categoryVideos = [];
+                
+                category.subcategories.forEach(function(subcategory) {
+                    const subcategoryVideos = subcategory.videos.filter(function(video) {
+                        return keywords.every(function(keyword) {
+                            return video.title.toLowerCase().includes(keyword); // 每个关键词都要在标题中出现
+                        });
+                    });
+
+                    if (subcategoryVideos.length > 0) {
+                        foundVideos = true;
+
+                        // 显示主类别（如果还未显示）
+                        if (!videoList.querySelector(`[data-category="${category.category}"]`)) {
+                            const categoryTitle = document.createElement('h4');
+                            categoryTitle.textContent = category.category;
+                            categoryTitle.className = 'category-title';
+                            categoryTitle.dataset.category = category.category;
+                            videoList.appendChild(categoryTitle);
+                        }
+
+                        // 显示子类别标题
+                        const subcategoryTitle = document.createElement('h5');
+                        subcategoryTitle.textContent = subcategory.subcategory;
+                        subcategoryTitle.className = 'subcategory-title';
+                        subcategoryTitle.onclick = function() {
+                            toggleSubcategory(subcategory);
+                            setActiveSubcategory(this); // 设置高亮
+                        };
+                        videoList.appendChild(subcategoryTitle);
+
+                        // 显示匹配的视频
+                        subcategoryVideos.forEach(function(video) {
+                            const li = document.createElement('li');
+                            li.className = 'video-item';
+                            const a = document.createElement('a');
+                            a.textContent = video.title;
+                            a.onclick = function() {
+                                playVideo(video.url);
+                            };
+                            li.appendChild(a);
+                            videoList.appendChild(li);
+                        });
+                    }
+                });
+            });
+
+            if (!foundVideos) {
+                const noResults = document.createElement('li');
+                noResults.textContent = '没有找到匹配的视频';
+                videoList.appendChild(noResults);
+            }
+        }
+
+        // 处理输入的URL
+        function handleUrlInput(event) {
+            if (event.key === 'Enter') {
+                let input = document.getElementById('url-input').value.trim();
+                if (input) {
+                    // 如果是以 ggb 开头的关键词，拼接成 Geogebra 搜索链接
+                    if (input.toLowerCase().startsWith('ggb')) {
+                        const query = input.slice(3).trim(); // 获取去掉 ggb 后的部分
+                        if (query) {
+                            const geogebraUrl = `https://www.geogebra.org/search/${encodeURIComponent(query)}`;
+                            playVideo(geogebraUrl);
+                            addVideoToList(geogebraUrl);
+                        } else {
+                            alert("请输入有效的 Geogebra 词条。");
+                        }
+                    } else {
+                        // 扩展的正则表达式，用于检测 URL 格式
+                        const urlPattern = /^(https?:\/\/|www\.|[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(\.[a-zA-Z]{2,})?)/i;
+
+                        if (urlPattern.test(input)) {
+                            // 如果是网址，直接播放
+                            if (!/^https?:\/\//i.test(input)) {
+                                // 如果网址以 www. 开头但没有 http/https，自动添加前缀
+                                input = 'https://' + input;
+                            }
+                            playVideo(input);
+                            addVideoToList(input);
+                        } else {
+                            // 如果是非网址的文字内容，跳转到 Bilibili 搜索
+                            const searchUrl = `https://search.bilibili.com/all?keyword=${encodeURIComponent(input)}&from_source=webtop_search&spm_id_from=333.1007&search_source=2`;
+                            playVideo(searchUrl);
+                        }
+                    }
+                    document.getElementById('url-input').value = ''; // 清空输入框
+                }
+            }
+        }
+
+        // 添加视频到列表（此处仅添加为一个新类别下的子类别）
+        function addVideoToList(videoSrc) {
+            const videoList = document.querySelector('#video-list-ul');
+            const videoName = getVideoName(videoSrc);
+            const li = document.createElement('li');
+            li.className = 'video-item';
+            const a = document.createElement('a');
+            a.textContent = videoSrc; // 显示完整的URL
+            a.title = videoSrc; // 悬停显示完整URL
+            a.onclick = function() {
+                playVideo(videoSrc);
+            };
+            li.appendChild(a);
+            videoList.appendChild(li);
+        }
+
+        // 加载视频类别
+        function loadCategories() {
+            const categoryList = document.querySelector('#category-list');
+            videoData.categories.forEach(function(category, index) {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.textContent = category.category;
+                a.onclick = function() {
+                    toggleCategory(index);
+                    clearActiveSubcategories(); // 清除所有高亮
+                };
+                li.appendChild(a);
+                categoryList.appendChild(li);
+            });
+        }
+
+        // 切换类别的显示与隐藏
+        function toggleCategory(categoryIndex) {
+            const category = videoData.categories[categoryIndex];
+            const videoList = document.querySelector('#video-list-ul');
+
+            // 先清空当前视频列表
+            videoList.innerHTML = '';
+
+            // 显示主类别标题
+            const categoryTitle = document.createElement('h4');
+            categoryTitle.textContent = category.category;
+            categoryTitle.className = 'category-title';
+            videoList.appendChild(categoryTitle);
+
+            // 遍历子类别
+            category.subcategories.forEach(function(subcategory) {
+                // 显示子类别标题
+                const subcategoryTitle = document.createElement('h5');
+                subcategoryTitle.textContent = subcategory.subcategory;
+                subcategoryTitle.className = 'subcategory-title';
+                subcategoryTitle.onclick = function() {
+                    toggleSubcategory(subcategory);
+                    setActiveSubcategory(this); // 设置高亮
+                };
+                videoList.appendChild(subcategoryTitle);
+            });
+        }
+
+        // 切换子类别的显示与隐藏
+        function toggleSubcategory(subcategory) {
+            const videoList = document.querySelector('#video-list-ul');
+            const subcategoryVideos = subcategory.videos;
+
+            // 清空子类别下的视频
+            const existingVideos = videoList.querySelectorAll('.video-item');
+            existingVideos.forEach(video => video.remove());
+
+            // 显示视频
+            subcategoryVideos.forEach(function(video) {
+                const li = document.createElement('li');
+                li.className = 'video-item';
+                const a = document.createElement('a');
+                a.textContent = video.title;
+                a.onclick = function() {
+                    playVideo(video.url);
+                };
+                li.appendChild(a);
+                videoList.appendChild(li);
+            });
+        }
+
+        // 设置当前选中的子类别为高亮
+        function setActiveSubcategory(element) {
+            // 移除所有子类别的高亮
+            const allSubcategories = document.querySelectorAll('.subcategory-title');
+            allSubcategories.forEach(function(subcat) {
+                subcat.classList.remove('active-subcategory');
+            });
+
+            // 添加当前点击的子类别的高亮
+            element.classList.add('active-subcategory');
+        }
+
+        // 清除所有子类别的高亮
+        function clearActiveSubcategories() {
+            const allSubcategories = document.querySelectorAll('.subcategory-title');
+            allSubcategories.forEach(function(subcat) {
+                subcat.classList.remove('active-subcategory');
+            });
+        }
+
+        // 切换视频列表显示/隐藏的函数
+        function toggleVideoList() {
+            const videoList = document.getElementById('video-list');
+            const toggleButton = document.getElementById('toggle-video-list');
+            if (videoList.style.display === 'none') {
+                videoList.style.display = 'block';
+                toggleButton.textContent = '隐藏视频列表'; // 修改按钮文本为“隐藏视频列表”
+            } else {
+                videoList.style.display = 'none';
+                toggleButton.textContent = '显示视频列表'; // 修改按钮文本为“显示视频列表”
+            }
+        }
+
+        window.onload = function() {
+            loadCategories(); // 加载视频类别
+            if (videoData.categories.length > 0) {
+                // 自动播放第一个类别的第一个子类别的第一个视频
+                const firstVideo = videoData.categories[0].subcategories[0].videos[0];
+                playVideo(firstVideo.url); 
+                toggleCategory(0); // 显示第一个类别
+                // 高亮第一个子类别
+                const firstSubcategory = document.querySelector('.subcategory-title');
+                if (firstSubcategory) {
+                    setActiveSubcategory(firstSubcategory);
+                }
+            }
+        };
+    </script>
+</body>
+</html>
