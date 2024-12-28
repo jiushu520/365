@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="icon" href="icon.ico" type="image/x-icon">
+  <meta charset="UTF-8">
+  <style>
+    .slider {
+      position: relative;
+      width: 100%;
+      height: 3vh;
+      background: #ddd;
+      margin: 0px;
+    }
+    .slider .track {
+      position: absolute;
+      height: 100%;
+      width: 100%;
+      background: #ddd;
+    }
+    .slider .handle {
+      position: absolute;
+      top: 0;
+      width: 10px;
+      height: 2.5vh;
+      background: black; 
+      cursor: pointer;
+      border-radius: 5px; /* 设置圆角 */
+      border: 2px solid grey; /* 设置蓝色边框 */
+    }
+    .slider .range {
+      background: transparent; /* 将选中范围设为透明 */
+    }
+    .container {
+      position: absolute;
+      top: 0vh;
+      height: 97vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .container1, .container2, .container3 {
+      background: rgba(173, 216, 230, 1); /* 浅蓝色 */
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      flex-grow: 1;
+    }
+    .menu {
+      background: #f0f0f0;
+      padding: 0px;
+      text-align: center;
+    }
+    .dropdown {
+      width: 90%;
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- 滑动条部分 -->
+<div class="slider" id="slider">
+  <div class="track"></div>
+
+  <!-- 三个容器，分别插入不同的iframe链接 -->
+  <div class="container container1" id="container1">
+    <div class="menu">
+      <select class="dropdown" id="dropdown1">
+        <option value="./tiku/index.html">题库</option>
+        <option value="video/index.html">学习视频</option>
+        <option value="识图解题flash.html">识图解题flash</option>
+        <option value="识图解题plus.html">识图解题plus</option>
+        <option value="draw.html">绘图</option>
+        <option value="ocr.html">公式识别</option> 
+        <option value="svg.html">svg</option> 
+        <option value="https://www.geogebra.org/classic">ggb</option>
+        <option value="ggb.html">ggbdraworder</option>
+        <option value="ggborder.html">ggborder</option>
+        <option value="tu.html">作业批改</option>
+        <option value="view.html">动画制作</option>
+        <option value="jiushudsai.html">deepseek</option>
+        <option value="jiushugptcom.html">玖数求索</option>
+        <option value="jiushugpto1.html">gpto1</option>
+        <option value="玖数图文.html">玖数图文</option>
+        <option value="jiushuydg.html">玖数有点杠</option>
+        <option value="website.html">任意网页</option>
+        <option value="jiushuopenai.html">openai</option>
+        <option value="https://felo.ai/search">felo</option>
+        <option value="metaso.html">metaso.cn</option>
+        <option value="https://chat.deepseek.com/">deepseek</option>
+        <option value="https://kimi.moonshot.cn/">kimi</option>
+        <option value="precode.html">precode</option>
+      </select>
+    </div>
+    <iframe src="" id="iframe1" title="Content Viewer"></iframe>
+  </div>
+
+  <div class="container container2" id="container2">
+    <div class="menu">
+      <select class="dropdown" id="dropdown2">
+        <option value="识图解题flash.html">识图解题flash</option>
+        <option value="识图解题plus.html">识图解题plus</option>
+        <option value="draw.html">绘图</option>
+        <option value="video/index.html">学习视频</option>
+        <option value="ocr.html">公式识别</option> 
+        <option value="svg.html">svg</option> 
+        <option value="./tiku/index.html">题库</option>
+        <option value="https://www.geogebra.org/classic">ggb</option>
+        <option value="ggb.html">ggbdraworder</option>
+        <option value="ggborder.html">ggborder</option>
+        <option value="tu.html">作业批改</option>
+        <option value="view.html">动画制作</option>
+        <option value="jiushudsai.html">deepseek</option>
+        <option value="jiushugptcom.html">玖数求索</option>
+        <option value="jiushugpto1.html">gpto1</option>
+        <option value="玖数图文.html">玖数图文</option>
+        <option value="website.html">任意网页</option>
+        <option value="jiushuydg.html">玖数有点杠</option>
+        <option value="jiushuopenai.html">openai</option>
+        <option value="https://felo.ai/search">felo</option>
+        <option value="metaso.html">metaso.cn</option>
+        <option value="https://chat.deepseek.com/">deepseek</option>
+        <option value="https://kimi.moonshot.cn/">kimi</option>
+        <option value="precode.html">precode</option>
+      </select>
+    </div>
+    <iframe src="" id="iframe2" title="Content Viewer"></iframe>
+  </div>
+
+  <div class="container container3" id="container3">
+    <div class="menu">
+      <select class="dropdown" id="dropdown3">
+        <option value="jiushuydg.html">玖数有点杠</option>
+        <option value="draw.html">绘图</option>
+        <option value="识图解题flash.html">识图解题flash</option>
+        <option value="识图解题plus.html">识图解题plus</option>
+        <option value="video/index.html">学习视频</option>
+        <option value="./tiku/index.html">题库</option>
+        <option value="ocr.html">公式识别</option> 
+        <option value="svg.html">svg</option> 
+        <option value="draw.html">draw</option>
+        <option value="https://www.geogebra.org/classic">ggb</option>
+        <option value="ggb.html">ggbdraworder</option>
+        <option value="ggborder.html">ggborder</option>
+        <option value="tu.html">作业批改</option>
+        <option value="view.html">动画制作</option>
+        <option value="jiushudsai.html">deepseek</option>
+        <option value="jiushugptcom.html">玖数求索</option>
+        <option value="jiushugpto1.html">gpto1</option>
+        <option value="玖数图文.html">玖数图文</option>
+        <option value="website.html">任意网页</option>
+        <option value="jiushuydg.html">玖数有点杠</option>
+        <option value="jiushuopenai.html">openai</option>
+        <option value="https://felo.ai/search">felo</option>
+        <option value="metaso.html">metaso.cn</option>
+        <option value="https://chat.deepseek.com/">deepseek</option>
+        <option value="https://kimi.moonshot.cn/">kimi</option>
+        <option value="precode.html">precode</option>
+      </select>
+    </div>
+    <iframe src="" id="iframe3" title="Content Viewer"></iframe>
+  </div>
+
+  <!-- 滑动块和选中范围 -->
+  <div class="range" id="range"></div>
+  <div class="handle" id="handle1"></div>
+  <div class="handle" id="handle2"></div>
+</div>
+
+<script>
+  // 默认加载三个iframe的第一个选项
+  document.addEventListener('DOMContentLoaded', function() {
+    // 获取下拉菜单和iframe
+    const dropdown1 = document.getElementById('dropdown1');
+    const iframe1 = document.getElementById('iframe1');
+    const dropdown2 = document.getElementById('dropdown2');
+    const iframe2 = document.getElementById('iframe2');
+    const dropdown3 = document.getElementById('dropdown3');
+    const iframe3 = document.getElementById('iframe3');
+
+    // 设置默认src为第一个选项
+    iframe1.src = dropdown1.value;
+    iframe2.src = dropdown2.value;
+    iframe3.src = dropdown3.value;
+
+    // 监听每个下拉菜单的选择更改
+    dropdown1.addEventListener('change', function() {
+      iframe1.src = this.value;
+    });
+    dropdown2.addEventListener('change', function() {
+      iframe2.src = this.value;
+    });
+    dropdown3.addEventListener('change', function() {
+      iframe3.src = this.value;
+    });
+  });
+
+  // 滑动条逻辑
+  let slider = document.getElementById('slider'); // 获取slider元素
+  let handle1 = document.getElementById('handle1');
+  let handle2 = document.getElementById('handle2');
+  let range = document.getElementById('range');
+  let container1 = document.getElementById('container1');
+  let container2 = document.getElementById('container2');
+  let container3 = document.getElementById('container3');
+
+  let max = slider.offsetWidth; // 确保 max 是有效的，可能在页面加载时需要更新
+  let dragging = null;
+  let animationFrame;
+
+  function initHandles() {
+    // 防止 max 为零
+    if (max === 0) {
+      max = slider.offsetWidth; // 更新 max 值
+    }
+    // 设置 handle1 和 handle2 的位置
+    handle1.style.left = (max * 0.618 - handle1.offsetWidth / 2) + 'px';
+    handle2.style.left = (max *1 - handle2.offsetWidth / 2) + 'px';
+    updateRange();
+    updateContainers();
+  }
+
+  function onPointerDown(e) {
+    e.preventDefault();
+    dragging = e.target;
+    slider.setPointerCapture(e.pointerId);
+  }
+
+  function onPointerMove(e) {
+    if (dragging) {
+      const rect = slider.getBoundingClientRect();
+      let offsetX = e.clientX - rect.left;
+      offsetX = Math.max(0, Math.min(offsetX, max));
+
+      if (dragging === handle1) {
+        const handle2Pos = parseFloat(handle2.style.left) || max;
+        offsetX = Math.min(offsetX, handle2Pos);
+      } else if (dragging === handle2) {
+        const handle1Pos = parseFloat(handle1.style.left) || 0;
+        offsetX = Math.max(offsetX, handle1Pos);
+      }
+
+      dragging.style.left = offsetX - dragging.offsetWidth / 2 + 'px';
+
+      if (!animationFrame) {
+        animationFrame = requestAnimationFrame(() => {
+          updateRange();
+          updateContainers();
+          animationFrame = null;
+        });
+      }
+    }
+  }
+
+  function onPointerUp(e) {
+    dragging = null;
+    slider.releasePointerCapture(e.pointerId);
+  }
+
+  function updateRange() {
+    const handle1Pos = parseFloat(handle1.style.left) || 0;
+    const handle2Pos = parseFloat(handle2.style.left) || max - handle2.offsetWidth;
+    const minPos = Math.min(handle1Pos, handle2Pos) + handle1.offsetWidth / 2;
+    const maxPos = Math.max(handle1Pos, handle2Pos) + handle1.offsetWidth / 2;
+    
+    range.style.left = minPos + 'px';
+    range.style.width = (maxPos - minPos) + 'px';
+  }
+
+  function updateContainers() {
+    const handle1Pos = parseFloat(handle1.style.left) || 0;
+    const handle2Pos = parseFloat(handle2.style.left) || max - handle2.offsetWidth;
+
+    // 防止容器宽度为负值
+    container1.style.width = Math.max(handle1Pos, 0) + 'px';
+    container2.style.width = Math.max(handle2Pos - handle1Pos, 0) + 'px';
+    container3.style.width = Math.max(max - handle2Pos, 0) + 'px';
+
+    container1.style.left = '0px';
+    container2.style.left = handle1Pos + 'px';
+    container3.style.left = handle2Pos + 'px';
+  }
+
+  // 下拉菜单事件监听
+  document.getElementById('dropdown1').addEventListener('change', function() {
+    document.getElementById('container1').querySelector('iframe').src = this.value;
+  });
+  document.getElementById('dropdown2').addEventListener('change', function() {
+    document.getElementById('container2').querySelector('iframe').src = this.value;
+  });
+  document.getElementById('dropdown3').addEventListener('change', function() {
+    document.getElementById('container3').querySelector('iframe').src = this.value;
+  });
+
+  handle1.addEventListener('pointerdown', onPointerDown);
+  handle2.addEventListener('pointerdown', onPointerDown);
+  slider.addEventListener('pointermove', onPointerMove);
+  slider.addEventListener('pointerup', onPointerUp);
+
+  initHandles();
+</script>
+</body>
+</html>
