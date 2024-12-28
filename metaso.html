@@ -1,34 +1,20 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <title>玖数秘塔</title>
-    <style>
-        html, body {
-            margin: 0;
-            height: 100%;
-            overflow: hidden;
-        }
-        .container {
-            display: flex;
-            height: 100%;
-        }
-        .right {
-            width: 130%; /* 右侧占视口130%宽度 */
-            margin-left: -25%; /* 向左平移30% */
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iframe with Scaling and Shifting</title>
+  <style>
+    iframe {
+      width: 100%;
+      height: 100vh;
+      transform: scale(1) translateX(0%);
+      transform-origin: 0 0;
+      border: none;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="right">
-            <iframe src="https://metaso.cn"></iframe>
-        </div>
-    </div>
+  <iframe src="https://metaso.cn"></iframe>
 </body>
 </html>

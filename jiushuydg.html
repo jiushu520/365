@@ -172,40 +172,18 @@
         constructor() {
             this.CONFIG = [
 
+    
 
 
-
-
-
-
-    {
-                    name: "gpt-4o-2024-11-20",
-                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
-                    apiKey: "sk-PQUi1mRSyz3OtEadQ6X7PNGjVdP1sO3jDOz4cLjhhwZewjZK",
-                    model: "gpt-4o-2024-11-20",
+               {
+                    name: "deepseek-chat",
+                    apiUrl: "https://api.deepseek.com/v1/chat/completions",
+                    apiKey: "sk-fd790ecc4101410bb877daa5b6a9a5c1",
+                    model: "deepseek-chat",
                     temperature: 0
                 },
 
 
-
-
-    {
-                    name: "gpt-4o",
-                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
-                    apiKey: "sk-PQUi1mRSyz3OtEadQ6X7PNGjVdP1sO3jDOz4cLjhhwZewjZK",
-                    model: "gpt-4o",
-                    temperature: 0
-                },
-
-
-
-        {
-                    name: "Grok Beta",
-                    apiUrl: "https://api.x.ai/v1/chat/completions",
-                    apiKey: "xai-3DNgwRHMO2NA8cpCbuXocWXS4WoOmoUuyIHdtCNQ6SqLAROVNlPffNlvHDPd5VOaRZGT5crIMGoizWpn",
-                    model: "grok-beta",
-                    temperature: 0
-                },
                 {
                     name: "glm-4-flashX",
                     apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
@@ -213,6 +191,8 @@
                     model: "glm-4-flashX",
                     temperature: 0
                 },
+
+
                 {
                     name: "glm-4-flash",
                     apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
@@ -228,14 +208,14 @@
                     model: "qwen-plus",
                     temperature: 0
                 },
-        {
-                    name: "qwen-max",
-                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
-                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
-                    model: "qwen-max",
+   
+                {
+                    name: "Grok Beta",
+                    apiUrl: "https://api.x.ai/v1/chat/completions",
+                    apiKey: "xai-3DNgwRHMO2NA8cpCbuXocWXS4WoOmoUuyIHdtCNQ6SqLAROVNlPffNlvHDPd5VOaRZGT5crIMGoizWpn",
+                    model: "grok-beta",
                     temperature: 0
                 },
-
                 // 添加更多模型配置
             ];
             this.currentConfigIndex = 0; // 默认使用第一个配置
@@ -243,63 +223,7 @@
             // SYSTEM_MESSAGE 改为函数，以便动态生成
             this.getSystemMessage = (tone) => ({
                 "role": "system",
-                "content": `你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。总是以${tone}的语气思考回复问题。
-
-1. 明确问题目标：
-    明确问题的已知条件和要求的结论。
-    找出关键公式或定理。
-
-2. 分析问题背景：
-    这类问题涉及哪些数学分支（如代数、几何、微积分等）？
-    是否有常用的解题方法或模型？
-
-3. 列出可能的解法：
-    直接推导、构造辅助图形、代数化简、向量表示、坐标变换、特殊情况验证等。
-    优先选择简单、直观的方法。
-
-4. 分步求解：
-    从已知条件出发，逐步推导。
-    明确每一步的逻辑依据，使用公式、定理或图形说明。
-
-5. 验证解答的正确性：
-    回顾是否满足所有已知条件。
-    检查是否有其他可能的解。
-
-6. 总结通用方法：
-    这道题的解法是否可以推广到类似问题？
-    是否存在更优的解法？
-
-7. 用数学语言表达：
-    尽量使用数学符号、图形、公式或标准化语言清晰呈现解答。
-
-
-
-适配具体数学问题的例子：
-
- 几何问题：
-  1. 确定已知条件，如点、线、角或形状的位置关系。
-  2. 使用几何定理（如勾股定理、相似三角形、圆幂定理等）。
-  3. 分析图形的对称性或转化坐标求解。
-
- 代数问题：
-  1. 寻找方程、代数式的变换路径。
-  2. 检查是否可以分解因式、配方或引入参数。
-  3. 使用代数恒等式、特值代入验证答案。
-
- 微积分问题：
-  1. 明确函数的性质（连续性、可导性等）。
-  2. 检查是否满足积分、导数的定义。
-  3. 使用极限、积分分部或换元等方法化简。
-
- 证明问题：
-  1. 明确证明类型：直接证明、反证法、归纳法。
-  2. 找到核心逻辑链条，并逐步构建。
-  3. 规范书写，让推导环环相扣。
-
-
-
-应用场景：
-使用这些提示词，以${tone}的语气，可以在任何数学问题中快速找到解题方向，避免遗漏关键思路，并条理清晰地组织解答过程。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型。并会给出题涉及的相关知识点，以${tone}的语气回复。如果提问题和学习数理化学科或是编程无关则以${tone}的语气进行回怼！最后给出一道相关的问题给用户练习。`
+                "content": `你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型。并会给出题涉及的相关知识点，以${tone}的语气回复。如果提问题和学习数理化学科或是编程无关则以${tone}的语气进行回怼！`
             });
 
             this.initElements();
