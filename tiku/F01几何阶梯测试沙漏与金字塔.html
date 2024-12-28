@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F01几何阶梯测试沙漏与金字塔</title>
+    
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .difficulty-buttons {
+            margin-bottom: 20px;
+        }
+
+        .difficulty-buttons button {
+            margin: 10px 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+        }
+
+        .difficulty-buttons button.active {
+            background-color: #45a049;
+            color: white;
+        }
+
+        #answer {
+            padding: 10px;
+            font-size: 16px;
+            width: 200px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            display: inline;
+            color: inherit;
+            font-size: inherit;
+            margin: 0;
+            padding: 0;
+        }
+
+        #score {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        #rendered-answer {
+            margin-top: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 200px;
+        }
+
+        .mathjax-answer {
+            font-size: 16px;
+        }
+
+        .switch-container {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 10px;
+        }
+
+        .switch-container label {
+            margin-right: 5px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+        }
+
+        input:checked+.slider {
+            background-color: #007bff;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(14px);
+        }
+
+        #videoContainer {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <h1>玖数学测训系统</h1>
+        <h3>F01几何阶梯测试沙漏与金字塔</h3>
+        <div class="difficulty-buttons" id="difficultyButtons"></div>
+        <div id="question"></div><br>
+
+        <input type="text" id="answer" placeholder="输入你的答案" oninput="updatePreview()">
+        <div id="rendered-answer"></div><br>
+        <button onclick="checkAnswer()">提交答案</button><br>
+
+
+    <div class="switch-container">
+        <label for="videoToggle">视频开关</label>
+            <label class="switch">
+                <input type="checkbox" id="videoToggle">
+                <span class="slider"></span>
+            </label>
+        </div><br>
+
+  
+
+        <div id="videoContainer" style="display: none;">
+            <video id="instructionalVideo" width="640" height="360" controls>
+                <source src="" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+  
+
+
+        <div id="result"></div>
+        <div id="score">正确: 0 | 错误: 0</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>题目</th>
+                    <th>级别</th>
+                    <th>你的答案</th>
+                    <th>正确答案</th>
+                    <th>结果</th>
+                </tr>
+            </thead>
+            <tbody id="history"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let correctAnswer;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let currentDifficulty = 1;
+
+         const difficultyNames = ["级别 1", "级别 2", "级别 3", "级别 4", "级别 5", "级别 6",  "挑战自招"];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            generateDifficultyButtons();
+            setDifficulty(1);
+
+            // 添加视频开关事件监听
+            const videoToggle = document.getElementById('videoToggle');
+            videoToggle.addEventListener('change', function () {
+                const videoContainer = document.getElementById('videoContainer');
+                if (this.checked) {
+                    videoContainer.style.display = 'block';
+                } else {
+                    videoContainer.style.display = 'none';
+                }
+            });
+        });
+
+        function generateDifficultyButtons() {
+            const difficultyButtonsContainer = document.getElementById('difficultyButtons');
+            difficultyNames.forEach((name, index) => {
+                const button = document.createElement('button');
+                button.textContent = name;
+                button.id = `level${index + 1}`;
+                button.onclick = () => setDifficulty(index + 1);
+                difficultyButtonsContainer.appendChild(button);
+            });
+        }
+
+const videoConfig = {
+    1: "",  // 顶点式
+    2: "",
+    3: "",
+    4: "",
+    5: "",  
+    6: "",
+
+
+
+    
+};
+
+
+function setDifficulty(level) {
+    currentDifficulty = level;
+    document.querySelectorAll('.difficulty-buttons button').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`level${level}`).classList.add('active');
+
+    // 重置题目索引为 0
+    currentIndex = 0;
+
+    const videoContainer = document.getElementById('videoContainer');
+    const videoToggleContainer = document.querySelector('.switch-container');
+
+    if (videoConfig[level]) {
+        videoContainer.innerHTML = videoConfig[level];
+        videoToggleContainer.style.display = 'inline-flex'; // 显示视频开关
+        // 自动开启视频
+        document.getElementById('videoToggle').checked = true;
+        videoContainer.style.display = 'block';
+    } else {
+        videoContainer.innerHTML = "";
+        videoToggleContainer.style.display = 'none'; // 隐藏视频开关
+        document.getElementById('videoToggle').checked = false;
+        videoContainer.style.display = 'none';
+    }
+
+    newQuestion();
+}
+
+
+        function generateQuestion() {
+            switch (currentDifficulty) {
+ 
+                case 1: return generateLevel1Question();
+                case 2: return generateLevel2Question();
+                case 3: return generateLevel3Question();
+                case 4: return generateLevel4Question();
+                case 5: return generateLevel5Question();
+                case 6: return generateLevel6Question();
+                case 7: return generateLevel7Question();
+              
+      
+                default:
+                    return "";
+            }
+        }
+
+
+
+        function separateSquareRoot(n) {
+            let a = 1;
+            let b = n;
+
+            for (let i = 2; i * i <= n; i++) {
+                while (b % (i * i) === 0) {
+                    a *= i;
+                    b /= i * i;
+                }
+            }
+
+            return { a: a, b: b };
+        }
+
+
+        let currentIndex = 0;  
+        function generateLevel1Question() {
+        const questions = [
+      
+{
+  m: '1. 如图，DC平行AB，AC和DB交于点O，AB:DC=2:1，则DO:OB=\\_:\\_。',
+  image: './images/053701001.png',
+  n: '1:2'
+},
+{
+  m: '2. 如图，DC平行AB，AC和DB交于点O，AB:DC=3:1，则DO:OB=\\_:\\_。',
+  image: './images/053701001.png',
+  n: '3:1'
+},
+{
+  m: '3. 如图，DC平行AB，AC和DB交于点O，AB:DC=3:2，则DO:OB=\\_:\\_。',
+  image: './images/053701001.png',
+  n: '2:3'
+},
+{
+  m: '4. 如图，DC平行AB，AC和DB交于点O，DC长5厘米，AB长10厘米，DO长3厘米，那么OB长多少厘米？',
+  image: './images/053701001.png',
+  n: '6'
+},
+{
+  m: '5. 如图，DC平行AB，AC和DB交于点O，DC长6厘米，AB长10厘米，DO长3厘米，那么OB长多少厘米？',
+  image: './images/053701001.png',
+  n: '5'
+},
+{
+  m: '6. 如图，DC平行AB，AC和DB交于点O，DO长4厘米，OB长10厘米，AC长15厘米，那么OC长多少厘米？',
+  image: './images/053701002.png',
+  n: '6'
+},
+{
+  m: '7. 如图，AD平行BC，AC与BD交于点O，AD长6厘米，BC长10厘米，BO比OD长2厘米，那么BD长多少厘米？',
+  image: './images/053701002.png',
+  n: '8'
+},
+{
+  m: '8. 如图，AD平行BC，AC与BD交于点O，AD长9厘米，BC长15厘米，BO比OD长4厘米，那么BD长多少厘米？',
+  image: './images/053701002.png',
+  n: '16'
+}
+
+
+
+
+
+    ];
+
+    // 获取当前索引的题目
+    let selectedQuestion = questions[currentIndex];
+
+    let m = selectedQuestion.m;
+    let n = selectedQuestion.n;
+
+    // 如果 n 是一个数组，表示有多个正确答案
+    correctAnswer;
+    if (Array.isArray(n)) {
+        correctAnswer = [...n];
+    } else {
+        correctAnswer = [`${n}`];
+    }
+
+    // 构建返回的 LaTeX 代码
+    let questionLatex = `\\(\\begin{gather}${m} \\end{gather}\\)`;
+
+    // 如果有图片路径，则插入图片
+    if (selectedQuestion.image) {
+        questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
+    }
+
+    // 更新索引值，确保按顺序出题
+    currentIndex = (currentIndex + 1) % questions.length;
+
+    return questionLatex;
+        }
+
+
+
+
+    function generateLevel2Question() {
+        const questions = [
+      
+{
+  m: '1. 如图，梯形ABCD中，DC平行AB，且AB:DC=2:1，请问图中4块小三角形的面积比，即S1:S2:S3:S4=\\_:\\_:\\_:\\_。',
+  image: './images/053702001.png',
+  n: '1:2:2:4'
+},
+{
+  m: '2. 如图，梯形ABCD中，DC平行AB，且DC:AB=1:3，请问图中4块小三角形的面积比，即S1:S2:S3:S4=\\_:\\_:\\_:\\_。',
+  image: './images/053702002.png',
+  n: '1:3:3:9'
+},
+{
+  m: '3. 如图，梯形ABCD中，DC平行AB，且DC:AB=2:3，请问图中4块小三角形的面积比，即S1:S2:S3:S4=\\_:\\_:\\_:\\_。',
+  image: './images/053702003.png',
+  n: '4:6:6:9'
+},
+{
+  m: '4. 如图所示，梯形ABCD的面积是36平方厘米，OB=2DO，则阴影三角形的面积是多少平方厘米？',
+  image: './images/053702004.png',
+  n: '16'
+},
+{
+  m: '5. 如图所示，梯形ABCD的面积是32平方厘米，AO=3OC，则阴影三角形的面积是多少平方厘米？',
+  image: './images/053702005.png',
+  n: '18'
+},
+{
+  m: '6. 如图所示，梯形ABCD的面积是50平方厘米，DO:OB=2:3，则阴影三角形的面积是多少平方厘米？',
+  image: './images/053702006.png',
+  n: '18'
+},
+{
+  m: '7. 如图，在梯形ABCD中，三角形ABO的面积是6平方厘米，且BC的长度是AD的2倍．请问：梯形ABCD的面积是多少平方厘米？',
+  image: './images/053702007.png',
+  n: '27'
+},
+{
+  m: '8. 如图，在梯形ABCD中，三角形ABO的面积是6平方厘米，且BC的长度是AD的3倍．请问：梯形ABCD的面积是多少平方厘米？',
+  image: './images/053702008.png',
+  n: '32'
+},
+{
+  m: '9. 如图，在梯形ABCD中，三角形OCD的面积是4平方厘米，且BC的长度是AD的2倍．请问：梯形ABCD的面积是多少平方厘米？',
+  image: './images/053702009.png',
+  n: '18'
+},
+{
+  m: '10. 如图，在梯形ABCD中，三角形ABO的面积是6平方厘米，三角形AOD的面积是3平方厘米，那么梯形ABCD的面积是多少平方厘米？',
+  image: './images/053702010.png',
+  n: '27'
+},
+{
+  m: '11. 如图，在梯形ABCD中，三角形ABO的面积是6平方厘米，三角形AOD的面积是4平方厘米，那么梯形ABCD的面积是多少平方厘米？',
+  image: './images/053702011.png',
+  n: '25'
+},
+{
+  m: '12. 如图，在梯形ABCD中，三角形BCO的面积是18平方厘米，三角形OCD的面积是12平方厘米，那么梯形ABCD的面积是多少平方厘米？',
+  image: './images/053702012.png',
+  n: '60'
+}
+
+
+
+
+
+
+    ];
+
+    // 获取当前索引的题目
+    let selectedQuestion = questions[currentIndex];
+
+    let m = selectedQuestion.m;
+    let n = selectedQuestion.n;
+
+    // 如果 n 是一个数组，表示有多个正确答案
+    correctAnswer;
+    if (Array.isArray(n)) {
+        correctAnswer = [...n];
+    } else {
+        correctAnswer = [`${n}`];
+    }
+
+    // 构建返回的 LaTeX 代码
+    let questionLatex = `\\(\\begin{gather}${m} \\end{gather}\\)`;
+
+    // 如果有图片路径，则插入图片
+    if (selectedQuestion.image) {
+        questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
+    }
+
+    // 更新索引值，确保按顺序出题
+    currentIndex = (currentIndex +1) % questions.length;
+
+    return questionLatex;}
+
+
+
+
+    function generateLevel3Question() {
+        const questions = [
+      
+
+{
+  m: '1. 如图，DC平行AB，那么在图中存在几个沙漏？',
+  image: './images/053703001.png',
+  n: '4'
+},
+{
+  m: '2. 如图，DC平行AB，那么在图中存在几个沙漏？',
+  image: './images/053703002.png',
+  n: '4'
+},
+{
+  m: '3. 如图，DC平行AB，那么在图中存在几个沙漏？',
+  image: './images/053703003.png',
+  n: '4'
+},
+{
+  m: '4. 如图，已知平行四边形ABCD的面积为70，E点是BC上靠近B点的三等分点，则图中阴影部分的面积是多少？',
+  image: './images/053703004.png',
+  n: '14'
+},
+{
+  m: '5. 如图，已知平行四边形ABCD的面积为110，E点是BC上靠近B点的六等分点，则图中阴影部分的面积是多少？',
+  image: './images/053703005.png',
+  n: '25'
+},
+{
+  m: '6. 如图，已知平行四边形ABCD的面积为70，E点是BC上靠近B点的四等分点，则图中阴影部分的面积是多少？',
+  image: './images/053703006.png',
+  n: '15'
+},
+{
+  m: '7. 如图所示，边长为8厘米和12厘米的两个正方形并排放在一起，则图中阴影部分的面积是多少平方厘米？',
+  image: './images/053703007.png',
+  n: '45'
+},
+{
+  m: '8. 如图所示，边长为8厘米和12厘米的两个正方形并排放在一起，则图中阴影部分的面积是多少平方厘米？',
+  image: './images/053703008.png',
+  n: '27'
+},
+{
+  m: '9. 如图所示，边长为8厘米和12厘米的两个正方形并排放在一起，则图中阴影部分的面积是多少平方厘米？',
+  image: './images/053703009.png',
+  n: '75'
+},
+{
+  m: '10. 如图，在正方形ABCD中，E，F分别是BC，DC的中点，已知正方形ABCD的面积为30平方厘米，则阴影部分的面积是多少平方厘米？',
+  image: './images/053703010.png',
+  n: '5'
+},
+{
+  m: '11. 如图，在正方形ABCD中，E是BC边上靠近C点的三等分点，F是DC边上靠近C点的三等分点，已知正方形ABCD的面积为30平方厘米，则阴影部分的面积是多少平方厘米？',
+  image: './images/053703011.png',
+  n: '3'
+},
+{
+  m: '12. 如图，在正方形ABCD中，E是BC边上靠近B点的三等分点，F是DC边上靠近D点的三等分点，已知正方形ABCD的面积为20平方厘米，则阴影部分的面积是多少平方厘米？',
+  image: './images/053703012.png',
+  n: '10'
+}
+
+
+
+
+    ];
+
+    // 获取当前索引的题目
+    let selectedQuestion = questions[currentIndex];
+
+    let m = selectedQuestion.m;
+    let n = selectedQuestion.n;
+
+    // 如果 n 是一个数组，表示有多个正确答案
+    correctAnswer;
+    if (Array.isArray(n)) {
+        correctAnswer = [...n];
+    } else {
+        correctAnswer = [`${n}`];
+    }
+
+    // 构建返回的 LaTeX 代码
+    let questionLatex = `\\(\\begin{gather}${m} \\end{gather}\\)`;
+
+    // 如果有图片路径，则插入图片
+    if (selectedQuestion.image) {
+        questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
+    }
+
+    // 更新索引值，确保按顺序出题
+    currentIndex = (currentIndex +1) % questions.length;
+
+    return questionLatex;}
+
+
+
+
+
+
+
+
+    function generateLevel4Question() {
+        const questions = [
+      
+{
+  m: '1. 下图中，AB平行CD，CD:AB=1:3，那么EC:EA= \\_:\\_。',
+  image: './images/053704001.png',
+  n: '1:3'
+},
+{
+  m: '2. 下图中，AB平行CD，CD:AB=1:5，那么EC:EA=\\_:\\_。',
+  image: './images/053704002.png',
+  n: '1:5'
+},
+{
+  m: '3. 下图中，AB平行CD，CD:AB=1:4，那么ED:EB=\\_:\\_。',
+  image: './images/053704003.png',
+  n: '1:4'
+},
+{
+  m: '4. 下图中，AB平行CD，CD:AB=2:3，那么S∆CDE：S∆ABE=\\_:\\_。',
+  image: './images/053704004.png',
+  n: '4:9'
+},
+{
+  m: '5. 下图中，AB平行CD，CD:AB=3:5，那么S∆CDE：S∆ABE=\\_:\\_。',
+  image: './images/053704005.png',
+  n: '9:25'
+},
+{
+  m: '6. 下图中，AB平行CD，CD:AB=2:5，那么S∆CDE：S∆ABE=\\_:\\_。',
+  image: './images/053704006.png',
+  n: '4:25'
+},
+{
+  m: '7. 如图，三角形ABE中，AB平行CD，CD=15厘米，AC=12厘米，AB=25厘米，那么AE=\\_厘米。',
+  image: './images/053704007.png',
+  n: '30'
+},
+{
+  m: '8. 如图，三角形ABE中，AB平行CD，CD=14厘米，DB=7厘米，AB=21厘米，那么EB=\\_厘米。',
+  image: './images/053704008.png',
+  n: '21'
+},
+{
+  m: '9. 如图，三角形ABE中，AB平行CD，CD=20厘米，AC=5厘米，AB=25厘米，那么AE=\\_厘米。',
+  image: './images/053704009.png',
+  n: '25'
+},
+{
+  m: '10. 如图，三角形ABE中，AB平行CD，AC=10厘米，CE=15厘米。如果已知三角形CDE的面积是90平方厘米，那么梯形ABDC的面积是\\_平方厘米。',
+  image: './images/053704010.png',
+  n: '160'
+},
+{
+  m: '11. 如图，三角形ABE中，AB平行CD，AC=5厘米，CE=10厘米。如果已知三角形CDE的面积是40平方厘米，那么梯形ABDC的面积是\\_平方厘米。',
+  image: './images/053704011.png',
+  n: '50'
+},
+{
+  m: '12. 如图，三角形ABE中，AB平行CD，AC=5厘米，CE=15厘米。如果已知三角形CDE的面积是90平方厘米，那么梯形ABDC的面积是\\_平方厘米。',
+  image: './images/053704012.png',
+  n: '70'
+}
+
+
+
+
+
+    ];
+
+    // 获取当前索引的题目
+    let selectedQuestion = questions[currentIndex];
+
+    let m = selectedQuestion.m;
+    let n = selectedQuestion.n;
+
+    // 如果 n 是一个数组，表示有多个正确答案
+    correctAnswer;
+    if (Array.isArray(n)) {
+        correctAnswer = [...n];
+    } else {
+        correctAnswer = [`${n}`];
+    }
+
+    // 构建返回的 LaTeX 代码
+    let questionLatex = `\\(\\begin{gather}${m} \\end{gather}\\)`;
+
+    // 如果有图片路径，则插入图片
+    if (selectedQuestion.image) {
+        questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
+    }
+
+    // 更新索引值，确保按顺序出题
+    currentIndex = (currentIndex +1) % questions.length;
+
+    return questionLatex;}
+
+
+
+
+
+
+    function generateLevel5Question() {
+        const questions = [
+      
+{
+  m: '1. 如图，三角形ABE中，AB平行DC，BD交AC于O，AD=2DE，请问AO的长度是OC的几倍？',
+  image: './images/053705001.png',
+  n: '3'
+},
+{
+  m: '2. 如图，三角形ABE中，AB平行DC，BD交AC于O，AD=3DE，请问OB的长度是DO的几倍？',
+  image: './images/053705002.png',
+  n: '4'
+},
+{
+  m: '3. 如图，三角形ABE中，AB平行DC，BD交AC于O，OB=3DO，请问AD的长度是DE的几倍？',
+  image: './images/053705003.png',
+  n: '2'
+},
+{
+  m: '4. 如图，三角形ABE中，AB平行DC，BD交AC于O，AD=2DE，三角形ABO的面积为4，求三角形ABE的面积。',
+  image: './images/053705004.png',
+  n: '8'
+},
+{
+  m: '5. 如图，三角形ABE中，AB平行DC，BD交AC于O，AD=DE，三角形ABE面积为36，求三角形OCD的面积。',
+  image: './images/053705005.png',
+  n: '3'
+},
+{
+  m: '6. 如图，三角形ABE中，AB平行DC，BD交AC于O，AD=3DE，三角形OCD面积为3，求三角形ABE的面积。',
+  image: './images/053705006.png',
+  n: '80'
+},
+{
+  m: '7. 如图，梯形ABCD中，过对角线的交点O作AB的平行线EF，分别交AD、BC于点E和点F，AB=2CD，梯形ABCD面积为27，求三角形OFC的面积。',
+  image: './images/053705007.png',
+  n: '2'
+},
+{
+  m: '8. 如图，梯形ABCD中，过对角线的交点O作AB的平行线EF，分别交AD、BC于点E和点F，AB=2CD，梯形ABCD面积为54，求三角形EOD的面积。',
+  image: './images/053705008.png',
+  n: '4'
+},
+{
+  m: '9. 如图，梯形ABCD中，过对角线的交点O作AB的平行线EF，分别交AD、BC于点E和点F，AB=2CD，梯形ABCD面积为27，求三角形AOE的面积。',
+  image: './images/053705009.png',
+  n: '4'
+}
+
+
+
+
+
+    ];
+
+    // 获取当前索引的题目
+    let selectedQuestion = questions[currentIndex];
+
+    let m = selectedQuestion.m;
+    let n = selectedQuestion.n;
+
+    // 如果 n 是一个数组，表示有多个正确答案
+    correctAnswer;
+    if (Array.isArray(n)) {
+        correctAnswer = [...n];
+    } else {
+        correctAnswer = [`${n}`];
+    }
+
+    // 构建返回的 LaTeX 代码
+    let questionLatex = `\\(\\begin{gather}${m} \\end{gather}\\)`;
+
+    // 如果有图片路径，则插入图片
+    if (selectedQuestion.image) {
+        questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
+    }
+
+    // 更新索引值，确保按顺序出题
+    currentIndex = (currentIndex +1) % questions.length;
+
+    return questionLatex;}
+
+
+
+
+
+function generateLevel6Question() {
+    const levelFunctions = [
+        generateLevel1Question,
+        generateLevel2Question,
+        generateLevel3Question,
+        generateLevel4Question,
+        generateLevel5Question,
+    ];
+
+    const randomLevelIndex = Math.floor(Math.random() * levelFunctions.length);
+    const selectedFunction = levelFunctions[randomLevelIndex];
+
+    // 保存当前索引
+    const originalIndex = currentIndex;
+
+    // 随机设置索引
+    // 假设每个级别最多有20个题目（您可以根据实际情况调整这个数字）
+    currentIndex = Math.floor(Math.random() * 20);
+
+    // 生成问题
+    const question = selectedFunction();
+
+    // 恢复原始索引
+    currentIndex = originalIndex;
+
+    return question;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        function newQuestion() {
+            const question = generateQuestion();
+            document.getElementById('question').innerHTML = question;
+            MathJax.typesetPromise([document.getElementById('question')]).catch((err) => console.log(err));
+            document.getElementById('answer').value = '';
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('rendered-answer').style.display = 'none';
+        }
+
+        function toHalfWidth(str) {
+            return str.replace(/[\uFF01-\uFF5E]/g, function (char) {
+                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            }).replace(/\u3000/g, ' ');
+        }
+
+        function updatePreview() {
+            const input = document.getElementById('answer').value;
+            const renderedAnswer = document.getElementById('rendered-answer');
+            renderedAnswer.style.display = 'block';
+            renderedAnswer.innerHTML = '\\(' + input + '\\)';
+            MathJax.typesetPromise([renderedAnswer]).catch((err) => console.log(err));
+        }
+
+
+
+function checkAnswer() {
+    const userAnswer = document.getElementById('answer').value.trim();
+
+    if (userAnswer === '') {
+        document.getElementById('result').innerHTML = '请输入答案！';
+        document.getElementById('result').className = 'incorrect';
+        return;
+    }
+
+    const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
+    const isCorrect = correctAnswer.some(answer => normalizedUserAnswer === toHalfWidth(answer.replace(/\s/g, '').toLowerCase()));
+
+    if (isCorrect) {
+        document.getElementById('result').innerHTML = '正确!';
+        document.getElementById('result').className = 'correct';
+        correctCount++;
+    } else {
+        document.getElementById('result').innerHTML = '错误。正确答案是: ' + correctAnswer.join(' 或 ');
+        document.getElementById('result').className = 'incorrect';
+        incorrectCount++;
+    }
+
+    updateScore();
+    updateHistory(isCorrect);
+
+    MathJax.typesetPromise().catch((err) => console.log(err));
+
+    newQuestion();
+}
+
+
+
+
+        function updateScore() {
+            document.getElementById('score').innerHTML = `正确: ${correctCount} | 错误: ${incorrectCount}`;
+        }
+
+function updateHistory(isCorrect) {
+            const historyTable = document.getElementById('history');
+            const newRow = historyTable.insertRow(0);
+            newRow.insertCell(0).innerHTML = document.getElementById('question').innerHTML;
+            newRow.insertCell(1).innerHTML = difficultyNames[currentDifficulty - 1];
+            newRow.insertCell(2).innerHTML = '\\(' + document.getElementById('answer').value + '\\)';
+            newRow.insertCell(3).innerHTML = '\\(' + correctAnswer.join('\\) 或 \\(') + '\\)';
+            newRow.insertCell(4).innerHTML = isCorrect ? '正确' : '错误';
+            newRow.className = isCorrect ? 'correct' : 'incorrect';
+
+            MathJax.typesetPromise([newRow]).catch((err) => console.log(err));
+        }
+
+        document.getElementById('answer').addEventListener('keyup', function (event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        newQuestion();
+
+    </script>
+</body>
+
+</html>

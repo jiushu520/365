@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B04因式分解技巧阶梯测试训练</title>
+
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .difficulty-buttons {
+            margin-bottom: 20px;
+        }
+
+        .difficulty-buttons button {
+            margin: 10px 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+        }
+
+        .difficulty-buttons button.active {
+            background-color: #45a049;
+            color: white;
+        }
+
+        #answer {
+            padding: 10px;
+            font-size: 16px;
+            width: 200px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            display: inline;
+            color: inherit;
+            font-size: inherit;
+            margin: 0;
+            padding: 0;
+        }
+
+        #score {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        #rendered-answer {
+            margin-top: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 200px;
+        }
+
+        .mathjax-answer {
+            font-size: 16px;
+        }
+
+        .switch-container {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 10px;
+        }
+
+        .switch-container label {
+            margin-right: 5px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+        }
+
+        input:checked+.slider {
+            background-color: #007bff;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(14px);
+        }
+
+        #videoContainer {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <h1>玖数学测训系统</h1>
+        <h3>B04因式分解技巧阶梯测试训练</h3>
+        <div class="difficulty-buttons" id="difficultyButtons"></div>
+        <div id="question"></div><br>
+
+        <input type="text" id="answer" placeholder="输入你的答案" oninput="updatePreview()">
+        <div id="rendered-answer"></div><br>
+        <button onclick="checkAnswer()">提交答案</button><br>
+
+
+    <div class="switch-container">
+        <label for="videoToggle">视频开关</label>
+            <label class="switch">
+                <input type="checkbox" id="videoToggle">
+                <span class="slider"></span>
+            </label>
+        </div><br>
+
+  
+
+        <div id="videoContainer" style="display: none;">
+            <video id="instructionalVideo" width="640" height="360" controls>
+                <source src="" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+  
+
+
+        <div id="result"></div>
+        <div id="score">正确: 0 | 错误: 0</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>题目</th>
+                    <th>级别</th>
+                    <th>你的答案</th>
+                    <th>正确答案</th>
+                    <th>结果</th>
+                </tr>
+            </thead>
+            <tbody id="history"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let correctAnswer;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let currentDifficulty = 1;
+
+         const difficultyNames = ["提公因式", "公式法", "分组分解", "拆项与添项", "十字相乘", "二元二次分解", "综合运用", "多项式的一次因式", "综合随机测"];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            generateDifficultyButtons();
+            setDifficulty(1);
+
+            // 添加视频开关事件监听
+            const videoToggle = document.getElementById('videoToggle');
+            videoToggle.addEventListener('change', function () {
+                const videoContainer = document.getElementById('videoContainer');
+                if (this.checked) {
+                    videoContainer.style.display = 'block';
+                } else {
+                    videoContainer.style.display = 'none';
+                }
+            });
+        });
+
+        function generateDifficultyButtons() {
+            const difficultyButtonsContainer = document.getElementById('difficultyButtons');
+            difficultyNames.forEach((name, index) => {
+                const button = document.createElement('button');
+                button.textContent = name;
+                button.id = `level${index + 1}`;
+                button.onclick = () => setDifficulty(index + 1);
+                difficultyButtonsContainer.appendChild(button);
+            });
+        }
+
+const videoConfig = {
+    1: "",
+
+};
+
+
+function setDifficulty(level) {
+    currentDifficulty = level;
+    document.querySelectorAll('.difficulty-buttons button').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`level${level}`).classList.add('active');
+
+    const videoContainer = document.getElementById('videoContainer');
+    const videoToggleContainer = document.querySelector('.switch-container');
+
+    if (videoConfig[level]) {
+        videoContainer.innerHTML = videoConfig[level];
+        videoToggleContainer.style.display = 'inline-flex'; // 显示视频开关
+        // 自动开启视频
+        document.getElementById('videoToggle').checked = true;
+        videoContainer.style.display = 'block';
+    } else {
+        videoContainer.innerHTML = "";
+        videoToggleContainer.style.display = 'none'; // 隐藏视频开关
+        document.getElementById('videoToggle').checked = false;
+        videoContainer.style.display = 'none';
+    }
+
+    newQuestion();
+}
+
+
+
+
+        function generateQuestion() {
+            switch (currentDifficulty) {
+                case 1:
+       case 1: return generateLevel1Question();
+                case 2: return generateLevel2Question();
+                case 3: return generateLevel3Question();
+                case 4: return generateLevel4Question();
+                case 5: return generateLevel5Question();
+                case 6: return generateLevel6Question();
+                case 7: return generateLevel7Question();
+                case 8: return generateLevel8Question();
+                case 9: return generateLevel9Question();
+                default:
+                    return "";
+            }
+        }
+
+
+        function generateLevel1Question() {
+            const factorizationQuestions = [
+  {
+  question: "5x^2y - 10xy^2 + 5xy",  answers: ["5xy(x-2x+1)"]
+},
+{
+  question: "a(x-a) + b(a-x) - (x-a)",  answers: ["(x-a)(a-b-1)"]
+},
+{
+  question: "-2x(x+1) + a(x+1) + (x+1)",  answers: ["(x+1)(-2x+a+1)"]
+},
+{
+  question: "\\frac{3}{2}b^{3n+1} + \\frac{1}{6}b^{2n-1} (n 是正整数)",  answers: ["\\frac{1}{6}b^{2n-1}(9b^n+1)"]
+},
+{
+  question: "2(p-1)^2 - 4q(p-1)",  answers: ["2(p-1)(p-1-2q)"]
+},
+{
+  question: "mn(m^2 + n^2) - n^2(m^2 + n^2)",  answers: ["n(m^2+n^2)(m-n)"]
+},
+{
+  question: "(5a-2b)(2m+3p) - (2a-7b)(2m+3p)",  answers: ["(2m+3p)(3a+5b)"]
+},
+{
+  question: "2(x+y) + 6(x+y)^2 - 4(x+y)^3",  answers: ["2(x+y)(1+3(x+y)-2(x+y)^2)"]
+},
+{
+  question: "(x+y)^2(b+c) - (x+y)(b+c)^2",  answers: ["(x+y)(b+c)(x+y-b-c)"]
+},
+{
+  question: "6p(x-1)^3 - 8p^2(x-1)^2 - 2p(1-x)^2",  answers: ["2p(x-1)^2(3x-4p-4)"]
+}
+
+                // 可以添加更多题目
+            ];
+
+            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
+            const selectedQuestion = factorizationQuestions[randomIndex];
+
+            correctAnswer = selectedQuestion.answers;
+
+            let questionHtml = `\\(因式分解:${selectedQuestion.question} \\)`;
+            if (selectedQuestion.img) {
+                questionHtml += `<br><img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">`;
+            }
+
+            return questionHtml;
+        }
+
+
+
+         function generateLevel2Question() {
+           const factorizationQuestions = [
+    {
+  question: "16 - (3a + 2b)^2",  answers: ["(4 + 3a + 2b)(4 - 3a - 2b)"]
+},
+{
+  question: "4y^2 - (2z - x)^2",  answers: ["(2y + 2z - x)(2y - 2z + x)"]
+},
+{
+  question: "a^4 - b^4",  answers: ["(a^2 + b^2)(a + b)(a-b)","(a^2 + b^2)(a - b)(a+b)"]
+},
+{
+  question: "- 81a^4b^4 + 16c^4",  answers: ["(4c^2+9a^2b^2  )(2c+3ab)(2c-3ab)","(9a^2b^2+4c^2  )(3ab+2c)(3ab-2c)"]
+},
+{
+  question: "20a^3x^3 - 45axy^2",  answers: ["5ax(a + y)(2ax - 3y)"]
+},
+{
+  question: "(3a^2 - b^2)^2 - (a^2 - 3b^2)^2",  answers: ["(a^2 + 3b^2)(2a^2 - 9b^2)"]
+},
+{
+  question: "x^8 - y^8",  answers: ["(x^4 + y^4)(x^2 + y^2)(x + y)(x - y)"]
+},
+{
+  question: "16x^5 - x",  answers: ["x(2x + 1)(2x - 1)(2x^2 + 1)"]
+},
+{
+  question: "(5x^2 + 2x - 3)^2 - (x^2 - 2x - 3)^2",  answers: ["24x(2x + 1)(x - 1)"]
+},
+{
+  question: "32a^3b^3 - 4b^9",  answers: ["4b^3(2a + b)(4a^2 - 2ab + b^2)"]
+},
+{
+  question: "8a^3b^3c^3 - 1",  answers: ["(2abc - 1)(4a^2b^2c^2 + 2abc + 1)"]
+},
+{
+  question: "64x^6y^3 + y^15",  answers: ["y^3(4x^2 + y^2)(4x^4 - 4x^2y^2 + y^4)"]
+},
+{
+  question: "x^2(a + b)^2 - 2xy(a^2 - b^2) + y^2(a - b)^2",  answers: ["[x(a + b) - y(a - b)]^2"]
+},
+{
+  question: "a^n+2 + 8a^n + 16a^n-2",  answers: ["a^n(a^2 + 4)^2"]
+},
+{
+  question: "9a^2 + x^2n + 6a + 6ax^n + 1",  answers: ["(a + 1)^2 + 3(a + 1)x^n + x^2n"]
+},
+{
+  question: "a^2 + b^2 + c^2 + 2ab - 2ac - 2bc",  answers: ["(a + b - c)^2"]
+},
+{
+  question: "x^2 + y^2 + 4z^2 - 6xy + 4xz - 12yz",  answers: ["(x - y - z)^2 + 2(x - z)^2"]
+},
+{
+  question: "(p + q)^3 - 3(p + q)^2(p - q) + 3(p + q)(p - q)^2 - (p - q)^3",  answers: ["8q^3"]
+},
+{
+  question: "4a^2b^2 - (a^2 + b^2)^2",  answers: ["(2ab - a^2 - b^2)(2ab + a^2 + b^2)"]
+},
+{
+  question: "(a + x)^4 - (a - x)^4",  answers: ["8ax(a^2 + x^2)"]
+}
+
+     // 可以添加更多题目
+            ];
+
+            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
+            const selectedQuestion = factorizationQuestions[randomIndex];
+
+            correctAnswer = selectedQuestion.answers;
+
+            let questionHtml = `\\(因式分解:${selectedQuestion.question} \\)`;
+            if (selectedQuestion.img) {
+                questionHtml += `<br><img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">`;
+            }
+
+            return questionHtml;
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        function generateLevel3Question() {
+           const factorizationQuestions = [
+
+
+{
+  question: "ax - ay + bx + cy - cx - by",  answers: ["(x-y)(a+b-c)", "(a+b-c)(x-y)"]
+},
+{
+  question: "x^4 + x^3 + x^2 - 1",  answers: ["(x+1)(x^3+x-1)", "(x^3+x-1)(x+1)"]
+},
+{
+  question: "a(1 - b + b^2) - 1 + b - b^2",  answers: ["(1-b+b^2)(a-1)", "(a-1)(1-b+b^2)"]
+},
+{
+  question: "4x(a^2 + x^2) - a^2 - x^2",  answers: ["(a^2+x^2)(4x-1)", "(4x-1)(a^2+x^2)"]
+},
+{
+  question: "abx^2 + bxy - axy - y^2",  answers: ["(bx-y)(ax+y)", "(ax+y)(bx-y)"]
+},
+{
+  question: "a^2b^3 - abc^2d + ab^2cd - c^3d^2",  answers: ["(ab-cd)(ab^2-c^2d)", "(ab^2-c^2d)(ab-cd)"]
+},
+{
+  question: "32ac^2 + 15cx^2 - 48ax^2 - 10c^3",  answers: ["(2c^2-3x^2)(16a-5c)", "(16a-5c)(2c^2-3x^2)"]
+},
+{
+  question: "2(x^2 - 3ab) + x(4a - 3b)",  answers: ["(x+2a)(2x-3b)", "(2x-3b)(x+2a)"]
+},
+{
+  question: "x^3 - x + y^3 - y",  answers: ["(x+y)(x^2-xy+y^2-1)", "(x^2-xy+y^2-1)(x+y)"]
+},
+{
+  question: "x^3 + y^3 + x^2 + 2xy + y^2",  answers: ["(x+y)(x^2-xy+y^2+x+y)", "(x^2-xy+y^2+x+y)(x+y)"]
+},
+{
+  question: "4a^2 - b^2 + c^2 - 9d^2 + 4ac + 6bd",  answers: ["(2a+c+b-3d)(2a+c-b+3d)", "(2a+c-b+3d)(2a+c+b-3d)"]
+},
+{
+  question: "a(1 - b)^2 - 1 + 2b - b^2",  answers: ["(1-b)^2(a-1)", "(a-1)(1-b)^2"]
+},
+{
+  question: "x(x + z) - y(y + z)",  answers: ["(x-y)(x+y+z)", "(x+y+z)(x-y)"]
+},
+{
+  question: "3x + bx^2 + ax + ab",  answers: ["(x+b)(x^2+a)", "(x^2+a)(x+b)"]
+},
+{
+  question: "acx^3 + bcx^2 + adx + bd",  answers: ["(ax+b)(cx^2+d)", "(cx^2+d)(ax+b)"]
+},
+{
+  question: "a^4 + a^3b - ab^3 - b^4",  answers: ["(a+b)(a-b)(a^2+ab+b^2)", "(a-b)(a+b)(a^2+ab+b^2)"]
+},
+{
+  question: "a^4 - a^3b - ab^3 + b^4",  answers: ["(a-b)^2(a^2+ab+b^2)", "(a^2+ab+b^2)(a-b)^2"]
+},
+{
+  question: "4a^2b^2 - a^2 - b^2 + 1",  answers: ["(a^2+b^2-1)(2ab+1)", "(2ab+1)(a^2+b^2-1)"]
+},
+{
+  question: "x^2y^2z^2 - x^2z^2 - y^2z^2 + z^4",  answers: ["(x-z)(x+z)(y+z)(y-z)", "(x+z)(x-z)(y-z)(y+z)"]
+},
+{
+  question: "x^2y^2z^2 - x^2z^2 - y^2z^2 + x^4",  answers: ["(y^2z-1)(x^2z-1)", "(x^2z-1)(y^2z-1)"]
+},
+
+{
+  question: "(a+b)^2 + (a+c)^2 - (c+d)^2 - (b+d)^2",  answers: ["2(a+b+c+d)(a-d)", "2(a-d)(a+b+c+d)"]
+},
+{
+  question: "ax(y^3 + b^3) + by(bx^2 + a^2y)",  answers: ["b(x^2+a^2)(xy+ab)", "(xy+ab)b(x^2+a^2)"]
+},
+{
+  question: "(a+b)^3 + (b+c)^3 + (c+a)^3 + a^3 + b^3 + c^3",  answers: ["3(a+b+c)(a^2+b^2+c^2)", "3(a^2+b^2+c^2)(a+b+c)"]
+}
+
+
+
+
+
+     // 可以添加更多题目
+            ];
+
+            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
+            const selectedQuestion = factorizationQuestions[randomIndex];
+
+            correctAnswer = selectedQuestion.answers;
+
+            let questionHtml = `\\(因式分解:${selectedQuestion.question} \\)`;
+  
+            return questionHtml;
+
+        }
+
+
+
+
+
+
+
+
+        
+
+
+        function generateLevel4Question() {
+           const factorizationQuestions = [
+
+{
+  question: "x^4 - 3x^2 + 1",  answers: ["(x^2 + x - 1)(x^2 - x - 1)", "(x^2 - x - 1)(x^2 + x - 1)"]
+},
+{
+  question: "x^4 - 7x^2y^2 + 81y^4",  answers: ["(x^2 + 5xy + 9y^2)(x^2 - 5xy + 9y^2)", "(x^2 - 5xy + 9y^2)(x^2 + 5xy + 9y^2)"]
+},
+{
+  question: "x^4 - 23x^2 + 1",  answers: ["(x^2 + 5x + 1)(x^2 - 5x + 1)", "(x^2 - 5x + 1)(x^2 + 5x + 1)"]
+},
+{
+  question: "-14x^2y^2 + x^4 + y^4",  answers: ["(x^2 + 4xy + y^2)(x^2 - 4xy + y^2)", "(x^2 - 4xy + y^2)(x^2 + 4xy + y^2)"]
+},
+{
+  question: "x^8 + x^4 + 1",  answers: ["(x^2 - x + 1)(x^2 + x + 1)(x^4 - x^2 + 1)", "(x^4 - x^2 + 1)(x^2 + x + 1)(x^2 - x + 1)"]
+},
+{
+  question: "x^4 - 47x^2 + 1",  answers: ["(x^2 + 7x + 1)(x^2 - 7x + 1)", "(x^2 - 7x + 1)(x^2 + 7x + 1)"]
+},
+{
+  question: "x^{12} - 33x^6 + 1",  answers: ["(x^6 + x^3 - 1)(x^6 - x^3 - 1)", "(x^6 - x^3 - 1)(x^6 + x^3 - 1)"]
+},
+{
+  question: "x^3(a + 1) - xy(x - y)(a - b) + y^3(b + 1)",  answers: ["(x-y)(xy+y^2)(ax+by+x+y)", "(ax+by+x+y)(x-y)(xy+y^2)"]
+},
+{
+  question: "x^2 - y^2 + 2x + 6y - 8",  answers: ["(x+y-2)(x-y+4)", "(x-y+4)(x+y-2)"]
+},
+{
+  question: "x^4 + 2^6",  answers: ["(x^2 + 4x + 8)(x^2 - 4x + 8)", "(x^2 - 4x + 8)(x^2 + 4x + 8)"]
+},
+{
+  question: "1 - 2ax - (c - a^2)x^2 + acx^3",  answers: ["(1 - ax)(1 - ax - cx^2)", "(1 - ax - cx^2)(1 - ax)"]
+},
+{
+  question: "2x^3 - 4x^2y - x^2z + 2xy^2 + 2xyz - y^2z",  answers: ["(x-y)^2(2x-z)", "(2x-z)(x-y)^2"]
+}
+
+
+
+     // 可以添加更多题目
+            ];
+
+            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
+            const selectedQuestion = factorizationQuestions[randomIndex];
+
+            correctAnswer = selectedQuestion.answers;
+
+            let questionHtml = `\\(因式分解:${selectedQuestion.question} \\)`;
+  
+            return questionHtml;
+        }
+
+
+
+
+
+
+   
+
+
+
+
+
+
+
+
+        function generateLevel5Question() {
+const factorizationQuestions = [
+  {
+  question: "x^2 + 12x + 20",  answers: ["(x+2)(x+10)", "(x+10)(x+2)"]
+},
+{
+  question: "x^2 - 12x + 20",  answers: ["(x-2)(x-10)", "(x-10)(x-2)"]
+},
+{
+  question: "x^2 - 4x - 5",  answers: ["(x+1)(x-5)", "(x-5)(x+1)"]
+},
+{
+  question: "x^2 - 9x - 22",  answers: ["(x-11)(x+2)", "(x+2)(x-11)"]
+},
+{
+  question: "12x^2 - 11xy - 15y^2",  answers: ["(4x+3y)(3x-5y)", "(3x-5y)(4x+3y)"]
+},
+{
+  question: "6x^2 - 13x + 6",  answers: ["(2x-3)(3x-2)", "(3x-2)(2x-3)"]
+},
+{
+  question: "2x^2 + 7x + 3",  answers: ["(2x+3)(x+1)", "(x+1)(2x+3)"]
+},
+{
+  question: "2x^2 - 5x + 3",  answers: ["(2x-3)(x-1)", "(x-1)(2x-3)"]
+},
+{
+  question: "-20xy + 64y^2 + x^2",  answers: ["(x-4y)(x-16y)", "(x-16y)(x-4y)"]
+},
+{
+  question: "-x^2 + x + 56",  answers: ["-(x+7)(x-8)", "-(x-8)(x+7)"]
+}
+
+     // 可以添加更多题目
+            ];
+
+            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
+            const selectedQuestion = factorizationQuestions[randomIndex];
+
+            correctAnswer = selectedQuestion.answers;
+
+            let questionHtml = `\\(因式分解:${selectedQuestion.question} \\)`;
+  
+            return questionHtml;
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+        function generateLevel6Question() {
+const factorizationQuestions = [
+  {
+  question: "x^2 + 2xy + y^2 + 3x + 3y + 2",  answers: ["(x+y+1)(x+y+2)", "(x+y+2)(x+y+1)"]
+},
+{
+  question: "4x^2 - 14xy + 6y^2 - 7x + y - 2",  answers: ["(4x-2y+1)(x-3y-2)", "(x-3y-2)(4x-2y+1)"]
+},
+{
+  question: "x^2 - y^2 - 3x^2 - 2xx + 4yz",  answers: ["(x+y-3z)(x-y+z)", "(x-y+z)(x+y-3z)"]
+},
+{
+  question: "2y^2 - 5xy + 2x^2 - ay - ax - a^2",  answers: ["(x-2y-a)(2x-y+a)", "(2x-y+a)(x-2y-a)"]
+},
+{
+  question: "a^2 - 3b^2 - 3c^2 + 10bc - 2ca - 2ab",  answers: ["(a+b-3c)(a-3b+c)", "(a-3b+c)(a+b-3c)"]
+},
+{
+  question: "6a^2 - 7ab - 22b^2 - 5a + 35b - 3",  answers: ["(a+2b-3)(2a-11b+1)", "(2a-11b+1)(a+2b-3)"]
+},
+{
+  question: "x^2 - 2y^2 - 3z^2 + xy + 7yz + 2xz",  answers: ["(x-y+3z)(x+2y-z)", "(x+2y-z)(x-y+3z)"]
+},
+{
+  question: "x^2 - 6y^2 + 3z^2 - xy + 7zx + 7yz",  answers: ["(x-2y+3z)(2x+3y+z)", "(2x+3y+z)(x-2y+3z)"]
+},
+{
+  question: "4x^2 - 9y^2 + 2x^2 + 6xz - 3yz",  answers: ["(2x+3y+2z)(2x-3y+z)", "(2x-3y+z)(2x+3y+2z)"]
+},
+{
+  question: "4x^2 + 2x^2 + xy + 9zx + 2yz",  answers: ["(x+2z)(4x+y+z)", "(4x+y+z)(x+2z)"]
+}
+
+  // 可以添加更多题目
+            ];
+
+            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
+            const selectedQuestion = factorizationQuestions[randomIndex];
+
+            correctAnswer = selectedQuestion.answers;
+
+            let questionHtml = `\\(因式分解:${selectedQuestion.question} \\)`;
+  
+            return questionHtml;
+
+        }
+
+
+
+
+
+
+
+        function generateLevel7Question() {
+const factorizationQuestions = [
+{
+  question: "x^4 - 10x^2y^2 + 9y^4",  
+  answers: ["(x-y)(x+y)(x-3y)(x+3y)", "(x-3y)(x+3y)(x-y)(x+y)"]
+},
+{
+  question: "x^6 - 19x^3y^3 - 216y^6",  
+  answers: ["(x+2y)(x-3y)(x^2-2xy+4y^2)(x^2+3xy+9y^2)", "(x-3y)(x+2y)(x^2+3xy+9y^2)(x^2-2xy+4y^2)"]
+},
+{
+  question: "x^4 - 2(a^2 + b^2)x^2 + (a^2 - b^2)^2",  
+  answers: ["(x+a+b)(x-a-b)(x+a-b)(x-a+b)", "(x-a-b)(x+a+b)(x-a+b)(x+a-b)"]
+},
+{
+  question: "[(x^2 + y^2)(a^2 + b^2) + 4abxy]^2 - 4[xy(a^2 + b^2) + ab(x^2 + y^2)]^2",  
+  answers: ["(a+b)^2(a-b)^2(x+y)^2(x-y)^2", "(x-y)^2(x+y)^2(a+b)^2(a-b)^2"]
+},
+{
+  question: "(ax + by + ay)^2 + (bx - ay)(ax + by + ay) + (bx - ay)^2",  
+  answers: ["(a^2 + ab + b^2)(x^2 + xy + y^2)", "(x^2 + xy + y^2)(a^2 + ab + b^2)"]
+},
+{
+  question: "(1 + y)^2 - 2x^2(1 + y^2) + x^4(1 - y)^2",  
+  answers: ["(x+1)(x-1)(x-xy+1+y)(x-xy-1-y)", "(x-xy-1-y)(x-xy+1+y)(x+1)(x-1)"]
+},
+{
+  question: "abx^2 + (a^2b^2 + c^2)x + abc",  
+  answers: ["(abx+c)(cx+ab)", "(cx+ab)(abx+c)"]
+},
+{
+  question: "(a - b)x^2 + 2ax + a + b",  
+  answers: ["(x+1)(ax-bx+a+b)", "(ax-bx+a+b)(x+1)"]
+},
+{
+  question: "x^2 + (a + b + c)x + (a + b)c",  
+  answers: ["(x+a+b)(x+c)", "(x+c)(x+a+b)"]
+},
+{
+  question: "a^2bc + ac^2 + acd - abd - cd - d^2",  
+  answers: ["(ab+c+d)(ac-d)", "(ac-d)(ab+c+d)"]
+},
+{
+  question: "x^4 - x^2(a^2 + 1) + a^2",  
+  answers: ["(x+1)(x-1)(x+a)(x-a)", "(x-a)(x+a)(x-1)(x+1)"]
+},
+{
+  question: "x^4 + x^2 - 2ax + 1 - a^2",  
+  answers: ["(x^2+x+1+a)(x^2-x+1-a)", "(x^2-x+1-a)(x^2+x+1+a)"]
+},
+{
+  question: "(ay + bx)^3 + (ax + by)^3 - (a^3 + b^3)(x^3 + y^3)",  
+  answers: ["3abxy(a+b)(x+y)", "(a+b)(x+y)3abxy", "3abxy(x+y)(a+b)", "(x+y)(a+b)3abxy", "(a+b)(3abxy)(x+y)", "(x+y)(3abxy)(a+b)"]
+},
+{
+  question: "(x+1)(x+3)(x+5)(x+7)+15",  
+  answers: ["(x+2)(x+6)(x^2+8x+10)", "(x^2+8x+10)(x+2)(x+6)"]
+},
+{
+  question: "(a-1)(a-2)(a-3)(a-4)-24",  
+  answers: ["a(a-5)(a^2-5a+10)", "(a^2-5a+10)a(a-5)"]
+},
+{
+  question: "(x^2+x)^2+4(x^2+x)-12",  
+  answers: ["(x-1)(x+2)(x^2+x+6)", "(x^2+x+6)(x+2)(x-1)"]
+},
+{
+  question: "(x^2+x+4)^2+8x(x^2+x+4)+15x^2",  
+  answers: ["(x^2+6x+4)(x^2+1)^2", "(x^2+1)^2(x^2+6x+4)"]
+},
+{
+  question: "2(x^2+6x+1)+5(x^2+6x+1)(x^2+1)+2(x^2+1)^2",  
+  answers: ["9(x+1)^2(x^2+4x+1)", "(x^2+4x+1)9(x+1)^2"]
+},
+{
+  question: "x^2+x-1+14(x^2+6x+1)+24",  
+  answers: ["(x+2)(x+6)(x^2+5x+8)", "(x^2+5x+8)(x+6)(x+2)"]
+},
+{
+  question: "(x^2+4x+8)^2+3x(x^2+4x+8)+2x^2",  
+  answers: ["(x^2+6x+4)(x^2+1)^2", "(x^2+1)^2(x^2+6x+4)"]
+},
+{
+  question: "(x^2+x+1)(x^2+x-2)+2x^2-2",  
+  answers: ["(x-1)(x+2)(x^2+x+6)", "(x^2+x+6)(x+2)(x-1)"]
+},
+{
+  question: "(x^2+6x+8)(x^2+10x+18)(x^2+14x+48)+12",  
+  answers: ["(x^2+10x+18)(x^2+10x+22)", "(x^2+10x+22)(x^2+10x+18)"]
+}
+
+  // 可以添加更多题目
+            ];
+
+            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
+            const selectedQuestion = factorizationQuestions[randomIndex];
+
+            correctAnswer = selectedQuestion.answers;
+
+            let questionHtml = `\\(因式分解:${selectedQuestion.question} \\)`;
+  
+            return questionHtml;
+        }
+
+
+
+
+
+
+        function generateLevel8Question() {
+const factorizationQuestions = [
+{
+question: "x^3 + 4x^2 - 5",
+answers: ["(x-1)(x^2+5x+5)", "(x^2+5x+5)(x-1)"]
+},
+{
+question: "2x^5 + 7x^4 + 12x^3 + 14x^2 + 10x + 3",
+answers: ["(x+1)^3(2x^2+x+3)", "(2x^2+x+3)(x+1)^3"]
+},
+{
+question: "(x-2y)x^3 - (y-2x)y^3",
+answers: ["(x+y)(x-y)^3", "(x-y)^3(x+y)"]
+},
+{
+question: "x^4 + 2x^3 - 3x^2 - 4x + 4",
+answers: ["(x-1)^2(x+2)^2", "(x+2)^2(x-1)^2"]
+},
+{
+question: "2x^4 + x^3 + 7x^2 + 4x - 4",
+answers: [
+    "(x+1)(2x-1)(x^2+4)", 
+    "(x+1)(x^2+4)(2x-1)", 
+    "(2x-1)(x+1)(x^2+4)", 
+    "(2x-1)(x^2+4)(x+1)", 
+    "(x^2+4)(x+1)(2x-1)", 
+    "(x^2+4)(2x-1)(x+1)"
+  ]
+},
+{
+question: "3x^3 - 5x^2y + xy^2 + y^3",
+answers: ["(x-y)^2(3x+y)", "(3x+y)(x-y)^2"]
+},
+{
+question: "6x^3 - 5x^2y - 3xy^2 + 2y^3",
+answers: [
+    "(x-y)(2x-y)(3x+2y)", 
+    "(x-y)(3x+2y)(2x-y)", 
+    "(2x-y)(x-y)(3x+2y)", 
+    "(2x-y)(3x+2y)(x-y)", 
+    "(3x+2y)(x-y)(2x-y)", 
+    "(3x+2y)(2x-y)(x-y)"
+  ]
+},
+{
+question: "3x^3 + 6x^2 + 4x + 8",
+answers: ["(x+2)(3x^2+4)", "(3x^2+4)(x+2)"]
+},
+{
+question: "8x^3 + 4(a+b+c)x^2 + 2(ab+bc+ca)x + abc",
+answers: [
+    "(2x+a)(2x+b)(2x+c)", 
+    "(2x+a)(2x+c)(2x+b)", 
+    "(2x+b)(2x+a)(2x+c)", 
+    "(2x+b)(2x+c)(2x+a)", 
+    "(2x+c)(2x+a)(2x+b)", 
+    "(2x+c)(2x+b)(2x+a)"
+  ]
+},
+{
+question: "(a-1)x^3 - ax^2 - (a-3)x + (a-2)",
+answers: [
+    "(x-1)^2(ax-x+a-2)", 
+    "(x-1)^2(a-2)", 
+    "(ax-x+a-2)(x-1)^2", 
+    "(ax-x+a-2)(x-1)^2"
+  ]
+},
+{
+question: "5x^4 + 12x^3 + 17x^2 + 9x - 7",
+answers: ["(5x+7)(x^3+x^2+2x-1)", "(x^3+x^2+2x-1)(5x+7)"]
+},
+{
+question: "x^3 + px^2 + px + p - 1",
+answers: ["(x+p-1)(x^2+x+1)", "(x^2+x+1)(x+p-1)"]
+}
+
+
+
+
+  // 可以添加更多题目
+            ];
+
+            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
+            const selectedQuestion = factorizationQuestions[randomIndex];
+
+            correctAnswer = selectedQuestion.answers;
+
+            let questionHtml = `\\(因式分解:${selectedQuestion.question} \\)`;
+  
+            return questionHtml;
+        }
+
+
+
+
+
+
+
+
+
+        function generateLevel9Question() {
+            const levelFunctions = [
+                generateLevel1Question,
+                generateLevel2Question,
+                generateLevel3Question,
+                generateLevel4Question,
+                generateLevel5Question,
+                generateLevel6Question,
+                generateLevel7Question,
+                generateLevel8Question,
+
+            ];
+
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+
+            return selectedFunction();
+        }
+  
+
+
+        function newQuestion() {
+            const question = generateQuestion();
+            document.getElementById('question').innerHTML = question;
+            MathJax.typesetPromise([document.getElementById('question')]).catch((err) => console.log(err));
+            document.getElementById('answer').value = '';
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('rendered-answer').style.display = 'none';
+        }
+
+        function toHalfWidth(str) {
+            return str.replace(/[\uFF01-\uFF5E]/g, function (char) {
+                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            }).replace(/\u3000/g, ' ');
+        }
+
+        function updatePreview() {
+            const input = document.getElementById('answer').value;
+            const renderedAnswer = document.getElementById('rendered-answer');
+            renderedAnswer.style.display = 'block';
+            renderedAnswer.innerHTML = '\\(' + input + '\\)';
+            MathJax.typesetPromise([renderedAnswer]).catch((err) => console.log(err));
+        }
+
+        function checkAnswer() {
+            const userAnswer = document.getElementById('answer').value.trim();
+
+            if (userAnswer === '') {
+                document.getElementById('result').innerHTML = '请输入答案！';
+                document.getElementById('result').className = 'incorrect';
+                return; // 直接返回，不更新历史记录或生成新题目
+            }
+
+            const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
+            const isCorrect = correctAnswer.some(answer => normalizedUserAnswer === toHalfWidth(answer.replace(/\s/g, '').toLowerCase()));
+
+            if (isCorrect) {
+                document.getElementById('result').innerHTML = '正确!';
+                document.getElementById('result').className = 'correct';
+                correctCount++;
+            } else {
+                document.getElementById('result').innerHTML = '错误。正确答案是: ' + correctAnswer.join(' 或 ');
+                document.getElementById('result').className = 'incorrect';
+                incorrectCount++;
+            }
+
+            updateScore();
+            updateHistory(isCorrect);
+
+            MathJax.typesetPromise().catch((err) => console.log(err));
+
+            if (userAnswer !== '') {
+                newQuestion();
+            }
+        }
+
+        function updateScore() {
+            document.getElementById('score').innerHTML = `正确: ${correctCount} | 错误: ${incorrectCount}`;
+        }
+
+function updateHistory(isCorrect) {
+            const historyTable = document.getElementById('history');
+            const newRow = historyTable.insertRow(0);
+            newRow.insertCell(0).innerHTML = document.getElementById('question').innerHTML;
+            newRow.insertCell(1).innerHTML = difficultyNames[currentDifficulty - 1];
+            newRow.insertCell(2).innerHTML = '\\(' + document.getElementById('answer').value + '\\)';
+            newRow.insertCell(3).innerHTML = '\\(' + correctAnswer.join('\\) 或 \\(') + '\\)';
+            newRow.insertCell(4).innerHTML = isCorrect ? '正确' : '错误';
+            newRow.className = isCorrect ? 'correct' : 'incorrect';
+
+            MathJax.typesetPromise([newRow]).catch((err) => console.log(err));
+        }
+
+        document.getElementById('answer').addEventListener('keyup', function (event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        newQuestion();
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G09比的应用阶梯训练</title>
+   
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .difficulty-buttons {
+            margin-bottom: 20px;
+        }
+
+        .difficulty-buttons button {
+            margin: 10px 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+        }
+
+        .difficulty-buttons button.active {
+            background-color: #45a049;
+            color: white;
+        }
+
+        #answer {
+            padding: 10px;
+            font-size: 16px;
+            width: 200px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            display: inline;
+            color: inherit;
+            font-size: inherit;
+            margin: 0;
+            padding: 0;
+        }
+
+        #score {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            table-layout: auto;
+            margin: 0 auto; /* 使表格水平居中 */
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        .rendered-answer-container {
+            display: flex;
+            justify-content: center; /* 水平居中 */
+            width: 100%;
+        }
+
+        #rendered-answer {
+            margin-top: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 200px;
+            text-align: center; /* 内容居中 */
+        }
+
+        .mathjax-answer {
+            font-size: 16px;
+        }
+
+        .switch-container {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 10px;
+        }
+
+        .switch-container label {
+            margin-right: 5px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+        }
+
+        input:checked+.slider {
+            background-color: #007bff;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(14px);
+        }
+
+        #videoContainer {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <header>
+            <h1>玖数学测训系统</h1>
+            <h3>G09比的应用阶梯训练</h3>
+        </header>
+        <section>
+            <div class="difficulty-buttons" id="difficultyButtons" role="group" aria-label="难度选择"></div>
+            <div id="question" aria-live="polite"></div><br>
+
+            <input type="text" id="answer" placeholder="输入你的答案" aria-label="答案输入">
+            <div class="rendered-answer-container">
+                <div id="rendered-answer"></div>
+            </div><br>
+            <button id="submitAnswer">提交答案</button><br>
+
+            <div class="switch-container">
+                <label for="videoToggle">视频开关</label>
+                <label class="switch">
+                    <input type="checkbox" id="videoToggle" aria-label="视频开关">
+                    <span class="slider"></span>
+                </label>
+            </div><br>
+
+            <div id="videoContainer" style="display: none;">
+                <video id="instructionalVideo" width="640" height="360" controls>
+                    <source src="" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+
+            <div id="result" aria-live="assertive"></div>
+            <div id="score">正确: 0 | 错误: 0</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>题目</th>
+                        <th>级别</th>
+                        <th>你的答案</th>
+                        <th>正确答案</th>
+                        <th>结果</th>
+                        <th>权重</th>
+                    </tr>
+                </thead>
+                <tbody id="history"></tbody>
+            </table>
+        </section>
+    </div>
+
+    <script>
+   (() => {
+    let correctAnswer = [];
+    let correctCount = 0;
+    let incorrectCount = 0;
+    let currentDifficulty = 1;
+    let lastQuestionType = '';
+    let currentQuestionLevel = 1; // 新增变量，用于追踪实际问题级别
+    const difficultyNames = ["01按比例分配1", "02按比例分配2", "03单个量不变", "04和不变", "05差不变", "06复合比", "07综合随机"];
+
+    const questionWeights = {
+        level1: 1,
+        level2: 1,
+        level3: 1,
+        level4: 1,
+        level5: 1,
+        level6: 1
+    };
+
+    const questionGenerators = {
+        1: generateLevel1Question,
+        2: generateLevel2Question,
+        3: generateLevel3Question,
+        4: generateLevel4Question,
+        5: generateLevel5Question,
+        6: generateLevel6Question,
+        7: generateLevel7Question
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        generateDifficultyButtons();
+        loadScore();
+        setDifficulty(1);
+        document.getElementById('submitAnswer').addEventListener('click', checkAnswer);
+        document.getElementById('videoToggle').addEventListener('change', toggleVideo);
+        document.getElementById('answer').addEventListener('input', updatePreview);
+        document.getElementById('answer').addEventListener('keyup', function (event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+    });
+
+    function generateDifficultyButtons() {
+        const container = document.getElementById('difficultyButtons');
+        difficultyNames.forEach((name, index) => {
+            const button = document.createElement('button');
+            button.textContent = name;
+            button.id = `level${index + 1}`;
+            button.setAttribute('aria-pressed', 'false');
+            button.addEventListener('click', () => setDifficulty(index + 1));
+            container.appendChild(button);
+        });
+    }
+
+    function setDifficulty(level) {
+        currentDifficulty = level;
+        document.querySelectorAll('.difficulty-buttons button').forEach(btn => {
+            btn.classList.toggle('active', btn.id === `level${level}`);
+            btn.setAttribute('aria-pressed', btn.id === `level${level}`);
+        });
+        generateNewQuestion();
+    }
+
+    function generateNewQuestion() {
+        const question = questionGenerators[currentDifficulty]();
+        const questionElement = document.getElementById('question');
+        questionElement.innerHTML = question;
+        renderMath(questionElement);
+        document.getElementById('answer').value = '';
+        document.getElementById('result').textContent = '';
+        document.getElementById('rendered-answer').style.display = 'none';
+    }
+
+    function generateLevel7Question() {
+        const selectedLevel = weightedRandomSelection();
+        lastQuestionType = difficultyNames[selectedLevel - 1];
+        currentQuestionLevel = selectedLevel; // 设置实际题目级别
+        return questionGenerators[selectedLevel]();
+    }
+
+    function weightedRandomSelection() {
+        const levels = [1, 2, 3, 4, 5, 6]; // 排除 7 级别本身
+        const weights = levels.map(level => questionWeights[`level${level}`]);
+
+        const totalWeight = weights.reduce((acc, weight) => acc + weight, 0);
+        let random = Math.random() * totalWeight;
+
+        for (let i = 0; i < levels.length; i++) {
+            if (random < weights[i]) {
+                return levels[i];
+            }
+            random -= weights[i];
+        }
+
+        return levels[levels.length - 1]; // 防止浮点数误差
+    }
+
+// 实现 gcd 函数（欧几里得算法）
+function gcd(a, b) {
+    if (b === 0) {
+        return a;
+    }
+    return gcd(b, a % b);
+}
+
+            function generateLevel1Question()
+     {
+    let a = Math.floor(Math.random() * 9) + 1; // a的值
+    let b = (a + Math.floor(Math.random() * 8)) % 9 + 1; // b的值
+  
+    let f = Math.floor(Math.random() * 3) + 2; // 系数
+
+    // 生成 LaTeX 问题
+         const textq = `\\begin{array}{cc}
+
+
+        悟空有做练习题;代数与几何的比值是 ${a/gcd(a,b)}:${b/gcd(a,b)}\\\\
+        一共做了${a*f+b*f}道; \\\\
+        请问悟空做了多少代数题?\\\\
+    \\end{array}`;
+
+    // 正确答案
+     correctAnswer = [`${a*f}`];
+    return `\\( ${textq} \\)`;
+        }
+
+
+
+
+            function generateLevel2Question()
+ {
+                let a = Math.floor(Math.random() * 9)+1 ;//a的值
+                let b =(a+(Math.floor(Math.random() * 8))) % 9+1;//b的值
+                let c = Math.floor(Math.random() * 9) + 1; // 倍数系数
+                let d = a + b; // 两者之和
+                let e =Math.abs(a-b);// 两者之差
+               // 生成 LaTeX 问题
+          let textq = 
+          `\\begin{array}{cc}             
+               悟空在玖数学习,代数题与几何题多做了 ${e * c} 道题目;\\\\
+               代数题与几何题的比例为 ${Math.max(a,b) / gcd(a, b)}:${Math.min(a,b) / gcd(a, b)};\\\\   
+               请问代数做了多少题?\\\\    
+            \\end{array}`;
+  
+          // 正确答案
+           correctAnswer = [`${Math.max(a,b) * c}`];
+           return `\\( ${textq} \\)`;
+            }
+
+
+
+            function generateLevel3Question() 
+{
+                let a = Math.floor(Math.random() * 9)+1 ;//a的值
+                let b =(a+(Math.floor(Math.random() * 8))) % 9+1;//b的值
+                let c = Math.floor(Math.random() * 9) + 1; // 倍数系数
+                let d =c* (Math.floor(Math.random() * 9) + 1); // 增加量
+                let  e=a+d;// 后来的量
+               // 生成 LaTeX 问题
+          let textq = 
+          `\\begin{array}{cc}             
+               悟空在玖数刷题,代数题与几何题的比例为${a/gcd(a,b)}:${b/gcd(a,b)};\\\\
+               后来又做了${d}道代数题,这时代数题与几何题的比例为${e/gcd(e,b)}:${b/gcd(e,b)};;\\\\   
+               请问一共代数做了多少代数题?\\\\  
+            \\end{array}`;
+  
+          // 正确答案
+           correctAnswer = [`${e}`];
+           return `\\( ${textq} \\)`;
+            }
+
+
+
+
+            function generateLevel4Question() 
+{
+
+    let a = Math.floor(Math.random() * 9) + 1; // a的值
+    let b = (a + Math.floor(Math.random() * 8)) % 9 + 1; // b的值
+    let c = Math.max(a, b); // 多的
+    let d = Math.min(a, b); // 少的
+    let e = c + Math.floor(Math.random() * 9) + 3; // 总量
+    let f = Math.floor(Math.random() * 3) + 2; // 系数
+
+    // 生成 LaTeX 问题
+         const textq = `\\begin{array}{cc}
+
+
+        悟空和八戒的桃子个数比为${c/gcd(c,e-c)}:${(e - c)/gcd(c,e-c)};\\\\
+        当悟空给了八戒${ d * f}个桃子后，两个数比为${(c - d)/gcd(c-d,e-c+d)}:${(e - c + d)/gcd(c-d,e-c+d)} \\\\
+        请问悟空现在有多少个桃子?\\\\
+    \\end{array}`;
+
+    // 正确答案
+     correctAnswer = [`${c * f - f * d}`];
+    return `\\( ${textq} \\)`;
+    }
+
+
+            function generateLevel5Question()
+ {
+                let a = Math.floor(Math.random() * 9) + 1; // 
+                let b = (Math.floor(Math.random() * 8) + a) % 9 + 1; // 可以得出两个不同的随机数
+                let c =  (Math.floor(Math.random() * 8) + 1); // 增加的量
+                let max=Math.max(a,b);
+                let min=Math.min(a,b);   
+  
+
+                let textq = `\\begin{array}{cc}             
+              大树与小树现在的年龄比是${max/gcd(a,b)}:${min/gcd(a,b)},\\\\             
+              过了${c}年,    大树与小树的年龄比是${(max+c)/gcd(max+c,min+c)}:${(min+c)/gcd(max+c,min+c)},  \\\\                                                                          
+                现在小树多少岁\\text{?}\\\\                    
+                   \\end{array}`;
+                correctAnswer = [`${min}`];
+                return `\\( ${textq}  \\)`;
+            }
+
+
+
+
+            function generateLevel6Question() {
+                let v1 = Math.floor(Math.random() * 9) + 1; // 
+                let v2 = (Math.floor(Math.random() * 8) + v1) % 9 + 1; // 可以得出两个不同的随机数
+                let t1 = Math.floor(Math.random() * 9) + 1; // 
+                let t2 = (Math.floor(Math.random() * 8) + t1) % 9 + 1; // 可以得出两个不同的随机数
+                let  s1=v1*t1;
+                let  s2=v2*t2;
+
+  
+
+                let textq = `\\begin{array}{cc}             
+                甲乙的速度比,v_甲：v_乙=${v1/gcd(v1,v2)}:${v2/gcd(v1,v2)};\\\\             
+                甲乙的时间比,t_甲：t_乙=${t1/gcd(t1,t2)}:${t2/gcd(t1,t2)}; \\\\                                                                          
+                那么甲乙的路程比,s_甲：s_乙=\\text{?}\\\\   
+                输入最简比格式a:b                                                      \\\\                  
+                   \\end{array}`;
+                correctAnswer = [`${s1/gcd(s1,s2)}:${s2/gcd(s1,s2)}`,`${s1/gcd(s1,s2)}：${s2/gcd(s1,s2)}`];
+                return `\\( ${textq}  \\)`;
+            }
+
+           function updatePreview() {
+        const input = document.getElementById('answer').value;
+        const rendered = document.getElementById('rendered-answer');
+        if (input.trim() === '') {
+            rendered.style.display = 'none';
+            rendered.innerHTML = '';
+            return;
+        }
+        rendered.style.display = 'block';
+        rendered.textContent = input; // 避免XSS
+        renderMath(rendered);
+    }
+
+    function checkAnswer() {
+        const userAnswer = document.getElementById('answer').value.trim();
+        const resultElement = document.getElementById('result');
+
+        if (userAnswer === '') {
+            resultElement.textContent = '请输入答案！';
+            resultElement.className = 'incorrect';
+            return;
+        }
+
+        const isCorrect = correctAnswer.includes(userAnswer);
+
+        if (isCorrect) {
+            resultElement.textContent = '正确!';
+            resultElement.className = 'correct';
+            correctCount++;
+        } else {
+            resultElement.textContent = `错误。正确答案是: ${correctAnswer.join(' 或 ')}`;
+            resultElement.className = 'incorrect';
+            incorrectCount++;
+        }
+
+        adjustWeights(isCorrect, getCurrentEffectiveLevel());
+        updateScore();
+        updateHistory(isCorrect);
+        saveScore();
+        generateNewQuestion();
+    }
+
+    function adjustWeights(isCorrect, level) {
+        const key = `level${level}`;
+        const adjustment = 0.1;
+        if (isCorrect) {
+            questionWeights[key] = Math.max(0.5, questionWeights[key] - adjustment);
+        } else {
+            questionWeights[key] += adjustment;
+        }
+    }
+
+    function updateScore() {
+        document.getElementById('score').textContent = `正确: ${correctCount} | 错误: ${incorrectCount}`;
+    }
+
+    function updateHistory(isCorrect) {
+        const history = document.getElementById('history');
+        const row = history.insertRow(0);
+
+        const displayLevel = currentDifficulty === 7 ? `07综合随机 (${lastQuestionType})` : difficultyNames[currentDifficulty - 1];
+
+        row.insertCell(0).innerHTML = document.getElementById('question').innerHTML;
+        row.insertCell(1).textContent = displayLevel;
+        row.insertCell(2).innerHTML = '\\(' + escapeHtml(document.getElementById('answer').value) + '\\)';
+        row.insertCell(3).innerHTML = '\\(' + correctAnswer.join('\\) 或 \\(') + '\\)';
+        row.insertCell(4).textContent = isCorrect ? '正确' : '错误';
+        row.insertCell(5).textContent = `权重: ${questionWeights[`level${getCurrentEffectiveLevel()}`].toFixed(1)}`;
+
+        row.className = isCorrect ? 'correct' : 'incorrect';
+        renderMath(row);
+    }
+
+    function renderMath(element) {
+        MathJax.typesetPromise([element]).catch((err) => console.log(err));
+    }
+
+    function escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, function (m) { return map[m]; });
+    }
+
+    function toggleVideo() {
+        const videoContainer = document.getElementById('videoContainer');
+        const video = document.getElementById('instructionalVideo');
+        if (document.getElementById('videoToggle').checked) {
+            videoContainer.style.display = 'block';
+            video.src = 'your-video-url.mp4'; // 设置视频源
+        } else {
+            videoContainer.style.display = 'none';
+            video.pause();
+            video.src = '';
+        }
+    }
+
+    function saveScore() {
+        const score = { correct: correctCount, incorrect: incorrectCount };
+        localStorage.setItem('score', JSON.stringify(score));
+    }
+
+    function loadScore() {
+        const score = JSON.parse(localStorage.getItem('score'));
+        if (score) {
+            correctCount = score.correct;
+            incorrectCount = score.incorrect;
+            updateScore();
+        }
+    }
+
+    function getCurrentEffectiveLevel() {
+        // 如果当前模式是级别7，返回实际题目级别
+        if (currentDifficulty === 7) {
+            return currentQuestionLevel;
+        }
+        // 否则返回当前难度级别
+        return currentDifficulty;
+    }
+
+})();
+    </script>
+</body>
+
+</html>

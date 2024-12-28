@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Equation Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        input {
+            padding: 10px;
+            margin-top: 10px;
+            width: 80%;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Math Equation Game</h1>
+        <p>Solve the equation:</p>
+        <div id="equation"></div>
+        <input type="text" id="answer" placeholder="Your answer">
+        <button onclick="checkAnswer()">Submit</button>
+        <div id="result"></div>
+    </div>
+    <script>
+        let equation;
+        let solution;
+
+        function generateEquation() {
+            let a = Math.floor(Math.random() * 10) + 1;
+            let b = Math.floor(Math.random() * 10) + 1;
+            let operator = Math.random() > 0.5 ? '+' : '-';
+            
+            equation = `${a} ${operator} ${b}`;
+            solution = operator === '+' ? a + b : a - b;
+
+            document.getElementById('equation').innerText = equation;
+            document.getElementById('result').innerText = '';
+            document.getElementById('answer').value = '';
+        }
+
+        function checkAnswer() {
+            let userAnswer = parseInt(document.getElementById('answer').value);
+            
+            if (userAnswer === solution) {
+                document.getElementById('result').innerText = 'Correct!';
+            } else {
+                document.getElementById('result').innerText = 'Incorrect. Try again.';
+            }
+
+            setTimeout(generateEquation, 2000);
+        }
+
+        window.onload = generateEquation;
+    </script>
+</body>
+</html>

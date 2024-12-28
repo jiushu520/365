@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G02应用题盈亏问题阶梯训练 </title>
+    
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .difficulty-buttons {
+            margin-bottom: 20px;
+        }
+
+        .difficulty-buttons button {
+            margin: 10px 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+        }
+
+        .difficulty-buttons button.active {
+            background-color: #45a049;
+            color: white;
+        }
+
+        #answer {
+            padding: 10px;
+            font-size: 16px;
+            width: 200px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            display: inline;
+            color: inherit;
+            font-size: inherit;
+            margin: 0;
+            padding: 0;
+        }
+
+        #score {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        #rendered-answer {
+            margin-top: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 200px;
+        }
+
+        .mathjax-answer {
+            font-size: 16px;
+        }
+
+        .switch-container {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 10px;
+        }
+
+        .switch-container label {
+            margin-right: 5px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+        }
+
+        input:checked+.slider {
+            background-color: #007bff;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(14px);
+        }
+
+        #videoContainer {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <h1>玖数学测训系统</h1>
+        <h3>G02应用题盈亏问题阶梯训练 </h3>
+        <div class="difficulty-buttons" id="difficultyButtons"></div>
+        <div id="question"></div><br>
+
+        <input type="text" id="answer" placeholder="输入你的答案" oninput="updatePreview()">
+        <div id="rendered-answer"></div><br>
+        <button onclick="checkAnswer()">提交答案</button><br>
+
+
+    <div class="switch-container">
+        <label for="videoToggle">视频开关</label>
+            <label class="switch">
+                <input type="checkbox" id="videoToggle">
+                <span class="slider"></span>
+            </label>
+        </div><br>
+
+  
+
+        <div id="videoContainer" style="display: none;">
+            <video id="instructionalVideo" width="640" height="360" controls>
+                <source src="" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+  
+
+
+        <div id="result"></div>
+        <div id="score">正确: 0 | 错误: 0</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>题目</th>
+                    <th>级别</th>
+                    <th>你的答案</th>
+                    <th>正确答案</th>
+                    <th>结果</th>
+                </tr>
+            </thead>
+            <tbody id="history"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let correctAnswer;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let currentDifficulty = 1;
+
+         const difficultyNames = ["分配中的比较1", "分配中的比较2", "盈盈问题", "盈亏问题",  "亏亏问题","一个对象的盈亏问题","盈亏问题综合测试"];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            generateDifficultyButtons();
+            setDifficulty(1);
+
+            // 添加视频开关事件监听
+            const videoToggle = document.getElementById('videoToggle');
+            videoToggle.addEventListener('change', function () {
+                const videoContainer = document.getElementById('videoContainer');
+                if (this.checked) {
+                    videoContainer.style.display = 'block';
+                } else {
+                    videoContainer.style.display = 'none';
+                }
+            });
+        });
+
+        function generateDifficultyButtons() {
+            const difficultyButtonsContainer = document.getElementById('difficultyButtons');
+            difficultyNames.forEach((name, index) => {
+                const button = document.createElement('button');
+                button.textContent = name;
+                button.id = `level${index + 1}`;
+                button.onclick = () => setDifficulty(index + 1);
+                difficultyButtonsContainer.appendChild(button);
+            });
+        }
+
+const videoConfig = {
+    1: "",  // 
+
+
+    
+};
+
+
+function setDifficulty(level) {
+    currentDifficulty = level;
+    document.querySelectorAll('.difficulty-buttons button').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`level${level}`).classList.add('active');
+
+    const videoContainer = document.getElementById('videoContainer');
+    const videoToggleContainer = document.querySelector('.switch-container');
+
+    if (videoConfig[level]) {
+        videoContainer.innerHTML = videoConfig[level];
+        videoToggleContainer.style.display = 'inline-flex'; // 显示视频开关
+        // 自动开启视频
+        document.getElementById('videoToggle').checked = true;
+        videoContainer.style.display = 'block';
+    } else {
+        videoContainer.innerHTML = "";
+        videoToggleContainer.style.display = 'none'; // 隐藏视频开关
+        document.getElementById('videoToggle').checked = false;
+        videoContainer.style.display = 'none';
+    }
+
+    newQuestion();
+}
+
+
+
+
+        function separateSquareRoot(n) {
+            let a = 1;
+            let b = n;
+
+            for (let i = 2; i * i <= n; i++) {
+                while (b % (i * i) === 0) {
+                    a *= i;
+                    b /= i * i;
+                }
+            }
+
+            return { a: a, b: b };
+        }
+
+
+
+  function generateQuestion() {
+            switch(currentDifficulty) {
+                case 1: return generateLevel1Question();
+                case 2: return generateLevel2Question();
+                case 3: return generateLevel3Question();
+                case 4: return generateLevel4Question();
+                case 5: return generateLevel5Question();
+                case 6: return generateLevel6Question();
+                case 7: return generateLevel7Question();
+        
+                default: return "";
+            }
+        }
+
+
+
+        function generateLevel1Question() {
+   let a = Math.floor(Math.random() * 8)+1 ;
+   let b = Math.floor(Math.random() * 8)+1 ;
+
+   let d = (Math.random() > 0.5 ? "巧克力" : "提拉米苏");
+
+  
+    let textq =  `\\begin{array}{cc} 
+                 老师给同学们分${d}, \\\\ 
+                如果每个同学多发${a}块${d};\\\\
+                那么老师剩下的${d}就少了${a*b}块;\\\\
+                那么有多少名同学？\\\\
+               \\end{array}`;
+    correctAnswer = [`${b}`]  
+    return `\\( ${textq}  \\)`;
+
+}
+     
+
+
+
+
+
+function generateLevel2Question() {
+    let a = Math.floor(Math.random() * 8)+1 ;
+    let b = Math.floor(Math.random() * 8)+1 ;
+    let c = Math.floor(Math.random() * 8)+1 ;
+   let d = (Math.random() > 0.5 ? "巧克力" : "提拉米苏");
+
+
+    let m = a*b+c;
+
+    
+    let textq =  `\\begin{array}{cc} 
+                老师给同学们分${d},每个同学分得一们多;  \\\\ 
+                 还剩下${m}块；后来又来了${a}位同学; \\\\ 
+                分给他们同样的${d}后,只剩下${c}块${d};\\\\
+                那么每们同学分到多少块${d}？\\\\
+               \\end{array}`;
+    correctAnswer = [`${b}`]  
+    return `\\( ${textq}  \\)`;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function generateLevel3Question() {
+    let a = Math.floor(Math.random() * 30)+10 ;//人物数量
+    let b = Math.floor(Math.random() * 8)+3 ;//第一次分发
+    let c = Math.floor(Math.random() * 8)+3 ;//第二次分发
+    let d = Math.floor(Math.random() * 20)+5 ;//最后余下
+    let x = (Math.random() > 0.5 ? "巧克力" : "提拉米苏");
+
+    
+    let textq =  `\\begin{array}{cc} 
+                老师给同学们分${x},每个同学分得一们多;  \\\\ 
+                如果每位同学分${b}块；则剩下${a*c+d}块; \\\\ 
+                如果每位同学分${b+c}块；则剩下${d}块; \\\\
+                那么有多少位同学呢？\\\\
+               \\end{array}`;
+    correctAnswer = [`${a}`]  
+    return `\\( ${textq}  \\)`;
+}
+
+
+
+
+
+
+
+
+function generateLevel4Question() {
+    let a = Math.floor(Math.random() * 30)+10 ;//人物数量
+    let b = Math.floor(Math.random() * 8)+3 ;//第一次分发
+    let c = Math.floor(Math.random() * 8)+3 ;//第二次分发
+    let d = Math.floor(Math.random() * 10)+5 ;//最后缺的
+    let x = (Math.random() > 0.5 ? "巧克力" : "提拉米苏");
+
+
+
+
+    
+    let textq =  `\\begin{array}{cc} 
+                老师给同学们分${x},每个同学分得一们多;  \\\\ 
+                如果每位同学分${b}块；则剩下${a*c-d}块; \\\\ 
+                如果每位同学分${b+c}块；则缺了${d}块; \\\\
+                那么有多少位同学呢？\\\\
+               \\end{array}`;
+    correctAnswer = [`${a}`]  
+    return `\\( ${textq}  \\)`;
+
+}
+
+
+function generateLevel5Question() {
+    let a = Math.floor(Math.random() * 30)+10 ;//人物数量
+    let b = Math.floor(Math.random() * 8)+3 ;//第一次分发
+    let c = Math.floor(Math.random() * 8)+3 ;//第二次分发
+    let d = Math.floor(Math.random() * 10)+5 ;///最后缺的
+    let t = a*b-d;//总量
+    let x = (Math.random() > 0.5 ? "桃子" : "芒果");
+
+    
+    let textq =  `\\begin{array}{cc} 
+                悟空给猴子们分${x},每只猴子分得一们多;  \\\\ 
+                如果每只猴子分${b}个；则缺了${d}个; \\\\ 
+                如果每只猴子分${b+c}个；则缺了${a*c+d}个; \\\\
+                那么悟空准备了多少个${x}？\\\\
+               \\end{array}`;
+
+
+    // 随机选择图片
+    let imageFile = Math.random() < 0.5 ? 'c0101.gif' : 'c0102.gif';
+
+    // 插入图片
+    textq += `<br/><img src="./images/${imageFile}" style="width:30%;"> <br/>   
+\\[  
+      \\begin{array}{c}
+       当你能用六种方法做出来,\\\\
+       悟空的六根聚齐，\\\\
+       \\huge 大圣也许就会回归......
+      \\end{array}       
+ \\]  `       
+
+    correctAnswer = [`${t}`]  
+
+    return textq;
+}
+
+
+
+
+
+
+function generateLevel6Question() {
+    let a = Math.floor(Math.random() * 30)+10 ;//人物数量
+    let b = Math.floor(Math.random() * 8)+3 ;//第一次分发
+    let c = Math.floor(Math.random() * 8)+3 ;//第二次分发
+    let d = Math.floor(Math.random() * 10)+5 ;///最后缺的
+    let e = Math.floor(Math.random() * 10)+10 ;///最后缺的
+
+    let t = a*b+d+e;//总量
+    let x = (Math.random() > 0.5 ? "桃子" : "芒果");
+
+    
+    let textq =  `\\begin{array}{cc} 
+                悟空给猴子们分${x},第一只猴子拿了${e}个;  \\\\ 
+                剩下的分给其它的猴子; \\\\ 
+                如果每只猴子分${b}个；则还剩下了${d}个; \\\\ 
+                如果每只猴子分${b+c}个；则缺了${a*c-d}个; \\\\
+                那么悟空准备了多少个${x}？\\\\
+               \\end{array}`;
+
+
+    // 随机选择图片
+    let imageFile = Math.random() < 0.5 ? 'c0101.gif' : 'c0102.gif';
+
+    // 插入图片
+    textq += `<br/><img src="./images/${imageFile}" style="width:30%;"> <br/>   
+\\[  
+      \\begin{array}{c}
+       当你能用六种方法做出来,\\\\
+       悟空的六根聚齐，\\\\
+       \\huge 大圣也许就会回归......
+      \\end{array}       
+ \\]  `       
+
+    correctAnswer = [`${t}`]  
+
+    return textq;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        function generateLevel7Question() {
+            const levelFunctions = [
+                generateLevel1Question,
+                generateLevel2Question,
+                generateLevel3Question,
+                generateLevel4Question,
+                generateLevel5Question,
+                generateLevel6Question,
+
+            ];
+
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+
+            return selectedFunction();
+        }
+
+
+
+        function newQuestion() {
+            const question = generateQuestion();
+            document.getElementById('question').innerHTML = question;
+            MathJax.typesetPromise([document.getElementById('question')]).catch((err) => console.log(err));
+            document.getElementById('answer').value = '';
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('rendered-answer').style.display = 'none';
+        }
+
+
+
+        function toHalfWidth(str) {
+            return str.replace(/[\uFF01-\uFF5E]/g, function (char) {
+                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            }).replace(/\u3000/g, ' ');
+        }
+
+        function updatePreview() {
+            const input = document.getElementById('answer').value;
+            const renderedAnswer = document.getElementById('rendered-answer');
+            renderedAnswer.style.display = 'block';
+            renderedAnswer.innerHTML = '\\(' + input + '\\)';
+            MathJax.typesetPromise([renderedAnswer]).catch((err) => console.log(err));
+        }
+
+
+
+        function checkAnswer() {
+            const userAnswer = document.getElementById('answer').value.trim();
+
+            if (userAnswer === '') {
+                document.getElementById('result').innerHTML = '请输入答案！';
+                document.getElementById('result').className = 'incorrect';
+                return; // 直接返回，不更新历史记录或生成新题目
+            }
+
+            const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
+            const isCorrect = correctAnswer.some(answer => normalizedUserAnswer === toHalfWidth(answer.replace(/\s/g, '').toLowerCase()));
+
+            if (isCorrect) {
+                document.getElementById('result').innerHTML = '正确!';
+                document.getElementById('result').className = 'correct';
+                correctCount++;
+            } else {
+                document.getElementById('result').innerHTML = '错误。正确答案是: ' + correctAnswer.join(' 或 ');
+                document.getElementById('result').className = 'incorrect';
+                incorrectCount++;
+            }
+
+            updateScore();
+            updateHistory(isCorrect);
+
+            MathJax.typesetPromise().catch((err) => console.log(err));
+
+            if (userAnswer !== '') {
+                newQuestion();
+            }
+        }
+
+
+
+
+
+        function updateScore() {
+            document.getElementById('score').innerHTML = `正确: ${correctCount} | 错误: ${incorrectCount}`;
+        }
+
+function updateHistory(isCorrect) {
+            const historyTable = document.getElementById('history');
+            const newRow = historyTable.insertRow(0);
+            newRow.insertCell(0).innerHTML = document.getElementById('question').innerHTML;
+            newRow.insertCell(1).innerHTML = difficultyNames[currentDifficulty - 1];
+            newRow.insertCell(2).innerHTML = '\\(' + document.getElementById('answer').value + '\\)';
+            newRow.insertCell(3).innerHTML = '\\(' + correctAnswer.join('\\) 或 \\(') + '\\)';
+            newRow.insertCell(4).innerHTML = isCorrect ? '正确' : '错误';
+            newRow.className = isCorrect ? 'correct' : 'incorrect';
+
+            MathJax.typesetPromise([newRow]).catch((err) => console.log(err));
+        }
+
+        document.getElementById('answer').addEventListener('keyup', function (event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        newQuestion();
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F02几何阶梯测试燕尾模型</title>
+   
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .difficulty-buttons {
+            margin-bottom: 20px;
+        }
+
+        .difficulty-buttons button {
+            margin: 10px 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+        }
+
+        .difficulty-buttons button.active {
+            background-color: #45a049;
+            color: white;
+        }
+
+        #answer {
+            padding: 10px;
+            font-size: 16px;
+            width: 200px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            display: inline;
+            color: inherit;
+            font-size: inherit;
+            margin: 0;
+            padding: 0;
+        }
+
+        #score {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        #rendered-answer {
+            margin-top: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 200px;
+        }
+
+        .mathjax-answer {
+            font-size: 16px;
+        }
+
+        .switch-container {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 10px;
+        }
+
+        .switch-container label {
+            margin-right: 5px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+        }
+
+        input:checked+.slider {
+            background-color: #007bff;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(14px);
+        }
+
+        #videoContainer {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <h1>玖数学测训系统</h1>
+        <h3>F02几何阶梯测试燕尾模型</h3>
+        <div class="difficulty-buttons" id="difficultyButtons"></div>
+        <div id="question"></div><br>
+
+        <input type="text" id="answer" placeholder="输入你的答案" oninput="updatePreview()">
+        <div id="rendered-answer"></div><br>
+        <button onclick="checkAnswer()">提交答案</button><br>
+
+
+    <div class="switch-container">
+        <label for="videoToggle">视频开关</label>
+            <label class="switch">
+                <input type="checkbox" id="videoToggle">
+                <span class="slider"></span>
+            </label>
+        </div><br>
+
+  
+
+        <div id="videoContainer" style="display: none;">
+            <video id="instructionalVideo" width="640" height="360" controls>
+                <source src="" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+  
+
+
+        <div id="result"></div>
+        <div id="score">正确: 0 | 错误: 0</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>题目</th>
+                    <th>级别</th>
+                    <th>你的答案</th>
+                    <th>正确答案</th>
+                    <th>结果</th>
+                </tr>
+            </thead>
+            <tbody id="history"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let correctAnswer;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let currentDifficulty = 1;
+
+         const difficultyNames = ["认识燕尾", "两外比", "一外一内上", "一外一内下", "两内比", "鸟头模型", "综合", ];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            generateDifficultyButtons();
+            setDifficulty(1);
+
+            // 添加视频开关事件监听
+            const videoToggle = document.getElementById('videoToggle');
+            videoToggle.addEventListener('change', function () {
+                const videoContainer = document.getElementById('videoContainer');
+                if (this.checked) {
+                    videoContainer.style.display = 'block';
+                } else {
+                    videoContainer.style.display = 'none';
+                }
+            });
+        });
+
+        function generateDifficultyButtons() {
+            const difficultyButtonsContainer = document.getElementById('difficultyButtons');
+            difficultyNames.forEach((name, index) => {
+                const button = document.createElement('button');
+                button.textContent = name;
+                button.id = `level${index + 1}`;
+                button.onclick = () => setDifficulty(index + 1);
+                difficultyButtonsContainer.appendChild(button);
+            });
+        }
+
+const videoConfig = {
+    1: "<video src='https://vs.leleketang.com/dat/ps/ma/k/video/98.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",  //燕尾模型
+    2: "<video src='https://vs.leleketang.com/dat/ps/ma/k/video/99.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",  //燕尾模型两外比
+    3: "<video src='https://vs.leleketang.com/dat/ps/ma/k/video/100.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",  //燕尾模型一内一外上
+
+    4: "<video src='https://vs.leleketang.com/dat/ps/ma/k/video/101.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",  //燕尾模型一内一外下
+
+    5: "<video src='https://vs.leleketang.com/dat/ps/ma/k/video/102.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",  //燕尾模型两内比
+ 
+    6: "<video src='https://vs.leleketang.com/dat/ps/ma/k/video/82.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",  //鸟头模型
+
+
+    
+};
+
+
+function setDifficulty(level) {
+    currentDifficulty = level;
+    document.querySelectorAll('.difficulty-buttons button').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`level${level}`).classList.add('active');
+
+    // 重置题目索引为 0
+    currentIndex = 0;
+
+    const videoContainer = document.getElementById('videoContainer');
+    const videoToggleContainer = document.querySelector('.switch-container');
+
+    if (videoConfig[level]) {
+        videoContainer.innerHTML = videoConfig[level];
+        videoToggleContainer.style.display = 'inline-flex'; // 显示视频开关
+        // 自动开启视频
+        document.getElementById('videoToggle').checked = true;
+        videoContainer.style.display = 'block';
+    } else {
+        videoContainer.innerHTML = "";
+        videoToggleContainer.style.display = 'none'; // 隐藏视频开关
+        document.getElementById('videoToggle').checked = false;
+        videoContainer.style.display = 'none';
+    }
+
+    newQuestion();
+}
+
+
+        function generateQuestion() {
+            switch (currentDifficulty) {
+ 
+                case 1: return generateLevel1Question();
+                case 2: return generateLevel2Question();
+                case 3: return generateLevel3Question();
+                case 4: return generateLevel4Question();
+                case 5: return generateLevel5Question();
+                case 6: return generateLevel6Question();
+                case 7: return generateLevel7Question();
+    
+              
+              
+      
+                default:
+                    return "";
+            }
+        }
+
+
+
+        function separateSquareRoot(n) {
+            let a = 1;
+            let b = n;
+
+            for (let i = 2; i * i <= n; i++) {
+                while (b % (i * i) === 0) {
+                    a *= i;
+                    b /= i * i;
+                }
+            }
+
+            return { a: a, b: b };
+        }
+
+
+        let currentIndex = 0;  
+        function generateLevel1Question() {
+        const questions = [
+      
+{
+  m: '1. 如图，三角形ABC中，BD:DC=5:6，S△ABO=10，求S△AOC。',
+  image: './images/052401001.png',
+  n: '12'
+},
+{
+  m: '2. 如图，三角形ABC中，AD:DC=2:3，S△ABO=10，求S△BCO。',
+  image: './images/052401002.png',
+  n: '15'
+},
+{
+  m: '3. 如图，三角形ABC中，AD:DB=3:5，S△AOC=12，求S△BCO。',
+  image: './images/052401003.png',
+  n: '20'
+},
+{
+  m: '4. 如图，三角形ABC中，BC=30，S△ABO=10，S△AOC=15，求DC。',
+  image: './images/052401004.png',
+  n: '18'
+},
+{
+  m: '5. 如图，三角形ABC中，AC=40，S△ABO=30，S△BCO=50，求DC。',
+  image: './images/052401005.png',
+  n: '25'
+},
+{
+  m: '6. 如图，三角形ABC中，AB=35，S△AOC=20，S△BCO=50，求AD。',
+  image: './images/052401006.png',
+  n: '10'
+},
+{
+  m: '7. 如图，三角形ABC中，S△ABO=10，S△AOC=15，S△BCO=20，求S△BDO。',
+  image: './images/052401007.png',
+  n: '8'
+},
+{
+  m: '8. 如图，三角形ABC中，S△ABO=30，S△BCO=50，S△AOC=32，求S△AOD。',
+  image: './images/052401008.png',
+  n: '12'
+},
+{
+  m: '9. 如图，三角形ABC中，S△AOC=20，S△BCO=50，S△ABO=28，求S△ADO。',
+  image: './images/052401009.png',
+  n: '8'
+},
+{
+  m: '10. 如图，三角形ABC中，AE:EB=1:2，BD=DC，S△AOC=15，求S△DCO。',
+  image: './images/052401010.png',
+  n: '15'
+},
+{
+  m: '11. 如图，三角形ABC中，AE:EC=1:2，BD=DC，S△ABO=15，求S△BDO。',
+  image: './images/052401011.png',
+  n: '15'
+},
+{
+  m: '12. 如图，三角形ABC中，AE:EB=1:2，AD:DC=1:2，S△BCO=30，求S△AEO。',
+  image: './images/052401012.png',
+  n: '5'
+}
+
+
+
+
+
+    ];
+
+    // 获取当前索引的题目
+    let selectedQuestion = questions[currentIndex];
+
+    let m = selectedQuestion.m;
+    let n = selectedQuestion.n;
+
+    // 如果 n 是一个数组，表示有多个正确答案
+    correctAnswer;
+    if (Array.isArray(n)) {
+        correctAnswer = [...n];
+    } else {
+        correctAnswer = [`${n}`];
+    }
+
+    // 构建返回的 LaTeX 代码
+    let questionLatex = `\\(\\begin{gather}${m} \\end{gather}\\)`;
+
+    // 如果有图片路径，则插入图片
+    if (selectedQuestion.image) {
+        questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
+    }
+
+    // 更新索引值，确保按顺序出题
+    currentIndex = (currentIndex + 1) % questions.length;
+
+    return questionLatex;
+        }
+
+
+
+
+    function generateLevel2Question() {//一内一外比
+        const questions = [
+      
+{
+  m: '1. 如图，三角形ABC中，AG:GB=1:2，BD:DC=3:4，则AE:EC=\\_:\\_。',
+  image: './images/052402010.png',
+  n: '3:8'
+},
+{
+  m: '2. 如图，三角形ABC中，AE:EC=1:2，BD:DC=4:3，则AG:GB=\\_:\\_。',
+  image: './images/052402011.png',
+  n: '3:8'
+},
+{
+  m: '3. 如图，三角形ABC中，AG:GB=1:2，AE:EC=3:4，则BD:DC=\\_:\\_。',
+  image: './images/052402012.png',
+  n: '3:2'
+},
+{
+  m: '4. 如图，三角形ABC中，AE:EC=1:2，CD=DB。若S△ABC=120。求S四边形EODC。',
+  image: './images/052402007.png',
+  n: '50'
+},
+{
+  m: '5. 如图，三角形ABC中，AE:EC=1:2，BD=DC。若S△ABC=60。求S四边形EODC。',
+  image: './images/052402008.png',
+  n: '25'
+},
+{
+  m: '6. 如图，三角形ABC中，已知AD:DC=2:1，BE:EC=2:1。若S△ABC=60。求S四边形EODC。',
+  image: './images/052402009.png',
+  n: '10'
+},
+{
+  m: '7. 如图，三角形ABC中，AE:EC=1:2，BD=DC，S△AOB=6平方厘米。那么S△AOE是多少平方厘米？',
+  image: './images/052402001.png',
+  n: '2'
+},
+{
+  m: '8. 如图，三角形ABC中，AF:FB=1:2，BD=DC，S△AOC=10平方厘米。那么S△BOD是多少平方厘米？',
+  image: './images/052402002.png',
+  n: '10'
+},
+{
+  m: '9. 如图，三角形ABC中，AF:FB=1:2，AE:EC=1:2，S△BOC=6平方厘米。那么S△AOE是多少平方厘米？',
+  image: './images/052402003.png',
+  n: '1'
+},
+{
+  m: '10. 如图，三角形ABC中，AE:EC=1:2，BD=DC，S△AOB=10平方厘米。那么S△ABC是多少平方厘米？',
+  image: './images/052402004.png',
+  n: '40'
+},
+{
+  m: '11. 如图，三角形ABC中，AF:FB=1:2，BD=DC，S△AOC=20平方厘米。那么S△ABC是多少平方厘米？',
+  image: './images/052402005.png',
+  n: '80'
+},
+{
+  m: '12. 如图，三角形ABC中，AF:FB=1:2，AE:EC=1:2，S△BOC=10平方厘米。那么S△ABC是多少平方厘米？',
+  image: './images/052402006.png',
+  n: '20'
+}
+
+
+
+
+
+
+    ];
+
+    // 获取当前索引的题目
+    let selectedQuestion = questions[currentIndex];
+
+    let m = selectedQuestion.m;
+    let n = selectedQuestion.n;
+
+    // 如果 n 是一个数组，表示有多个正确答案
+    correctAnswer;
+    if (Array.isArray(n)) {
+        correctAnswer = [...n];
+    } else {
+        correctAnswer = [`${n}`];
+    }
+
+    // 构建返回的 LaTeX 代码
+    let questionLatex = `\\(\\begin{gather}${m} \\end{gather}\\)`;
+
+    // 如果有图片路径，则插入图片
+    if (selectedQuestion.image) {
+        questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
+    }
+
+    // 更新索引值，确保按顺序出题
+    currentIndex = (currentIndex +1) % questions.length;
+
+    return questionLatex;}
+
+
+
+
+    function generateLevel3Question() {
+        const questions = [
+      
+
+{
+  m: '1. 如图，三角形ABC中，AE:EB=1:2，EO=OC，S△AOC=10平方厘米。则S△ABC为多少平方厘米？',
+  image: './images/052403001.png',
+  n: '60'
+},
+{
+  m: '2. 如图，三角形ABC中，BD:DC=3:1，AO:OD=2:1，S△ABO=30平方厘米。则S△ABC为多少平方厘米？',
+  image: './images/052403002.png',
+  n: '60'
+},
+{
+  m: '3. 如图，三角形ABC中，AE:EC=3:2，BO:OE=5:1，S△BOC=40平方厘米。则S△ABC为多少平方厘米？',
+  image: './images/052403003.png',
+  n: '120'
+},
+{
+  m: '4. 如图，三角形ABC中，AE:EB=1:2，EO=OC，S△AOC=10平方厘米。则S△BDO为多少平方厘米？',
+  image: './images/052403004.png',
+  n: '15'
+},
+{
+  m: '5. 如图，三角形ABC中，BD:DC=3:1，AO:OD=2:1，S△ABO=30平方厘米。则S△CEO为多少平方厘米？',
+  image: './images/052403005.png',
+  n: '4'
+},
+{
+  m: '6. 如图，三角形ABC中，AE:EC=3:2，BO:OE=5:1，S△BOC=40平方厘米。则S△ADO为多少平方厘米？',
+  image: './images/052403006.png',
+  n: '20'
+},
+{
+  m: '7. 如图，三角形ABC中，AE:EB=1:2，EO=OC，S△AOC=10平方厘米。则BD:DC=\\_:\\_ 。',
+  image: './images/052403007.png',
+  n: '3:1'
+},
+{
+  m: '8. 如图，三角形ABC中，BD:DC=3:1，AO:OD=2:1，S△ABO=30平方厘米。则AE:EC=\\_:\\_。',
+  image: './images/052403008.png',
+  n: '3:2'
+},
+{
+  m: '9. 如图，三角形ABC中，AE:EC=3:2，BO:OE=5:1，S△BOC=40平方厘米。则AD:DB=\\_:\\_。',
+  image: './images/052403009.png',
+  n: '1:2'
+},
+{
+  m: '10. 如图所示，在△ABC中，BD:DC=3:1，点O是AD的中点，那么AE:EC=\\_:\\_。',
+  image: './images/052403010.png',
+  n: '3:4'
+},
+{
+  m: '11. 如图所示，在△ABC中，AE:EC=3:1，BO:OE=2:1，那么BD:DC=\\_:\\_。',
+  image: './images/052403011.png',
+  n: '3:2'
+},
+{
+  m: '12. 如图所示，在△ABC中，AE:EC=1:3，BO:OE=8:1，那么BD:DC=\\_:\\_。',
+  image: './images/052403012.png',
+  n: '2:1'
+}
+
+
+
+
+    ];
+
+    // 获取当前索引的题目
+    let selectedQuestion = questions[currentIndex];
+
+    let m = selectedQuestion.m;
+    let n = selectedQuestion.n;
+
+    // 如果 n 是一个数组，表示有多个正确答案
+    correctAnswer;
+    if (Array.isArray(n)) {
+        correctAnswer = [...n];
+    } else {
+        correctAnswer = [`${n}`];
+    }
+
+    // 构建返回的 LaTeX 代码
+    let questionLatex = `\\(\\begin{gather}${m} \\end{gather}\\)`;
+
+    // 如果有图片路径，则插入图片
+    if (selectedQuestion.image) {
+        questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
+    }
+
+    // 更新索引值，确保按顺序出题
+    currentIndex = (currentIndex +1) % questions.length;
+
+    return questionLatex;}
+
+
+
+
+
+
+
+
+    function generateLevel4Question() {
+        const questions = [
+      
+{
+  m: '1. 如图，三角形ABC中，AE:EC=1:2，AO:OD=2:1，S△AOB=10平方厘米。则S△CDO为多少平方厘米？',
+  image: './images/052404001.png',
+  n: '15'
+},
+{
+  m: '2. 如图，三角形ABC中，BD:DC=3:1，BO:OE=5:1，S△ABO=30平方厘米。则S△CEO为多少平方厘米？',
+  image: './images/052404002.png',
+  n: '4'
+},
+{
+  m: '3. 如图，三角形ABC中，BE:EC=2:3，BO:OD=1:1，S△ABO=40平方厘米。则S△CDO为多少平方厘米？',
+  image: './images/052404003.png',
+  n: '20'
+},
+{
+  m: '4. 如图，三角形ABC中，BD:DC=3:1，BO:OE=5:1，S△ABO=30平方厘米。则S△BCO为多少平方厘米？',
+  image: './images/052404004.png',
+  n: '20'
+},
+{
+  m: '5. 如图，三角形ABC中，BD:DC=2:3，BO:OE=1:1，S△ABO=20平方厘米。则S△BCO为多少平方厘米？',
+  image: './images/052404005.png',
+  n: '10'
+},
+{
+  m: '6. 如图，三角形ABC中，BD:DC=1:2，BO:OE=1:1，S△ABO=10平方厘米。则S△BCO为多少平方厘米？',
+  image: './images/052404006.png',
+  n: '10'
+},
+{
+  m: '7. 如图，三角形ABC中，BD:DC=3:1，BO:OE=5:1，S△ABO=120平方厘米。则S四边形DCEO为多少平方厘米？',
+  image: './images/052404007.png',
+  n: '36'
+},
+{
+  m: '8. 如图，三角形ABC中，BD:DC=3:1，BO:OE=5:1，S△ABO=60平方厘米。则S四边形DCEO为多少平方厘米？',
+  image: './images/052404008.png',
+  n: '18'
+},
+{
+  m: '9. 如图，三角形ABC中，BD:DC=3:1，BO:OE=5:1，S△ABO=30平方厘米。则S四边形DCEO为多少平方厘米？',
+  image: './images/052404009.png',
+  n: '9'
+},
+{
+  m: '10. 如图，三角形ABC中，AE:EB=1:2，AO:OD=2:1，S△ABC=120平方厘米。则S四边形BDOE为多少平方厘米？',
+  image: './images/052404010.png',
+  n: '70'
+},
+{
+  m: '11. 如图，三角形ABC中，BD:DC=3:1，BO:OE=5:1，S△ABC=120平方厘米。则S四边形DCEO为多少平方厘米？',
+  image: './images/052404011.png',
+  n: '20'
+},
+{
+  m: '12. 如图，三角形ABC中，AE:EC=3:2，DO:OC=1:1，S△ABC=120平方厘米。则S四边形ADOE为多少平方厘米？',
+  image: './images/052404012.png',
+  n: '32'
+}
+
+
+
+
+
+    ];
+
+    // 获取当前索引的题目
+    let selectedQuestion = questions[currentIndex];
+
+    let m = selectedQuestion.m;
+    let n = selectedQuestion.n;
+
+    // 如果 n 是一个数组，表示有多个正确答案
+    correctAnswer;
+    if (Array.isArray(n)) {
+        correctAnswer = [...n];
+    } else {
+        correctAnswer = [`${n}`];
+    }
+
+    // 构建返回的 LaTeX 代码
+    let questionLatex = `\\(\\begin{gather}${m} \\end{gather}\\)`;
+
+    // 如果有图片路径，则插入图片
+    if (selectedQuestion.image) {
+        questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
+    }
+
+    // 更新索引值，确保按顺序出题
+    currentIndex = (currentIndex +1) % questions.length;
+
+    return questionLatex;}
+
+
+
+
+    function generateLevel5Question() {
+        const questions = [
+      
+{
+  m: '1. 如图，三角形ABC中，AO:OD=2:1，BO:OE=5:1，S△ABO=30平方厘米，S△OCE=4平方厘米。则S△DCO为多少平方厘米？',
+  image: './images/052405001.png',
+  n: '5'
+},
+{
+  m: '2. 如图，三角形ABC中，AO:OD=2:1，BO:OE=5:1，S△ABO=60平方厘米，S△OCE=8平方厘米。则S△DCO为多少平方厘米？',
+  image: './images/052405002.png',
+  n: '10'
+},
+{
+  m: '3. 如图，三角形ABC中，AO:OD=2:1，BO:OE=5:1，S△ABO=90平方厘米，S△OCE=12平方厘米。则S△DCO为多少平方厘米？',
+  image: './images/052405003.png',
+  n: '15'
+},
+{
+  m: '4. 如图，三角形ABC中，AO:OD=2:1，BO:OE=5:1，S△ABO=30平方厘米。设S△CEO=x平方厘米，S△DCO=y平方厘米，则S四边形DCEO为多少平方厘米？',
+  image: './images/052405004.png',
+  n: '9'
+},
+{
+  m: '5. 如图，三角形ABC中，AO:OD=2:1，BO:OE=5:1，S△ABO=60平方厘米。设S△CEO=x平方厘米，S△DCO=y平方厘米，则S四边形DCEO为多少平方厘米？',
+  image: './images/052405005.png',
+  n: '18'
+},
+{
+  m: '6. 如图，三角形ABC中，AO:OD=2:1，BO:OE=5:1，S△ABO=90平方厘米。设S△CEO=x平方厘米，S△DCO=y平方厘米，则S四边形DCEO为多少平方厘米？',
+  image: './images/052405006.png',
+  n: '27'
+},
+{
+  m: '7. 如图，三角形ABC中，BO:OE=1:1，AO:OD=2:1，S△ABO=10平方厘米。则S四边形DCEO为多少平方厘米？',
+  image: './images/052405007.png',
+  n: '35'
+},
+{
+  m: '8. 如图，三角形ABC中，BO:OE=1:1，AO:OD=2:1，S△ABO=20平方厘米。则S四边形DCEO为多少平方厘米？',
+  image: './images/052405008.png',
+  n: '70'
+},
+{
+  m: '9. 如图，三角形ABC中，BO:OE=1:1，AO:OD=2:1，S△ABO=8平方厘米。则S四边形DCEO为多少平方厘米？',
+  image: './images/052405009.png',
+  n: '28'
+},
+{
+  m: '10. 如图，三角形ABC中，BO:OE=1:1，AO:OD=3:1，S△ABC=24平方厘米。则S四边形DCEO为多少平方厘米？',
+  image: './images/052405010.png',
+  n: '10'
+},
+{
+  m: '11. 如图，三角形ABC中，BO:OE=1:1，AO:OD=3:1，S△ABC=36平方厘米。则S四边形DCEO为多少平方厘米？',
+  image: './images/052405011.png',
+  n: '15'
+},
+{
+  m: '12. 如图，三角形ABC中，BO:OE=1:1，AO:OD=3:1，S△ABC=48平方厘米。则S四边形DCEO为多少平方厘米？',
+  image: './images/052405012.png',
+  n: '20'
+}
+
+
+
+    ];
+
+    // 获取当前索引的题目
+    let selectedQuestion = questions[currentIndex];
+
+    let m = selectedQuestion.m;
+    let n = selectedQuestion.n;
+
+    // 如果 n 是一个数组，表示有多个正确答案
+    correctAnswer;
+    if (Array.isArray(n)) {
+        correctAnswer = [...n];
+    } else {
+        correctAnswer = [`${n}`];
+    }
+
+    // 构建返回的 LaTeX 代码
+    let questionLatex = `\\(\\begin{gather}${m} \\end{gather}\\)`;
+
+    // 如果有图片路径，则插入图片
+    if (selectedQuestion.image) {
+        questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
+    }
+
+    // 更新索引值，确保按顺序出题
+    currentIndex = (currentIndex +1) % questions.length;
+
+    return questionLatex;}
+
+
+
+
+
+
+
+
+    function generateLevel6Question() {
+        const questions = [
+      
+{
+  m: '1. 如图，在△ABC中，AB的长度是BD的4倍，AC的长度是EC的3倍。如果△ABC的面积为20平方厘米，那么△ADE的面积是多少平方厘米？',
+  image: './images/051802001.png',
+  n: '10'
+},
+{
+  m: '2. 如图，在△ABC中，D点是最靠近B点的四等分点，E点是靠近C点的三等分点。如果△ABC的面积为10平方厘米，那么△AED的面积是多少平方厘米？',
+  image: './images/051802002.png',
+  n: '5'
+},
+{
+  m: '3. 如图，在△ABC中，BD:DA=1:3，CE:EA=1:2。如果△ABC的面积为10平方厘米，那么△ADE的面积是多少平方厘米？',
+  image: './images/051802003.png',
+  n: '5'
+},
+{
+  m: '4. 如图，在平行四边形ABCD中，AF的长度是FD的2倍，CE的长度等于ED。如果平行四边形ABCD的面积为120平方厘米，那么△FDE的面积是多少平方厘米？',
+  image: './images/051802004.png',
+  n: '10'
+},
+{
+  m: '5. 如图，在平行四边形ABCD中，点F为靠近点D的三等分点，E为CD中点。如果平行四边形ABCD的面积为120平方厘米，那么△FDE的面积是多少平方厘米？',
+  image: './images/051802005.png',
+  n: '10'
+},
+{
+  m: '6. 如图，在平行四边形ABCD中，AD:AF=3:2，CD:CE=2:1。如果平行四边形ABCD的面积为120平方厘米，那么△FDE的面积是多少平方厘米？',
+  image: './images/051802006.png',
+  n: '10'
+},
+{
+  m: '7. 三角形ABC中，AB的长度是DB的4倍，E点是靠近C点的三等分点，BF:FC=3:2。若三角形ABC的面积等于120平方厘米，则三角形DEF的面积是多少平方厘米？',
+  image: './images/051802007.png',
+  n: '26'
+},
+{
+  m: '8. 三角形ABC中，AB的长度是DB的2倍，E点是靠近C点的三等分点，BF:FC=3:2。若三角形ABC的面积等于60平方厘米，则三角形DEF的面积是多少平方厘米？',
+  image: './images/051802008.png',
+  n: '14'
+},
+{
+  m: '9. 三角形ABC中，AB的长度是DB的2倍，E点是靠近A点的三等分点，BF:FC=2:3。若三角形ABC的面积等于90平方厘米，则三角形DEF的面积是多少平方厘米？',
+  image: './images/051802009.png',
+  n: '21'
+},
+{
+  m: '10. 如图，在△ABC中，AD的长度是DB的2倍，AC的长度是EC的4倍。如果四边形DBEC的面积为10平方厘米，那么△ABC的面积是多少平方厘米？',
+  image: './images/051802010.png',
+  n: '20'
+},
+{
+  m: '11. 如图，在△ABC中，AD:BD=1:3，E是AC的中点。如果四边形ADEC的面积为70平方厘米，那么△ABC的面积是多少平方厘米？',
+  image: './images/051802011.png',
+  n: '105'
+}
+
+
+
+
+
+    ];
+
+    // 获取当前索引的题目
+    let selectedQuestion = questions[currentIndex];
+
+    let m = selectedQuestion.m;
+    let n = selectedQuestion.n;
+
+    // 如果 n 是一个数组，表示有多个正确答案
+    correctAnswer;
+    if (Array.isArray(n)) {
+        correctAnswer = [...n];
+    } else {
+        correctAnswer = [`${n}`];
+    }
+
+    // 构建返回的 LaTeX 代码
+    let questionLatex = `\\(\\begin{gather}${m} \\end{gather}\\)`;
+
+    // 如果有图片路径，则插入图片
+    if (selectedQuestion.image) {
+        questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
+    }
+
+    // 更新索引值，确保按顺序出题
+    currentIndex = (currentIndex +1) % questions.length;
+
+    return questionLatex;}
+
+
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+function generateLevel7Question() {
+    const levelFunctions = [
+        generateLevel1Question,
+        generateLevel2Question,
+        generateLevel3Question,
+        generateLevel4Question,
+        generateLevel5Question,
+        generateLevel6Question,
+   
+    ];
+
+    const randomLevelIndex = Math.floor(Math.random() * levelFunctions.length);
+    const selectedFunction = levelFunctions[randomLevelIndex];
+
+    // 保存当前索引
+    const originalIndex = currentIndex;
+
+    // 随机设置索引
+    // 假设每个级别最多有20个题目（您可以根据实际情况调整这个数字）
+    currentIndex = Math.floor(Math.random() * 20);
+
+    // 生成问题
+    const question = selectedFunction();
+
+    // 恢复原始索引
+    currentIndex = originalIndex;
+
+    return question;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        function newQuestion() {
+            const question = generateQuestion();
+            document.getElementById('question').innerHTML = question;
+            MathJax.typesetPromise([document.getElementById('question')]).catch((err) => console.log(err));
+            document.getElementById('answer').value = '';
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('rendered-answer').style.display = 'none';
+        }
+
+        function toHalfWidth(str) {
+            return str.replace(/[\uFF01-\uFF5E]/g, function (char) {
+                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            }).replace(/\u3000/g, ' ');
+        }
+
+        function updatePreview() {
+            const input = document.getElementById('answer').value;
+            const renderedAnswer = document.getElementById('rendered-answer');
+            renderedAnswer.style.display = 'block';
+            renderedAnswer.innerHTML = '\\(' + input + '\\)';
+            MathJax.typesetPromise([renderedAnswer]).catch((err) => console.log(err));
+        }
+
+
+
+function checkAnswer() {
+    const userAnswer = document.getElementById('answer').value.trim();
+
+    if (userAnswer === '') {
+        document.getElementById('result').innerHTML = '请输入答案！';
+        document.getElementById('result').className = 'incorrect';
+        return;
+    }
+
+    const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
+    const isCorrect = correctAnswer.some(answer => normalizedUserAnswer === toHalfWidth(answer.replace(/\s/g, '').toLowerCase()));
+
+    if (isCorrect) {
+        document.getElementById('result').innerHTML = '正确!';
+        document.getElementById('result').className = 'correct';
+        correctCount++;
+    } else {
+        document.getElementById('result').innerHTML = '错误。正确答案是: ' + correctAnswer.join(' 或 ');
+        document.getElementById('result').className = 'incorrect';
+        incorrectCount++;
+    }
+
+    updateScore();
+    updateHistory(isCorrect);
+
+    MathJax.typesetPromise().catch((err) => console.log(err));
+
+    newQuestion();
+}
+
+
+
+
+        function updateScore() {
+            document.getElementById('score').innerHTML = `正确: ${correctCount} | 错误: ${incorrectCount}`;
+        }
+
+function updateHistory(isCorrect) {
+            const historyTable = document.getElementById('history');
+            const newRow = historyTable.insertRow(0);
+            newRow.insertCell(0).innerHTML = document.getElementById('question').innerHTML;
+            newRow.insertCell(1).innerHTML = difficultyNames[currentDifficulty - 1];
+            newRow.insertCell(2).innerHTML = '\\(' + document.getElementById('answer').value + '\\)';
+            newRow.insertCell(3).innerHTML = '\\(' + correctAnswer.join('\\) 或 \\(') + '\\)';
+            newRow.insertCell(4).innerHTML = isCorrect ? '正确' : '错误';
+            newRow.className = isCorrect ? 'correct' : 'incorrect';
+
+            MathJax.typesetPromise([newRow]).catch((err) => console.log(err));
+        }
+
+        document.getElementById('answer').addEventListener('keyup', function (event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        newQuestion();
+
+    </script>
+</body>
+
+</html>

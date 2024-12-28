@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D01一次函数阶梯测试训练</title>
+  
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .difficulty-buttons {
+            margin-bottom: 20px;
+        }
+
+        .difficulty-buttons button {
+            margin: 10px 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+        }
+
+        .difficulty-buttons button.active {
+            background-color: #45a049;
+            color: white;
+        }
+
+        #answer {
+            padding: 10px;
+            font-size: 16px;
+            width: 200px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            display: inline;
+            color: inherit;
+            font-size: inherit;
+            margin: 0;
+            padding: 0;
+        }
+
+        #score {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        #rendered-answer {
+            margin-top: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 200px;
+        }
+
+        .mathjax-answer {
+            font-size: 16px;
+        }
+
+        .switch-container {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 10px;
+        }
+
+        .switch-container label {
+            margin-right: 5px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+        }
+
+        input:checked+.slider {
+            background-color: #007bff;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(14px);
+        }
+
+        #videoContainer {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <h1>玖数学测训系统</h1>
+        <h3>D01一次函数阶梯测试训练</h3>
+        <div class="difficulty-buttons" id="difficultyButtons"></div>
+        <div id="question"></div><br>
+
+        <input type="text" id="answer" placeholder="输入你的答案" oninput="updatePreview()">
+        <div id="rendered-answer"></div><br>
+        <button onclick="checkAnswer()">提交答案</button><br>
+
+
+    <div class="switch-container">
+        <label for="videoToggle">视频开关</label>
+            <label class="switch">
+                <input type="checkbox" id="videoToggle">
+                <span class="slider"></span>
+            </label>
+        </div><br>
+
+  
+
+        <div id="videoContainer" style="display: none;">
+            <video id="instructionalVideo" width="640" height="360" controls>
+                <source src="" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+  
+
+
+        <div id="result"></div>
+        <div id="score">正确: 0 | 错误: 0</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>题目</th>
+                    <th>级别</th>
+                    <th>你的答案</th>
+                    <th>正确答案</th>
+                    <th>结果</th>
+                </tr>
+            </thead>
+            <tbody id="history"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let correctAnswer;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let currentDifficulty = 1;
+
+         const difficultyNames = ["01求函数值", "02求值", "03求截距", "04求斜率", "05求三角面积", "06点到直线距高", "07垂足", "08对称点", "09综合测试", "10挑战自招"];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            generateDifficultyButtons();
+            setDifficulty(1);
+
+            // 添加视频开关事件监听
+            const videoToggle = document.getElementById('videoToggle');
+            videoToggle.addEventListener('change', function () {
+                const videoContainer = document.getElementById('videoContainer');
+                if (this.checked) {
+                    videoContainer.style.display = 'block';
+                } else {
+                    videoContainer.style.display = 'none';
+                }
+            });
+        });
+
+        function generateDifficultyButtons() {
+            const difficultyButtonsContainer = document.getElementById('difficultyButtons');
+            difficultyNames.forEach((name, index) => {
+                const button = document.createElement('button');
+                button.textContent = name;
+                button.id = `level${index + 1}`;
+                button.onclick = () => setDifficulty(index + 1);
+                difficultyButtonsContainer.appendChild(button);
+            });
+        }
+
+const videoConfig = {
+    1: "<video src='http://vs.leleketang.com/dat/ms/ma/k/video/18728.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",  // 函数的定义
+    2: "<video src='http://v.leleketang.com/dat/hs/ma/k/video/21093.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
+    3: "<iframe src='https://player.bilibili.com/player.html?bvid=BV1Xu4y1v7em&high_quality=1&danmaku=0' width='640' height='360' allowfullscreen allow='autoplay; fullscreen' frameborder='0'></iframe>",
+    4: "<video src='http://vs.leleketang.com/dat/hs/ma/k/video/22135.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
+    5: "<iframe src='https://player.bilibili.com/player.html?bvid=BV1p3411j7YW&high_quality=1&danmaku=0' width='640' height='360' allowfullscreen allow='autoplay; fullscreen' frameborder='0'></iframe>",  
+    6: "<iframe src='https://player.bilibili.com/player.html?bvid=BV1wWpye1EBX&high_quality=1&danmaku=0' width='640' height='360' allowfullscreen allow='autoplay; fullscreen' frameborder='0'></iframe>",
+    7: "<iframe src='https://player.bilibili.com/player.html?bvid=BV1wWpye1EBX&high_quality=1&danmaku=0' width='640' height='360' allowfullscreen allow='autoplay; fullscreen' frameborder='0'></iframe>",
+    8: "<iframe src='https://player.bilibili.com/player.html?bvid=BV1wWpye1EBX&high_quality=1&danmaku=0' width='640' height='360' allowfullscreen allow='autoplay; fullscreen' frameborder='0'></iframe>",
+
+
+
+
+
+
+
+
+    
+};
+
+
+function setDifficulty(level) {
+    currentDifficulty = level;
+    document.querySelectorAll('.difficulty-buttons button').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`level${level}`).classList.add('active');
+
+    const videoContainer = document.getElementById('videoContainer');
+    const videoToggleContainer = document.querySelector('.switch-container');
+
+    if (videoConfig[level]) {
+        videoContainer.innerHTML = videoConfig[level];
+        videoToggleContainer.style.display = 'inline-flex'; // 显示视频开关
+        // 自动开启视频
+        document.getElementById('videoToggle').checked = true;
+        videoContainer.style.display = 'block';
+    } else {
+        videoContainer.innerHTML = "";
+        videoToggleContainer.style.display = 'none'; // 隐藏视频开关
+        document.getElementById('videoToggle').checked = false;
+        videoContainer.style.display = 'none';
+    }
+
+    newQuestion();
+}
+
+
+
+
+        function separateSquareRoot(n) {
+            let a = 1;
+            let b = n;
+
+            for (let i = 2; i * i <= n; i++) {
+                while (b % (i * i) === 0) {
+                    a *= i;
+                    b /= i * i;
+                }
+            }
+
+            return { a: a, b: b };
+        }
+
+  function generateQuestion() {
+            switch(currentDifficulty) {
+                case 1: return generateLevel1Question();
+                case 2: return generateLevel2Question();
+                case 3: return generateLevel3Question();
+                case 4: return generateLevel4Question();
+                case 5: return generateLevel5Question();
+                case 6: return generateLevel6Question();
+                case 7: return generateLevel7Question();
+                case 8: return generateLevel8Question();
+                case 9: return generateLevelcomQuestion();
+                case 10: return generateLevel10Question();
+
+                default: return "";
+            }
+        }
+
+        function generateLevel1Question() {
+            let k = Math.floor(Math.random() * 8) + 2;
+            let b = Math.floor(Math.random() * 11 - 5);
+            let textb = b === 0 ? "" : (b > 0 ? `+${b}` : `${b}`);
+            let x = Math.floor(Math.random() * 6);
+            correctAnswer = [`${k * x + b}`];  // 设置为单一值
+            return `\\(\\begin{array}{lll}y=${k}x${textb} ;&x=${x} ;& y= ?\\\\f(x)=${k}x${textb} ;&f(${x})= ?   \\end{array}\\)`;
+        }
+
+        function generateLevel2aQuestion() {
+            let k = Math.floor(Math.random() * 8) + 2;
+            let b = Math.floor(Math.random() * 10 - 5);
+            let textb = b === 0 ? "" : (b > 0 ? `+${b}` : `${b}`);
+            let x = Math.floor(Math.random() * 6);
+            correctAnswer =  [`${x}`];
+            return `\\(\\begin{array}{lll}y=${k}x${textb} ;&y=${k * x + b} ;& x= ?\\\\f(x)=${k}x${textb} ;&f(？)=${k * x + b}   \\end{array}\\)`;
+        }
+
+
+
+        function generateLevel2bQuestion() {
+            let n = Math.random() < 0.5 ? 1 : -1;
+            let nk = Math.floor(Math.random() * 8) + 1;
+            let k = n * nk;
+            let textk = k === 1 ? "" : (k === -1 ? "-" : `${k}`);
+            let b = Math.floor(Math.random() * 19) - 9;
+            let textb = b === 0 ? "" : (b > 0 ? `+${b}` : `${b}`);
+            let x = Math.floor(Math.random() * 11) - 5;
+             correctAnswer = [`${k*x+b}`];  // 设置为单一值
+            return `\\(\\begin{array}{lll}y=${textk}x${textb};& x= ${x};&y=? ;\\\\  f(x)=${textk}x${textb};&x= ${x};&f(${x})=?   \\end{array}\\)`;
+        }
+
+
+     function generateLevel2Question() {
+            const levelFunctions = [
+                generateLevel2aQuestion,
+                generateLevel2bQuestion,
+
+            ];
+
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+
+            return selectedFunction();
+        }
+
+
+
+
+
+
+
+
+        function generateLevel3aQuestion() {
+            let possibleNumbers = [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5];
+            possibleNumbers = possibleNumbers.sort(() => Math.random() - 0.5);
+            const x1 = possibleNumbers[0];
+            const x2 = possibleNumbers[1];
+            let n = Math.random() < 0.5 ? 1 : -1;
+            let nk = Math.floor(Math.random() * 4) + 1;
+            let k = n * nk;
+            let b = Math.floor(Math.random() * 19) - 9;
+            let y1=b+k*x1;
+            let y2=b+k*x2;
+            correctAnswer = [`${b}`];;
+            return `\\(\\begin{array}{lll}过点A(${x1},${y1})、B(${x2},${y2})的直线\\\\与y轴交点为(0,b),\\\\则b=? \\\\可以画图，比例，线面积为0，方程组、定比分点...... \\\\line((${x1},${y1}),(${x2},${y2}))\\end{array}\\)`;
+        }
+
+
+        function generateLevel3bQuestion() {
+            let possibleNumbers = [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5];
+            possibleNumbers = possibleNumbers.sort(() => Math.random() - 0.5);
+            const y1 = possibleNumbers[0];
+            const y2 = possibleNumbers[1];
+            let n = Math.random() < 0.5 ? 1 : -1;
+            let nk = Math.floor(Math.random() * 4) + 1;
+            let k = n * nk;
+            let t = Math.floor(Math.random() * 19) - 9;
+            let x1=t+k*y1;
+            let x2=t+k*y2;
+            correctAnswer =  [`${t}`];;
+            return `\\(\\begin{array}{lll}过点A(${x1},${y1})、B(${x2},${y2})的直线\\\\与x轴交点为(t,0),\\\\则t=? \\\\可以画图，比例，线面积为0，方程组、定比分点......\\\\line((${x1},${y1}),(${x2},${y2})) \\end{array}\\)`;
+           
+        }
+
+
+     function generateLevel3Question() {
+            const levelFunctions = [
+                generateLevel3aQuestion,
+                generateLevel3bQuestion,
+
+            ];
+
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+
+            return selectedFunction();
+        }
+
+
+
+
+
+
+        function generateLevel4Question() {
+            let xa = Math.floor(Math.random() * 11) - 5;
+            let ya = Math.floor(Math.random() * 11) - 5;
+            let offset = Math.floor(Math.random() * 10) + 1; // 生成1到10之间的随机数
+            let direction = Math.random() < 0.5 ? -1 : 1; // 随机选择正负方向
+            let xb = xa + offset * direction; // 确保 xb 不等于 xa
+            let k = Math.floor(Math.random() * 11) - 5;
+            let yb = ya + k * (xb - xa);
+            correctAnswer =  [`${k}`];;
+            return `\\(\\begin{array}{lll}过点A(${xa},${ya}),B(${xb},${yb});\\\\直线的斜率k=?\\\\可以配数，可以画图算高宽比，\\\\ \\textup{ggb上可以输入slope(segment((${xa},${ya}),(${xb},${yb})) }\\end{array}\\)`;
+        }
+
+        function generateLevel5Question() {
+            let xa = Math.floor(Math.random() * 11) - 5;
+            let ya = Math.floor(Math.random() * 11) - 5;
+            let xb = Math.floor(Math.random() * 11) - 5;
+            let b = Math.floor(Math.random() * 11) - 5;
+            let yb = ((xa * b - xb * ya) % 2 === 0) ? b : b + 1; 
+            let s = 0.5 * Math.abs(xa * yb - xb * ya);
+            correctAnswer =  [`${s}`];;
+            return `\\(\\begin{array}{lll}直角坐标系中点O(0,0),A(${xa},${ya}),B(${xb},${yb});\\\\SΔOAB=?\\\\你可以用多少不同的方法来运算，\\\\你可以先用ggb画一下的;\\\\铅垂？割补？点到线距离？三角函数？行列式？ \\end{array}\\)`;
+        }
+
+        function generateLevel6Question() {
+            const pairs = [
+                {a: 5, b: 12},
+                {a: -5, b: 12},
+                {a: 5, b: -12},
+                {a: -5, b: -12},
+                {a: 3, b: 4},
+                {a: -3, b: 4},
+                {a: 4, b: 3},
+                {a: -4, b: -3},
+            ];
+
+            let pair = pairs[Math.floor(Math.random() * pairs.length)];
+            let a = pair.a;
+            let b = pair.b;
+
+            let textb = b === 0 ? "" : (b > 0 ? `+${b}` : `${b}`);    
+
+            let n = Math.floor(Math.random() * 11) - 5;
+            let xm = Math.floor(Math.random() * 11) - 5;
+            let ym = Math.floor(Math.random() * 11) - 5;
+
+            let c = Math.pow((a * a + b * b), 0.5) * n - a * xm - b * ym;
+            let textc = c === 0 ? "" : (c > 0 ? `+${c}` : `${c}`);
+
+            correctAnswer =  [`${Math.abs(n)}`];
+
+            return `\\(\\begin{array}{lll}已知直线${a}x${textb}y${textc}=0 ;\\\\求点M(${xm},${ym})到直线的距离。\\\\你可以先用ggb画一下的;\\\\比例，勾股，向量，复数，判别式，公式......\\\\多种方法到后面才能云淡风轻.\\end{array}\\)`;
+        }
+
+        function generateLevel7Question() {
+            let p1 = Math.random() < 0.5 ? 1 : -1;
+            let p2 = Math.random() < 0.5 ? 1 : -1;
+            let p3 = Math.random() < 0.5 ? 1 : -1;
+
+            let a = p1 * (Math.floor(Math.random() * 5) + 1);
+            let texta = a === 1 ? "" : (a === -1 ? `-` : `${a}`);
+
+            let b = p2 * (Math.floor(Math.random() * 5) + 1);
+            let textb = b === 1 ? "+" : (b === -1 ? `-` : (b > 0 ? `+${b}` : `${b}`));
+
+            let m = Math.floor(Math.random() * 11) - 5;
+            let n = Math.floor(Math.random() * 11) - 5;
+
+            let c = -a * m - b * n;
+            let textc = c === 0 ? "" : (c > 0 ? `+${c}` : `${c}`);
+
+            let d = p3 * (Math.floor(Math.random() * 3) + 1);
+
+            let s = `(${m},${n})`;
+            correctAnswer =  [`${s}`];;
+
+            return `\\(\\begin{array}{lll}直线l:${texta}x${textb}y${textc}=0 ; \\\\过点A(${m + d * a},${n + d * b})做l的垂线,垂足为？\\\\你可以先用ggb画一下的;\\\\可以用方程组，向量，切线方程，判别式，复数...... \\end{array}\\)`;
+        }
+
+        function generateLevel8Question() {
+            let p1 = Math.random() < 0.5 ? 1 : -1;
+            let p2 = Math.random() < 0.5 ? 1 : -1;
+            let p3 = Math.random() < 0.5 ? 1 : -1;
+
+            let a = p1 * (Math.floor(Math.random() * 5) + 1);
+            let texta = a === 1 ? "" : (a === -1 ? `-` : `${a}`);
+
+            let b = p2 * (Math.floor(Math.random() * 5) + 1);
+            let textb = b === 1 ? "+" : (b === -1 ? `-` : (b > 0 ? `+${b}` : `${b}`));
+
+            let m = Math.floor(Math.random() * 11) - 5;
+            let n = Math.floor(Math.random() * 11) - 5;
+
+            let c = -a * m - b * n;
+            let textc = c === 0 ? "" : (c > 0 ? `+${c}` : `${c}`);
+
+            let d = p3 * (Math.floor(Math.random() * 3) + 1);
+
+            let s = `(${m - d * a},${n - d * b})`;
+            correctAnswer =  [`${s}`];;
+
+            return `\\(\\begin{array}{lll}直线l:${texta}x${textb}y${textc}=0 ; \\\\点A(${m + d * a},${n + d * b})关于l的对称点是？\\\\你可以先用ggb画一下的;\\\\可以用方程组，向量，切线方程，判别式，复数...... \\end{array}\\)`;
+        }
+
+        function generateLevelcomQuestion() {
+            const levelFunctions = [
+                generateLevel1Question,
+                generateLevel2Question,
+                generateLevel3Question,
+                generateLevel4Question,
+                generateLevel5Question,
+                generateLevel6Question,
+                generateLevel7Question,
+                generateLevel8Question
+            ];
+
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+
+            return selectedFunction();
+        }
+
+let currentQuestionIndex = 0; // 添加一个全局变量来跟踪当前题目索引
+        function generateLevel10Question() {
+     const Questions = [
+{ question: " \\begin{array}{l}(1)、&直线上的两点A(1,1)、B(3,2)与直线x=9交于点C，求点C的坐标，\\\\&你想到的方法得可以用，不限以下的方法，能用五种的有奖励，\\\\&1、速度与路程的关系;\\\\&2、比例法;\\\\&3、定比分点法;\\\\&4、行列式直线面积=0(这也行？？);\\\\&5、向量共线法(你现在会用也行，不会也没关系，超纲的);\\\\&6、两点式;\\\\&7、斜率;\\end{array}" ,   img: "./images/D0101.png",answers: ["(9,5)","(+9,+5)"] },
+
+{ question: " \\begin{array}{l}(2)、&求点A(5,0)关于直线y=\\frac{1}{3}x对称的点A'的坐标。\\\\&你想到的方法得可以用，不限以下的方法，能用五种的有奖励，\\\\&01、直线方程组;\\\\&02、比例法;\\\\&03、中点定比分点法;\\\\&04、折叠勾股解方程;\\\\&05、向量法(你现在会用也行，不会也没关系，超纲的);\\\\&06、三角函数法;\\\\&07、射影定理;\\\\&08、12345法;\\\\&09、直线与圆相切法；\\\\&10、公式;\\\\&11、坐标平移法向量;\\\\&12、复数法;\\\\&13、矩阵法;\\\\&14、圆方程法;\\\\&15、偏导微分法;\\end{array}" ,   img: "./images/D0102.png",answers: ["(4,3)","(+4,+3)"] },
+
+
+
+
+
+
+        // 可以添加更多题目
+    ];
+
+    currentQuestionIndex = (currentQuestionIndex ) % Questions.length;
+
+    const selectedQuestion = Questions[currentQuestionIndex];
+    correctAnswer = selectedQuestion.answers;
+
+    // 生成题目的HTML
+    let questionHtml = `\\(\\begin{gather} ${selectedQuestion.question} \\end{gather}\\)`;
+    if (selectedQuestion.img) {
+        questionHtml += `<br><br><img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">`;
+    }
+
+
+
+
+
+
+    // 增加索引，为下一题做准备，如果到达最后一道题则回到第一道
+    currentQuestionIndex = (currentQuestionIndex + 1) % Questions.length;
+
+    return questionHtml;
+        }
+
+
+
+
+
+
+
+
+        function newQuestion() {
+            const question = generateQuestion();
+            document.getElementById('question').innerHTML = question;
+            MathJax.typesetPromise([document.getElementById('question')]).catch((err) => console.log(err));
+            document.getElementById('answer').value = '';
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('rendered-answer').style.display = 'none';
+        }
+
+        function toHalfWidth(str) {
+            return str.replace(/[\uFF01-\uFF5E]/g, function (char) {
+                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            }).replace(/\u3000/g, ' ');
+        }
+
+        function updatePreview() {
+            const input = document.getElementById('answer').value;
+            const renderedAnswer = document.getElementById('rendered-answer');
+            renderedAnswer.style.display = 'block';
+            renderedAnswer.innerHTML = '\\(' + input + '\\)';
+            MathJax.typesetPromise([renderedAnswer]).catch((err) => console.log(err));
+        }
+
+        function checkAnswer() {
+            const userAnswer = document.getElementById('answer').value.trim();
+
+            if (userAnswer === '') {
+                document.getElementById('result').innerHTML = '请输入答案！';
+                document.getElementById('result').className = 'incorrect';
+                return; // 直接返回，不更新历史记录或生成新题目
+            }
+
+            const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
+            const isCorrect = correctAnswer.some(answer => normalizedUserAnswer === toHalfWidth(answer.replace(/\s/g, '').toLowerCase()));
+
+            if (isCorrect) {
+                document.getElementById('result').innerHTML = '正确!';
+                document.getElementById('result').className = 'correct';
+                correctCount++;
+            } else {
+                document.getElementById('result').innerHTML = '错误。正确答案是: ' + correctAnswer.join(' 或 ');
+                document.getElementById('result').className = 'incorrect';
+                incorrectCount++;
+            }
+
+            updateScore();
+            updateHistory(isCorrect);
+
+            MathJax.typesetPromise().catch((err) => console.log(err));
+
+            if (userAnswer !== '') {
+                newQuestion();
+            }
+        }
+
+        function updateScore() {
+            document.getElementById('score').innerHTML = `正确: ${correctCount} | 错误: ${incorrectCount}`;
+        }
+
+function updateHistory(isCorrect) {
+            const historyTable = document.getElementById('history');
+            const newRow = historyTable.insertRow(0);
+            newRow.insertCell(0).innerHTML = document.getElementById('question').innerHTML;
+            newRow.insertCell(1).innerHTML = difficultyNames[currentDifficulty - 1];
+            newRow.insertCell(2).innerHTML = '\\(' + document.getElementById('answer').value + '\\)';
+            newRow.insertCell(3).innerHTML = '\\(' + correctAnswer.join('\\) 或 \\(') + '\\)';
+            newRow.insertCell(4).innerHTML = isCorrect ? '正确' : '错误';
+            newRow.className = isCorrect ? 'correct' : 'incorrect';
+
+            MathJax.typesetPromise([newRow]).catch((err) => console.log(err));
+        }
+
+        document.getElementById('answer').addEventListener('keyup', function (event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        newQuestion();
+
+    </script>
+</body>
+
+</html>

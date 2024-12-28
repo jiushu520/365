@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G03应用题牛吃草问题阶梯训练 </title>
+  
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .difficulty-buttons {
+            margin-bottom: 20px;
+        }
+
+        .difficulty-buttons button {
+            margin: 10px 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+        }
+
+        .difficulty-buttons button.active {
+            background-color: #45a049;
+            color: white;
+        }
+
+        #answer {
+            padding: 10px;
+            font-size: 16px;
+            width: 200px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            display: inline;
+            color: inherit;
+            font-size: inherit;
+            margin: 0;
+            padding: 0;
+        }
+
+        #score {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        #rendered-answer {
+            margin-top: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 200px;
+        }
+
+        .mathjax-answer {
+            font-size: 16px;
+        }
+
+        .switch-container {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 10px;
+        }
+
+        .switch-container label {
+            margin-right: 5px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+        }
+
+        input:checked+.slider {
+            background-color: #007bff;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(14px);
+        }
+
+        #videoContainer {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <h1>玖数学测训系统</h1>
+        <h3>G03应用题牛吃草问题阶梯训练 </h3>
+        <div class="difficulty-buttons" id="difficultyButtons"></div>
+        <div id="question"></div><br>
+
+        <input type="text" id="answer" placeholder="输入你的答案" oninput="updatePreview()">
+        <div id="rendered-answer"></div><br>
+        <button onclick="checkAnswer()">提交答案</button><br>
+
+
+    <div class="switch-container">
+        <label for="videoToggle">视频开关</label>
+            <label class="switch">
+                <input type="checkbox" id="videoToggle">
+                <span class="slider"></span>
+            </label>
+        </div><br>
+
+  
+
+        <div id="videoContainer" style="display: none;">
+            <video id="instructionalVideo" width="640" height="360" controls>
+                <source src="" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+  
+
+
+        <div id="result"></div>
+        <div id="score">正确: 0 | 错误: 0</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>题目</th>
+                    <th>级别</th>
+                    <th>你的答案</th>
+                    <th>正确答案</th>
+                    <th>结果</th>
+                </tr>
+            </thead>
+            <tbody id="history"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let correctAnswer;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let currentDifficulty = 1;
+
+         const difficultyNames = ["草量的变化1", "草量的变化1", "最多几头牛", "求天数",  "经典求草数","总效率不变水管问题1","总效率不变水管问题2","综合随机"];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            generateDifficultyButtons();
+            setDifficulty(1);
+
+            // 添加视频开关事件监听
+            const videoToggle = document.getElementById('videoToggle');
+            videoToggle.addEventListener('change', function () {
+                const videoContainer = document.getElementById('videoContainer');
+                if (this.checked) {
+                    videoContainer.style.display = 'block';
+                } else {
+                    videoContainer.style.display = 'none';
+                }
+            });
+        });
+
+        function generateDifficultyButtons() {
+            const difficultyButtonsContainer = document.getElementById('difficultyButtons');
+            difficultyNames.forEach((name, index) => {
+                const button = document.createElement('button');
+                button.textContent = name;
+                button.id = `level${index + 1}`;
+                button.onclick = () => setDifficulty(index + 1);
+                difficultyButtonsContainer.appendChild(button);
+            });
+        }
+
+const videoConfig = {
+    1: "",  // 
+
+
+    
+};
+
+
+function setDifficulty(level) {
+    currentDifficulty = level;
+    document.querySelectorAll('.difficulty-buttons button').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`level${level}`).classList.add('active');
+
+    const videoContainer = document.getElementById('videoContainer');
+    const videoToggleContainer = document.querySelector('.switch-container');
+
+    if (videoConfig[level]) {
+        videoContainer.innerHTML = videoConfig[level];
+        videoToggleContainer.style.display = 'inline-flex'; // 显示视频开关
+        // 自动开启视频
+        document.getElementById('videoToggle').checked = true;
+        videoContainer.style.display = 'block';
+    } else {
+        videoContainer.innerHTML = "";
+        videoToggleContainer.style.display = 'none'; // 隐藏视频开关
+        document.getElementById('videoToggle').checked = false;
+        videoContainer.style.display = 'none';
+    }
+
+    newQuestion();
+}
+
+
+
+
+        function separateSquareRoot(n) {
+            let a = 1;
+            let b = n;
+
+            for (let i = 2; i * i <= n; i++) {
+                while (b % (i * i) === 0) {
+                    a *= i;
+                    b /= i * i;
+                }
+            }
+
+            return { a: a, b: b };
+        }
+
+
+
+  function generateQuestion() {
+            switch(currentDifficulty) {
+                case 1: return generateLevel1Question();
+                case 2: return generateLevel2Question();
+                case 3: return generateLevel3Question();
+                case 4: return generateLevel4Question();
+                case 5: return generateLevel5Question();
+                case 6: return generateLevel6Question();
+                case 7: return generateLevel7Question();
+                case 8: return generateLevel8Question();
+        
+                default: return "";
+            }
+        }
+
+
+
+        function generateLevel1aQuestion() {
+   let a = Math.floor(Math.random() * 8)+1 ;//每天的草生长数量
+   let b = Math.floor(Math.random() * 8)+3 ;//因式1
+   let c = b+Math.floor(Math.random() * 8)+3 ;//因式2
+   let d = Math.floor(Math.random() * 8)+2 ;//系数1
+   let t1 =c*d;//放a+b头牛吃完草的天数
+   let t2 =b*d;//放a+c头牛吃完草的天数
+    let textq =  `\\begin{array}{cc} 
+                 牧场上有${b*c*d}份草地, \\\\ 
+                每天都均匀生长${a}份;\\\\
+                如果一开始放${a+b}头牛;\\\\
+                那么几天可以吃完草地上的草？\\\\
+               \\end{array}`;
+    correctAnswer = [`${t1}`]  
+    return `\\( ${textq}  \\)`;
+
+}
+     
+
+        function generateLevel1bQuestion() {
+   let a = Math.floor(Math.random() * 8)+1 ;//每天的草生长数量
+   let b = Math.floor(Math.random() * 8)+3 ;//因式1
+   let c = b+Math.floor(Math.random() * 8)+3 ;//因式2
+   let d = Math.floor(Math.random() * 8)+2 ;//系数1
+   let t1 =c*d;//放a+b头牛吃完草的天数
+   let t2 =b*d;//放a+c头牛吃完草的天数
+    let textq =  `\\begin{array}{cc} 
+                 AB两地相距${b*c*d}米, \\\\ 
+                甲乙两车同向而行,甲车在后乙车在前;\\\\
+                乙车每分种行驶${a}米;\\\\
+                甲车每分种行驶${a+b}米;\\\\
+                那么几分钟后甲车追上乙车？\\\\
+               \\end{array}`;
+    correctAnswer = [`${t1}`]  
+    return `\\( ${textq}  \\)`;
+
+}
+     
+
+        
+        function generateLevel1Question() {
+            const levelFunctions = [
+                generateLevel1aQuestion,
+                generateLevel1bQuestion,
+           
+
+            ];
+
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+
+            return selectedFunction();
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+function generateLevel2Question() {
+    let a = Math.floor(Math.random() * 8)+1 ;//每天的草生长数量
+   let b = Math.floor(Math.random() * 8)+3 ;//因式1
+   let c = b+Math.floor(Math.random() * 8)+3 ;//因式2
+   let d = Math.floor(Math.random() * 8)+2 ;//系数1
+   let t1 =c*d;//放a+b头牛吃完草的天数
+   let t2 =b*d;//放a+c头牛吃完草的天数
+    let textq =  `\\begin{array}{cc} 
+                有一片牧场每天都在均匀地生长草,每头牛每天吃1份草; \\\\ 
+                如果一开始放${a+b}头牛;${t1}天吃完;\\\\
+                如果一开始放${a+c}头牛;${t2}天吃完;\\\\
+                那么每天均匀长几份草？\\\\
+               \\end{array}`;
+    correctAnswer = [`${a}`]  
+    return `\\( ${textq}  \\)`;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function generateLevel3Question() {
+   let a = Math.floor(Math.random() * 8)+1 ;//每天的草生长数量
+   let b = Math.floor(Math.random() * 8)+3 ;//因式1
+   let c = b+Math.floor(Math.random() * 8)+3 ;//因式2
+   let d = Math.floor(Math.random() * 8)+2 ;//系数1
+   let t1 =c*d;//放a+b头牛吃完草的天数
+   let t2 =b*d;//放a+c头牛吃完草的天数
+    let textq =  `\\begin{array}{cc} 
+                有一片牧场每天都在均匀地生长草,每头牛每天吃1份草; \\\\ 
+                如果一开始放${a+b}头牛;${t1}天吃完;\\\\
+                如果一开始放${a+c}头牛;${t2}天吃完;\\\\
+                如果要想一直有草吃那么最多放头牛？\\\\
+               \\end{array}`;
+    correctAnswer = [`${a}`]  
+    return `\\( ${textq}  \\)`;
+}
+
+
+
+
+
+
+
+
+function generateLevel4Question() {
+  let a = Math.floor(Math.random() * 8)+1 ;//每天的草生长数量
+   let b = Math.floor(Math.random() * 8)+3 ;//因式1
+   let c = b+Math.floor(Math.random() * 8)+3 ;//因式2
+   let d = c+Math.floor(Math.random() * 4)+1 ;//系数1
+   let t1 =c*d;//放a+b头牛吃完草的天数
+   let t2 =b*d;//放a+c头牛吃完草的天数
+   let t3 =b*c;//放d+a头牛吃完草的天数
+
+    let textq =  `\\begin{array}{cc} 
+                有一片牧场每天都在均匀地生长草,每头牛每天吃1份草; \\\\ 
+                如果一开始放${a+b}头牛;${t1}天吃完;\\\\
+                如果一开始放${a+c}头牛;${t2}天吃完;\\\\
+                如果一开始放${d+a}头牛,几天吃完?\\\\
+               \\end{array}`;
+    correctAnswer = [`${t3}`]  
+    return `\\( ${textq}  \\)`;
+
+}
+
+
+function generateLevel5Question() {
+           const factorizationQuestions = [
+   
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为8公顷的草地，可供8头牛吃72天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这72天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["72"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为7公顷的草地，可供6头牛吃98天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这98天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["84"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为8公顷的草地，可供5头牛吃96天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这96天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["60"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为9公顷的草地，可供9头牛吃99天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这99天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["99"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为9公顷的草地，可供5头牛吃99天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这99天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["55"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为7公顷的草地，可供9头牛吃63天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这63天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["81"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为9公顷的草地，可供9头牛吃99天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这99天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["99"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为9公顷的草地，可供8头牛吃126天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这126天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["112"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为9公顷的草地，可供10头牛吃81天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这81天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["90"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为7公顷的草地，可供5头牛吃63天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这63天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["45"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为7公顷的草地，可供9头牛吃63天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这63天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["81"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为9公顷的草地，可供7头牛吃117天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这117天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["91"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为8公顷的草地，可供5头牛吃112天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这112天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["70"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为7公顷的草地，可供5头牛吃77天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这77天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["55"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为8公顷的草地，可供9头牛吃120天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这120天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["135"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为9公顷的草地，可供9头牛吃81天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这81天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["81"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为7公顷的草地，可供6头牛吃105天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这105天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["90"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为7公顷的草地，可供9头牛吃98天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这98天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["126"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为8公顷的草地，可供8头牛吃120天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这120天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["120"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为9公顷的草地，可供10头牛吃117天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这117天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["130"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为9公顷的草地，可供10头牛吃126天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这126天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["140"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为7公顷的草地，可供6头牛吃105天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这105天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["90"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为7公顷的草地，可供10头牛吃84天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这84天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["120"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为7公顷的草地，可供10头牛吃91天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这91天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["130"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为9公顷的草地，可供8头牛吃81天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这81天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["72"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为8公顷的草地，可供7头牛吃80天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这80天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["70"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为7公顷的草地，可供7头牛吃70天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这70天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["70"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为8公顷的草地，可供6头牛吃104天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这104天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["78"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为9公顷的草地，可供6头牛吃99天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这99天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["66"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为9公顷的草地，可供6头牛吃81天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这81天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["54"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一片面积为8公顷的草地，可供8头牛吃88天。．}\\\\ \\text{如果每头牛每天吃1份草，那在这88天内，}\\\\ \\text{每公顷草地一共提供了几份草？} \\end{array} \\]",
+        answers: ["88"]
+    },
+   
+
+
+
+     // 可以添加更多题目
+            ];
+
+            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
+            const selectedQuestion = factorizationQuestions[randomIndex];
+
+            correctAnswer = selectedQuestion.answers;
+
+            let questionHtml = `${selectedQuestion.question} `;
+            if (selectedQuestion.img) {
+                questionHtml += `<br><img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">`;
+            }
+
+            return questionHtml;
+
+        }
+
+
+
+
+
+
+function generateLevel6Question() {
+            const factorizationQuestions = [
+   
+ 
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管9个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["18"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管12个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["36"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管6小时能把空水池注满；}\\\\ \\text{单开排水管4个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["12"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管10个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["60"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管9个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["18"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管6个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["12"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管6小时能把空水池注满；}\\\\ \\text{单开排水管5个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["30"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管8个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["24"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管10个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["60"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管9个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["18"]
+    },
+
+
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管6小时能把空水池注满；}\\\\ \\text{单开排水管4个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["12"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管6小时能把空水池注满；}\\\\ \\text{单开排水管4个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["12"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管15个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["90"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管6小时能把空水池注满；}\\\\ \\text{单开排水管5个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["30"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管6小时能把空水池注满；}\\\\ \\text{单开排水管3个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["6"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管6小时能把空水池注满；}\\\\ \\text{单开排水管4个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["12"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管6小时能把空水池注满；}\\\\ \\text{单开排水管4个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["12"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管6个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["12"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管8个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["24"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管9个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["18"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管15个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["90"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管6小时能把空水池注满；}\\\\ \\text{单开排水管4个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["12"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管6小时能把空水池注满；}\\\\ \\text{单开排水管3个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["6"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管12个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["36"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管8个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["24"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管9个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["18"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管15个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["90"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管6小时能把空水池注满；}\\\\ \\text{单开排水管4个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["12"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管9个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["18"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管12个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["36"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管10个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["60"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管9个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["18"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管6个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["12"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管8个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["24"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管6小时能把空水池注满；}\\\\ \\text{单开排水管5个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["30"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管6小时能把空水池注满；}\\\\ \\text{单开排水管4个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["12"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管15个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["90"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管10个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["60"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管6小时能把空水池注满；}\\\\ \\text{单开排水管4个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["12"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管8个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["24"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管10个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["60"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管8个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["24"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管8个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["24"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管10个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["60"]
+    },
+
+
+
+
+     // 可以添加更多题目
+            ];
+
+            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
+            const selectedQuestion = factorizationQuestions[randomIndex];
+
+            correctAnswer = selectedQuestion.answers;
+
+            let questionHtml = `${selectedQuestion.question} `;
+            if (selectedQuestion.img) {
+                questionHtml += `<br><img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">`;
+            }
+
+            return questionHtml;
+}
+
+
+
+
+
+
+function generateLevel7Question() {
+            const factorizationQuestions = [
+   
+ 
+    
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管24小时能把空水池注满；}\\\\ \\text{单开排水管24个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和3条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["24"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管24小时能把空水池注满；}\\\\ \\text{单开排水管30个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和3条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["60"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管36小时能把空水池注满；}\\\\ \\text{单开排水管30个小时能把满的水池排空，}\\\\ \\text{问同时打开3条进水管和5条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["12"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管36小时能把空水池注满；}\\\\ \\text{单开排水管48个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和4条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["36"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管25个小时能把满的水池排空，}\\\\ \\text{问同时打开3条进水管和5条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["30"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管36小时能把空水池注满；}\\\\ \\text{单开排水管50个小时能把满的水池排空，}\\\\ \\text{问同时打开3条进水管和5条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["60"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管20个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和4条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["30"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管36小时能把空水池注满；}\\\\ \\text{单开排水管36个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和4条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["18"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管12个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和4条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["6"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管24小时能把空水池注满；}\\\\ \\text{单开排水管32个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和4条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["24"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管16个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和4条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["12"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管36小时能把空水池注满；}\\\\ \\text{单开排水管48个小时能把满的水池排空，}\\\\ \\text{问同时打开3条进水管和6条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["24"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管54小时能把空水池注满；}\\\\ \\text{单开排水管48个小时能把满的水池排空，}\\\\ \\text{问同时打开3条进水管和4条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["36"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管18个小时能把满的水池排空，}\\\\ \\text{问同时打开3条进水管和6条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["6"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管54小时能把空水池注满；}\\\\ \\text{单开排水管72个小时能把满的水池排空，}\\\\ \\text{问同时打开3条进水管和6条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["36"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管54小时能把空水池注满；}\\\\ \\text{单开排水管48个小时能把满的水池排空，}\\\\ \\text{问同时打开3条进水管和4条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["36"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管36小时能把空水池注满；}\\\\ \\text{单开排水管40个小时能把满的水池排空，}\\\\ \\text{问同时打开3条进水管和4条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["60"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管15个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和5条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["6"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管36小时能把空水池注满；}\\\\ \\text{单开排水管27个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和3条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["18"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管18个小时能把满的水池排空，}\\\\ \\text{问同时打开3条进水管和6条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["6"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管12个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和3条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["12"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管24小时能把空水池注满；}\\\\ \\text{单开排水管24个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和3条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["24"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管24小时能把空水池注满；}\\\\ \\text{单开排水管30个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和3条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["60"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管36小时能把空水池注满；}\\\\ \\text{单开排水管45个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和3条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["90"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管36小时能把空水池注满；}\\\\ \\text{单开排水管36个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和4条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["18"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管36小时能把空水池注满；}\\\\ \\text{单开排水管27个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和3条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["18"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管36小时能把空水池注满；}\\\\ \\text{单开排水管45个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和3条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["90"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管36小时能把空水池注满；}\\\\ \\text{单开排水管36个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和4条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["18"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管36小时能把空水池注满；}\\\\ \\text{单开排水管60个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和5条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["36"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管15个小时能把满的水池排空，}\\\\ \\text{问同时打开3条进水管和5条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["6"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管24个小时能把满的水池排空，}\\\\ \\text{问同时打开3条进水管和6条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["12"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管36小时能把空水池注满；}\\\\ \\text{单开排水管50个小时能把满的水池排空，}\\\\ \\text{问同时打开3条进水管和5条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["60"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管36小时能把空水池注满；}\\\\ \\text{单开排水管32个小时能把满的水池排空，}\\\\ \\text{问同时打开3条进水管和4条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["24"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管12个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和3条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["12"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管36小时能把空水池注满；}\\\\ \\text{单开排水管48个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和4条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["36"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管54小时能把空水池注满；}\\\\ \\text{单开排水管36个小时能把满的水池排空，}\\\\ \\text{问同时打开3条进水管和4条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["18"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管24小时能把空水池注满；}\\\\ \\text{单开排水管32个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和4条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["24"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管18个小时能把满的水池排空，}\\\\ \\text{问同时打开3条进水管和6条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["6"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管24小时能把空水池注满；}\\\\ \\text{单开排水管40个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和5条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["24"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管36小时能把空水池注满；}\\\\ \\text{单开排水管24个小时能把满的水池排空，}\\\\ \\text{问同时打开3条进水管和4条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["12"]
+    },
+    {
+        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管，}\\\\ \\text{单开进水管36小时能把空水池注满；}\\\\ \\text{单开排水管27个小时能把满的水池排空，}\\\\ \\text{问同时打开2条进水管和3条排水管几小时能把满水的水池排空？} \\end{array} \\]",
+        answers: ["18"]
+    }
+
+
+
+
+
+     // 可以添加更多题目
+            ];
+
+            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
+            const selectedQuestion = factorizationQuestions[randomIndex];
+
+            correctAnswer = selectedQuestion.answers;
+
+            let questionHtml = `${selectedQuestion.question} `;
+            if (selectedQuestion.img) {
+                questionHtml += `<br><img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">`;
+            }
+
+            return questionHtml;
+}
+
+
+
+
+
+
+
+
+
+
+
+        
+        function generateLevel8Question() {
+            const levelFunctions = [
+                generateLevel1Question,
+                generateLevel2Question,
+                generateLevel3Question,
+                generateLevel4Question,
+                generateLevel5Question,
+                generateLevel6Question,
+                generateLevel7Question,
+
+            ];
+
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+
+            return selectedFunction();
+        }
+
+
+
+        function newQuestion() {
+            const question = generateQuestion();
+            document.getElementById('question').innerHTML = question;
+            MathJax.typesetPromise([document.getElementById('question')]).catch((err) => console.log(err));
+            document.getElementById('answer').value = '';
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('rendered-answer').style.display = 'none';
+        }
+
+
+
+        function toHalfWidth(str) {
+            return str.replace(/[\uFF01-\uFF5E]/g, function (char) {
+                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            }).replace(/\u3000/g, ' ');
+        }
+
+        function updatePreview() {
+            const input = document.getElementById('answer').value;
+            const renderedAnswer = document.getElementById('rendered-answer');
+            renderedAnswer.style.display = 'block';
+            renderedAnswer.innerHTML = '\\(' + input + '\\)';
+            MathJax.typesetPromise([renderedAnswer]).catch((err) => console.log(err));
+        }
+
+
+
+        function checkAnswer() {
+            const userAnswer = document.getElementById('answer').value.trim();
+
+            if (userAnswer === '') {
+                document.getElementById('result').innerHTML = '请输入答案！';
+                document.getElementById('result').className = 'incorrect';
+                return; // 直接返回，不更新历史记录或生成新题目
+            }
+
+            const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
+            const isCorrect = correctAnswer.some(answer => normalizedUserAnswer === toHalfWidth(answer.replace(/\s/g, '').toLowerCase()));
+
+            if (isCorrect) {
+                document.getElementById('result').innerHTML = '正确!';
+                document.getElementById('result').className = 'correct';
+                correctCount++;
+            } else {
+                document.getElementById('result').innerHTML = '错误。正确答案是: ' + correctAnswer.join(' 或 ');
+                document.getElementById('result').className = 'incorrect';
+                incorrectCount++;
+            }
+
+            updateScore();
+            updateHistory(isCorrect);
+
+            MathJax.typesetPromise().catch((err) => console.log(err));
+
+            if (userAnswer !== '') {
+                newQuestion();
+            }
+        }
+
+
+
+
+
+        function updateScore() {
+            document.getElementById('score').innerHTML = `正确: ${correctCount} | 错误: ${incorrectCount}`;
+        }
+
+function updateHistory(isCorrect) {
+            const historyTable = document.getElementById('history');
+            const newRow = historyTable.insertRow(0);
+            newRow.insertCell(0).innerHTML = document.getElementById('question').innerHTML;
+            newRow.insertCell(1).innerHTML = difficultyNames[currentDifficulty - 1];
+            newRow.insertCell(2).innerHTML = '\\(' + document.getElementById('answer').value + '\\)';
+            newRow.insertCell(3).innerHTML = '\\(' + correctAnswer.join('\\) 或 \\(') + '\\)';
+            newRow.insertCell(4).innerHTML = isCorrect ? '正确' : '错误';
+            newRow.className = isCorrect ? 'correct' : 'incorrect';
+
+            MathJax.typesetPromise([newRow]).catch((err) => console.log(err));
+        }
+
+        document.getElementById('answer').addEventListener('keyup', function (event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        newQuestion();
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E01方程阶梯测试训练</title>
+   
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .difficulty-buttons {
+            margin-bottom: 20px;
+        }
+
+        .difficulty-buttons button {
+            margin: 10px 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+        }
+
+        .difficulty-buttons button.active {
+            background-color: #45a049;
+            color: white;
+        }
+
+        #answer {
+            padding: 10px;
+            font-size: 16px;
+            width: 200px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            display: inline;
+            color: inherit;
+            font-size: inherit;
+            margin: 0;
+            padding: 0;
+        }
+
+        #score {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        #rendered-answer {
+            margin-top: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 200px;
+        }
+
+        .mathjax-answer {
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>玖数学测训系统</h1>
+        <h3>E01方程阶梯测试训练</h3>
+        <div class="difficulty-buttons" id="difficultyButtons"></div>
+        <div id="question"></div><br>
+        <input type="text" id="answer" placeholder="输入你的答案" oninput="updatePreview()"><br>
+        <div id="rendered-answer"></div><br>
+        <button onclick="checkAnswer()">提交答案</button><br>
+        <div id="result"></div>
+        <div id="score">正确: 0 | 错误: 0</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>题目</th>
+                    <th>级别</th>
+                    <th>你的答案</th>
+                    <th>正确答案</th>
+                    <th>结果</th>
+                </tr>
+            </thead>
+            <tbody id="history"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let correctAnswer;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let currentDifficulty = 1;
+        const difficultyNames = ["01性质一", "02化系数为正一", "03化系数为一", "04分配律一", "05分配律二", "06去分母一","07去分母二","08去分母三","09绝对值方程","10综合"];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            generateDifficultyButtons();
+            setDifficulty(1);
+        });
+
+        function generateDifficultyButtons() {
+            const difficultyButtonsContainer = document.getElementById('difficultyButtons');
+            difficultyNames.forEach((name, index) => {
+                const button = document.createElement('button');
+                button.textContent = name;
+                button.id = `level${index + 1}`;
+                button.onclick = () => setDifficulty(index + 1);
+                difficultyButtonsContainer.appendChild(button);
+            });
+        }
+
+        function setDifficulty(level) {
+            currentDifficulty = level;
+            document.querySelectorAll('.difficulty-buttons button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`level${level}`).classList.add('active');
+            newQuestion();
+        }
+
+        function generateQuestion() {
+            switch(currentDifficulty) {
+                case 1: return generateLevel1Question();
+                case 2: return generateLevel2Question();
+                case 3: return generateLevel3Question();
+                case 4: return generateLevel4Question();
+                case 5: return generateLevel5Question();
+                case 6: return generateLevel6Question();
+                case 7: return generateLevel7Question();
+                case 8: return generateLevel8Question();
+                case 9: return generateLevel9Question();
+                case 10: return generateLevel10Question();
+
+
+                default: return "";
+            }
+        }
+
+
+
+
+function generateLevel1aQuestion() {
+    let m = (Math.floor(Math.random() * 5) + 1);
+    let n = (Math.floor(Math.random() * 5) + 1);
+
+    let textn = n > 0 ? `+${n}` : `${n}`;
+    let qtext = Math.random() < 0.5 ? `x${textn}=${m+n}` : `${n}+x=${m+n}`;
+    correctAnswer = [`${m}`, `x=${m}`];
+
+    // 生成n+m个〇和m个〇的字符串
+    let nmO = '△'.repeat(n + m);
+    let mO = '〇'.repeat(m);
+    let nO = '●'.repeat(n);
+
+    return `\\(\\begin{gather}解方程: ${qtext} \\\\ \\begin{array}{c} ${nmO} \\\\ ${mO}${nO} \\end{array} \\end{gather}\\)`;
+}
+
+
+function generateLevel1bQuestion() {
+    let m = (Math.floor(Math.random() * 5) + 1);
+    let n = (Math.floor(Math.random() * 5) + 1);
+
+    let textn = n > 0 ? `+${n}` : `${n}`;
+    let qtext = Math.random() < 0.5 ? `${m+n}=x${textn}` : `${m+n}=${n}+x`;
+    correctAnswer = [`${m}`, `x=${m}`];
+
+    // 生成n+m个〇和m个〇的字符串
+    let nmO = '△'.repeat(n + m);
+    let mO = '〇'.repeat(m);
+    let nO = '●'.repeat(n);
+
+    return `\\(\\begin{gather}解方程: ${qtext} \\\\ \\begin{array}{c} ${nmO} \\\\ ${mO}${nO} \\end{array} \\end{gather}\\)`;
+}
+
+
+
+
+      function generateLevel1Question() {
+            const levelFunctions = [
+                generateLevel1aQuestion,
+                generateLevel1bQuestion,
+            ];
+
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+
+            return selectedFunction();
+        }
+
+
+
+
+
+
+        function generateLevel2Question() {
+            let m = (Math.floor(Math.random() * 5) + 1) ;
+            let n = (Math.floor(Math.random() * 5) + 1) ;
+            let qtext = Math.random() < 0.5 ? `${m+n}-x=${n}`: `${n}=${m+n}-x`;
+            correctAnswer = [`${m}`,`x=${m}` ];           
+    // 生成n+m个〇和m个〇的字符串
+    let nmO = '△'.repeat(n + m);
+    let mO = '〇'.repeat(m);
+    let nO = '●'.repeat(n);
+
+    return `\\(\\begin{gather}解方程: ${qtext} \\\\ \\begin{array}{c} ${nmO} \\\\ ${mO}${nO} \\end{array} \\end{gather}\\)`;
+}
+
+
+
+
+
+
+
+
+
+      function generateLevel3aQuestion() {
+            let m = (Math.floor(Math.random() * 5) + 1) ;
+            let n = (Math.floor(Math.random() * 5) + 1);
+            let c = (Math.floor(Math.random() * 5) + 1) ;
+            let textn = n > 0 ? `+${n}` : `${n}`;
+            let textc = c === 1 ? `` : `${c}`;
+         
+            let qtext = Math.random() < 0.5 ? `${textc}x+${n}=${c*m+n}`: `${n}+${textc}x=${c*m+n}`;
+            correctAnswer = [`${m}`,`x=${m}` ];           
+
+    return `\\(\\begin{gather}解方程: ${qtext} \\end{gather}\\)`;
+        }
+
+
+
+      function generateLevel3bQuestion() {
+            let m = (Math.floor(Math.random() * 5) + 2) * (Math.random() < 0.5 ? -1 : 1);
+            let n = (Math.floor(Math.random() * 5) + 1);
+            let c = (Math.floor(Math.random() * 5) + 1) ;
+            let textn = n > 0 ? `+${n}` : `${n}`;
+            let textc = c === 1 ? `` : `${c}`;
+         
+            let qtext = Math.random() < 0.5 ? `${textc}x+${n}=${c*m+n}`: `${n}+${textc}x=${c*m+n}`;
+            correctAnswer = [`${m}`,`x=${m}` ];           
+
+    return `\\(\\begin{gather}解方程: ${qtext} \\end{gather}\\)`;
+        }
+
+
+   function generateLevel3Question() {
+            const levelFunctions = [
+                generateLevel3aQuestion,
+                generateLevel3bQuestion,
+
+            ];
+
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+
+            return selectedFunction();
+        }
+
+
+
+
+
+
+
+      function generateLevel4Question() {
+            let m = (Math.floor(Math.random() * 5) + 2) * (Math.random() < 0.5 ? -1 : 1);
+            let n = (Math.floor(Math.random() * 5) + 1)  ;
+            let c = (Math.floor(Math.random() * 5) + 2) * (Math.random() < 0.5 ? -1 : 1);
+            let textn = n > 0 ? `+${n}` : `${n}`;
+            let textc = c === 1 ? `` : `${c}`;
+         
+            let qtext = `${textc}(x${textn})=${c*m+c*n}`;
+            correctAnswer = [`${m}`,`x=${m}` ];           
+
+    return `\\(\\begin{gather}解方程: ${qtext} \\end{gather}\\)`;
+        }
+
+
+
+
+        function generateLevel5Question() {
+            const Questions = [
+
+
+{ question: "解方程：6(x+8)+9(x+6)=132", answers: ["2", "x=2"] },
+{ question: "解方程：8(x+4)-5(x+6)=26", answers: ["8", "x=8"] },
+{ question: "解方程：6(x+8)-4(x-6)=84", answers: ["6", "x=6"] },
+{ question: "解方程：9(x+9)-8(9-x)=145", answers: ["8", "x=8"] },
+{ question: "解方程：5(x+8)+8(x+4)=150", answers: ["6", "x=6"] },
+{ question: "解方程：9(x+8)-4(x+2)=99", answers: ["7", "x=7"] },
+{ question: "解方程：6(x+8)-2(x-2)=80", answers: ["7", "x=7"] },
+{ question: "解方程：9(x+2)-2(8-x)=79", answers: ["7", "x=7"] },
+{ question: "解方程：8(x+5)+8(x+6)=184", answers: ["6", "x=6"] },
+{ question: "解方程：6(x+2)-3(x+8)=6", answers: ["6", "x=6"] },
+{ question: "解方程：9(x+7)-4(x-4)=89", answers: ["2", "x=2"] },
+{ question: "解方程：7(x+4)-2(5-x)=63", answers: ["5", "x=5"] },
+{ question: "解方程：7(x+2)+2(x+9)=95", answers: ["7", "x=7"] },
+{ question: "解方程：6(x+5)-3(x+2)=39", answers: ["5", "x=5"] },
+{ question: "解方程：9(x+7)-8(x-9)=142", answers: ["7", "x=7"] },
+{ question: "解方程：9(x+5)-4(7-x)=121", answers: ["8", "x=8"] },
+{ question: "解方程：8(x+7)+7(x+2)=175", answers: ["7", "x=7"] },
+{ question: "解方程：9(x+7)-7(x+7)=28", answers: ["7", "x=7"] },
+{ question: "解方程：9(x+5)-5(x-6)=83", answers: ["2", "x=2"] },
+{ question: "解方程：6(x+4)-2(6-x)=84", answers: ["9", "x=9"] },
+{ question: "解方程：3(x+9)+4(x+6)=79", answers: ["4", "x=4"] },
+{ question: "解方程：9(x+3)-3(x+4)=51", answers: ["6", "x=6"] },
+{ question: "解方程：8(x+7)-3(x-5)=116", answers: ["9", "x=9"] },
+{ question: "解方程：6(x+7)-5(8-x)=24", answers: ["2", "x=2"] },
+{ question: "解方程：7(x+7)+5(x+8)=173", answers: ["7", "x=7"] },
+{ question: "解方程：9(x+4)-5(x+2)=42", answers: ["4", "x=4"] },
+{ question: "解方程：5(x+2)-3(x-5)=31", answers: ["3", "x=3"] },
+{ question: "解方程：9(x+2)-7(8-x)=26", answers: ["4", "x=4"] },
+{ question: "解方程：6(x+2)+8(x+5)=94", answers: ["3", "x=3"] },
+{ question: "解方程：6(x+2)-4(x+3)=4", answers: ["2", "x=2"] },
+{ question: "解方程：9(x+4)-8(x-4)=77", answers: ["9", "x=9"] },
+{ question: "解方程：6(x+6)-5(6-x)=83", answers: ["7", "x=7"] },
+{ question: "解方程：8(x+2)+8(x+6)=112", answers: ["3", "x=3"] },
+{ question: "解方程：9(x+4)-8(x+6)=-9", answers: ["3", "x=3"] },
+{ question: "解方程：8(x+2)-3(x-7)=77", answers: ["8", "x=8"] },
+{ question: "解方程：6(x+6)-3(9-x)=54", answers: ["5", "x=5"] },
+{ question: "解方程：5(x+6)+5(x+4)=120", answers: ["7", "x=7"] },
+{ question: "解方程：9(x+5)-5(x+3)=46", answers: ["4", "x=4"] },
+{ question: "解方程：8(x+4)-4(x-6)=80", answers: ["6", "x=6"] },
+{ question: "解方程：6(x+6)-5(4-x)=71", answers: ["5", "x=5"] },
+{ question: "解方程：6(x+4)+2(x+5)=74", answers: ["5", "x=5"] },
+{ question: "解方程：5(x+9)-4(x+3)=41", answers: ["8", "x=8"] },
+{ question: "解方程：5(x+3)-4(x-7)=51", answers: ["8", "x=8"] },
+{ question: "解方程：7(x+4)-6(4-x)=56", answers: ["4", "x=4"] },
+{ question: "解方程：9(x+4)+2(x+2)=73", answers: ["3", "x=3"] },
+{ question: "解方程：9(x+6)-6(x+4)=45", answers: ["5", "x=5"] },
+{ question: "解方程：8(x+2)-6(x-4)=50", answers: ["5", "x=5"] },
+{ question: "解方程：8(x+2)-2(5-x)=56", answers: ["5", "x=5"] },
+{ question: "解方程：6(x+4)+5(x+7)=125", answers: ["6", "x=6"] },
+{ question: "解方程：9(x+7)-2(x+3)=78", answers: ["3", "x=3"] },
+{ question: "解方程：8(x+9)-7(x-5)=109", answers: ["2", "x=2"] },
+{ question: "解方程：8(x+9)-4(5-x)=136", answers: ["7", "x=7"] },
+{ question: "解方程：2(x+9)+5(x+3)=75", answers: ["6", "x=6"] },
+{ question: "解方程：6(x+2)-2(x+8)=20", answers: ["6", "x=6"] },
+{ question: "解方程：6(x+5)-4(x-4)=52", answers: ["3", "x=3"] },
+{ question: "解方程：9(x+8)-2(7-x)=157", answers: ["9", "x=9"] },
+{ question: "解方程：8(x+6)+6(x+2)=172", answers: ["8", "x=8"] },
+{ question: "解方程：5(x+6)-3(x+9)=7", answers: ["2", "x=2"] },
+{ question: "解方程：8(x+8)-5(x-9)=118", answers: ["3", "x=3"] },
+{ question: "解方程：9(x+3)-2(5-x)=105", answers: ["8", "x=8"] },
+{ question: "解方程：7(x+6)+6(x+9)=122", answers: ["2", "x=2"] },
+{ question: "解方程：8(x+6)-3(x+9)=36", answers: ["3", "x=3"] },
+{ question: "解方程：8(x+9)-4(x-8)=140", answers: ["9", "x=9"] },
+{ question: "解方程：6(x+3)-5(2-x)=74", answers: ["6", "x=6"] },
+{ question: "解方程：9(x+6)+5(x+6)=154", answers: ["5", "x=5"] },
+{ question: "解方程：6(x+7)-4(x+6)=22", answers: ["2", "x=2"] },
+{ question: "解方程：6(x+9)-5(x-5)=85", answers: ["6", "x=6"] },
+{ question: "解方程：6(x+8)-4(2-x)=110", answers: ["7", "x=7"] },
+{ question: "解方程：5(x+3)+2(x+8)=94", answers: ["9", "x=9"] },
+{ question: "解方程：9(x+6)-8(x+8)=-8", answers: ["2", "x=2"] },
+{ question: "解方程：6(x+6)-5(x-5)=68", answers: ["7", "x=7"] },
+{ question: "解方程：5(x+4)-3(5-x)=53", answers: ["6", "x=6"] },
+{ question: "解方程：3(x+6)+3(x+7)=57", answers: ["3", "x=3"] },
+{ question: "解方程：9(x+9)-6(x+8)=48", answers: ["5", "x=5"] },
+{ question: "解方程：7(x+5)-2(x-3)=81", answers: ["8", "x=8"] },
+{ question: "解方程：8(x+6)-5(9-x)=68", answers: ["5", "x=5"] },
+{ question: "解方程：3(x+8)+5(x+3)=79", answers: ["5", "x=5"] },
+{ question: "解方程：8(x+2)-4(x+7)=24", answers: ["9", "x=9"] },
+{ question: "解方程：8(x+8)-7(x-9)=133", answers: ["6", "x=6"] },
+{ question: "解方程：9(x+2)-8(9-x)=48", answers: ["6", "x=6"] },
+{ question: "解方程：5(x+7)+7(x+2)=121", answers: ["6", "x=6"] },
+{ question: "解方程：8(x+7)-3(x+8)=52", answers: ["4", "x=4"] },
+{ question: "解方程：9(x+8)-7(x-3)=107", answers: ["7", "x=7"] },
+{ question: "解方程：8(x+4)-7(4-x)=79", answers: ["5", "x=5"] },
+{ question: "解方程：5(x+8)+7(x+2)=150", answers: ["8", "x=8"] },
+{ question: "解方程：6(x+2)-2(x+3)=26", answers: ["5", "x=5"] },
+{ question: "解方程：5(x+4)-3(x-6)=52", answers: ["7", "x=7"] },
+{ question: "解方程：6(x+5)-2(5-x)=92", answers: ["9", "x=9"] },
+{ question: "解方程：9(x+6)+3(x+4)=102", answers: ["3", "x=3"] },
+{ question: "解方程：8(x+5)-5(x+5)=39", answers: ["8", "x=8"] },
+{ question: "解方程：5(x+5)-2(x-2)=56", answers: ["9", "x=9"] },
+{ question: "解方程：9(x+5)-2(6-x)=132", answers: ["9", "x=9"] },
+{ question: "解方程：4(x+5)+8(x+9)=188", answers: ["8", "x=8"] },
+{ question: "解方程：8(x+6)-2(x+8)=56", answers: ["4", "x=4"] },
+{ question: "解方程：9(x+2)-2(x-3)=87", answers: ["9", "x=9"] },
+{ question: "解方程：5(x+6)-2(7-x)=44", answers: ["4", "x=4"] },
+{ question: "解方程：4(x+5)+3(x+2)=54", answers: ["4", "x=4"] },
+{ question: "解方程：6(x+7)-4(x+4)=38", answers: ["6", "x=6"] },
+{ question: "解方程：8(x+2)-2(x-8)=74", answers: ["7", "x=7"] },
+{ question: "解方程：8(x+4)-7(6-x)=80", answers: ["6", "x=6"] },
+
+
+                // 可以添加更多题目
+            ];
+
+            const randomIndex = Math.floor(Math.random() * Questions.length);
+            const selectedQuestion = Questions[randomIndex];
+
+            correctAnswer = selectedQuestion.answers;
+
+            let questionHtml = `\\(${selectedQuestion.question} \\)`;
+            if (selectedQuestion.img) {
+                questionHtml += `<br><img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">`;
+            }
+
+            return questionHtml;
+        }
+
+
+
+
+
+
+
+
+        function generateLevel6Question() {
+
+            const Questions = [
+
+
+{ question: "解方程：\\frac{1}{5}(x+32)=7", answers: ["3", "x=3"] },
+{ question: "解方程：\\frac{1}{4}(x-20)=6", answers: ["44", "x=44"] },
+{ question: "解方程：\\frac{1}{4}x+5=21", answers: ["64", "x=64"] },
+{ question: "解方程：\\frac{1}{2}x-5=3", answers: ["16", "x=16"] },
+{ question: "解方程：\\frac{1}{7}x+2=\\frac{1}{5}x", answers: ["35", "x=35"] },
+{ question: "解方程：\\frac{1}{2}(x+6)=7", answers: ["8", "x=8"] },
+{ question: "解方程：\\frac{1}{5}(x-39)=8", answers: ["79", "x=79"] },
+{ question: "解方程：\\frac{1}{3}x+4=16", answers: ["36", "x=36"] },
+{ question: "解方程：\\frac{1}{4}x-8=4", answers: ["48", "x=48"] },
+{ question: "解方程：\\frac{1}{3}x+1=\\frac{1}{2}x", answers: ["6", "x=6"] },
+{ question: "解方程：\\frac{1}{4}(x+5)=2", answers: ["3", "x=3"] },
+{ question: "解方程：\\frac{1}{2}(x-15)=9", answers: ["33", "x=33"] },
+{ question: "解方程：\\frac{1}{6}x+5=29", answers: ["144", "x=144"] },
+{ question: "解方程：\\frac{1}{3}x-9=0", answers: ["27", "x=27"] },
+{ question: "解方程：\\frac{1}{6}x+3=\\frac{1}{3}x", answers: ["18", "x=18"] },
+{ question: "解方程：\\frac{1}{3}(x+6)=8", answers: ["18", "x=18"] },
+{ question: "解方程：\\frac{1}{5}(x-27)=6", answers: ["57", "x=57"] },
+{ question: "解方程：\\frac{1}{2}x+8=12", answers: ["8", "x=8"] },
+{ question: "解方程：\\frac{1}{3}x-8=-2", answers: ["18", "x=18"] },
+{ question: "解方程：\\frac{1}{5}x+1=\\frac{1}{4}x", answers: ["20", "x=20"] },
+{ question: "解方程：\\frac{1}{6}(x+7)=5", answers: ["23", "x=23"] },
+{ question: "解方程：\\frac{1}{5}(x-42)=9", answers: ["87", "x=87"] },
+{ question: "解方程：\\frac{1}{3}x+5=14", answers: ["27", "x=27"] },
+{ question: "解方程：\\frac{1}{2}x-9=-5", answers: ["8", "x=8"] },
+{ question: "解方程：\\frac{1}{6}x+1=\\frac{1}{3}x", answers: ["6", "x=6"] },
+{ question: "解方程：\\frac{1}{3}(x+20)=7", answers: ["1", "x=1"] },
+{ question: "解方程：\\frac{1}{3}(x-5)=6", answers: ["23", "x=23"] },
+{ question: "解方程：\\frac{1}{2}x+8=12", answers: ["8", "x=8"] },
+{ question: "解方程：\\frac{1}{5}x-3=17", answers: ["100", "x=100"] },
+{ question: "解方程：\\frac{1}{6}x+3=\\frac{1}{3}x", answers: ["18", "x=18"] },
+{ question: "解方程：\\frac{1}{4}(x+7)=2", answers: ["1", "x=1"] },
+{ question: "解方程：\\frac{1}{2}(x-12)=8", answers: ["28", "x=28"] },
+{ question: "解方程：\\frac{1}{2}x+8=12", answers: ["8", "x=8"] },
+{ question: "解方程：\\frac{1}{3}x-6=3", answers: ["27", "x=27"] },
+{ question: "解方程：\\frac{1}{6}x+1=\\frac{1}{3}x", answers: ["6", "x=6"] },
+{ question: "解方程：\\frac{1}{5}(x+28)=6", answers: ["2", "x=2"] },
+{ question: "解方程：\\frac{1}{6}(x-26)=6", answers: ["62", "x=62"] },
+{ question: "解方程：\\frac{1}{3}x+2=17", answers: ["45", "x=45"] },
+{ question: "解方程：\\frac{1}{2}x-4=0", answers: ["8", "x=8"] },
+{ question: "解方程：\\frac{1}{4}x+3=\\frac{1}{2}x", answers: ["12", "x=12"] },
+{ question: "解方程：\\frac{1}{3}(x+3)=4", answers: ["9", "x=9"] },
+{ question: "解方程：\\frac{1}{6}(x-13)=3", answers: ["31", "x=31"] },
+{ question: "解方程：\\frac{1}{5}x+3=23", answers: ["100", "x=100"] },
+{ question: "解方程：\\frac{1}{5}x-9=11", answers: ["100", "x=100"] },
+{ question: "解方程：\\frac{1}{8}x+9=\\frac{1}{5}x", answers: ["120", "x=120"] },
+{ question: "解方程：\\frac{1}{4}(x+5)=3", answers: ["7", "x=7"] },
+{ question: "解方程：\\frac{1}{5}(x-18)=5", answers: ["43", "x=43"] },
+{ question: "解方程：\\frac{1}{5}x+5=20", answers: ["75", "x=75"] },
+{ question: "解方程：\\frac{1}{5}x-6=19", answers: ["125", "x=125"] },
+{ question: "解方程：\\frac{1}{6}x+3=\\frac{1}{5}x", answers: ["90", "x=90"] },
+{ question: "解方程：\\frac{1}{3}(x+2)=2", answers: ["4", "x=4"] },
+{ question: "解方程：\\frac{1}{2}(x-3)=6", answers: ["15", "x=15"] },
+{ question: "解方程：\\frac{1}{2}x+4=10", answers: ["12", "x=12"] },
+{ question: "解方程：\\frac{1}{5}x-2=13", answers: ["75", "x=75"] },
+{ question: "解方程：\\frac{1}{8}x+6=\\frac{1}{5}x", answers: ["80", "x=80"] },
+{ question: "解方程：\\frac{1}{6}(x+10)=2", answers: ["2", "x=2"] },
+{ question: "解方程：\\frac{1}{4}(x-6)=9", answers: ["42", "x=42"] },
+{ question: "解方程：\\frac{1}{3}x+9=21", answers: ["36", "x=36"] },
+{ question: "解方程：\\frac{1}{3}x-6=3", answers: ["27", "x=27"] },
+{ question: "解方程：\\frac{1}{7}x+2=\\frac{1}{5}x", answers: ["35", "x=35"] },
+{ question: "解方程：\\frac{1}{6}(x+28)=8", answers: ["20", "x=20"] },
+{ question: "解方程：\\frac{1}{5}(x-24)=9", answers: ["69", "x=69"] },
+{ question: "解方程：\\frac{1}{4}x+5=17", answers: ["48", "x=48"] },
+{ question: "解方程：\\frac{1}{5}x-6=14", answers: ["100", "x=100"] },
+{ question: "解方程：\\frac{1}{7}x+9=\\frac{1}{4}x", answers: ["84", "x=84"] },
+{ question: "解方程：\\frac{1}{6}(x+5)=7", answers: ["37", "x=37"] },
+{ question: "解方程：\\frac{1}{3}(x-2)=7", answers: ["23", "x=23"] },
+{ question: "解方程：\\frac{1}{6}x+9=39", answers: ["180", "x=180"] },
+{ question: "解方程：\\frac{1}{4}x-7=5", answers: ["48", "x=48"] },
+{ question: "解方程：\\frac{1}{8}x+9=\\frac{1}{5}x", answers: ["120", "x=120"] },
+{ question: "解方程：\\frac{1}{2}(x+11)=8", answers: ["5", "x=5"] },
+{ question: "解方程：\\frac{1}{5}(x-3)=5", answers: ["28", "x=28"] },
+{ question: "解方程：\\frac{1}{3}x+8=17", answers: ["27", "x=27"] },
+{ question: "解方程：\\frac{1}{6}x-8=22", answers: ["180", "x=180"] },
+{ question: "解方程：\\frac{1}{6}x+1=\\frac{1}{5}x", answers: ["30", "x=30"] },
+{ question: "解方程：\\frac{1}{4}(x+14)=8", answers: ["18", "x=18"] },
+{ question: "解方程：\\frac{1}{5}(x-24)=5", answers: ["49", "x=49"] },
+{ question: "解方程：\\frac{1}{3}x+2=11", answers: ["27", "x=27"] },
+{ question: "解方程：\\frac{1}{2}x-3=5", answers: ["16", "x=16"] },
+{ question: "解方程：\\frac{1}{5}x+6=\\frac{1}{2}x", answers: ["20", "x=20"] },
+{ question: "解方程：\\frac{1}{2}(x+3)=2", answers: ["1", "x=1"] },
+{ question: "解方程：\\frac{1}{4}(x-4)=4", answers: ["20", "x=20"] },
+{ question: "解方程：\\frac{1}{5}x+8=28", answers: ["100", "x=100"] },
+{ question: "解方程：\\frac{1}{4}x-2=14", answers: ["64", "x=64"] },
+{ question: "解方程：\\frac{1}{6}x+3=\\frac{1}{4}x", answers: ["36", "x=36"] },
+{ question: "解方程：\\frac{1}{2}(x+5)=8", answers: ["11", "x=11"] },
+{ question: "解方程：\\frac{1}{6}(x-18)=7", answers: ["60", "x=60"] },
+{ question: "解方程：\\frac{1}{3}x+3=15", answers: ["36", "x=36"] },
+{ question: "解方程：\\frac{1}{6}x-8=4", answers: ["72", "x=72"] },
+{ question: "解方程：\\frac{1}{6}x+2=\\frac{1}{4}x", answers: ["24", "x=24"] },
+{ question: "解方程：\\frac{1}{3}(x+24)=9", answers: ["3", "x=3"] },
+{ question: "解方程：\\frac{1}{3}(x-23)=8", answers: ["47", "x=47"] },
+{ question: "解方程：\\frac{1}{4}x+2=22", answers: ["80", "x=80"] },
+{ question: "解方程：\\frac{1}{6}x-7=11", answers: ["108", "x=108"] },
+{ question: "解方程：\\frac{1}{5}x+3=\\frac{1}{4}x", answers: ["60", "x=60"] },
+{ question: "解方程：\\frac{1}{2}(x+4)=3", answers: ["2", "x=2"] },
+{ question: "解方程：\\frac{1}{4}(x-3)=3", answers: ["15", "x=15"] },
+{ question: "解方程：\\frac{1}{4}x+8=16", answers: ["32", "x=32"] },
+{ question: "解方程：\\frac{1}{2}x-3=1", answers: ["8", "x=8"] },
+
+
+                // 可以添加更多题目
+            ];
+
+            const randomIndex = Math.floor(Math.random() * Questions.length);
+            const selectedQuestion = Questions[randomIndex];
+
+            correctAnswer = selectedQuestion.answers;
+
+            let questionHtml = `\\(${selectedQuestion.question} \\)`;
+            if (selectedQuestion.img) {
+                questionHtml += `<br><img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">`;
+            }
+
+            return questionHtml;
+
+        }
+
+
+
+
+
+
+
+
+let currentQuestionIndex = 0; // 添加一个全局变量来跟踪当前题目索引
+function generateLevel7Question() {
+    const Questions = [
+{ question: "解方程：\\frac{1}{3}x-\\frac{1}{5}x=2", answers: ["15", "x=15"] },
+{ question: "解方程：\\frac{x-3}{2}+\\frac{x-1}{3}=\\frac{19}{6}", answers: ["6", "x=6"] },
+{ question: "解方程：\\frac{1}{3}x-\\frac{1}{4}x=1", answers: ["12", "x=12"] },
+{ question: "解方程：\\frac{x-1}{4}+\\frac{x-1}{3}=\\frac{7}{2}", answers: ["7", "x=7"] },
+{ question: "解方程：\\frac{1}{2}x-\\frac{1}{4}x=2", answers: ["8", "x=8"] },
+{ question: "解方程：\\frac{x-1}{5}+\\frac{x-3}{6}=\\frac{13}{5}", answers: ["9", "x=9"] },
+{ question: "解方程：\\frac{1}{3}x-\\frac{1}{6}x=1", answers: ["6", "x=6"] },
+{ question: "解方程：\\frac{x-5}{5}+\\frac{x-3}{3}=\\frac{6}{5}", answers: ["6", "x=6"] },
+{ question: "解方程：\\frac{1}{4}x-\\frac{1}{5}x=1", answers: ["20", "x=20"] },
+{ question: "解方程：\\frac{x-7}{5}+\\frac{x-3}{6}=\\frac{31}{30}", answers: ["8", "x=8"] },
+{ question: "解方程：\\frac{1}{5}x-\\frac{1}{7}x=4", answers: ["70", "x=70"] },
+{ question: "解方程：\\frac{x-1}{6}+\\frac{x-3}{3}=\\frac{7}{3}", answers: ["7", "x=7"] },
+{ question: "解方程：\\frac{1}{3}x-\\frac{1}{6}x=1", answers: ["6", "x=6"] },
+{ question: "解方程：\\frac{x-6}{5}+\\frac{x-2}{3}=\\frac{28}{15}", answers: ["7", "x=7"] },
+{ question: "解方程：\\frac{1}{5}x-\\frac{1}{6}x=1", answers: ["30", "x=30"] },
+{ question: "解方程：\\frac{x-2}{2}+\\frac{x-1}{3}=\\frac{16}{3}", answers: ["8", "x=8"] },
+{ question: "解方程：\\frac{1}{3}x-\\frac{1}{6}x=3", answers: ["18", "x=18"] },
+{ question: "解方程：\\frac{x-3}{2}+\\frac{x-1}{3}=\\frac{19}{6}", answers: ["6", "x=6"] },
+{ question: "解方程：\\frac{1}{3}x-\\frac{1}{4}x=2", answers: ["24", "x=24"] },
+{ question: "解方程：\\frac{x-3}{3}+\\frac{x-2}{6}=\\frac{13}{6}", answers: ["7", "x=7"] },
+{ question: "解方程：\\frac{1}{5}x-\\frac{1}{8}x=3", answers: ["40", "x=40"] },
+{ question: "解方程：\\frac{x-7}{2}+\\frac{x-1}{4}=\\frac{3}{1}", answers: ["9", "x=9"] },
+{ question: "解方程：\\frac{1}{3}x-\\frac{1}{4}x=1", answers: ["12", "x=12"] },
+{ question: "解方程：\\frac{x-1}{5}+\\frac{x-4}{6}=\\frac{7}{30}", answers: ["3", "x=3"] },
+{ question: "解方程：\\frac{1}{4}x-\\frac{1}{6}x=3", answers: ["36", "x=36"] },
+{ question: "解方程：\\frac{x-3}{6}+\\frac{x-5}{4}=\\frac{1}{3}", answers: ["5", "x=5"] },
+{ question: "解方程：\\frac{1}{4}x-\\frac{1}{7}x=9", answers: ["84", "x=84"] },
+{ question: "解方程：\\frac{x-2}{3}+\\frac{x-2}{2}=\\frac{5}{3}", answers: ["4", "x=4"] },
+{ question: "解方程：\\frac{1}{5}x-\\frac{1}{7}x=2", answers: ["35", "x=35"] },
+{ question: "解方程：\\frac{x-1}{4}+\\frac{x-1}{2}=\\frac{21}{4}", answers: ["8", "x=8"] },
+{ question: "解方程：\\frac{1}{5}x-\\frac{1}{6}x=1", answers: ["30", "x=30"] },
+{ question: "解方程：\\frac{x-2}{3}+\\frac{x-1}{6}=\\frac{13}{6}", answers: ["6", "x=6"] },
+{ question: "解方程：\\frac{1}{2}x-\\frac{1}{3}x=2", answers: ["12", "x=12"] },
+{ question: "解方程：\\frac{x-2}{3}+\\frac{x-1}{5}=\\frac{9}{5}", answers: ["5", "x=5"] },
+{ question: "解方程：\\frac{1}{3}x-\\frac{1}{5}x=2", answers: ["15", "x=15"] },
+{ question: "解方程：\\frac{x-3}{6}+\\frac{x-5}{4}=\\frac{1}{3}", answers: ["5", "x=5"] },
+{ question: "解方程：\\frac{1}{3}x-\\frac{1}{4}x=3", answers: ["36", "x=36"] },
+{ question: "解方程：\\frac{x-3}{3}+\\frac{x-2}{6}=\\frac{5}{3}", answers: ["6", "x=6"] },
+{ question: "解方程：\\frac{1}{2}x-\\frac{1}{5}x=6", answers: ["20", "x=20"] },
+{ question: "解方程：\\frac{x-2}{2}+\\frac{x-1}{6}=\\frac{3}{2}", answers: ["4", "x=4"] },
+{ question: "解方程：\\frac{1}{4}x-\\frac{1}{7}x=9", answers: ["84", "x=84"] },
+        // 可以添加更多题目
+    ];
+
+    // 使用当前索引选择题目
+    const selectedQuestion = Questions[currentQuestionIndex];
+
+    correctAnswer = selectedQuestion.answers;
+
+    let questionHtml = `\\(\\begin{gather}${selectedQuestion.question} \\\\  \\end{gather}\\)`;
+    if (selectedQuestion.img) {
+        questionHtml += `<br><img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">`;
+    }
+
+    // 增加索引,为下一题做准备
+    currentQuestionIndex = (currentQuestionIndex + 1) % Questions.length;
+
+    return questionHtml;
+
+}
+
+
+
+
+
+
+        function generateLevel8Question() {
+
+            const Questions = [
+
+
+{ question: "-5+\\frac{-7x-1}{3}=-10", answers: ["2", "x=2"] },
+{ question: "-2-\\frac{4x-1}{3}=-11", answers: ["7", "x=7"] },
+{ question: "\\frac{5x-2}{3}+\\frac{-2x-4}{5}=-4", answers: ["-2", "x=-2"] },
+{ question: "-8+\\frac{-5x-1}{3}=0", answers: ["-5", "x=-5"] },
+{ question: "-9-\\frac{-7x-1}{3}=3", answers: ["5", "x=5"] },
+{ question: "\\frac{-5x-2}{3}+\\frac{2x-1}{5}=8", answers: ["-7", "x=-7"] },
+{ question: "-9+\\frac{2x-2}{3}=-13", answers: ["-5", "x=-5"] },
+{ question: "4-\\frac{-5x-1}{3}=16", answers: ["7", "x=7"] },
+{ question: "\\frac{-2x-2}{3}+\\frac{4x-3}{5}=-1", answers: ["2", "x=2"] },
+{ question: "4+\\frac{-5x-2}{3}=0", answers: ["2", "x=2"] },
+{ question: "4-\\frac{-2x-1}{3}=1", answers: ["-5", "x=-5"] },
+{ question: "\\frac{-2x-1}{3}+\\frac{-2x-1}{5}=-8", answers: ["7", "x=7"] },
+{ question: "8+\\frac{-2x-1}{3}=11", answers: ["-5", "x=-5"] },
+{ question: "-7-\\frac{7x-1}{3}=5", answers: ["-5", "x=-5"] },
+{ question: "\\frac{2x-2}{3}+\\frac{4x-2}{5}=-4", answers: ["-2", "x=-2"] },
+{ question: "-3+\\frac{5x-2}{3}=-7", answers: ["-2", "x=-2"] },
+{ question: "4-\\frac{2x-1}{3}=1", answers: ["5", "x=5"] },
+{ question: "\\frac{2x-1}{3}+\\frac{-7x-1}{5}=-2", answers: ["2", "x=2"] },
+{ question: "5+\\frac{5x-1}{3}=13", answers: ["5", "x=5"] },
+{ question: "3-\\frac{-2x-1}{3}=8", answers: ["7", "x=7"] },
+{ question: "\\frac{-7x-1}{3}+\\frac{7x-2}{5}=3", answers: ["-4", "x=-4"] },
+{ question: "-7+\\frac{2x-2}{3}=-11", answers: ["-5", "x=-5"] },
+{ question: "4-\\frac{5x-2}{3}=13", answers: ["-5", "x=-5"] },
+{ question: "\\frac{7x-2}{3}+\\frac{-6x-3}{5}=1", answers: ["2", "x=2"] },
+{ question: "-4+\\frac{5x-2}{3}=-13", answers: ["-5", "x=-5"] },
+{ question: "6-\\frac{-2x-2}{3}=10", answers: ["5", "x=5"] },
+{ question: "\\frac{-7x-1}{3}+\\frac{4x-3}{5}=-4", answers: ["2", "x=2"] },
+{ question: "-9+\\frac{5x-1}{3}=-1", answers: ["5", "x=5"] },
+{ question: "-4-\\frac{5x-1}{3}=-12", answers: ["5", "x=5"] },
+{ question: "\\frac{-5x-2}{3}+\\frac{-2x-3}{5}=7", answers: ["-4", "x=-4"] },
+{ question: "-4+\\frac{4x-1}{3}=-11", answers: ["-5", "x=-5"] },
+{ question: "4-\\frac{-7x-1}{3}=16", answers: ["5", "x=5"] },
+{ question: "\\frac{2x-2}{3}+\\frac{-7x-2}{5}=-4", answers: ["4", "x=4"] },
+{ question: "-8+\\frac{4x-1}{3}=-11", answers: ["-2", "x=-2"] },
+{ question: "-7-\\frac{-4x-1}{3}=-16", answers: ["-7", "x=-7"] },
+{ question: "\\frac{2x-1}{3}+\\frac{-7x-3}{5}=2", answers: ["-4", "x=-4"] },
+{ question: "5+\\frac{5x-1}{3}=8", answers: ["2", "x=2"] },
+{ question: "-6-\\frac{-5x-2}{3}=3", answers: ["5", "x=5"] },
+{ question: "\\frac{2x-2}{3}+\\frac{-2x-4}{5}=-2", answers: ["-2", "x=-2"] },
+{ question: "9+\\frac{2x-2}{3}=13", answers: ["7", "x=7"] },
+{ question: "-2-\\frac{-4x-1}{3}=1", answers: ["2", "x=2"] },
+{ question: "\\frac{-7x-1}{3}+\\frac{2x-1}{5}=13", answers: ["-7", "x=-7"] },
+{ question: "-9+\\frac{2x-2}{3}=-11", answers: ["-2", "x=-2"] },
+{ question: "-3-\\frac{-7x-1}{3}=9", answers: ["5", "x=5"] },
+{ question: "\\frac{-4x-2}{3}+\\frac{-2x-2}{5}=-8", answers: ["4", "x=4"] },
+{ question: "-5+\\frac{2x-2}{3}=-9", answers: ["-5", "x=-5"] },
+{ question: "-2-\\frac{5x-2}{3}=-13", answers: ["7", "x=7"] },
+{ question: "\\frac{-2x-2}{3}+\\frac{7x-1}{5}=-6", answers: ["-7", "x=-7"] },
+{ question: "6+\\frac{-2x-2}{3}=10", answers: ["-7", "x=-7"] },
+{ question: "-4-\\frac{2x-1}{3}=-5", answers: ["2", "x=2"] },
+{ question: "\\frac{-2x-2}{3}+\\frac{-6x-4}{5}=6", answers: ["-4", "x=-4"] },
+{ question: "-2+\\frac{-7x-2}{3}=-19", answers: ["7", "x=7"] },
+{ question: "7-\\frac{7x-1}{3}=12", answers: ["-2", "x=-2"] },
+{ question: "\\frac{-2x-2}{3}+\\frac{2x-2}{5}=0", answers: ["-4", "x=-4"] },
+{ question: "-5+\\frac{-5x-1}{3}=-17", answers: ["7", "x=7"] },
+{ question: "-5-\\frac{5x-1}{3}=-13", answers: ["5", "x=5"] },
+{ question: "\\frac{2x-2}{3}+\\frac{6x-2}{5}=12", answers: ["7", "x=7"] },
+{ question: "4+\\frac{2x-1}{3}=5", answers: ["2", "x=2"] },
+{ question: "-4-\\frac{-4x-2}{3}=-6", answers: ["-2", "x=-2"] },
+{ question: "\\frac{5x-1}{3}+\\frac{7x-4}{5}=5", answers: ["2", "x=2"] },
+{ question: "9+\\frac{-2x-1}{3}=4", answers: ["7", "x=7"] },
+{ question: "3-\\frac{-7x-1}{3}=8", answers: ["2", "x=2"] },
+{ question: "\\frac{4x-2}{3}+\\frac{-2x-4}{5}=-8", answers: ["-7", "x=-7"] },
+{ question: "6+\\frac{-2x-2}{3}=10", answers: ["-7", "x=-7"] },
+{ question: "-2-\\frac{-4x-2}{3}=-8", answers: ["-5", "x=-5"] },
+{ question: "\\frac{2x-1}{3}+\\frac{2x-4}{5}=1", answers: ["2", "x=2"] },
+{ question: "2+\\frac{-2x-2}{3}=0", answers: ["2", "x=2"] },
+{ question: "-9-\\frac{2x-2}{3}=-5", answers: ["-5", "x=-5"] },
+{ question: "\\frac{2x-1}{3}+\\frac{-2x-4}{5}=-3", answers: ["-7", "x=-7"] },
+{ question: "-5+\\frac{7x-2}{3}=-22", answers: ["-7", "x=-7"] },
+{ question: "8-\\frac{-2x-2}{3}=12", answers: ["5", "x=5"] },
+{ question: "\\frac{2x-2}{3}+\\frac{2x-3}{5}=3", answers: ["4", "x=4"] },
+{ question: "3+\\frac{4x-1}{3}=-4", answers: ["-5", "x=-5"] },
+{ question: "-5-\\frac{-4x-2}{3}=-11", answers: ["-5", "x=-5"] },
+{ question: "\\frac{-5x-1}{3}+\\frac{-7x-4}{5}=5", answers: ["-2", "x=-2"] },
+{ question: "4+\\frac{-7x-2}{3}=15", answers: ["-5", "x=-5"] },
+{ question: "2-\\frac{2x-2}{3}=6", answers: ["-5", "x=-5"] },
+{ question: "\\frac{-2x-2}{3}+\\frac{2x-1}{5}=1", answers: ["-7", "x=-7"] },
+{ question: "7+\\frac{-5x-2}{3}=3", answers: ["2", "x=2"] },
+{ question: "-5-\\frac{-2x-1}{3}=-8", answers: ["-5", "x=-5"] },
+{ question: "\\frac{-4x-1}{3}+\\frac{2x-4}{5}=-3", answers: ["2", "x=2"] },
+{ question: "9+\\frac{7x-1}{3}=-3", answers: ["-5", "x=-5"] },
+{ question: "-2-\\frac{7x-2}{3}=-6", answers: ["2", "x=2"] },
+{ question: "\\frac{-4x-1}{3}+\\frac{-7x-4}{5}=18", answers: ["-7", "x=-7"] },
+{ question: "2+\\frac{-2x-2}{3}=-2", answers: ["5", "x=5"] },
+{ question: "-4-\\frac{-2x-2}{3}=0", answers: ["5", "x=5"] },
+{ question: "\\frac{-5x-2}{3}+\\frac{7x-1}{5}=1", answers: ["-7", "x=-7"] },
+{ question: "-2+\\frac{4x-2}{3}=4", answers: ["5", "x=5"] },
+{ question: "-3-\\frac{5x-2}{3}=1", answers: ["-2", "x=-2"] },
+{ question: "\\frac{5x-2}{3}+\\frac{2x-1}{5}=-5", answers: ["-2", "x=-2"] },
+{ question: "-4+\\frac{5x-2}{3}=7", answers: ["7", "x=7"] },
+{ question: "2-\\frac{7x-1}{3}=7", answers: ["-2", "x=-2"] },
+{ question: "\\frac{-5x-1}{3}+\\frac{-7x-1}{5}=-22", answers: ["7", "x=7"] },
+{ question: "9+\\frac{-5x-2}{3}=20", answers: ["-7", "x=-7"] },
+{ question: "7-\\frac{-5x-1}{3}=-1", answers: ["-5", "x=-5"] },
+{ question: "\\frac{-7x-2}{3}+\\frac{6x-3}{5}=1", answers: ["-2", "x=-2"] },
+{ question: "-7+\\frac{-2x-1}{3}=-12", answers: ["7", "x=7"] },
+{ question: "8-\\frac{2x-1}{3}=5", answers: ["5", "x=5"] },
+{ question: "\\frac{-7x-2}{3}+\\frac{6x-2}{5}=-9", answers: ["7", "x=7"] },
+{ question: "-4+\\frac{-5x-2}{3}=-8", answers: ["2", "x=2"] }
+
+
+                // 可以添加更多题目
+            ];
+
+            const randomIndex = Math.floor(Math.random() * Questions.length);
+            const selectedQuestion = Questions[randomIndex];
+
+            correctAnswer = selectedQuestion.answers;
+
+            let questionHtml = `\\(解方程:${selectedQuestion.question} \\)`;
+            if (selectedQuestion.img) {
+                questionHtml += `<br><img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">`;
+            }
+
+            return questionHtml;
+
+        }
+
+
+      function generateLevel9aQuestion() {
+            let m = (Math.floor(Math.random() * 5) + 2) ;
+            let absm=Math.abs(m)
+
+            let qtext = `\\left| x \\right|=${m}\\\\
+                              格式：a,b或a;b或\\pm a  `;
+            correctAnswer = [`${m},${-m}` ,`${-m},${m}` ,`\\pm ${absm}`,
+                                      `x=${m},x=${-m}` ,`x=${-m},x=${m}` ,`x=\\pm ${absm}`,                                                                                                   
+                                     ];           
+
+    return `\\(\\begin{gather}解方程: ${qtext} \\end{gather}\\)`;
+        }
+
+
+      function generateLevel9bQuestion() {
+            let m = (Math.floor(Math.random() * 9) + 2) ;
+            let n = (Math.floor(Math.random() * 5) + 1) ;
+            let textn = n > 0 ? `+${n}` : `${n}`;
+
+            let absm=Math.abs(m)
+
+            let qtext = `\\left| x${textn} \\right|=${m}\\\\
+                              格式：a,b或a;b `;
+            correctAnswer = [`${m-n},${-m-n}`,`${-m-n},${m-n}`, `${m-n};${-m-n}`,`${-m-n};${m-n}`, 
+                                      `x=${m-n},x=${-m-n}`,`x=${-m-n},x=${m-n}`, `x=${m-n};x=${-m-n}`,`x=${-m-n};x=${m-n}`,                                                                                                                                              
+                                      ];           
+
+    return `\\(\\begin{gather}解方程: ${qtext} \\end{gather}\\)`;
+        }
+
+
+
+
+
+
+
+
+
+      function generateLevel9Question() {
+            const levelFunctions = [
+                generateLevel9aQuestion,
+                generateLevel9bQuestion,
+
+            ];
+
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+
+            return selectedFunction();
+        }
+
+
+
+
+
+
+
+      function generateLevel10Question() {
+            const levelFunctions = [
+                generateLevel1Question,
+                generateLevel2Question,
+                generateLevel3Question,
+                generateLevel4Question,
+                generateLevel5Question,
+                generateLevel6Question,
+                generateLevel7Question,
+                generateLevel8Question,
+                generateLevel9Question,
+
+            ];
+
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+
+            return selectedFunction();
+        }
+
+
+
+
+
+
+
+
+
+        function newQuestion() {
+            const question = generateQuestion();
+            document.getElementById('question').innerHTML = question;
+            MathJax.typesetPromise([document.getElementById('question')]).catch((err) => console.log(err));
+            document.getElementById('answer').value = '';
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('rendered-answer').style.display = 'none';
+        }
+
+        function toHalfWidth(str) {
+            return str.replace(/[\uFF01-\uFF5E]/g, function(char) {
+                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            }).replace(/\u3000/g, ' ');
+        }
+
+
+
+        function updatePreview() {
+            const input = document.getElementById('answer').value;
+            const renderedAnswer = document.getElementById('rendered-answer');
+            renderedAnswer.style.display = 'block';
+            renderedAnswer.innerHTML = '\\(' + input + '\\)';
+            MathJax.typesetPromise([renderedAnswer]).catch((err) => console.log(err));
+        }
+
+      
+function checkAnswer() {
+    const userAnswer = document.getElementById('answer').value.trim();
+    
+    if (userAnswer === '') {
+        document.getElementById('result').innerHTML = '请输入答案！';
+        document.getElementById('result').className = 'incorrect';
+        return; // 直接返回，不更新历史记录或生成新题目
+    }
+
+    // 使用 toHalfWidth 函数将用户输入转换为半角字符
+    const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
+    const isCorrect = correctAnswer.some(answer => normalizedUserAnswer === toHalfWidth(answer.replace(/\s/g, '').toLowerCase()));
+
+    if (isCorrect) {
+        document.getElementById('result').innerHTML = '正确!';
+        document.getElementById('result').className = 'correct';
+        correctCount++;
+    } else {
+        document.getElementById('result').innerHTML = '错误。正确答案是: ' + correctAnswer.join(' 或 ');
+        document.getElementById('result').className = 'incorrect';
+        incorrectCount++;
+    }
+
+    updateScore();
+    updateHistory(isCorrect);
+
+    // 重新渲染整个页面的数学公式
+    MathJax.typesetPromise().catch((err) => console.log(err));
+
+    // 只有在答案不为空时才生成新问题
+    if (userAnswer !== '') {
+        newQuestion();
+    }
+}
+
+
+
+
+        function updateScore() {
+            document.getElementById('score').innerHTML = `正确: ${correctCount} | 错误: ${incorrectCount}`;
+        }
+
+        function updateHistory(isCorrect) {
+            const historyTable = document.getElementById('history');
+            const newRow = historyTable.insertRow(0);
+            newRow.insertCell(0).innerHTML = document.getElementById('question').innerHTML;
+            newRow.insertCell(1).innerHTML = difficultyNames[currentDifficulty - 1];
+            newRow.insertCell(2).innerHTML = '\\(' + document.getElementById('answer').value + '\\)';
+            newRow.insertCell(3).innerHTML = '\\(' + correctAnswer.join('\\) 或 \\(') + '\\)';
+            newRow.insertCell(4).innerHTML = isCorrect ? '正确' : '错误';
+            newRow.className = isCorrect ? 'correct' : 'incorrect';
+
+            // 重新渲染新添加的行中的数学公式
+            MathJax.typesetPromise([newRow]).catch((err) => console.log(err));
+        }
+
+        document.getElementById('answer').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        newQuestion();
+    </script>
+</body>
+</html>

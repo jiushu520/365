@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>偏导数运算</title>
+  
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .difficulty-buttons {
+            margin-bottom: 20px;
+        }
+
+        .difficulty-buttons button {
+            margin: 0 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #f0f0f0;
+        }
+
+        .difficulty-buttons button.active {
+            background-color: #45a049;
+            color: white;
+        }
+
+        #answer {
+            padding: 10px;
+            font-size: 16px;
+            width: 200px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            margin-top: 10px;
+            font-size: 18px;
+        }
+
+        #score {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        .history-item {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        .history-item.correct {
+            color: green;
+        }
+
+        .history-item.incorrect {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>玖数学测训系统</h1>
+        <h3>D03偏导阶梯测试训练</h3>
+
+        <div class="difficulty-buttons">
+            <button onclick="setDifficulty(1)" id="level1">级别 1</button>
+            <button onclick="setDifficulty(2)" id="level2">级别 2</button>
+            <button onclick="setDifficulty(3)" id="level3">级别 3</button>
+            <button onclick="setDifficulty(4)" id="level4">级别 4</button>
+            <button onclick="setDifficulty(5)" id="level5">级别 5</button>
+        </div>
+        <div id="question"></div><br>
+        <input type="text" id="answer" placeholder="输入你的答案"><br>
+        <button onclick="checkAnswer()">提交答案</button><br>
+
+        <div id="result"></div>
+        <div id="score">正确: 0 | 错误: 0</div>
+        <div id="history"></div>
+    </div>
+
+    <script>
+        let correctAnswer;
+        let currentQuestion;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let currentDifficulty = 1;
+
+        function setDifficulty(level) {
+            currentDifficulty = level;
+            document.querySelectorAll('.difficulty-buttons button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`level${level}`).classList.add('active');
+            newQuestion();
+        }
+
+        function generateLevel1Question() {
+            const questions = [
+                { question: `\\( \\frac{\\partial}{\\partial x} (3x^2 + 2y) \\)`, answer: '6x' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (4x + 5y^2) \\)`, answer: '4' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (2x^2 + 3xy) \\)`, answer: '4x + 3y' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (x^3 + 2y) \\)`, answer: '3x^2' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (5x^2 + 4y^3) \\)`, answer: '10x' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (2x + y^2) \\)`, answer: '2' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (3x^2 + y) \\)`, answer: '6x' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (x + 2y^2) \\)`, answer: '1' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (4x^2 + 3y) \\)`, answer: '8x' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (5x + y) \\)`, answer: '5' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (6x^2 + 4y) \\)`, answer: '12x' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (2x^3 + y) \\)`, answer: '6x^2' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (x^2 + 3y^2) \\)`, answer: '2x' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (3x + 2y^3) \\)`, answer: '3' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (4x^3 + y^2) \\)`, answer: '12x^2' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (5x^2 + 3y^2) \\)`, answer: '10x' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (2x^2 + 4y^3) \\)`, answer: '4x' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (3x^3 + y^2) \\)`, answer: '9x^2' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (x^2 + 2y^3) \\)`, answer: '2x' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (4x + y) \\)`, answer: '4' }
+            ];
+            const selected = questions[Math.floor(Math.random() * questions.length)];
+            correctAnswer = selected.answer;
+            return selected.question;
+        }
+
+        function generateLevel2Question() {
+            const questions = [
+                { question: `\\( \\frac{\\partial}{\\partial y} (4xy^2 + 3x^2y) \\)`, answer: '8xy + 3x^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (x^2y + y^3) \\)`, answer: 'x^2 + 3y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (5xy + y^2) \\)`, answer: '5x + 2y' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (6xy + y^2) \\)`, answer: '6x + 2y' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (3xy^2 + x^2y) \\)`, answer: '6xy + x^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (2xy + y^3) \\)`, answer: '2x + 3y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (4xy + y^2) \\)`, answer: '4x + 2y' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (x^3y + y^2) \\)`, answer: 'x^3 + 2y' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (2x^2y + 3y^2) \\)`, answer: '2x^2 + 6y' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (x^2y^2 + y^3) \\)`, answer: '2x^2y + 3y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (3x^2y + y^2) \\)`, answer: '3x^2 + 2y' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (4x^2y + y^2) \\)`, answer: '4x^2 + 2y' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (5x^2y + y^2) \\)`, answer: '5x^2 + 2y' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (6x^2y + y^2) \\)`, answer: '6x^2 + 2y' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (x^2y + y^3) \\)`, answer: 'x^2 + 3y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (2xy + y^3) \\)`, answer: '2x + 3y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (3xy + y^3) \\)`, answer: '3x + 3y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (4xy + y^3) \\)`, answer: '4x + 3y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (5xy + y^3) \\)`, answer: '5x + 3y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (6xy + y^3) \\)`, answer: '6x + 3y^2' }
+            ];
+            const selected = questions[Math.floor(Math.random() * questions.length)];
+            correctAnswer = selected.answer;
+            return selected.question;
+        }
+
+        function generateLevel3Question() {
+            const questions = [
+                { question: `\\( \\frac{\\partial}{\\partial x} (5x^3 + 6xy + y^2) \\)`, answer: '15x^2 + 6y' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (2x^3 + 4x^2y) \\)`, answer: '6x^2 + 8xy' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (3x^2y + y^3) \\)`, answer: '6xy' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (4x^3 + 5xy) \\)`, answer: '12x^2 + 5y' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (5x^2y + 6xy^2) \\)`, answer: '10xy + 6y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (6x^2y + 7xy^2) \\)`, answer: '12xy + 7y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (7x^3 + 8xy) \\)`, answer: '21x^2 + 8y' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (8x^2y + 9xy^2) \\)`, answer: '16xy + 9y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (9x^2 + 10xy) \\)`, answer: '18x + 10y' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (10x^3 + 11xy) \\)`, answer: '30x^2 + 11y' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (11x^2 + 12xy) \\)`, answer: '22x + 12y' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (12x^2y + 13xy^2) \\)`, answer: '24xy + 13y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (13x^3 + 14xy) \\)`, answer: '39x^2 + 14y' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (14x^2 + 15xy) \\)`, answer: '28x + 15y' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (15x^2 + 16xy) \\)`, answer: '30x + 16y' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (16x^3 + 17xy) \\)`, answer: '48x^2 + 17y' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (17x^2 + 18xy) \\)`, answer: '34x + 18y' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (18x^2 + 19xy) \\)`, answer: '36x + 19y' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (19x^3 + 20xy) \\)`, answer: '57x^2 + 20y' },
+                { question: `\\( \\frac{\\partial}{\\partial x} (20x^2 + 21xy) \\)`, answer: '40x + 21y' }
+            ];
+            const selected = questions[Math.floor(Math.random() * questions.length)];
+            correctAnswer = selected.answer;
+            return selected.question;
+        }
+
+        function generateLevel4Question() {
+            const questions = [
+                { question: `\\( \\frac{\\partial}{\\partial y} (2x^2y + 3xy^2 + 4y^3) \\)`, answer: '2x^2 + 6xy + 12y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (x^2y^2 + 2y^3) \\)`, answer: '2x^2y + 6y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (3x^2y + 4y^3) \\)`, answer: '3x^2 + 12y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (4x^2y + 5y^3) \\)`, answer: '4x^2 + 15y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (5x^2y + 6y^3) \\)`, answer: '5x^2 + 18y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (6x^2y + 7y^3) \\)`, answer: '6x^2 + 21y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (7x^2y + 8y^3) \\)`, answer: '7x^2 + 24y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (8x^2y + 9y^3) \\)`, answer: '8x^2 + 27y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (9x^2y + 10y^3) \\)`, answer: '9x^2 + 30y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (10x^2y + 11y^3) \\)`, answer: '10x^2 + 33y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (11x^2y + 12y^3) \\)`, answer: '11x^2 + 36y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (12x^2y + 13y^3) \\)`, answer: '12x^2 + 39y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (13x^2y + 14y^3) \\)`, answer: '13x^2 + 42y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (14x^2y + 15y^3) \\)`, answer: '14x^2 + 45y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (15x^2y + 16y^3) \\)`, answer: '15x^2 + 48y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (16x^2y + 17y^3) \\)`, answer: '16x^2 + 51y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (17x^2y + 18y^3) \\)`, answer: '17x^2 + 54y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (18x^2y + 19y^3) \\)`, answer: '18x^2 + 57y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (19x^2y + 20y^3) \\)`, answer: '19x^2 + 60y^2' },
+                { question: `\\( \\frac{\\partial}{\\partial y} (20x^2y + 21y^3) \\)`, answer: '20x^2 + 63y^2' }
+            ];
+            const selected = questions[Math.floor(Math.random() * questions.length)];
+            correctAnswer = selected.answer;
+            return selected.question;
+        }
+
+        function generateLevel5Question() {
+            const questions = [
+                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^2y + xy^2 + 3x^2) \\)`, answer: '2x + 2y' },
+                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (xy^2 + yx^3) \\)`, answer: '3x^2 + 2y' },
+                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^2y^2 + y^3x) \\)`, answer: '4xy + 3y^2' },
+                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^3y + y^2x) \\)`, answer: '3x^2 + 2y' },
+                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (xy^2 + y^2x^2) \\)`, answer: '4xy + 2y' },
+                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^4y + y^3x) \\)`, answer: '4x^3 + 3y^2' },
+                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^2y^3 + y^2x^2) \\)`, answer: '6xy^2 + 4xy' },
+                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^3y^2 + yx^3) \\)`, answer: '6x^2y + 3x^2' },
+                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (xy^3 + y^2x) \\)`, answer: '3y^2 + 2y' },
+                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^2y + yx^2) \\)`, answer: '4x' },
+                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^2y^2 + y^2x) \\)`, answer: '4xy + 2y' },
+                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^2y^2 + yx^4) \\)`, answer: '4x^3+4xy ' },
+                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^3y + yx^3) \\)`, answer: '6x^2' },
+                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (xy^3 + yx^4) \\)`, answer: '3y^2 + 4x^3' },
+                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^2y + y^2x) \\)`, answer: '2x + 2y' },
+                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (xy + yx^2) \\)`, answer: '2x+1' },
+                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^2y^2 + y^3x) \\)`, answer: '4xy + 3y^2' },
+                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^4y + yx^2) \\)`, answer: '4x^3 + 2x' },
+                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^3y + y^2x) \\)`, answer: '3x^2 + 2y' },
+                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^3y + yx) \\)`, answer: '3x^2 + 1' }
+            ];
+            const selected = questions[Math.floor(Math.random() * questions.length)];
+            correctAnswer = selected.answer;
+            return selected.question;
+        }
+
+        function generateQuestion() {
+            switch(currentDifficulty) {
+                case 1:
+                    return generateLevel1Question();
+                case 2:
+                    return generateLevel2Question();
+                case 3:
+                    return generateLevel3Question();
+                case 4:
+                    return generateLevel4Question();
+                case 5:
+                    return generateLevel5Question();
+            }
+        }
+
+        function newQuestion() {
+            const questionElement = document.getElementById('question');
+            currentQuestion = generateQuestion();
+            questionElement.innerHTML = currentQuestion;
+            MathJax.typeset();
+            document.getElementById('answer').value = '';
+            document.getElementById('result').innerHTML = '';
+        }
+
+        function checkAnswer() {
+            const userAnswer = document.getElementById('answer').value.replace(/\s+/g, '').toLowerCase();
+            const resultElement = document.getElementById('result');
+            let resultText;
+
+            const expectedAnswer = correctAnswer.replace(/\s+/g, '').toLowerCase();
+
+            if (userAnswer === expectedAnswer) {
+                resultText = '正确！';
+                resultElement.style.color = 'green';
+                correctCount++;
+            } else {
+                resultText = `错误。正确答案是 ${correctAnswer}。`;
+                resultElement.style.color = 'red';
+                incorrectCount++;
+            }
+            resultElement.innerHTML = resultText;
+
+            updateScore();
+            addToHistory(currentQuestion, userAnswer, correctAnswer, userAnswer === expectedAnswer);
+            setTimeout(newQuestion, 1500);
+        }
+
+        function addToHistory(question, userAnswer, correctAnswer, isCorrect) {
+            const historyElement = document.getElementById('history');
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            historyItem.innerHTML = `
+                ${question} 你的答案: ${userAnswer}, 正确答案: ${correctAnswer}
+            `;
+            historyItem.classList.add(isCorrect ? 'correct' : 'incorrect');
+            historyElement.insertBefore(historyItem, historyElement.firstChild);
+            MathJax.typeset([historyItem]);
+        }
+
+        function updateScore() {
+            const scoreElement = document.getElementById('score');
+            scoreElement.innerHTML = `正确: ${correctCount} | 错误: ${incorrectCount}`;
+        }
+
+        document.getElementById('answer').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        // 初始化游戏
+        setDifficulty(1);
+    </script>
+</body>
+</html>

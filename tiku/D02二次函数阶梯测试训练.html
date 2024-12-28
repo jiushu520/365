@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D02二次函数阶梯测试训练</title>
+  
+ <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .difficulty-buttons {
+            margin-bottom: 20px;
+        }
+
+        .difficulty-buttons button {
+            margin: 10px 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+        }
+
+        .difficulty-buttons button.active {
+            background-color: #45a049;
+            color: white;
+        }
+
+        #answer {
+            padding: 10px;
+            font-size: 16px;
+            width: 200px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            display: inline;
+            color: inherit;
+            font-size: inherit;
+            margin: 0;
+            padding: 0;
+        }
+
+        #score {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        #rendered-answer {
+            margin-top: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 200px;
+        }
+
+        .mathjax-answer {
+            font-size: 16px;
+        }
+
+        .switch-container {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 10px;
+        }
+
+        .switch-container label {
+            margin-right: 5px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+        }
+
+        input:checked+.slider {
+            background-color: #007bff;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(14px);
+        }
+
+        #videoContainer {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <h1>玖数学测训系统</h1>
+        <h3>D02二次函数阶梯测试训练</h3>
+        <div class="difficulty-buttons" id="difficultyButtons"></div>
+        <div id="question"></div><br>
+
+        <input type="text" id="answer" placeholder="输入你的答案" oninput="updatePreview()">
+        <div id="rendered-answer"></div><br>
+        <button onclick="checkAnswer()">提交答案</button><br>
+
+
+    <div class="switch-container">
+        <label for="videoToggle">视频开关</label>
+            <label class="switch">
+                <input type="checkbox" id="videoToggle">
+                <span class="slider"></span>
+            </label>
+        </div><br>
+
+  
+
+        <div id="videoContainer" style="display: none;">
+            <video id="instructionalVideo" width="640" height="360" controls>
+                <source src="" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+  
+
+
+        <div id="result"></div>
+        <div id="score">正确: 0 | 错误: 0</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>题目</th>
+                    <th>级别</th>
+                    <th>你的答案</th>
+                    <th>正确答案</th>
+                    <th>结果</th>
+                </tr>
+            </thead>
+            <tbody id="history"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let correctAnswer;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let currentDifficulty = 1;
+
+         const difficultyNames = ["01配方法顶点式", "02求值", "03对称轴", "04交点", "05两根距离", "06切线方程", "07综合合", "08挑战自招"];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            generateDifficultyButtons();
+            setDifficulty(1);
+
+            // 添加视频开关事件监听
+            const videoToggle = document.getElementById('videoToggle');
+            videoToggle.addEventListener('change', function () {
+                const videoContainer = document.getElementById('videoContainer');
+                if (this.checked) {
+                    videoContainer.style.display = 'block';
+                } else {
+                    videoContainer.style.display = 'none';
+                }
+            });
+        });
+
+        function generateDifficultyButtons() {
+            const difficultyButtonsContainer = document.getElementById('difficultyButtons');
+            difficultyNames.forEach((name, index) => {
+                const button = document.createElement('button');
+                button.textContent = name;
+                button.id = `level${index + 1}`;
+                button.onclick = () => setDifficulty(index + 1);
+                difficultyButtonsContainer.appendChild(button);
+            });
+        }
+
+const videoConfig = {
+    1: "<video src='http://v.leleketang.com/dat/ms/ma/k/video/18776.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",  // 顶点式
+    2: "<video src='http://v.leleketang.com/dat/hs/ma/k/video/21093.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
+    3: "",
+    4: "<video src='http://v.leleketang.com/dat/ms/ma/k/video/18797.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
+    5: "",  
+    6: "",
+
+
+
+    
+};
+
+
+function setDifficulty(level) {
+    currentDifficulty = level;
+    document.querySelectorAll('.difficulty-buttons button').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`level${level}`).classList.add('active');
+
+    const videoContainer = document.getElementById('videoContainer');
+    const videoToggleContainer = document.querySelector('.switch-container');
+
+    if (videoConfig[level]) {
+        videoContainer.innerHTML = videoConfig[level];
+        videoToggleContainer.style.display = 'inline-flex'; // 显示视频开关
+        // 自动开启视频
+        document.getElementById('videoToggle').checked = true;
+        videoContainer.style.display = 'block';
+    } else {
+        videoContainer.innerHTML = "";
+        videoToggleContainer.style.display = 'none'; // 隐藏视频开关
+        document.getElementById('videoToggle').checked = false;
+        videoContainer.style.display = 'none';
+    }
+
+    newQuestion();
+}
+
+
+
+        function generateQuestion() {
+            switch (currentDifficulty) {
+ 
+                case 1: return generateLevel1Question();
+                case 2: return generateLevel2Question();
+                case 3: return generateLevel3Question();
+                case 4: return generateLevel4Question();
+                case 5: return generateLevel5Question();
+                case 6: return generateLevel6Question();
+                case 7: return generateLevel7Question();
+                case 8: return generateLevel8Question();
+      
+                default:
+                    return "";
+            }
+        }
+
+
+
+        function separateSquareRoot(n) {
+            let a = 1;
+            let b = n;
+
+            for (let i = 2; i * i <= n; i++) {
+                while (b % (i * i) === 0) {
+                    a *= i;
+                    b /= i * i;
+                }
+            }
+
+            return { a: a, b: b };
+        }
+
+
+        
+        function generateLevel1Question() {
+    let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? -1 : 1);
+    let n = (Math.floor(Math.random() * 9) ) * (Math.random() < 0.5 ? -1 : 1);
+    let textm = m === 0 ? `` : (m > 0 ? `+${m}` : `${m}`);
+    let text2m = 2*m === 0 ? `` : (2*m === 1 ? `+x` : (2*m === -1 ? `-x` : 2*m > 0 ? `+${2*m}x` : `${2*m}x`));
+    let textn = n === 0 ? `` : (n > 0 ? `+${n}` : `${n}`);
+    let textmmpn = m*m+n === 0 ? `` : (m*m+n > 0 ? `+${m*m+n}` : `${m*m+n}`);
+
+    let qtext = `\\huge 把函数y=x^2${text2m}${textmmpn}配成顶点式。`;
+    correctAnswer = [`y=(x${textm})^2${textn}`];
+
+    return `\\(   \\begin{gather}${qtext} \\\\
+\\begin{array}{|c|c|c|} 
+\\hline ${textm}&${textm}x&${m*m}\\\\ 
+\\hline x&x^2&${textm}x \\\\
+\\hline  &x &${textm} \\\\
+\\hline
+\\end{array}  
+\\\\输入格式:y=(x+m)^2+n \\\\ 
+
+\\end{gather}\\)`;
+        }
+
+    function generateLevel2Question() {
+    let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? -1 : 1);
+    let n = (Math.floor(Math.random() * 9) ) * (Math.random() < 0.5 ? -1 : 1);
+    let x = (Math.floor(Math.random() * 6) ) * (Math.random() < 0.5 ? -1 : 1);
+
+ 
+    let text2m = 2*m === 0 ? `` : (2*m === 1 ? `+x` : (2*m === -1 ? `-x` : (2*m > 0 ? `+${2*m}x` : `${2*m}x`)));
+    let textmmpn = m*m+n === 0 ? `` : (m*m+n > 0 ? `+${m*m+n}` : `${m*m+n}`);
+    
+    let k = x*x + 2*m*x + (m*m + n);
+
+    let qtext = `函数 f(x)=x^2${text2m}${textmmpn}， \\\\则f(${x})=?`;
+    correctAnswer =k>0 ? [`${k}`,`+${k}`] :[`${k}`];
+
+  return `\\( \\huge \\begin{gather} ${qtext} \\end{gather}\\)`;
+}
+
+
+
+
+        function generateLevel3Question() {
+    let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? -1 : 1);
+    let n = (Math.floor(Math.random() * 9) ) * (Math.random() < 0.5 ? -1 : 1);
+   
+
+ 
+    let text2m = 2*m === 0 ? `` : (2*m === 1 ? `+x` : (2*m === -1 ? `-x` : (2*m > 0 ? `+${2*m}x` : `${2*m}x`)));
+    let textmmpn = m*m+n === 0 ? `` : (m*m+n > 0 ? `+${m*m+n}` : `${m*m+n}`);
+    
+    
+
+    let qtext = `函数 f(x)=x^2${text2m}${textmmpn}，  \\\\则f(x)的对称轴为？`;
+    correctAnswer =-m>0 ? [`x=${-m}`,`x=+${-m}`] :[`x=${-m}`];
+
+  return `\\( \\huge \\begin{gather} ${qtext} \\end{gather}\\)`;
+        }
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+        function generateLevel4aQuestion() {
+     let m = (Math.floor(Math.random() * 5) + 1) ;
+     let n = (Math.floor(Math.random() * 5) + 1) ;
+   
+
+
+
+    let qtext = `函数 f(x)=x^2${-m-n}x+${m*n}，\\\\ 写出f(x)与x轴的交点横坐标. \\\\`;
+    correctAnswer = m===n ? [`${m}`,`+${m}`]: [`${m},${n}`,`${n},${m}`,`+${m},+${n}`,`+${n},+${m}`];
+
+  return `\\( \\huge \\begin{gather} ${qtext} \\end{gather}\\)`;
+        }
+
+      function generateLevel4bQuestion() {
+     let m = (Math.floor(Math.random() * 5) + 1) ;
+     let n = (Math.floor(Math.random() * 5) + 1) ;
+  
+
+    let qtext = `函数 f(x)=x^2+${m+n}x+${m*n}，\\\\写出f(x)与x轴的交点横坐标. \\\\`;
+    correctAnswer = m===n ? [`${-m}`]: [`${-m},${-n}`,`${-n},${-m}`];
+
+  return `\\( \\huge \\begin{gather} ${qtext} \\end{gather}\\)`;
+        }
+
+
+      function generateLevel4cQuestion() {
+     let m = (Math.floor(Math.random() * 5) + 1) ;
+     let n = (Math.floor(Math.random() * 5) + 1)* ( -1 ) ;
+ 
+      let textmpn = m+n === 0 ? `` :(m+n === 1 ? `+x` : (m+n === -1 ? `-x` :  (m+n > 0 ? `+${m+n}x` : `${m+n}x`)));
+
+    let qtext = `函数 f(x)=x^2${textmpn}${m*n}，\\\\ 写出f(x)与x轴的交点横坐标. \\\\`;
+    correctAnswer = m===n ? [`${-m}`]: [`${-m},${-n}`,`${-n},${-m}`,`${-m},+${-n}`,`+${-n},${-m}`];
+
+  return `\\( \\huge \\begin{gather} ${qtext} \\end{gather}\\)`;
+        }
+
+
+
+
+
+
+
+      function generateLevel4Question() {
+        const levelFunctions = [
+                generateLevel4aQuestion,
+                generateLevel4bQuestion,
+                generateLevel4cQuestion,
+
+            ];
+
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+
+            return selectedFunction();
+        }
+
+
+
+
+
+
+        function generateLevel5Question() {
+     let m = (Math.floor(Math.random() * 5) + 1) ;
+     let n = (Math.floor(Math.random() * 5) + 1)* ( -1 ) ;
+     let textmpn = m+n === 0 ? `` :(m+n === 1 ? `+x` : (m+n === -1 ? `-x` :  (m+n > 0 ? `+${m+n}x` : `${m+n}x`)));
+
+    let qtext = `函数 f(x)=x^2${textmpn}${m*n}，\\\\f(x)与x轴的交于A、B两,\\\\则AB=? \\\\`;
+    correctAnswer = [`${m-n}`,`+${m-n}`];
+
+  return `\\( \\huge \\begin{gather} ${qtext} \\end{gather}\\)`;
+        }
+
+       
+
+function generateLevel6Question() {
+    let m = (Math.floor(Math.random() * 5) + 1);
+    let n = (Math.floor(Math.random() * 5) + 1) * (-1);
+    let x = (Math.floor(Math.random() * 3)) * (Math.random() < 0.5 ? -1 : 1);
+
+    let textmpn = m + n === 0 ? `` :
+        (m + n === 1 ? `+x` : 
+        (m + n === -1 ? `-x` : 
+        (m + n > 0 ? `+${m + n}x` : `${m + n}x`)));
+
+    let c = x * x + x * (m + n) + n * m;
+    let k = 2 * x + (m + n);
+    let b = c - k * x;
+
+    let textk = k === 0 ? `` :
+        (k === -1 ? `-x` : 
+        (k === 1 ? `x` : `${k}x`));
+        
+    let textb = b === 0 ? `` : `${b}`;
+
+    // 特殊情况处理: 如果 k=0，直接显示 y=b 而不是 y=+b
+    let answer = k === 0 ? `y=${b}` : `y=${textk}${textb}`;
+
+    let qtext = ` 函数 f(x)=x^2${textmpn}${m * n}，\\\\求过点(${x},${c})的切线方程。 \\\\输入格式:y=kx+b\\\\`;
+
+    correctAnswer = [answer];
+
+    return `\\( \\huge \\begin{gather} ${qtext} \\end{gather}\\)`;
+}
+
+
+
+
+     function generateLevel7Question() {
+            const levelFunctions = [
+                generateLevel1Question,
+                generateLevel2Question,
+                generateLevel3Question,
+                generateLevel4Question,
+                generateLevel5Question,
+                generateLevel6Question,
+ 
+            ];
+
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+
+            return selectedFunction();
+        }
+
+
+
+
+
+let currentIndex = 0;
+
+function generateLevel8Question() {
+    const questions = [
+        { m: '1.已知函数y=ax^2+bx+c的图像如图所示，则化简\\\\  \\sqrt{a^2 - 2ab + b^2} - |b + c| - |a - c| = \\underline{\\quad}\\\\ ',image: './images/zzD0201.png', n: '2c' }, 
+  
+    ];
+
+    // 获取当前索引的题目
+    let selectedQuestion = questions[currentIndex];
+
+    let m = selectedQuestion.m;
+    let n = selectedQuestion.n;
+
+    // 如果 n 是一个数组，表示有多个正确答案
+    correctAnswer;
+    if (Array.isArray(n)) {
+        correctAnswer = [...n];
+    } else {
+        correctAnswer = [`${n}`];
+    }
+
+    // 构建返回的 LaTeX 代码
+    let questionLatex = `\\(\\begin{gather}${m} \\end{gather}\\)`;
+
+    // 如果有图片路径，则插入图片
+    if (selectedQuestion.image) {
+        questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
+    }
+
+    // 更新索引值，确保按顺序出题
+    currentIndex = (currentIndex + 1) % questions.length;
+
+    return questionLatex;
+}
+
+
+
+
+
+
+
+        function newQuestion() {
+            const question = generateQuestion();
+            document.getElementById('question').innerHTML = question;
+            MathJax.typesetPromise([document.getElementById('question')]).catch((err) => console.log(err));
+            document.getElementById('answer').value = '';
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('rendered-answer').style.display = 'none';
+        }
+
+        function toHalfWidth(str) {
+            return str.replace(/[\uFF01-\uFF5E]/g, function (char) {
+                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            }).replace(/\u3000/g, ' ');
+        }
+
+        function updatePreview() {
+            const input = document.getElementById('answer').value;
+            const renderedAnswer = document.getElementById('rendered-answer');
+            renderedAnswer.style.display = 'block';
+            renderedAnswer.innerHTML = '\\(' + input + '\\)';
+            MathJax.typesetPromise([renderedAnswer]).catch((err) => console.log(err));
+        }
+
+        function checkAnswer() {
+            const userAnswer = document.getElementById('answer').value.trim();
+
+            if (userAnswer === '') {
+                document.getElementById('result').innerHTML = '请输入答案！';
+                document.getElementById('result').className = 'incorrect';
+                return; // 直接返回，不更新历史记录或生成新题目
+            }
+
+            const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
+            const isCorrect = correctAnswer.some(answer => normalizedUserAnswer === toHalfWidth(answer.replace(/\s/g, '').toLowerCase()));
+
+            if (isCorrect) {
+                document.getElementById('result').innerHTML = '正确!';
+                document.getElementById('result').className = 'correct';
+                correctCount++;
+            } else {
+                document.getElementById('result').innerHTML = '错误。正确答案是: ' + correctAnswer.join(' 或 ');
+                document.getElementById('result').className = 'incorrect';
+                incorrectCount++;
+            }
+
+            updateScore();
+            updateHistory(isCorrect);
+
+            MathJax.typesetPromise().catch((err) => console.log(err));
+
+            if (userAnswer !== '') {
+                newQuestion();
+            }
+        }
+
+        function updateScore() {
+            document.getElementById('score').innerHTML = `正确: ${correctCount} | 错误: ${incorrectCount}`;
+        }
+
+function updateHistory(isCorrect) {
+            const historyTable = document.getElementById('history');
+            const newRow = historyTable.insertRow(0);
+            newRow.insertCell(0).innerHTML = document.getElementById('question').innerHTML;
+            newRow.insertCell(1).innerHTML = difficultyNames[currentDifficulty - 1];
+            newRow.insertCell(2).innerHTML = '\\(' + document.getElementById('answer').value + '\\)';
+            newRow.insertCell(3).innerHTML = '\\(' + correctAnswer.join('\\) 或 \\(') + '\\)';
+            newRow.insertCell(4).innerHTML = isCorrect ? '正确' : '错误';
+            newRow.className = isCorrect ? 'correct' : 'incorrect';
+
+            MathJax.typesetPromise([newRow]).catch((err) => console.log(err));
+        }
+
+        document.getElementById('answer').addEventListener('keyup', function (event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        newQuestion();
+
+    </script>
+</body>
+
+</html>
