@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>向量加法演示：拖拽实时更新 + 松手后吸附网格 + 向量线 + 公式</title>
+  <style>
+    .label {
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========== 将加法公式放在 SVG 之前，位置即在坐标系上方 ========== -->
+<div style="text-align:center; margin-bottom:10px;">
+  <span id="vectorEquation" style="font-size:16px; font-family: monospace; color:#333;"></span>
+</div>
+
+<!-- ========== 坐标系 SVG ========== -->
+<svg width="800" height="800" id="coordinateSystem">
+
+
+  <g id="grid" transform="translate(400,400)">
+    <!-- 坐标轴 -->
+    <line x1="-400" y1="0" x2="400" y2="0" stroke="black" stroke-width="2"/>
+    <line x1="0" y1="-400" x2="0" y2="400" stroke="black" stroke-width="2"/>
+    
+    <!-- 网格容器 -->
+    <g id="gridLines"></g>
+    
+    <!-- 原点标记 -->
+    <text x="10" y="20" class="label">O(0,0)</text>
+    
+    <!-- ========== 向量终点 A、B、C ========== -->
+    <g id="points">
+      <!-- A: 红色可拖拽点 -->
+      <circle id="pointA" cx="120" cy="-80" r="6" fill="red" style="cursor: pointer"/>
+      <text id="pointAText" x="130" y="-70" class="label">A</text>
+      
+      <!-- B: 蓝色可拖拽点 -->
+      <circle id="pointB" cx="160" cy="-40" r="6" fill="blue" style="cursor: pointer"/>
+      <text id="pointBText" x="170" y="-30" class="label">B</text>
+
+      <!-- C: 绿色（自动计算 = A + B） -->
+      <circle id="pointC" cx="280" cy="-120" r="6" fill="green" style="cursor: default"/>
+      <text id="pointCText" x="290" y="-110" class="label">C</text>
+    </g>
+    
+    <!-- ========== 3 条向量线：OA、OB、OC ========== -->
+    <line id="vectorOA" x1="0" y1="0" x2="120" y2="-80" stroke="red" stroke-width="2"/>
+    <line id="vectorOB" x1="0" y1="0" x2="160" y2="-40" stroke="blue" stroke-width="2"/>
+    <line id="vectorOC" x1="0" y1="0" x2="280" y2="-120" stroke="green" stroke-width="2"/>
+    
+    <!-- ========== 平行四边形 (O -> A -> C -> B) ========== -->
+    <polygon id="parallelogram" points="0,0 120,-80 280,-120 160,-40"
+             fill="rgba(0, 255, 0, 0.3)" stroke="green" stroke-width="2"/>
+  </g>
+</svg>
+
+<script>
+
+
+//================== 1. 全局常量与元素获取 ==================
+const svg = document.getElementById('coordinateSystem');
+const grid = document.getElementById('gridLines');
+
+// A、B、C 三个点
+const pointA = document.getElementById('pointA');
+const pointB = document.getElementById('pointB');
+const pointC = document.getElementById('pointC');
+
+// A、B、C 对应的文本标签
+const pointAText = document.getElementById('pointAText');
+const pointBText = document.getElementById('pointBText');
+const pointCText = document.getElementById('pointCText');
+
+// 向量线 OA、OB、OC
+const vectorOA = document.getElementById('vectorOA');
+const vectorOB = document.getElementById('vectorOB');
+const vectorOC = document.getElementById('vectorOC');
+
+// 平行四边形
+const parallelogram = document.getElementById('parallelogram');
+
+// 显示加法公式的 DOM
+const vectorEquation = document.getElementById('vectorEquation');
+
+const scale = 40; // 每个网格对应 40 像素
+
+//================== 2. 绘制网格 ==================
+function drawGrid() {
+  grid.innerHTML = ''; // 先清空，防止重复绘制
+
+  // 这里设置网格范围：-10 到 10
+  for (let i = -10; i <= 10; i++) {
+    const pos = i * scale;
+
+    // 绘制水平网格线 + Y 轴刻度
+    if (i !== 0) {
+      const hLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      hLine.setAttribute("x1", -400);
+      hLine.setAttribute("y1", pos);
+      hLine.setAttribute("x2", 400);
+      hLine.setAttribute("y2", pos);
+      hLine.setAttribute("stroke", "#ddd");
+      hLine.setAttribute("stroke-width", "1");
+      grid.appendChild(hLine);
+
+      // Y 刻度文本
+      const yLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      yLabel.setAttribute("x", 5);
+      yLabel.setAttribute("y", -pos + 5);
+      yLabel.setAttribute("class", "label");
+      yLabel.textContent = i;
+      grid.appendChild(yLabel);
+    }
+
+    // 绘制垂直网格线 + X 轴刻度
+    if (i !== 0) {
+      const vLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      vLine.setAttribute("x1", pos);
+      vLine.setAttribute("y1", -400);
+      vLine.setAttribute("x2", pos);
+      vLine.setAttribute("y2", 400);
+      vLine.setAttribute("stroke", "#ddd");
+      vLine.setAttribute("stroke-width", "1");
+      grid.appendChild(vLine);
+
+      // X 刻度文本
+      const xLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      xLabel.setAttribute("x", pos);
+      xLabel.setAttribute("y", 20);
+      xLabel.setAttribute("class", "label");
+      xLabel.setAttribute("text-anchor", "middle");
+      xLabel.textContent = i;
+      grid.appendChild(xLabel);
+    }
+  }
+}
+
+//================== 3. 更新点及平行四边形 ==================
+
+// 更新某个点的文字标签（示例用 toFixed(2) 保留两位小数）
+function updatePointLabel(point, text) {
+  const cx = parseFloat(point.getAttribute('cx'));
+  const cy = parseFloat(point.getAttribute('cy'));
+  
+  // x 原点居中 => 除以 scale 即可；y 轴向下为正，所以取负值
+  const xVal = (cx / scale).toFixed(2);
+  const yVal = -(cy / scale).toFixed(2);
+  text.textContent = `${point.id.slice(-1)}(${xVal}, ${yVal})`;
+}
+
+// 计算 C = A + B 并更新 C 点
+function updatePointC() {
+  const ax = parseFloat(pointA.getAttribute('cx'));
+  const ay = parseFloat(pointA.getAttribute('cy'));
+  const bx = parseFloat(pointB.getAttribute('cx'));
+  const by = parseFloat(pointB.getAttribute('cy'));
+
+  const cx = ax + bx;
+  const cy = ay + by;
+
+  // 设置 C 点坐标
+  pointC.setAttribute('cx', cx);
+  pointC.setAttribute('cy', cy);
+
+  // C 的文本标签位置
+  pointCText.setAttribute('x', cx - 10);
+  pointCText.setAttribute('y', cy + 0);
+
+  // 更新 C 标签文字
+  updatePointLabel(pointC, pointCText);
+}
+
+// 更新向量线 OA、OB、OC
+function updateVectorLines() {
+  // 取出 A、B、C 当前坐标
+  const ax = pointA.getAttribute('cx');
+  const ay = pointA.getAttribute('cy');
+  const bx = pointB.getAttribute('cx');
+  const by = pointB.getAttribute('cy');
+  const cx = pointC.getAttribute('cx');
+  const cy = pointC.getAttribute('cy');
+
+  // OA
+  vectorOA.setAttribute('x1', 0);
+  vectorOA.setAttribute('y1', 0);
+  vectorOA.setAttribute('x2', ax);
+  vectorOA.setAttribute('y2', ay);
+
+  // OB
+  vectorOB.setAttribute('x1', 0);
+  vectorOB.setAttribute('y1', 0);
+  vectorOB.setAttribute('x2', bx);
+  vectorOB.setAttribute('y2', by);
+
+  // OC
+  vectorOC.setAttribute('x1', 0);
+  vectorOC.setAttribute('y1', 0);
+  vectorOC.setAttribute('x2', cx);
+  vectorOC.setAttribute('y2', cy);
+}
+
+// 更新平行四边形 O->A->C->B
+function updateParallelogram() {
+  const ax = pointA.getAttribute('cx');
+  const ay = pointA.getAttribute('cy');
+  const bx = pointB.getAttribute('cx');
+  const by = pointB.getAttribute('cy');
+  const cx = pointC.getAttribute('cx');
+  const cy = pointC.getAttribute('cy');
+
+  parallelogram.setAttribute('points', `0,0 ${ax},${ay} ${cx},${cy} ${bx},${by}`);
+}
+
+// 更新向量加法公式 (xa, ya) + (xb, yb) = (xc, yc)
+function updateVectorEquation() {
+  const ax = parseFloat(pointA.getAttribute('cx')) / scale;
+  const ay = -parseFloat(pointA.getAttribute('cy')) / scale;  // 注意取负
+  const bx = parseFloat(pointB.getAttribute('cx')) / scale;
+  const by = -parseFloat(pointB.getAttribute('cy')) / scale;  // 注意取负
+  const cx = parseFloat(pointC.getAttribute('cx')) / scale;
+  const cy = -parseFloat(pointC.getAttribute('cy')) / scale;  // 注意取负
+
+  // 保留2位小数
+  const axStr = ax.toFixed(0), ayStr = ay.toFixed(0);
+  const bxStr = bx.toFixed(0), byStr = by.toFixed(0);
+  const cxStr = cx.toFixed(0), cyStr = cy.toFixed(0);
+
+  vectorEquation.textContent = `(${axStr}, ${ayStr}) + (${bxStr}, ${byStr}) = (${cxStr}, ${cyStr})`;
+}
+
+//================== 4. 拖拽逻辑 (拖拽过程中实时更新 + 松手后吸附网格) ==================
+let activePoint = null; // 当前正在拖拽的点
+let startX, startY;     // 鼠标相对于圆心的偏移量
+
+function startPointDrag(e, point) {
+  e.preventDefault();
+  activePoint = point;
+  const pt = svg.createSVGPoint();
+  pt.x = e.clientX;
+  pt.y = e.clientY;
+  // 转换到 SVG 坐标系
+  const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+  // 记录鼠标点与圆心之间的初始偏移
+  startX = svgP.x - parseFloat(point.getAttribute('cx'));
+  startY = svgP.y - parseFloat(point.getAttribute('cy'));
+}
+
+// 只能拖 A、B，C 固定由 A+B 得到
+pointA.addEventListener('mousedown', (e) => startPointDrag(e, pointA));
+pointB.addEventListener('mousedown', (e) => startPointDrag(e, pointB));
+
+// 鼠标移动时：实时更新 A/B 的位置、C、平行四边形、向量线与公式
+document.addEventListener('mousemove', (e) => {
+  if (activePoint) {
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+
+    // 计算新的坐标（不进行取整 => 拖动顺滑）
+    let newX = svgP.x - startX;
+    let newY = svgP.y - startY;
+
+    // 圆心实时跟随鼠标
+    activePoint.setAttribute('cx', newX);
+    activePoint.setAttribute('cy', newY);
+
+    // 标签也实时跟随
+    const text = (activePoint === pointA) ? pointAText : pointBText;
+    text.setAttribute('x', newX + 10);
+    text.setAttribute('y', newY + 10);
+
+    // 更新标签文字(此时坐标是浮点数)
+    updatePointLabel(activePoint, text);
+
+    // 实时更新 C
+    updatePointC();
+
+    // 实时更新向量线 OA、OB、OC
+    updateVectorLines();
+
+    // 实时更新平行四边形
+    updateParallelogram();
+
+    // 实时更新向量加法公式
+    updateVectorEquation();
+  }
+});
+
+// 鼠标抬起时：一次性将 A/B 吸附到网格（取整），并再次刷新
+document.addEventListener('mouseup', () => {
+  if (activePoint) {
+    // 取出当前浮点坐标
+    const currentX = parseFloat(activePoint.getAttribute('cx'));
+    const currentY = parseFloat(activePoint.getAttribute('cy'));
+
+    // 一次性取整吸附到网格
+    let snapX = Math.round(currentX / scale) * scale;
+    let snapY = Math.round(currentY / scale) * scale;
+    activePoint.setAttribute('cx', snapX);
+    activePoint.setAttribute('cy', snapY);
+
+    // 标签位置对齐
+    const text = (activePoint === pointA) ? pointAText : pointBText;
+    text.setAttribute('x', snapX + 10);
+    text.setAttribute('y', snapY + 10);
+
+    // 更新标签文字
+    updatePointLabel(activePoint, text);
+
+    // A/B 吸附后，再更新 C
+    updatePointC();
+
+    // 更新向量线
+    updateVectorLines();
+
+    // 更新平行四边形
+    updateParallelogram();
+
+    // 更新加法公式
+    updateVectorEquation();
+
+    // 结束拖拽
+    activePoint = null;
+  }
+});
+
+//================== 5. 初始化 ==================
+drawGrid();                 // 绘制背景网格
+updatePointLabel(pointA, pointAText);
+updatePointLabel(pointB, pointBText);
+updatePointC();
+updateVectorLines();        // 初始化向量线
+updateParallelogram();      // 初始化平行四边形
+updateVectorEquation();     // 初始化加法公式
+</script>
+</body>
+</html>

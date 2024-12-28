@@ -2,19 +2,36 @@
 
 const mathProverbs = 
 [
-    "a^3 + b^3 = (a+b)(a^2-ab+b^2)",
-    "(a+bi)(c+di)=(ac-bd)+(ad+bc)i",
-   "\\sum_{n=1}^{n}a= \\frac{n(n+1)}{2}",
-    "\\frac{A}{\\sqrt{A^2+B^2}}x+\\frac{B}{\\sqrt{A^2+B^2}}y=\\frac{Ax_0+By_0}{\\sqrt{A^2+B^2}}",
-
-
-     "\\textcolor{red}{(a^2+b^2)}\\textcolor{blue}{(m^2+n^2)}=(\\textcolor{red}{a}\\textcolor{blue}{m}+\\textcolor{red}{b}\\textcolor{blue}{n})^2+(\\textcolor{red}{a}\\textcolor{blue}{n}-\\textcolor{red}{b}\\textcolor{blue}{m})^2\\\\=(\\textcolor{red}{a}\\textcolor{blue}{n}+\\textcolor{red}{b}\\textcolor{blue}{m})^2+(\\textcolor{red}{a}\\textcolor{blue}{m}-\\textcolor{red}{b}\\textcolor{blue}{n})^2",
-
-    "S▱=\\left|\\begin{matrix}x_1&y_1\\\\x_2&y_2\\end{matrix}\\right|=x_1y_2-x_2y_1",
-     "tan\\alpha=\\frac{\\vec a \\otimes\\vec b}{\\vec a\\cdot \\vec b}",
-     "\\begin{bmatrix}\\textcolor{red}{\\frac{A}{\\sqrt{A^2+B^2}}} & \\textcolor{blue}{\\frac{B}{\\sqrt{A^2+B^2}}}\\\\\\textcolor{blue}{-\\frac{B}{\\sqrt{A^2+B^2}}} & \\textcolor{red}{\\frac{A}{\\sqrt{A^2+B^2}}}\\end{bmatrix}\\begin{bmatrix}x_0\\\\y_0\\end{bmatrix}=\\begin{bmatrix}x \\\\y\\end{bmatrix}",
-
-"\\begin{bmatrix}\\textcolor{red}{cos\\alpha} & \\textcolor{blue}{-sin\\alpha}  \\\\\\textcolor{blue}{sin\\alpha} & \\textcolor{red}{cos\\alpha}\\end{bmatrix}\\begin{bmatrix}x  \\\\y\\end{bmatrix}=\\begin{bmatrix}x_0\\\\y_0 \\end{bmatrix}",
+    "熟能生巧，数学如画，细心描绘方显其美。",
+    "数学如海，勤奋为舟，才可乘风破浪。",
+    "一步一印，解题需沉稳，心静方能成大器。",
+    "基础扎实，攀登高峰，方能攻克难关。",
+    "错误是前行的桥梁，越过它，便是进步的彼岸。",
+    "逻辑严密，数学之魂，理性思维无可逾越。",
+    "数学之思，点亮智慧的灯塔，照亮人生的航程。",
+    "解题如寻宝，耐心为钥，方得瑰宝之真谛。",
+    "数学不仅是学问，更是磨砺思维的坚石。",
+    "数学无处不在，心随之开，智慧自增。",
+    "坚持不懈，数学自来，天道酬勤。",
+    "数学的探求，乐趣无穷，犹如星辰般璀璨。",
+    "解题如登山，步步为营，勇攀科学高峰。",
+    "数学之美，藏于细节，沉静中见真章。",
+    "数学基础，坚如磐石，方能应对风雨。",
+    "勤学苦练，数学必成，持之以恒，方显其精。",
+    "数学训练，犹如飞跃，激发思维的无限可能。",
+    "逻辑推理，数学的钥匙，开启智慧之门。",
+    "数学方法，解答万象，汇聚成智慧的海洋。",
+    "数学精神，追求真理，永不言弃。",
+    "持续学习，数学精进，方能洞察更深的世界。",
+    "数学挑战，是自我超越的契机，是心灵的磨砺。",
+    "数学应用，生活中的智慧星辰，闪烁光辉。",
+    "数学思考，培养耐性，教会我们如何等待答案。",
+    "数学逻辑，理清思路，透过层层迷雾见曙光。",
+    "数学知识，岁月不老，永远引领时代前行。",
+    "数学分析，洞察世界的脉络，发现其中的奥秘。",
+    "数学智慧，闪耀心灵，点亮人生的每一个瞬间。",
+    "数学训练，提升智力，塑造更加敏锐的思维。",
+    "勤奋学习，数学自来，智慧的道路永不遥远。",
 
 
 
