@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <title>玖数学练习</title>
+    <style>
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: lightblue;
+        }
+
+        #game-container {
+            width: 100%;
+            height: 100%;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #equation, #answer-input, #answer-input-x, #answer-input-y, #options {
+            text-align: center;
+            width: 100%;
+            font-size: 20px;
+        }
+
+        #answer-input, #answer-input-x, #answer-input-y {
+            margin: 20px 0;
+        }
+
+        .option {
+            display: inline-block;
+            margin: 0 10px;
+            padding: 10px;
+            border: 1px solid #000;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        #button-container {
+            margin-top: 20px;
+        }
+
+        #result-table-container {
+            margin-top: 20px;
+            width: 100%;
+            height: calc(50% - 60px); /* 调整高度以适应 */
+                    }
+
+        #result-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #result-table th, #result-table td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: center;
+        }
+        iframe#iframe-container {
+        width: 100%; /* 设置全屏宽度 */
+        height: 500px; /* 设置高度为500px */
+        border: none; /* 去掉边框 */
+        display: none; /* 初始隐藏iframe */
+    }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h3>玖数学测训系统</h3>
+        <div id="current-topic"></div>
+        <div id="equation"></div>
+        <div id="options" style="display: none;"></div>
+        <div id="single-answer-container" style="display: none;">
+            <input type="text" id="answer-input" placeholder="输入你的答案" onkeyup="handleKeyUp(event)">
+        </div>
+        <div id="dual-answer-container" style="display: none;">
+                x=<input type="text" id="answer-input-x" placeholder="x的值" onkeyup="handleKeyUp(event, 'answer-input-y')">
+                y=<input type="text" id="answer-input-y" placeholder="y的值" onkeyup="handleKeyUp(event)">
+        </div>
+        <button id="submit-button" onclick="checkAnswer()">提交答案</button>
+        <div id="button-container">
+            <button onclick="toggleMode(false)">顺序</button>
+            <button onclick="toggleMode(true)">随机</button>
+            <button onclick="startChallengeMode()">闯关</button>
+            <button id="toggle-iframe-button" onclick="toggleIframe()">交互</button>
+            <button id="copy-button" onclick="copyCurrentTopic()">复制当前题目</button>
+
+<br>
+            <span id="current-mode-display">当前模式: 顺序</span>
+        </div>
+        <div id="scoreboard">现在得分:<span id="score">0</span>,已回答:<span id="answered">0</span></div>
+        <iframe id="iframe-container" src="https://www.geogebra.org/calculator"></iframe>
+        <div id="result-table-container">
+            <table id="result-table">
+                <thead>
+                    <tr>
+                        <th>题目</th>
+                        <th>你的答案</th>
+                        <th>正确答案</th>
+                        <th>结果</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div id="rounds-scoreboard"></div>
+    </div>
+    <script>
+        const 计数01等差数列基础 = [
+
+
+{equation: "\\[ \\begin{array}{c} 5+8+11+14+…...+149+152=\\text{_____}\\end{array} \\]", correctOption: {single: "3925"}},
+{equation: "\\[ \\begin{array}{c} 2、5、8、……、137、140一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "47"}},
+{equation: "\\[ \\begin{array}{c} 8、11、14、……一共有21项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "68"}},
+{equation: "\\[ \\begin{array}{c} 7+8+9+10+…...+14+15=\\text{_____}\\end{array} \\]", correctOption: {single: "99"}},
+{equation: "\\[ \\begin{array}{c} 3、4、5、……、40、41一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "39"}},
+{equation: "\\[ \\begin{array}{c} 1、2、3、……一共有46项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "46"}},
+{equation: "\\[ \\begin{array}{c} 4+7+10+13+…...+127+130=\\text{_____}\\end{array} \\]", correctOption: {single: "2881"}},
+{equation: "\\[ \\begin{array}{c} 3、4、5、……、16、17一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "15"}},
+{equation: "\\[ \\begin{array}{c} 3、4、5、……一共有8项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "10"}},
+{equation: "\\[ \\begin{array}{c} 3+7+11+15+…...+195+199=\\text{_____}\\end{array} \\]", correctOption: {single: "5050"}},
+{equation: "\\[ \\begin{array}{c} 1、4、7、……、73、76一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "26"}},
+{equation: "\\[ \\begin{array}{c} 7、8、9、……一共有45项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "51"}},
+{equation: "\\[ \\begin{array}{c} 1+3+5+7+…...+47+49=\\text{_____}\\end{array} \\]", correctOption: {single: "625"}},
+{equation: "\\[ \\begin{array}{c} 6、9、12、……、138、141一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "46"}},
+{equation: "\\[ \\begin{array}{c} 9、13、17、……一共有46项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "189"}},
+{equation: "\\[ \\begin{array}{c} 8+12+16+20+…...+152+156=\\text{_____}\\end{array} \\]", correctOption: {single: "3116"}},
+{equation: "\\[ \\begin{array}{c} 8、10、12、……、44、46一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "20"}},
+{equation: "\\[ \\begin{array}{c} 7、11、15、……一共有44项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "179"}},
+{equation: "\\[ \\begin{array}{c} 2+3+4+5+…...+24+25=\\text{_____}\\end{array} \\]", correctOption: {single: "324"}},
+{equation: "\\[ \\begin{array}{c} 1、3、5、……、21、23一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "12"}},
+{equation: "\\[ \\begin{array}{c} 4、7、10、……一共有40项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "121"}},
+{equation: "\\[ \\begin{array}{c} 7+9+11+13+…...+87+89=\\text{_____}\\end{array} \\]", correctOption: {single: "2016"}},
+{equation: "\\[ \\begin{array}{c} 3、6、9、……、120、123一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "41"}},
+{equation: "\\[ \\begin{array}{c} 2、4、6、……一共有46项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "92"}},
+{equation: "\\[ \\begin{array}{c} 5+9+13+17+…...+97+101=\\text{_____}\\end{array} \\]", correctOption: {single: "1325"}},
+{equation: "\\[ \\begin{array}{c} 3、5、7、……、59、61一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "30"}},
+{equation: "\\[ \\begin{array}{c} 6、8、10、……一共有7项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "18"}},
+{equation: "\\[ \\begin{array}{c} 9+13+17+21+…...+117+121=\\text{_____}\\end{array} \\]", correctOption: {single: "1885"}},
+{equation: "\\[ \\begin{array}{c} 3、5、7、……、33、35一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "17"}},
+{equation: "\\[ \\begin{array}{c} 8、9、10、……一共有6项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "13"}},
+{equation: "\\[ \\begin{array}{c} 7+10+13+16+…...+22+25=\\text{_____}\\end{array} \\]", correctOption: {single: "112"}},
+{equation: "\\[ \\begin{array}{c} 7、8、9、……、18、19一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "13"}},
+{equation: "\\[ \\begin{array}{c} 9、10、11、……一共有30项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "38"}},
+{equation: "\\[ \\begin{array}{c} 6+8+10+12+…...+46+48=\\text{_____}\\end{array} \\]", correctOption: {single: "594"}},
+{equation: "\\[ \\begin{array}{c} 5、7、9、……、95、97一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "47"}},
+{equation: "\\[ \\begin{array}{c} 9、12、15、……一共有25项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "81"}},
+{equation: "\\[ \\begin{array}{c} 9+11+13+15+…...+103+105=\\text{_____}\\end{array} \\]", correctOption: {single: "2793"}},
+{equation: "\\[ \\begin{array}{c} 4、5、6、……、9、10一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "7"}},
+{equation: "\\[ \\begin{array}{c} 6、9、12、……一共有34项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "105"}},
+{equation: "\\[ \\begin{array}{c} 7+11+15+19+…...+151+155=\\text{_____}\\end{array} \\]", correctOption: {single: "3078"}},
+{equation: "\\[ \\begin{array}{c} 9、10、11、……、30、31一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "23"}},
+{equation: "\\[ \\begin{array}{c} 1、4、7、……一共有38项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "112"}},
+{equation: "\\[ \\begin{array}{c} 7+8+9+10+…...+28+29=\\text{_____}\\end{array} \\]", correctOption: {single: "414"}},
+{equation: "\\[ \\begin{array}{c} 3、7、11、……、139、143一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "36"}},
+{equation: "\\[ \\begin{array}{c} 9、11、13、……一共有46项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "99"}},
+{equation: "\\[ \\begin{array}{c} 8+12+16+20+…...+128+132=\\text{_____}\\end{array} \\]", correctOption: {single: "2240"}},
+{equation: "\\[ \\begin{array}{c} 7、10、13、……、31、34一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "10"}},
+{equation: "\\[ \\begin{array}{c} 2、3、4、……一共有22项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "23"}},
+{equation: "\\[ \\begin{array}{c} 3+4+5+6+…...+46+47=\\text{_____}\\end{array} \\]", correctOption: {single: "1125"}},
+{equation: "\\[ \\begin{array}{c} 9、10、11、……、29、30一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "22"}},
+{equation: "\\[ \\begin{array}{c} 3、5、7、……一共有46项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "93"}},
+{equation: "\\[ \\begin{array}{c} 1+3+5+7+…...+21+23=\\text{_____}\\end{array} \\]", correctOption: {single: "144"}},
+{equation: "\\[ \\begin{array}{c} 5、8、11、……、83、86一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "28"}},
+{equation: "\\[ \\begin{array}{c} 7、8、9、……一共有12项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "18"}},
+{equation: "\\[ \\begin{array}{c} 6+7+8+9+…...+36+37=\\text{_____}\\end{array} \\]", correctOption: {single: "688"}},
+{equation: "\\[ \\begin{array}{c} 9、10、11、……、31、32一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "24"}},
+{equation: "\\[ \\begin{array}{c} 7、10、13、……一共有34项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "106"}},
+{equation: "\\[ \\begin{array}{c} 1+4+7+10+…...+67+70=\\text{_____}\\end{array} \\]", correctOption: {single: "852"}},
+{equation: "\\[ \\begin{array}{c} 3、6、9、……、123、126一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "42"}},
+{equation: "\\[ \\begin{array}{c} 6、8、10、……一共有44项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "92"}},
+{equation: "\\[ \\begin{array}{c} 8+9+10+11+…...+18+19=\\text{_____}\\end{array} \\]", correctOption: {single: "162"}},
+{equation: "\\[ \\begin{array}{c} 9、10、11、……、53、54一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "46"}},
+{equation: "\\[ \\begin{array}{c} 8、10、12、……一共有37项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "80"}},
+{equation: "\\[ \\begin{array}{c} 6+9+12+15+…...+48+51=\\text{_____}\\end{array} \\]", correctOption: {single: "456"}},
+{equation: "\\[ \\begin{array}{c} 1、3、5、……、59、61一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "31"}},
+{equation: "\\[ \\begin{array}{c} 1、5、9、……一共有33项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "129"}},
+{equation: "\\[ \\begin{array}{c} 3+6+9+12+…...+36+39=\\text{_____}\\end{array} \\]", correctOption: {single: "273"}},
+{equation: "\\[ \\begin{array}{c} 5、9、13、……、193、197一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "49"}},
+{equation: "\\[ \\begin{array}{c} 4、7、10、……一共有44项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "133"}},
+{equation: "\\[ \\begin{array}{c} 2+4+6+8+…...+24+26=\\text{_____}\\end{array} \\]", correctOption: {single: "182"}},
+{equation: "\\[ \\begin{array}{c} 3、7、11、……、55、59一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "15"}},
+{equation: "\\[ \\begin{array}{c} 4、8、12、……一共有9项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "36"}},
+{equation: "\\[ \\begin{array}{c} 3+7+11+15+…...+111+115=\\text{_____}\\end{array} \\]", correctOption: {single: "1711"}},
+{equation: "\\[ \\begin{array}{c} 6、10、14、……、86、90一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "22"}},
+{equation: "\\[ \\begin{array}{c} 2、4、6、……一共有12项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "24"}},
+{equation: "\\[ \\begin{array}{c} 5+9+13+17+…...+109+113=\\text{_____}\\end{array} \\]", correctOption: {single: "1652"}},
+{equation: "\\[ \\begin{array}{c} 8、9、10、……、37、38一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "31"}},
+{equation: "\\[ \\begin{array}{c} 4、5、6、……一共有6项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "9"}},
+{equation: "\\[ \\begin{array}{c} 3+6+9+12+…...+126+129=\\text{_____}\\end{array} \\]", correctOption: {single: "2838"}},
+{equation: "\\[ \\begin{array}{c} 9、10、11、……、44、45一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "37"}},
+{equation: "\\[ \\begin{array}{c} 6、7、8、……一共有18项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "23"}},
+{equation: "\\[ \\begin{array}{c} 6+10+14+18+…...+50+54=\\text{_____}\\end{array} \\]", correctOption: {single: "390"}},
+{equation: "\\[ \\begin{array}{c} 6、7、8、……、12、13一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "8"}},
+{equation: "\\[ \\begin{array}{c} 3、7、11、……一共有20项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "79"}},
+{equation: "\\[ \\begin{array}{c} 2+4+6+8+…...+74+76=\\text{_____}\\end{array} \\]", correctOption: {single: "1482"}},
+{equation: "\\[ \\begin{array}{c} 8、12、16、……、40、44一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "10"}},
+{equation: "\\[ \\begin{array}{c} 4、5、6、……一共有23项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "26"}},
+{equation: "\\[ \\begin{array}{c} 9+11+13+15+…...+29+31=\\text{_____}\\end{array} \\]", correctOption: {single: "240"}},
+{equation: "\\[ \\begin{array}{c} 8、9、10、……、18、19一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "12"}},
+{equation: "\\[ \\begin{array}{c} 3、5、7、……一共有8项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "17"}},
+{equation: "\\[ \\begin{array}{c} 6+9+12+15+…...+132+135=\\text{_____}\\end{array} \\]", correctOption: {single: "3102"}},
+{equation: "\\[ \\begin{array}{c} 7、8、9、……、47、48一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "42"}},
+{equation: "\\[ \\begin{array}{c} 5、8、11、……一共有28项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "86"}},
+{equation: "\\[ \\begin{array}{c} 5+9+13+17+…...+21+25=\\text{_____}\\end{array} \\]", correctOption: {single: "90"}},
+{equation: "\\[ \\begin{array}{c} 7、9、11、……、73、75一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "35"}},
+{equation: "\\[ \\begin{array}{c} 3、5、7、……一共有32项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "65"}},
+{equation: "\\[ \\begin{array}{c} 5+8+11+14+…...+74+77=\\text{_____}\\end{array} \\]", correctOption: {single: "1025"}},
+{equation: "\\[ \\begin{array}{c} 9、10、11、……、19、20一共有\\text{____}项。\\end{array} \\]", correctOption: {single: "12"}},
+{equation: "\\[ \\begin{array}{c} 5、9、13、……一共有33项，那么最后一项是\\text{_____}。\\end{array} \\]", correctOption: {single: "133"}},
+{equation: "\\[ \\begin{array}{c} 6+8+10+12+…...+102+104=\\text{_____}\\end{array} \\]", correctOption: {single: "2750"}},
+
+
+
+
+
+    
+    ];
+
+        let state = {
+            currentQuestionBank: null,
+            currentEquationSystem: null,
+            score: 0,
+            questionsAnswered: 0,
+            roundsScores: [],
+            currentTopic: '',
+            currentQuestionIndex: 0,
+            isRandomMode: false,
+            isChallengeMode: false,
+        };
+
+        const updateElement = (id, value) => document.getElementById(id).textContent = value;
+
+        const startChallengeMode = () => {
+            state.isChallengeMode = true;
+            resetState();
+            updateElement('current-mode-display', '当前模式: 闯关');
+            startNewRound();
+        };
+
+        const toggleMode = (mode) => {
+            state.isRandomMode = mode;
+            state.isChallengeMode = false;
+            resetState();
+            updateElement('current-mode-display', state.isRandomMode ? '当前模式: 随机' : '当前模式: 顺序');
+            startNewRound();
+        };
+
+        const resetState = () => {
+            state.currentQuestionIndex = 0;
+            state.score = 0;
+            state.questionsAnswered = 0;
+            updateScoreboard();
+        };
+
+        const loadQuestions = (questionBank, topic) => {
+            state.currentQuestionBank = questionBank;
+            state.currentTopic = topic;
+            resetState();
+            updateElement('current-topic', `玖数学: ${state.currentTopic}`);
+            updateElement('current-mode-display', '当前模式: 顺序');
+            startNewRound();
+        };
+
+const toggleIframe = () => {
+    const iframe = document.getElementById('iframe-container');
+    const button = document.getElementById('toggle-iframe-button');
+    if (iframe.style.display === 'none' || iframe.style.display === '') {
+        iframe.style.display = 'block';
+        button.textContent = '隐藏';
+    } else {
+        iframe.style.display = 'none';
+        button.textContent = '显示';
+    }
+};
+
+
+const copyCurrentTopic = () => {
+    const currentTopic = document.getElementById('equation').innerText;
+    navigator.clipboard.writeText(currentTopic).then(() => {
+        showTemporaryMessage('题目已复制!', 1000);
+    }).catch(err => {
+        console.error('复制失败', err);
+    });
+};
+
+const showTemporaryMessage = (message, duration) => {
+    const messageElement = document.createElement('div');
+    messageElement.textContent = message;
+    messageElement.style.position = 'fixed';
+    messageElement.style.top = '50%';
+    messageElement.style.left = '50%';
+    messageElement.style.transform = 'translate(-50%, -50%)';
+    messageElement.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    messageElement.style.color = 'white';
+    messageElement.style.padding = '10px';
+    messageElement.style.borderRadius = '5px';
+    document.body.appendChild(messageElement);
+
+    setTimeout(() => {
+        document.body.removeChild(messageElement);
+    }, duration);
+};
+
+
+
+
+        const generateEquationSystem = () => {
+            let question = getQuestion();
+
+            const { equation, img, correctOption, incorrectOptions } = question;
+
+            let equationHTML = equation;
+            if (img && img.trim()) equationHTML += `<br><img src="${img}" alt="题目图片">`;
+
+            if (correctOption.single || correctOption.dual) {
+                state.currentEquationSystem = { equationSystem: equationHTML, correctOption };
+                toggleAnswerContainers(correctOption);
+                document.getElementById('submit-button').style.display = 'block';
+            } else {
+                const correctIndex = Math.floor(Math.random() * 4);
+                const options = [...incorrectOptions];
+                options.splice(correctIndex, 0, correctOption);
+
+                state.currentEquationSystem = {
+                    equationSystem: equationHTML,
+                    correctIndex,
+                    options,
+                    correctOption
+                };
+                toggleAnswerContainers(correctOption, true);
+                document.getElementById('submit-button').style.display = 'none';
+            }
+        };
+
+        const toggleAnswerContainers = (correctOption, showOptions = false) => {
+            document.getElementById('options').style.display = showOptions ? 'block' : 'none';
+            document.getElementById('single-answer-container').style.display = correctOption.single ? 'block' : 'none';
+            document.getElementById('dual-answer-container').style.display = correctOption.dual ? 'block' : 'none';
+        };
+
+        const getQuestion = () => {
+            if (state.isRandomMode) {
+                const randomIndex = Math.floor(Math.random() * state.currentQuestionBank.length);
+                return state.currentQuestionBank[randomIndex];
+            } else {
+                if (state.currentQuestionIndex >= state.currentQuestionBank.length) state.currentQuestionIndex = 0;
+                return state.currentQuestionBank[state.currentQuestionIndex++];
+            }
+        };
+
+        const generateOptions = () => {
+            if (state.currentEquationSystem.options) {
+                const labels = ['A', 'B', 'C', 'D'];
+                return state.currentEquationSystem.options.map((option, index) =>
+                    `<div class="option" onclick="checkAnswer(${index}, '${option.replace(/\\/g, '\\\\')}')">
+                        <span>${labels[index]}. \\(${option}\\)</span>
+                    </div>`
+                ).join('');
+            }
+            return '';
+        };
+
+        const displayEquationSystem = () => {
+            generateEquationSystem();
+            document.getElementById('equation').innerHTML = state.currentEquationSystem.equationSystem;
+            if (state.currentEquationSystem.options) {
+                document.getElementById('options').innerHTML = generateOptions();
+            }
+            MathJax.typeset();
+        };
+
+        const startNewRound = () => {
+            if (isRoundComplete()) {
+                state.roundsScores.push({ topic: state.currentTopic, score: state.score, totalQuestions: state.questionsAnswered });
+                resetState();
+                updateRoundsScoreboard();
+            }
+            displayEquationSystem();
+        };
+
+        const isRoundComplete = () => {
+            let totalQuestionsInRound = state.isChallengeMode ? state.currentQuestionBank.length : 10;
+            return state.questionsAnswered >= totalQuestionsInRound;
+        };
+
+        const checkAnswer = (selectedIndex, userAnswer) => {
+            let isCorrect = false;
+            let correctAnswer = '';
+
+            if (state.currentEquationSystem.correctOption.single) {
+                userAnswer = document.getElementById('answer-input').value.trim();
+                correctAnswer = state.currentEquationSystem.correctOption.single;
+                isCorrect = userAnswer === correctAnswer;
+            } else if (state.currentEquationSystem.correctOption.dual) {
+                const userAnswerX = document.getElementById('answer-input-x').value.trim();
+                const userAnswerY = document.getElementById('answer-input-y').value.trim();
+                correctAnswer = `x=${state.currentEquationSystem.correctOption.dual.x}, y=${state.currentEquationSystem.correctOption.dual.y}`;
+                userAnswer = `x=${userAnswerX}, y=${userAnswerY}`;
+                isCorrect = userAnswerX === state.currentEquationSystem.correctOption.dual.x && userAnswerY === state.currentEquationSystem.correctOption.dual.y;
+            } else {
+                isCorrect = selectedIndex === state.currentEquationSystem.correctIndex;
+                correctAnswer = state.currentEquationSystem.correctOption;
+            }
+
+            addResultRow(state.currentEquationSystem.equationSystem, userAnswer, correctAnswer, isCorrect);
+            if (isCorrect) state.score++;
+            state.questionsAnswered++;
+            updateScoreboard();
+            startNewRound();
+            MathJax.typeset();
+        };
+
+        const addResultRow = (equation, userAnswer, correctAnswer, isCorrect) => {
+            let resultRow = document.createElement('tr');
+            resultRow.innerHTML = `
+                <td>${equation}</td>
+                <td>\\(${userAnswer}\\)</td>
+                <td>\\(${correctAnswer}\\)</td>
+                <td style="color: ${isCorrect ? 'green' : 'red'};">${isCorrect ? '正确' : '错误'}</td>
+            `;
+            document.querySelector('#result-table tbody').insertBefore(resultRow, document.querySelector('#result-table tbody').firstChild);
+        };
+
+        const handleKeyUp = (event, nextInputId = null) => {
+            if (event.key === 'Enter') {
+                if (nextInputId) {
+                    document.getElementById(nextInputId).focus();
+                } else {
+                    checkAnswer();
+                }
+            }
+        };
+
+        const updateScoreboard = () => {
+            updateElement('score', state.score);
+            updateElement('answered', state.questionsAnswered);
+        };
+
+        const updateRoundsScoreboard = () => {
+            const roundsScoresText = state.roundsScores.map((round, index) =>
+                `第${index + 1}轮 (${round.topic}): ${round.score}分共${round.totalQuestions}题`
+            ).join('<br>');
+            document.getElementById('rounds-scoreboard').innerHTML = roundsScoresText;
+        };
+
+window.onload = () => {
+    loadQuestions(计数01等差数列基础, '计数01等差数列基础');
+    state.isRandomMode = true;  // 初始化为随机模式
+    state.isChallengeMode = false;
+    startNewRound();
+};
+
+    </script>
+</body>
+</html>

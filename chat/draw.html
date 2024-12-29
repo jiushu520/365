@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>画布</title>
+<style>
+    /* 设置页面基础样式 */
+    body {
+        font-family: Arial, sans-serif; /* 使用Arial字体 */
+        user-select: none; /* 禁止用户选择文本 */
+        margin: 0; /* 去除页面默认外边距 */
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    /* 容器样式 */
+    .container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0px;
+    }
+
+    /* 工具栏样式 */
+    .tool-bar {
+        width: 100%; /* 工具栏宽度为100% */
+        display: flex;
+        justify-content: center; /*  */
+        padding: 10px;
+        background-color: #f4f4f4; /* 背景颜色 */
+        border-bottom: 1px solid #ccc; /* 底边框 */
+    }
+
+    /* 工具、颜色和粗细调整组样式 */
+    .tool-group, .color-group, .thickness-group {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin-right: 10px; /* 组之间的右边距 */
+    }
+
+    /* 工具栏按钮样式 */
+    .tool-bar button {
+        padding: 5px;
+        font-size: 18px; /* 字体大小 */
+        cursor: pointer;
+        border: none; /* 去除边框 */
+        background-color: transparent; /* 透明背景 */
+        transition: background-color 0.3s; /* 背景颜色渐变 */
+    }
+
+    /* 鼠标悬停时按钮样式 */
+    .tool-bar button:hover {
+        background-color: #e0e0e0; /* 悬停背景颜色 */
+        border-radius: 4px; /* 圆角 */
+    }
+
+    /* 激活状态的按钮样式 */
+    .tool-bar button.active {
+        background-color: #ADD8E6; /* 激活时的背景颜色 */
+        border-radius: 4px;
+    }
+
+    /* 颜色按钮样式 */
+    .color-button {
+        width: 20px;
+        height: 20px;
+
+        border-radius: 50%; /* 圆形按钮 */
+        border: 2px solid transparent; /* 默认无边框 */
+        cursor: pointer;
+    }
+
+    /* 选中颜色时的样式 */
+    .color-button.selected-color {
+        border: 2px solid #FFD700; /* 选中颜色的边框颜色 */
+    }
+
+    /* 粗细调整滑块样式 */
+    .slider {
+        width: 90px; /* 滑块宽度 */
+    }
+
+    /* 粗细值显示样式 */
+    .thickness-value {
+        font-size: 14px;
+        width: 40px;
+        text-align: center; /* 居中显示 */
+    }
+
+    /* 画布容器样式 */
+    .canvas-container {
+        display: flex;
+        justify-content: flex-start;
+        align-items: flex-start;
+        margin-top: 0px;
+        width: 100%; /* 画布容器宽度 */
+        height: calc(100vh - 100px); /* 画布容器高度 */
+    }
+
+    /* 画布样式 */
+    canvas {
+        border: 1px solid black; /* 画布边框 */
+        background-color: white; /* 画布背景颜色 */
+        touch-action: none; /* 禁用触摸事件的默认行为 */
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box; /* 包含内边距和边框 */
+    }
+</style>
+
+</head>
+<body>
+    <div class="container">
+        <div class="tool-bar">
+            <div class="tool-group">
+                <button id="copyToClipboard" title="复制">📋</button>
+                <button id="pen" class="active" title="画笔">✏️</button>
+                <button id="eraser" title="橡皮">🧽</button>
+                <button id="clear" title="清除">🗑️</button>
+                <button id="undo" title="撤销">↩️</button>
+                <button id="redo" title="重做">↪️</button>
+            </div>
+
+
+        <div class="thickness-group">
+
+                <input type="range" id="thicknessSlider" class="slider" min="1" max="30" value="5">
+                <div class="thickness-value" id="thicknessValue">5 </div>
+                <input type="color" id="customColorInput" title="选择颜色" style="width: 20px; height: 20px; padding: 0; border: none;">
+            </div>
+            <div class="color-group">
+                <button id="black" class="color-button selected-color" style="background-color: black;"></button>
+                <button id="red" class="color-button" style="background-color: red;"></button>
+                <button id="blue" class="color-button" style="background-color: blue;"></button>
+                <button id="green" class="color-button" style="background-color: green;"></button>
+                <button id="yellow" class="color-button" style="background-color: #F1D206;"></button>
+
+
+        </div>
+
+    
+          </div>  
+
+
+
+
+
+
+
+
+        <div class="canvas-container">
+
+            <canvas id="drawingCanvas"></canvas>
+
+        </div>
+
+    </div>
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+        let currentColor = 'black';
+        let currentThickness = 5;
+        let drawing = false;
+        let mode = 'pen'; // 用于区分画笔和橡皮
+        let undoStack = [];
+        let redoStack = [];
+        const maxHistory = 50;
+
+        // 用于保存缩放前的图像数据
+        let savedImageData = null;
+
+        function saveCurrentImage() {
+            // 保存当前画布内容
+            savedImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        }
+
+        function restoreSavedImage() {
+            // 将保存的内容绘制回画布
+            if (savedImageData) {
+                const scaleX = canvas.width / savedImageData.width;
+                const scaleY = canvas.height / savedImageData.height;
+                ctx.save();
+                ctx.scale(scaleX, scaleY);
+                ctx.putImageData(savedImageData, 0, 0);
+                ctx.restore();
+            }
+        }
+
+        function resizeCanvas() {
+            saveCurrentImage();
+            canvas.width = document.querySelector('.canvas-container').clientWidth;
+            canvas.height = document.querySelector('.canvas-container').clientHeight;
+            restoreSavedImage();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        canvas.addEventListener('pointerdown', (event) => {
+            drawing = true;
+            ctx.beginPath();
+            ctx.moveTo(event.offsetX, event.offsetY);
+            saveState();
+        });
+
+        canvas.addEventListener('pointermove', (event) => {
+            if (drawing) {
+                ctx.lineTo(event.offsetX, event.offsetY);
+                ctx.lineWidth = currentThickness * (event.pressure || 1); // 结合压力的粗细
+                if (mode === 'pen') {
+                    ctx.globalCompositeOperation = 'source-over';
+                    ctx.strokeStyle = currentColor;
+                } else if (mode === 'eraser') {
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.strokeStyle = 'rgba(0,0,0,1)';
+                }
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(event.offsetX, event.offsetY);
+            }
+        });
+
+        canvas.addEventListener('pointerup', () => drawing = false);
+        canvas.addEventListener('pointerout', () => drawing = false);
+
+        function saveState() {
+            if (undoStack.length >= maxHistory) undoStack.shift();
+            undoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+            redoStack = []; // 撤销新操作后清除重做栈
+        }
+
+        function undo() {
+            if (undoStack.length > 0) {
+                redoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+                const lastState = undoStack.pop();
+                ctx.putImageData(lastState, 0, 0);
+            }
+        }
+
+        function redo() {
+            if (redoStack.length > 0) {
+                undoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+                const restoredState = redoStack.pop();
+                ctx.putImageData(restoredState, 0, 0);
+            }
+        }
+
+        document.getElementById('pen').addEventListener('click', () => setMode('pen'));
+        document.getElementById('eraser').addEventListener('click', () => setMode('eraser'));
+document.getElementById('clear').addEventListener('click', () => {
+    saveState();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setMode('pen'); // 清除后自动切换到画笔模式
+});
+
+        document.getElementById('undo').addEventListener('click', undo);
+        document.getElementById('redo').addEventListener('click', redo);
+
+        function setMode(newMode) {
+            mode = newMode;
+            [document.getElementById('pen'), document.getElementById('eraser')].forEach(button => button.classList.remove('active'));
+            document.getElementById(newMode).classList.add('active');
+        }
+
+        const thicknessSlider = document.getElementById('thicknessSlider');
+        thicknessSlider.addEventListener('input', (event) => {
+            currentThickness = event.target.value;
+            document.getElementById('thicknessValue').textContent = `${currentThickness} `;
+        });
+
+        const copyButton = document.getElementById('copyToClipboard');
+        copyButton.addEventListener('click', () => {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+
+            tempCtx.fillStyle = "white";
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            tempCtx.drawImage(canvas, 0, 0);
+
+            tempCanvas.toBlob(blob => {
+                const item = new ClipboardItem({ "image/png": blob });
+                navigator.clipboard.write([item]).then(() => {
+                    showTemporaryMessage("画布内容已复制到剪贴板！");
+                }).catch(err => {
+                    console.error("复制失败：", err);
+                });
+            });
+        });
+
+        function showTemporaryMessage(message) {
+            const messageBox = document.createElement("div");
+            messageBox.textContent = message;
+            messageBox.style.position = "fixed";
+            messageBox.style.top = "20px";
+            messageBox.style.left = "50%";
+            messageBox.style.transform = "translateX(-50%)";
+            messageBox.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
+            messageBox.style.color = "white";
+            messageBox.style.padding = "10px 20px";
+            messageBox.style.borderRadius = "5px";
+            messageBox.style.zIndex = "1000";
+
+            document.body.appendChild(messageBox);
+
+            setTimeout(() => {
+                document.body.removeChild(messageBox);
+            }, 2000);
+        }
+
+        document.addEventListener('paste', async (event) => {
+            try {
+                const clipboardItems = await navigator.clipboard.read();
+                for (const clipboardItem of clipboardItems) {
+                    if (clipboardItem.types.includes('image/png') || clipboardItem.types.includes('image/jpeg')) {
+                        const blob = await clipboardItem.getType(clipboardItem.types[0]);
+                        const img = new Image();
+                        img.src = URL.createObjectURL(blob);
+
+                        img.onload = () => {
+                            let drawWidth = img.width;
+                            let drawHeight = img.height;
+
+                            const widthRatio = canvas.width / drawWidth;
+                            const heightRatio = canvas.height / drawHeight;
+                            const scale = Math.min(widthRatio, heightRatio);
+                            drawWidth *= scale;
+                            drawHeight *= scale;
+
+                            const offsetX = (canvas.width - drawWidth) / 2;
+                            const offsetY = (canvas.height - drawHeight) / 2;
+
+                            ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+                            URL.revokeObjectURL(img.src);
+                        };
+
+                        break;
+                    }
+                }
+            } catch (error) {
+                console.error("粘贴图像失败：", error);
+            }
+        });
+
+        const colorButtons = document.querySelectorAll('.color-button');
+        colorButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                currentColor = button.style.backgroundColor;
+                setMode('pen'); // 选择颜色后自动切换到画笔模式
+                updateActiveColorButton(button);
+            });
+        });
+
+        const customColorInput = document.getElementById('customColorInput');
+        customColorInput.addEventListener('input', (event) => {
+            currentColor = event.target.value;
+            setMode('pen'); // 选择颜色后自动切换到画笔模式
+            updateActiveColorButton(null); // 自定义颜色没有按钮高亮
+        });
+
+        function updateActiveColorButton(activeButton) {
+            colorButtons.forEach(button => button.classList.remove('selected-color'));
+            if (activeButton) activeButton.classList.add('selected-color');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<svg width="800" height="800" id="coordinateSystem">
+  <g id="grid" transform="translate(400,400)">
+    <!-- 坐标轴 -->
+    <line x1="-400" y1="0" x2="400" y2="0" stroke="black" stroke-width="2"/>
+    <line x1="0" y1="-400" x2="0" y2="400" stroke="black" stroke-width="2"/>
+    
+    <!-- 刻度和网格 -->
+    <g id="gridLines"></g>
+    
+    <!-- 原点标记 -->
+    <text x="10" y="20" class="label">O(0,0)</text>
+    
+    <!-- 可移动的点 -->
+    <g id="points">
+      <circle id="pointA" cx="160" cy="-40" r="6" fill="red" style="cursor: pointer"/>
+      <text id="pointAText" x="170" y="-30" class="label">A</text>
+      
+      <circle id="pointB" cx="80" cy="-120" r="6" fill="blue" style="cursor: pointer"/>
+      <text id="pointBText" x="90" y="-110" class="label">B</text>
+    </g>
+    
+    <!-- 三角形 OAB -->
+    <polygon id="triangleOAB" points="0,0 160,-40 80,-120" fill="rgba(0, 255, 0, 0.3)" stroke="green" stroke-width="2"/>
+    
+    <!-- 显示三角形面积的文本框，位置调整到第一象限 -->
+    <text id="areaText" x="200" y="-200" class="label">Area: 0</text>
+  </g>
+</svg>
+
+<style>
+.label {
+  font-family: Arial;
+  font-size: 14px;
+  user-select: none;
+}
+</style>
+
+<script>
+const svg = document.getElementById('coordinateSystem');
+const grid = document.getElementById('gridLines');
+const pointA = document.getElementById('pointA');
+const pointB = document.getElementById('pointB');
+const pointAText = document.getElementById('pointAText');
+const pointBText = document.getElementById('pointBText');
+const triangleOAB = document.getElementById('triangleOAB');
+const areaText = document.getElementById('areaText');
+const scale = 40; // 每个单位的像素数
+
+// 绘制网格和刻度
+function drawGrid() {
+  grid.innerHTML = '';
+  
+  // 绘制刻度和网格线
+  for (let i = -10; i <= 10; i++) {
+    const pos = i * scale;
+    
+    // 水平网格线和刻度
+    if (i !== 0) {
+      const hLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      hLine.setAttribute("x1", -400);
+      hLine.setAttribute("y1", pos);
+      hLine.setAttribute("x2", 400);
+      hLine.setAttribute("y2", pos);
+      hLine.setAttribute("stroke", "#ddd");
+      hLine.setAttribute("stroke-width", "1");
+      grid.appendChild(hLine);
+      
+      const yLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      yLabel.setAttribute("x", "5");
+      yLabel.setAttribute("y", -pos + 5);
+      yLabel.setAttribute("class", "label");
+      yLabel.textContent = Math.round(i);  // 显示整数
+      grid.appendChild(yLabel);
+    }
+    
+    // 垂直网格线和刻度
+    if (i !== 0) {
+      const vLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      vLine.setAttribute("x1", pos);
+      vLine.setAttribute("y1", -400);
+      vLine.setAttribute("x2", pos);
+      vLine.setAttribute("y2", 400);
+      vLine.setAttribute("stroke", "#ddd");
+      vLine.setAttribute("stroke-width", "1");
+      grid.appendChild(vLine);
+      
+      const xLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      xLabel.setAttribute("x", pos);
+      xLabel.setAttribute("y", 20);
+      xLabel.setAttribute("class", "label");
+      xLabel.setAttribute("text-anchor", "middle");
+      xLabel.textContent = Math.round(i);  // 显示整数
+      grid.appendChild(xLabel);
+    }
+  }
+}
+
+// 更新点的坐标显示
+function updatePointLabel(point, text) {
+  const cx = parseFloat(point.getAttribute('cx'));
+  const cy = parseFloat(point.getAttribute('cy'));
+  const x = Math.round(cx / scale);  // 取整显示
+  const y = Math.round(-cy / scale);  // 取整显示
+  text.textContent = `${point.id.slice(-1)}(${x}, ${y})`;
+}
+
+// 更新三角形 OAB 的坐标
+function updateTriangle() {
+  const ax = parseFloat(pointA.getAttribute('cx')) / scale; // 转换为网格单位
+  const ay = parseFloat(pointA.getAttribute('cy')) / scale; // 转换为网格单位
+  const bx = parseFloat(pointB.getAttribute('cx')) / scale; // 转换为网格单位
+  const by = parseFloat(pointB.getAttribute('cy')) / scale; // 转换为网格单位
+  triangleOAB.setAttribute('points', `0,0 ${ax * scale},${ay * scale} ${bx * scale},${by * scale}`);
+  updateArea(ax, ay, bx, by); // 更新面积
+}
+
+// 计算三角形面积
+function updateArea(ax, ay, bx, by) {
+  // 使用叉积公式计算面积
+  const area = Math.abs(ax * by - bx * ay) / 2;
+  areaText.textContent = `Area: ${area.toFixed(2)}`;  // 更新面积文本
+}
+
+// 处理点的拖动
+let activePoint = null;
+let startX, startY;
+
+function startPointDrag(e, point) {
+  e.preventDefault();
+  activePoint = point;
+  const pt = svg.createSVGPoint();
+  pt.x = e.clientX;
+  pt.y = e.clientY;
+  const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+  startX = svgP.x - parseFloat(point.getAttribute('cx'));
+  startY = svgP.y - parseFloat(point.getAttribute('cy'));
+}
+
+pointA.addEventListener('mousedown', (e) => startPointDrag(e, pointA));
+pointB.addEventListener('mousedown', (e) => startPointDrag(e, pointB));
+
+document.addEventListener('mousemove', (e) => {
+  if (activePoint) {
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const newX = svgP.x - startX;
+    const newY = svgP.y - startY;
+
+    // 取整
+    const roundedX = Math.round(newX);
+    const roundedY = Math.round(newY);
+    
+    activePoint.setAttribute('cx', roundedX);
+    activePoint.setAttribute('cy', roundedY);
+    
+    const text = activePoint.id === 'pointA' ? pointAText : pointBText;
+    text.setAttribute('x', roundedX + 10);
+    text.setAttribute('y', roundedY + 10);
+    updatePointLabel(activePoint, text);
+    updateTriangle(); // 更新三角形
+  }
+});
+
+// 吸附到最近格点
+document.addEventListener('mouseup', () => {
+  if (activePoint) {
+    const roundedX = Math.round(parseFloat(activePoint.getAttribute('cx')) / scale) * scale;
+    const roundedY = Math.round(parseFloat(activePoint.getAttribute('cy')) / scale) * scale;
+    
+    activePoint.setAttribute('cx', roundedX);
+    activePoint.setAttribute('cy', roundedY);
+    
+    const text = activePoint.id === 'pointA' ? pointAText : pointBText;
+    text.setAttribute('x', roundedX + 10);
+    text.setAttribute('y', roundedY + 10);
+    updatePointLabel(activePoint, text);
+    updateTriangle(); // 更新三角形
+  }
+  activePoint = null;
+});
+
+// 初始化
+drawGrid();
+updatePointLabel(pointA, pointAText);
+updatePointLabel(pointB, pointBText);
+updateTriangle(); // 绘制初始三角形
+</script>

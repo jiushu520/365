@@ -249,11 +249,14 @@
             100% { transform: rotate(360deg); }
         }
     </style>
+        <!-- 引入 MathJax 库 -->
+
+    <script id="MathJax-script" defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
 <!-- 引入 proverbs.js -->
     <script src="proverbs.js"></script>
     <!-- 引入 accounts.js -->
-    <script src="accounts2.js"></script>
+    <script src="accounts.js"></script>
     <script>
     document.addEventListener("DOMContentLoaded", () => {
         const userInput = document.getElementById("userInput");
@@ -512,36 +515,21 @@ document.getElementById("expirationDate").textContent = `截止日期: ${formatt
 };
 
 
-const deleteAllCookies = () => {
-    const cookies = document.cookie.split("; ");
-    for (let cookie of cookies) {
-        const eqPos = cookie.indexOf("=");
-        const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-        // 设置过期时间为过去的时间，删除 cookie
-        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
-    }
-};
+        const logout = () => {
+            const currentUser = localStorage.getItem("lastUser");
+            if (currentUser) {
+                removeUser(currentUser);
+            }
+            hideIframe();
+            container.style.display = "flex";
+            displayMessage("已退出，请重新登录。", "success");
+            userInput.value = "";
+            passwordInput.value = "";
 
-
-
-const logout = () => {
-    const currentUser = localStorage.getItem("lastUser");
-    if (currentUser) {
-        removeUser(currentUser);
-    }
-    // 删除所有 cookies
-    deleteAllCookies();
-    hideIframe();
-    container.style.display = "flex";
-    displayMessage("已退出，请重新登录。", "success");
-    userInput.value = "";
-    passwordInput.value = "";
-
-    // 清除头像
-    userAvatar.src = "";
-    userAvatar.style.display = "none";
-};
-
+            // 清除头像
+            userAvatar.src = "";
+            userAvatar.style.display = "none";
+        };
 
         // 绑定按钮点击事件
         openButton.addEventListener("click", validateAndRedirect);
