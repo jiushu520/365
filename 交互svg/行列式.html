@@ -1,4 +1,11 @@
 <svg width="800" height="800" id="coordinateSystem">
+  <defs>
+    <!-- 定义箭头标记 -->
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="black" />
+    </marker>
+  </defs>
+  
   <g id="grid" transform="translate(400,400)">
     <!-- 坐标轴 -->
     <line x1="-400" y1="0" x2="400" y2="0" stroke="black" stroke-width="2"/>
@@ -10,20 +17,36 @@
     <!-- 原点标记 -->
     <text x="10" y="20" class="label">O(0,0)</text>
     
+    <!-- 向量 OC -->
+    <line id="vectorOC" x1="0" y1="0" x2="240" y2="-160" stroke="purple" stroke-width="2" marker-end="url(#arrow)"/>
+    <text id="vectorOCText" x="250" y="-170" class="label" fill="purple">OC</text>
+    
     <!-- 可移动的点 -->
     <g id="points">
-      <circle id="pointA" cx="160" cy="-40" r="6" fill="red" style="cursor: pointer"/>
+      <circle id="pointA" cx="160" cy="-40" r="9" fill="red" style="cursor: pointer"/>
       <text id="pointAText" x="170" y="-30" class="label">A</text>
       
-      <circle id="pointB" cx="80" cy="-120" r="6" fill="blue" style="cursor: pointer"/>
+      <circle id="pointB" cx="80" cy="-120" r="9" fill="blue" style="cursor: pointer"/>
       <text id="pointBText" x="90" y="-110" class="label">B</text>
+      
+      <!-- 新增的点 C（此示例中默认放在原 A+B 的位置） -->
+      <circle id="pointC" cx="240" cy="-160" r="9" fill="orange"/>
+      <text id="pointCText" x="250" y="-150" class="label">C</text>
+      
+      <circle id="pointO" cx="0" cy="0" r="9" fill="black" style="cursor: pointer"/>
+      <text x="0" y="0" class="label">O</text>
     </g>
     
-    <!-- 三角形 OAB -->
-    <polygon id="triangleOAB" points="0,0 160,-40 80,-120" fill="rgba(0, 255, 0, 0.3)" stroke="green" stroke-width="2"/>
+    <!-- 平行四边形 OABC -->
+    <polygon id="parallelogramOABC" 
+             points="0,0 160,-40 80,-120" 
+             fill="rgba(0, 255, 0, 0.3)" 
+             stroke="green" 
+             stroke-width="2"/>
     
-    <!-- 显示三角形面积的文本框，位置调整到第一象限 -->
-    <text id="areaText" x="200" y="-200" class="label">Area: 0</text>
+    <!-- 显示平行四边形面积的文本框 -->
+    <text id="areaText" x="10" y="-300" class="label">Area: 0</text>
+    <text x="50" y="50" class="label">玖数：拖动AB两点</text>
   </g>
 </svg>
 
@@ -40,17 +63,22 @@ const svg = document.getElementById('coordinateSystem');
 const grid = document.getElementById('gridLines');
 const pointA = document.getElementById('pointA');
 const pointB = document.getElementById('pointB');
+const pointC = document.getElementById('pointC');      // 新增
 const pointAText = document.getElementById('pointAText');
 const pointBText = document.getElementById('pointBText');
-const triangleOAB = document.getElementById('triangleOAB');
+const pointCText = document.getElementById('pointCText'); // 新增
+const vectorOC = document.getElementById('vectorOC');     // 新增
+const vectorOCText = document.getElementById('vectorOCText'); // 新增
+
+// 平行四边形
+const parallelogramOABC = document.getElementById('parallelogramOABC');
 const areaText = document.getElementById('areaText');
-const scale = 40; // 每个单位的像素数
+
+const scale = 35; // 每个单位的像素数
 
 // 绘制网格和刻度
 function drawGrid() {
   grid.innerHTML = '';
-  
-  // 绘制刻度和网格线
   for (let i = -10; i <= 10; i++) {
     const pos = i * scale;
     
@@ -99,27 +127,62 @@ function drawGrid() {
 function updatePointLabel(point, text) {
   const cx = parseFloat(point.getAttribute('cx'));
   const cy = parseFloat(point.getAttribute('cy'));
-  const x = Math.round(cx / scale);  // 取整显示
+  const x = Math.round(cx / scale);   // 取整显示
   const y = Math.round(-cy / scale);  // 取整显示
+  // 点的 id 如果是 pointA，slice(-1) 就是 'A'；pointC 就是 'C'，依此类推
   text.textContent = `${point.id.slice(-1)}(${x}, ${y})`;
 }
 
-// 更新三角形 OAB 的坐标
-function updateTriangle() {
-  const ax = parseFloat(pointA.getAttribute('cx')) / scale; // 转换为网格单位
-  const ay = parseFloat(pointA.getAttribute('cy')) / scale; // 转换为网格单位
-  const bx = parseFloat(pointB.getAttribute('cx')) / scale; // 转换为网格单位
-  const by = parseFloat(pointB.getAttribute('cy')) / scale; // 转换为网格单位
-  triangleOAB.setAttribute('points', `0,0 ${ax * scale},${ay * scale} ${bx * scale},${by * scale}`);
-  updateArea(ax, ay, bx, by); // 更新面积
+// ================ 关键：在原逻辑基础上，自动计算 C = A + B ================
+function updateParallelogram() {
+  // 获取 A, B 的坐标（单位坐标）
+  const ax = parseFloat(pointA.getAttribute('cx')) / scale;
+  const ay = parseFloat(pointA.getAttribute('cy')) / scale;
+  const bx = parseFloat(pointB.getAttribute('cx')) / scale;
+  const by = parseFloat(pointB.getAttribute('cy')) / scale;
+  
+  // 计算 C = A + B
+  const cx = ax + bx;
+  const cy = ay + by;
+  
+  // 同步更新 SVG 里展示点 C 的位置
+  pointC.setAttribute('cx', cx * scale);
+  pointC.setAttribute('cy', cy * scale);
+  pointCText.setAttribute('x', cx * scale + 10);
+  pointCText.setAttribute('y', cy * scale + 10);
+  updatePointLabel(pointC, pointCText);
+
+  // 更新平行四边形顶点 (O, A, C, B)，保证是个平行四边形
+  parallelogramOABC.setAttribute(
+    'points',
+    `0,0 
+    ${ax * scale},${ay * scale} 
+    ${cx * scale},${cy * scale} 
+    ${bx * scale},${by * scale}`
+  );
+  
+  // 更新面积（平行四边形面积 = |A x B| = |ax*by - bx*ay|）
+  updateArea(ax, ay, bx, by);
+  
+  // 更新向量 OC
+  updateVectorOC(cx, cy);
 }
 
-// 计算三角形面积
 function updateArea(ax, ay, bx, by) {
-  // 使用叉积公式计算面积
-  const area = Math.abs(ax * by - bx * ay) / 2;
-  areaText.textContent = `Area: ${area.toFixed(2)}`;  // 更新面积文本
+  const area = Math.abs(ax * by - bx * ay);  // 注意不再 /2
+  areaText.textContent = `平行四边形面积: ${area.toFixed(2)}`;
 }
+
+// 更新向量 OC 的位置
+function updateVectorOC(cx, cy) {
+  vectorOC.setAttribute('x2', cx * scale);
+  vectorOC.setAttribute('y2', cy * scale);
+  // 更新 OC 标签的位置
+  vectorOCText.setAttribute('x', cx * scale + 10);
+  vectorOCText.setAttribute('y', cy * scale - 10);
+}
+
+// ================ 关键部分结束 ================
 
 // 处理点的拖动
 let activePoint = null;
@@ -155,11 +218,11 @@ document.addEventListener('mousemove', (e) => {
     activePoint.setAttribute('cx', roundedX);
     activePoint.setAttribute('cy', roundedY);
     
-    const text = activePoint.id === 'pointA' ? pointAText : pointBText;
+    const text = (activePoint.id === 'pointA') ? pointAText : pointBText;
     text.setAttribute('x', roundedX + 10);
     text.setAttribute('y', roundedY + 10);
     updatePointLabel(activePoint, text);
-    updateTriangle(); // 更新三角形
+    updateParallelogram(); // 调用更新平行四边形
   }
 });
 
@@ -172,11 +235,11 @@ document.addEventListener('mouseup', () => {
     activePoint.setAttribute('cx', roundedX);
     activePoint.setAttribute('cy', roundedY);
     
-    const text = activePoint.id === 'pointA' ? pointAText : pointBText;
+    const text = (activePoint.id === 'pointA') ? pointAText : pointBText;
     text.setAttribute('x', roundedX + 10);
     text.setAttribute('y', roundedY + 10);
     updatePointLabel(activePoint, text);
-    updateTriangle(); // 更新三角形
+    updateParallelogram();
   }
   activePoint = null;
 });
@@ -185,5 +248,7 @@ document.addEventListener('mouseup', () => {
 drawGrid();
 updatePointLabel(pointA, pointAText);
 updatePointLabel(pointB, pointBText);
-updateTriangle(); // 绘制初始三角形
+// 同步 C 的初始位置和标签
+updatePointLabel(pointC, pointCText);
+updateParallelogram();
 </script>
