@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+ <link rel="icon" href="icon.ico" type="image/x-icon">
+    <meta charset="UTF-8">
+    <title>玖数学</title>
+    <style>
+        /* 现有的样式保持不变 */
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #f1f1f1;
+            --error-color: #f44336;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --input-padding: 12px 20px;
+            --button-padding: 12px 20px;
+            --transition-speed: 0.3s;
+            --header-height: 50px;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            background: linear-gradient(135deg, #ece9e6, #ffffff);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* 防止内容溢出 */
+        }
+
+        /* 眉栏样式 */
+        #userHeader {
+            width: 100%; /* 设置全宽 */
+            background-color: #ADD8E6; /* 设置浅蓝色背景 */
+            color: #000; /* 将文本颜色改为黑色以提高对比度 */
+            padding: 10px 20px;
+            box-sizing: border-box;
+            display: none; /* 初始隐藏 */
+            border-radius: 0; /* 移除圆角 */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: var(--header-height);
+        }
+
+        /* 头像样式 */
+        #userAvatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            display: none; /* 初始隐藏 */
+        }
+
+        /* 退出按钮样式 */
+        #logoutButton {
+            background-color: var(--error-color);
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color var(--transition-speed);
+            width: 50px; /* 宽度适应两个汉字 */
+            height: 30px;
+            font-size: 14px;
+            padding: 0;
+        }
+
+#expirationDate {
+    font-size: 14px;
+    color: #000;
+    margin-left: auto; /* 自动向右对齐 */
+    margin-right: 20px; /* 离退出按钮的间距 */
+    white-space: nowrap; /* 防止日期换行 */
+}
+
+
+
+
+        #logoutButton:hover {
+            background-color: #d32f2f;
+        }
+
+        /* 主内容区域 */
+        #mainContent {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: auto;
+        }
+
+        /* 登录容器样式 */
+        .container {
+            background-color: #fff;
+            padding: 40px 30px;
+            border-radius: 0px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+            animation: fadeIn 1s ease-in-out;
+            z-index: 10; /* 确保容器在 iframe 之上 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--primary-color);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+            width: 100%;
+        }
+
+        input {
+            width: 100%;
+            padding: var(--input-padding);
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            transition: border-color var(--transition-speed);
+            font-size: 16px;
+        }
+
+        input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+        }
+
+        button {
+            padding: var(--button-padding);
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color var(--transition-speed);
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* iframe样式 */
+        #contentFrame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 0;  /* 去掉圆角，确保充满屏幕 */
+            box-shadow: none;
+            display: none;  /* 初始状态为隐藏 */
+            animation: slideDown 0.5s ease-in-out;
+        }
+
+        /* 消息样式 */
+        .message {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        .error {
+            color: var(--error-color);
+        }
+
+        .success {
+            color: var(--primary-color);
+        }
+
+        /* 加载指示器样式 */
+        #loader {
+            display: none;
+            text-align: center;
+            margin-top: 30px;
+            width: 100%;
+        }
+
+        .spinner {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            input, button {
+                font-size: 14px;
+            }
+
+            #logoutButton {
+                width: 40px; /* 适应小屏幕 */
+                height: 25px;
+                font-size: 12px;
+            }
+
+            #userHeader {
+                padding: 8px 15px;
+                height: 40px;
+            }
+
+            #userAvatar {
+                width: 30px;
+                height: 30px;
+            }
+        
+
+
+
+}
+
+        /* 动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+        <!-- 引入 MathJax 库 -->
+
+    <script id="MathJax-script" defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<!-- 引入 proverbs.js -->
+    <script src="proverbs.js"></script>
+    <!-- 引入 accounts.js -->
+    <script src="accounts.js"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const userInput = document.getElementById("userInput");
+        const passwordInput = document.getElementById("passwordInput");
+        const openButton = document.getElementById("openButton");
+        const iframe = document.getElementById("contentFrame");
+        const messageDiv = document.getElementById("message");
+        const loader = document.getElementById("loader");
+        const container = document.querySelector(".container");
+        const userHeader = document.getElementById("userHeader");
+        const logoutButton = document.getElementById("logoutButton");
+        const welcomeText = document.getElementById("welcomeText");
+        const proverbText = document.getElementById("proverbText"); // 新增
+        const userAvatar = document.getElementById("userAvatar");
+
+        let isAuthenticated = false;
+
+        // 添加头像生成函数（可选）
+        const generateAvatar = (username) => {
+            return `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=0D8ABC&color=fff&size=128`;
+        };
+
+       
+
+        // 随机选择一条谚言
+        const getRandomProverb = () => {
+            const index = Math.floor(Math.random() * mathProverbs.length);
+            return mathProverbs[index];
+        };
+
+        // 显示页面的函数
+        const showIframe = (pageNumber) => {
+            loader.style.display = "block";
+            iframe.style.display = "block";
+            iframe.src = `${pageNumber}.html`;
+        };
+
+        const hideIframe = () => {
+            iframe.src = "";
+            iframe.style.display = "none";
+            loader.style.display = "none";
+            userHeader.style.display = "none";
+            userAvatar.style.display = "none";
+            proverbText.innerHTML = ""; // 清空谚言
+            isAuthenticated = false;
+            container.style.display = "flex";
+        };
+
+        const displayMessage = (text, type) => {
+            messageDiv.textContent = text;
+            if (type === 'error') {
+                messageDiv.classList.remove('success');
+                messageDiv.classList.add('error');
+            } else if (type === 'success') {
+                messageDiv.classList.remove('error');
+                messageDiv.classList.add('success');
+            } else {
+                messageDiv.classList.remove('error', 'success');
+            }
+        };
+
+        iframe.addEventListener("load", () => {
+            if (isAuthenticated) {
+                loader.style.display = "none";
+                displayMessage("页面加载完成", "success");
+            }
+        });
+
+        // 保存用户信息到 localStorage
+        const saveUser = (username) => {
+            let savedUsers = JSON.parse(localStorage.getItem("savedUsers")) || {};
+            savedUsers[username] = true;
+            localStorage.setItem("savedUsers", JSON.stringify(savedUsers));
+            localStorage.setItem("lastUser", username);
+        };
+
+        // 移除用户信息
+        const removeUser = (username) => {
+            let savedUsers = JSON.parse(localStorage.getItem("savedUsers")) || {};
+            delete savedUsers[username];
+            localStorage.setItem("savedUsers", JSON.stringify(savedUsers));
+            localStorage.removeItem("lastUser");
+        };
+
+        // 加载保存的用户并自动登录
+        const loadSavedUsers = () => {
+            let savedUsers = JSON.parse(localStorage.getItem("savedUsers")) || {};
+            const usernames = Object.keys(savedUsers);
+            if (usernames.length > 0) {
+                const lastUser = localStorage.getItem("lastUser");
+                if (lastUser && savedUsers[lastUser]) {
+                    autoLogin(lastUser);
+                }
+            }
+        };
+
+        // 检查账号是否过期
+        const isAccountExpired = (expirationDateStr) => {
+            const today = new Date();
+            const expirationDate = new Date(expirationDateStr);
+
+            // 检查日期是否有效
+            if (isNaN(expirationDate)) {
+                console.error(`无效的到期日期: ${expirationDateStr}`);
+                displayMessage("系统错误，请联系管理员。", "error");
+                return true; // 防止登录
+            }
+
+            // 设置时间为午夜以仅比较日期部分
+            today.setHours(0, 0, 0, 0);
+            expirationDate.setHours(0, 0, 0, 0);
+
+            return today > expirationDate;
+        };
+
+        // 自动登录函数
+const autoLogin = (username) => {
+    console.log(`尝试自动登录用户: ${username}`);
+    if (userPasswordMap.hasOwnProperty(username)) {
+        const user = userPasswordMap[username];
+        console.log(`用户信息:`, user);
+
+        // 检查账号是否过期
+        if (isAccountExpired(user.expirationDate)) {
+            console.log("账号已过期");
+            hideIframe();
+            return;
+        }
+
+        // 获取随机谚言
+        const proverb = getRandomProverb();
+
+        // 设置欢迎文本
+        welcomeText.textContent = `你好呀, ${username}。`;
+
+
+
+        // 设置谚言文本
+        proverbText.innerHTML = `\\(${proverb}\\)`;
+        MathJax.typesetPromise([proverbText]).then(() => {
+            console.log("MathJax 渲染完成");
+        }).catch((err) => console.error("MathJax 渲染失败:", err));
+
+
+
+        // 显示截止日期
+
+const expirationDate = new Date(user.expirationDate);
+const formattedDate = `${expirationDate.getFullYear()}-${(expirationDate.getMonth() + 1).toString().padStart(2, '0')}-${expirationDate.getDate().toString().padStart(2, '0')}`;
+document.getElementById("expirationDate").textContent = `截止日期: ${formattedDate}`;
+
+
+        displayMessage(`欢迎回来，${username}！正在加载页面...`, "success");
+        isAuthenticated = true;
+        showIframe(user.page);
+        userHeader.style.display = "flex";
+        logoutButton.style.display = "block";
+
+        // 设置头像
+        if (user.avatar) {
+            userAvatar.src = user.avatar;
+        } else {
+            userAvatar.src = generateAvatar(username);
+        }
+        userAvatar.style.display = "block";
+
+        // 保存用户信息
+        saveUser(username);
+        container.style.display = "none";
+    } else {
+        console.log(`用户 ${username} 不存在于 userPasswordMap`);
+    }
+};
+
+
+
+
+
+const validateAndRedirect = () => {
+    const userValue = userInput.value.trim();
+    const passwordValue = passwordInput.value.trim();
+
+    console.log(`尝试登录用户: ${userValue}`);
+
+    if (!userPasswordMap.hasOwnProperty(userValue)) {
+        console.log("用户名不存在");
+        displayMessage("用户名不存在，请检查输入。", "error");
+        hideIframe();
+        return;
+    }
+
+    const user = userPasswordMap[userValue];
+    
+    console.log(`用户: ${userValue}`);
+    console.log(`今天: ${new Date()}`);
+    console.log(`到期日: ${user.expirationDate}`);
+
+    // 检查账号是否过期
+    if (isAccountExpired(user.expirationDate)) {
+        console.log("账号已过期");
+        displayMessage("您的账号已过期，请联系管理员。", "error");
+        hideIframe();
+        return;
+    }
+
+    if (passwordValue === user.password) {
+        console.log("密码正确，登录成功");
+        displayMessage("验证成功，正在加载页面...", "success");
+        isAuthenticated = true;
+        showIframe(user.page);
+
+        // 获取随机谚言
+        const proverb = getRandomProverb();
+
+        // 设置欢迎文本
+        welcomeText.textContent = `你好呀, ${userValue}同学。`;
+
+
+
+        // 设置谚言文本
+        proverbText.innerHTML = `\\(${proverb}\\)`;
+        MathJax.typesetPromise([proverbText]).then(() => {
+            console.log("MathJax 渲染完成");
+        }).catch((err) => console.error("MathJax 渲染失败:", err));
+
+
+        // 显示截止日期
+
+const expirationDate = new Date(user.expirationDate);
+const formattedDate = `${expirationDate.getFullYear()}-${(expirationDate.getMonth() + 1).toString().padStart(2, '0')}-${expirationDate.getDate().toString().padStart(2, '0')}`;
+document.getElementById("expirationDate").textContent = `截止日期: ${formattedDate}`;
+
+
+
+        userHeader.style.display = "flex";
+        logoutButton.style.display = "block";
+
+        // 设置头像
+        if (user.avatar) {
+            userAvatar.src = user.avatar;
+        } else {
+            userAvatar.src = generateAvatar(userValue);
+        }
+        userAvatar.style.display = "block";
+
+        // 保存用户信息
+        saveUser(userValue);
+
+        // 隐藏登录界面
+        container.style.display = "none";
+    } else {
+        console.log("密码错误");
+        displayMessage("密码错误，请重新输入。", "error");
+        hideIframe();
+    }
+};
+
+
+        const logout = () => {
+            const currentUser = localStorage.getItem("lastUser");
+            if (currentUser) {
+                removeUser(currentUser);
+            }
+            hideIframe();
+            container.style.display = "flex";
+            displayMessage("已退出，请重新登录。", "success");
+            userInput.value = "";
+            passwordInput.value = "";
+
+            // 清除头像
+            userAvatar.src = "";
+            userAvatar.style.display = "none";
+        };
+
+        // 绑定按钮点击事件
+        openButton.addEventListener("click", validateAndRedirect);
+
+        // 绑定回车键事件
+        [userInput, passwordInput].forEach(input => {
+            input.addEventListener("keypress", (event) => {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    validateAndRedirect();
+                }
+            });
+        });
+
+        // 绑定退出按钮事件
+        logoutButton.addEventListener("click", logout);
+
+        // 加载保存的用户
+        loadSavedUsers();
+    });
+    </script>
+
+</head>
+<body>
+    <!-- 新增的眉栏，放置在 .container 之外以实现全宽 -->
+    <div id="userHeader">
+        <div style="display: flex; align-items: center;">
+            <img id="userAvatar" src="" alt="用户头像">
+            <div>
+                <span id="welcomeText"></span>
+                <span id="proverbText"></span> <!-- 新增 -->
+            </div>
+        </div>
+        <span id="expirationDate" style="margin-left: auto; margin-right: 10px;"></span> <!-- 添加 -->
+        <button id="logoutButton">退出</button>
+    </div>
+
+    <div id="mainContent" class="main-content">
+        <div class="container">
+            <h1>选择要打开的页面</h1>
+            <div class="message" id="message" aria-live="polite"></div>
+            <label for="userInput">姓名</label>
+            <input type="text" id="userInput" placeholder="请输入用户名" autocomplete="off">
+            
+            <label for="passwordInput">密码</label>
+            <input type="password" id="passwordInput" placeholder="请输入密码" autocomplete="off">
+            
+            <button id="openButton">打开页面</button>
+
+            <!-- 加载指示器 -->
+            <div id="loader">
+                <div class="spinner"></div>
+                <p>请输入正确的用户名与密码</p>
+            </div>
+        </div>
+
+        <!-- 嵌入的 iframe -->
+        <iframe id="contentFrame" title="嵌入内容"></iframe>
+    </div>
+</body>
+</html>
