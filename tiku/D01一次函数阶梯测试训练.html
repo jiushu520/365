@@ -231,7 +231,7 @@
         let incorrectCount = 0;
         let currentDifficulty = 1;
 
-         const difficultyNames = ["01求函数值", "02求值", "03求截距", "04求斜率", "05求三角面积", "06点到直线距高", "07垂足", "08对称点", "09综合测试", "10挑战自招"];
+         const difficultyNames = ["01求函数值", "02求值", "03求截距", "04求斜率", "05求三角面积",   "06求解析式",      "07点到直线距高", "08垂足", "09对称点", "10综合测试", "11挑战自招"];
 
         document.addEventListener("DOMContentLoaded", () => {
             generateDifficultyButtons();
@@ -266,9 +266,11 @@ const videoConfig = {
     3: "<iframe src='https://player.bilibili.com/player.html?bvid=BV1Xu4y1v7em&high_quality=1&danmaku=0' width='640' height='360' allowfullscreen allow='autoplay; fullscreen' frameborder='0'></iframe>",
     4: "<video src='http://vs.leleketang.com/dat/hs/ma/k/video/22135.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
     5: "<iframe src='https://player.bilibili.com/player.html?bvid=BV1p3411j7YW&high_quality=1&danmaku=0' width='640' height='360' allowfullscreen allow='autoplay; fullscreen' frameborder='0'></iframe>",  
-    6: "<iframe src='https://player.bilibili.com/player.html?bvid=BV1wWpye1EBX&high_quality=1&danmaku=0' width='640' height='360' allowfullscreen allow='autoplay; fullscreen' frameborder='0'></iframe>",
+
+
     7: "<iframe src='https://player.bilibili.com/player.html?bvid=BV1wWpye1EBX&high_quality=1&danmaku=0' width='640' height='360' allowfullscreen allow='autoplay; fullscreen' frameborder='0'></iframe>",
     8: "<iframe src='https://player.bilibili.com/player.html?bvid=BV1wWpye1EBX&high_quality=1&danmaku=0' width='640' height='360' allowfullscreen allow='autoplay; fullscreen' frameborder='0'></iframe>",
+    9: "<iframe src='https://player.bilibili.com/player.html?bvid=BV1wWpye1EBX&high_quality=1&danmaku=0' width='640' height='360' allowfullscreen allow='autoplay; fullscreen' frameborder='0'></iframe>",
 
 
 
@@ -332,8 +334,10 @@ function setDifficulty(level) {
                 case 6: return generateLevel6Question();
                 case 7: return generateLevel7Question();
                 case 8: return generateLevel8Question();
-                case 9: return generateLevelcomQuestion();
-                case 10: return generateLevel10Question();
+                case 9: return generateLevel9Question();
+
+                case 10: return generateLevelcomQuestion();
+                case 11: return generateLevel10Question();
 
                 default: return "";
             }
@@ -462,11 +466,122 @@ function setDifficulty(level) {
             let b = Math.floor(Math.random() * 11) - 5;
             let yb = ((xa * b - xb * ya) % 2 === 0) ? b : b + 1; 
             let s = 0.5 * Math.abs(xa * yb - xb * ya);
-            correctAnswer =  [`${s}`];;
+            correctAnswer =  [`${s}`];
             return `\\(\\begin{array}{lll}直角坐标系中点O(0,0),A(${xa},${ya}),B(${xb},${yb});\\\\SΔOAB=?\\\\你可以用多少不同的方法来运算，\\\\你可以先用ggb画一下的;\\\\铅垂？割补？点到线距离？三角函数？行列式？ \\end{array}\\)`;
         }
 
-        function generateLevel6Question() {
+
+
+
+
+
+   
+
+
+
+function generateLevel6Question() {
+    // Helper function to compute GCD of two numbers
+    function gcd(a, b) {
+        if (!b) return Math.abs(a);
+        return gcd(b, a % b);
+    }
+
+    // Helper function to compute GCD of three numbers
+    function gcd3(a, b, c) {
+        return gcd(gcd(a, b), c);
+    }
+
+    let xa, ya, xb, yb;
+    // Ensure that the two points do not form a vertical or horizontal line
+    do {
+        xa = Math.floor(Math.random() * 11) - 5; // -5 to 5
+        ya = Math.floor(Math.random() * 11) - 5; // -5 to 5
+        let offsetX = Math.floor(Math.random() * 10) + 1; // 1 to 10
+        let directionX = Math.random() < 0.5 ? -1 : 1;
+        xb = xa + offsetX * directionX;
+
+        let offsetY = Math.floor(Math.random() * 10) + 1; // 1 to 10
+        let directionY = Math.random() < 0.5 ? -1 : 1;
+        yb = ya + offsetY * directionY;
+    } while (xa === xb || ya === yb); // Repeat if vertical or horizontal
+
+    // Calculate coefficients a, b, c for the general form ax + by + c = 0
+    // Using two-point form:
+    // (y2 - y1)x - (x2 - x1)y + (x2 y1 - x1 y2) = 0
+    let a = yb - ya;
+    let b = xa - xb;
+    let c = xb * ya - xa * yb;
+
+    // Normalize coefficients to make them coprime and a positive
+    let divisor = gcd3(a, b, c);
+    a /= divisor;
+    b /= divisor;
+    c /= divisor;
+
+    // Ensure that a is positive
+    if (a < 0) {
+        a = -a;
+        b = -b;
+        c = -c;
+    }
+
+    // Function to format the coefficient for x and y
+    function formatCoefficient(coef, variable) {
+        if (coef === 1) {
+            return `${variable}`;
+        } else if (coef === -1) {
+            return `-${variable}`;
+        } else {
+            return `${coef}${variable}`;
+        }
+    }
+
+    // Function to format the constant term c
+    function formatConstant(c) {
+        if (c > 0) {
+            return `+ ${c}`;
+        } else if (c < 0) {
+            return `- ${Math.abs(c)}`;
+        } else {
+            return '';
+        }
+    }
+
+    // Construct the equation string based on the coefficients
+    let equation = `${formatCoefficient(a, 'x')} `;
+    
+    // Handle the sign for the y term
+    if (b >= 0) {
+        equation += `+ ${formatCoefficient(b, 'y')} `;
+    } else {
+        equation += `- ${formatCoefficient(-b, 'y')} `;
+    }
+
+    // Handle the constant term
+    if (c !== 0) {
+        equation += `${formatConstant(c)} `;
+    }
+
+    equation += `= 0`;
+
+    // Set the correct answer
+    correctAnswer = [equation];
+
+    // Return the formatted question in LaTeX
+    return `\\(\\begin{array}{lll}
+    已知直线经过点A(${xa}, ${ya})和点B(${xb}, ${yb})；\\\\
+    求该直线的一般式方程：ax + by + c = 0，\\\\其中a, b, c为互质整数，且a > 0。\\\\
+    \\textup{请在答案框中输入方程。}
+    \\end{array}\\)`;
+}
+
+
+
+
+
+
+
+        function generateLevel7Question() {
             const pairs = [
                 {a: 5, b: 12},
                 {a: -5, b: 12},
@@ -496,7 +611,7 @@ function setDifficulty(level) {
             return `\\(\\begin{array}{lll}已知直线${a}x${textb}y${textc}=0 ;\\\\求点M(${xm},${ym})到直线的距离。\\\\你可以先用ggb画一下的;\\\\比例，勾股，向量，复数，判别式，公式......\\\\多种方法到后面才能云淡风轻.\\end{array}\\)`;
         }
 
-        function generateLevel7Question() {
+        function generateLevel8Question() {
             let p1 = Math.random() < 0.5 ? 1 : -1;
             let p2 = Math.random() < 0.5 ? 1 : -1;
             let p3 = Math.random() < 0.5 ? 1 : -1;
@@ -521,7 +636,7 @@ function setDifficulty(level) {
             return `\\(\\begin{array}{lll}直线l:${texta}x${textb}y${textc}=0 ; \\\\过点A(${m + d * a},${n + d * b})做l的垂线,垂足为？\\\\你可以先用ggb画一下的;\\\\可以用方程组，向量，切线方程，判别式，复数...... \\end{array}\\)`;
         }
 
-        function generateLevel8Question() {
+        function generateLevel9Question() {
             let p1 = Math.random() < 0.5 ? 1 : -1;
             let p2 = Math.random() < 0.5 ? 1 : -1;
             let p3 = Math.random() < 0.5 ? 1 : -1;
@@ -555,7 +670,8 @@ function setDifficulty(level) {
                 generateLevel5Question,
                 generateLevel6Question,
                 generateLevel7Question,
-                generateLevel8Question
+                generateLevel8Question,
+                generateLevel9Question,
             ];
 
             const randomIndex = Math.floor(Math.random() * levelFunctions.length);
@@ -565,7 +681,7 @@ function setDifficulty(level) {
         }
 
 let currentQuestionIndex = 0; // 添加一个全局变量来跟踪当前题目索引
-        function generateLevel10Question() {
+        function generateLevel11Question() {
      const Questions = [
 { question: " \\begin{array}{l}(1)、&直线上的两点A(1,1)、B(3,2)与直线x=9交于点C，求点C的坐标，\\\\&你想到的方法得可以用，不限以下的方法，能用五种的有奖励，\\\\&1、速度与路程的关系;\\\\&2、比例法;\\\\&3、定比分点法;\\\\&4、行列式直线面积=0(这也行？？);\\\\&5、向量共线法(你现在会用也行，不会也没关系，超纲的);\\\\&6、两点式;\\\\&7、斜率;\\end{array}" ,   img: "./images/D0101.png",answers: ["(9,5)","(+9,+5)"] },
 
