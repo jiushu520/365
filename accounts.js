@@ -3,7 +3,7 @@ const userPasswordMap =
 
 
 {
-
+  "玖数": { "page": "./chat/1", "password": "jiushu", "avatar": "https://jiushu.cpolar.cn/avatars/玖数.jpg", "expirationDate": "2035-01-15" },
   "1": { "page": "./chat/1", "password": "1", "avatar": "https://jiushu.cpolar.cn/avatars/玖数.jpg", "expirationDate": "2025-01-15" },
   "2": { "page": "./chat/2", "password": "2", "avatar": "https://jiushu.cpolar.cn/avatars/玖数.jpg", "expirationDate": "2025-01-15" },
 
