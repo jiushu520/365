@@ -187,9 +187,9 @@
       const bx = parseFloat(pointB.getAttribute('cx')) / scale;
       const by = parseFloat(pointB.getAttribute('cy')) / scale;
       
-      // 直线方程： (y2 - y1)x - (x2 - x1)y + (x1y2 - x2y1) = 0
-      let a = by - ay;
-      let b = -(bx - ax);
+      // 直线方程： (y2 - y1)x + (x2 - x1)y + (x1y2 - x2y1) = 0
+      let a = -by + ay;
+      let b = -bx + ax; // 修正 b 的计算方式
       let c = ax * by - bx * ay;
       
       // 避免所有系数为零
@@ -206,16 +206,16 @@
       if (Math.abs(b) > 1e-6) {
         const y1 = (-a * (-gridLimit) - c) / b;
         const y2 = (-a * gridLimit - c) / b;
-        lineAB.setAttribute('x1', (gridLimit * scale));
+        lineAB.setAttribute('x1', (-gridLimit * scale));
         lineAB.setAttribute('y1', -y1 * scale);
-        lineAB.setAttribute('x2', (-gridLimit * scale));
+        lineAB.setAttribute('x2', (gridLimit * scale));
         lineAB.setAttribute('y2', -y2 * scale);
       } else if (Math.abs(a) > 1e-6) {
         // 垂直直线 x = -c/a
         const x = (-c / a) * scale;
-        lineAB.setAttribute('x1', -x);
+        lineAB.setAttribute('x1', x);
         lineAB.setAttribute('y1', -gridLimit * scale);
-        lineAB.setAttribute('x2', -x);
+        lineAB.setAttribute('x2', x);
         lineAB.setAttribute('y2', gridLimit * scale);
       } else {
         // 无效的直线，隐藏
