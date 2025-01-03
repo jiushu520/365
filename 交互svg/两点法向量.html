@@ -255,7 +255,7 @@
       // 更新法向量标签位置并显示其值
       normalVectorText.setAttribute('x', nx + 10);
       normalVectorText.setAttribute('y', -ny + 10);
-      normalVectorText.textContent = `N(${(ay - by).toFixed(0)}, ${(bx - ax).toFixed(0)})`;
+      normalVectorText.textContent = `N(${(ay - by).toFixed(0)}, ${-(bx - ax).toFixed(0)})`;
     }
     
     // 处理点的拖动
