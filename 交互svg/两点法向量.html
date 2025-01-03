@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>动态直线与解析式</title>
+  <style>
+    .label {
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      user-select: none;
+    }
+    /* 鼠标悬停时改变点的大小 */
+    circle:hover {
+      r: 12;
+    }
+    /* 样式化法向量 */
+    .normal-vector {
+      stroke: orange;
+      stroke-width: 2;
+      marker-end: url(#arrowhead);
+    }
+  </style>
+</head>
+<body>
+  <svg width="800" height="800" id="coordinateSystem">
+    <defs>
+      <!-- 定义箭头标记 -->
+      <marker id="arrowhead" markerWidth="10" markerHeight="7"
+              refX="10" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="orange" />
+      </marker>
+    </defs>
+    <g id="grid" transform="translate(400,400)">
+      <!-- 坐标轴 -->
+      <line x1="-400" y1="0" x2="400" y2="0" stroke="black" stroke-width="2"/>
+      <line x1="0" y1="-400" x2="0" y2="400" stroke="black" stroke-width="2"/>
+      
+      <!-- 刻度和网格 -->
+      <g id="gridLines"></g>
+      
+      <!-- 原点标记 -->
+      <text x="10" y="20" class="label">O(0,0)</text>
+      
+      <!-- 可移动的点和直线 -->
+      <g id="points">
+        <!-- 点A -->
+        <circle id="pointA" cx="140" cy="-35" r="9" fill="red" style="cursor: pointer"/>
+        <text id="pointAText" x="150" y="-25" class="label">A</text>
+        
+        <!-- 点B -->
+        <circle id="pointB" cx="70" cy="-105" r="9" fill="blue" style="cursor: pointer"/>
+        <text id="pointBText" x="80" y="-95" class="label">B</text>
+        
+        <!-- 无限延伸的直线AB -->
+        <line id="lineAB" x1="-400" y1="0" x2="400" y2="0" stroke="green" stroke-width="2"/>
+        
+        <!-- 解析式 -->
+        <text id="lineEquation" x="-350" y="-350" class="label">Equation: </text>
+        
+        <!-- 法向量 -->
+        <line id="normalVector" class="normal-vector" x1="0" y1="0" x2="0" y2="0"/>
+        <text id="normalVectorText" x="0" y="0" class="label" fill="orange">N</text>
+        
+        <!-- 提示文本 -->
+        <text x="50" y="50" class="label">提示：拖动A和B两点</text>
+      </g>
+    </g>
+  </svg>
+  
+  <script>
+    const svg = document.getElementById('coordinateSystem');
+    const grid = document.getElementById('gridLines');
+    const pointA = document.getElementById('pointA');
+    const pointB = document.getElementById('pointB');
+    const lineAB = document.getElementById('lineAB');
+    const lineEquation = document.getElementById('lineEquation');
+    const normalVector = document.getElementById('normalVector');
+    const normalVectorText = document.getElementById('normalVectorText');
+    const pointAText = document.getElementById('pointAText');
+    const pointBText = document.getElementById('pointBText');
+    
+    const scale = 35; // 每个单位的像素数
+    const gridLimit = 10; // 网格范围为 -10 到 10
+
+    // 绘制网格和刻度
+    function drawGrid() {
+      grid.innerHTML = '';
+      for (let i = -gridLimit; i <= gridLimit; i++) {
+        const pos = i * scale;
+        
+        // 水平网格线和刻度
+        if (i !== 0) {
+          const hLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          hLine.setAttribute("x1", -gridLimit * scale);
+          hLine.setAttribute("y1", pos);
+          hLine.setAttribute("x2", gridLimit * scale);
+          hLine.setAttribute("y2", pos);
+          hLine.setAttribute("stroke", "#ddd");
+          hLine.setAttribute("stroke-width", "1");
+          grid.appendChild(hLine);
+          
+          const yLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          yLabel.setAttribute("x", "5");
+          yLabel.setAttribute("y", -pos + 5);
+          yLabel.setAttribute("class", "label");
+          yLabel.textContent = i.toString();
+          grid.appendChild(yLabel);
+        }
+        
+        // 垂直网格线和刻度
+        if (i !== 0) {
+          const vLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          vLine.setAttribute("x1", pos);
+          vLine.setAttribute("y1", -gridLimit * scale);
+          vLine.setAttribute("x2", pos);
+          vLine.setAttribute("y2", gridLimit * scale);
+          vLine.setAttribute("stroke", "#ddd");
+          vLine.setAttribute("stroke-width", "1");
+          grid.appendChild(vLine);
+          
+          const xLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          xLabel.setAttribute("x", pos);
+          xLabel.setAttribute("y", 20);
+          xLabel.setAttribute("class", "label");
+          xLabel.setAttribute("text-anchor", "middle");
+          xLabel.textContent = i.toString();
+          grid.appendChild(xLabel);
+        }
+      }
+    }
+    
+    // 更新点的坐标显示
+    function updatePointLabel(point, textElement) {
+      const cx = parseFloat(point.getAttribute('cx'));
+      const cy = parseFloat(point.getAttribute('cy'));
+      const x = (cx / scale).toFixed(0);   // 保留0位小数，显示整数
+      const y = (-cy / scale).toFixed(0);  // 保留0位小数，显示整数
+      const label = point.id.slice(-1);
+      textElement.textContent = `${label}(${x}, ${y})`;
+    }
+    
+    // 格式化解析式，允许浮点数
+    function formatEquation(a, b, c) {
+      let equation = "Equation: ";
+      let firstTerm = true;
+      
+      // 处理 a
+      if (Math.abs(a) > 1e-6) { // 考虑浮点数精度
+        if (a === 1) {
+          equation += "x";
+        } else if (a === -1) {
+          equation += "-x";
+        } else {
+          equation += `${a.toFixed(2)}x`;
+        }
+        firstTerm = false;
+      }
+      
+      // 处理 b
+      if (Math.abs(b) > 1e-6) {
+        if (b > 0 && !firstTerm) {
+          equation += " + ";
+        } else if (b < 0 && !firstTerm) {
+          equation += " - ";
+        } else if (b < 0 && firstTerm) {
+          equation += "-";
+        }
+        
+        const absB = Math.abs(b);
+        if (absB === 1) {
+          equation += "y";
+        } else {
+          equation += `${absB.toFixed(2)}y`;
+        }
+        firstTerm = false;
+      }
+      
+      // 处理 c
+      if (Math.abs(c) > 1e-6) {
+        if (c > 0 && !firstTerm) {
+          equation += " + ";
+        } else if (c < 0 && !firstTerm) {
+          equation += " - ";
+        } else if (c < 0 && firstTerm) {
+          equation += "-";
+        }
+        
+        equation += `${Math.abs(c).toFixed(2)}`;
+      }
+      
+      // 如果 a, b 都接近0，则 c 为常数
+      if (Math.abs(a) <= 1e-6 && Math.abs(b) <= 1e-6) {
+        equation = `Equation: ${c.toFixed(2)} = 0`;
+      } else {
+        equation += " = 0";
+      }
+      
+      return equation;
+    }
+    
+    // 更新直线、解析式和法向量
+    function updateLineAndEquation() {
+      // 获取 A, B 的坐标（单位坐标）
+      const ax = parseFloat(pointA.getAttribute('cx')) / scale;
+      const ay = parseFloat(pointA.getAttribute('cy')) / scale;
+      const bx = parseFloat(pointB.getAttribute('cx')) / scale;
+      const by = parseFloat(pointB.getAttribute('cy')) / scale;
+      
+      // 直线方程： (y2 - y1)x + (x2 - x1)y + (x1y2 - x2y1) = 0
+      let a = -by + ay;
+      let b = -bx + ax; // 修正 b 的计算方式
+      let c = ax * by - bx * ay;
+      
+      // 避免所有系数为零
+      if (Math.abs(a) < 1e-6 && Math.abs(b) < 1e-6) {
+        a = 0;
+        b = 0;
+        c = 0;
+      }
+      
+      // 更新解析式文本
+      lineEquation.textContent = formatEquation(a, b, c);
+      
+      // 根据直线方程更新 lineAB 的位置，使其无限延伸
+      if (Math.abs(b) > 1e-6) {
+        const y1 = (-a * (-gridLimit) - c) / b;
+        const y2 = (-a * gridLimit - c) / b;
+        lineAB.setAttribute('x1', (-gridLimit * scale));
+        lineAB.setAttribute('y1', -y1 * scale);
+        lineAB.setAttribute('x2', (gridLimit * scale));
+        lineAB.setAttribute('y2', -y2 * scale);
+      } else if (Math.abs(a) > 1e-6) {
+        // 垂直直线 x = -c/a
+        const x = (-c / a) * scale;
+        lineAB.setAttribute('x1', x);
+        lineAB.setAttribute('y1', -gridLimit * scale);
+        lineAB.setAttribute('x2', x);
+        lineAB.setAttribute('y2', gridLimit * scale);
+      } else {
+        // 无效的直线，隐藏
+        lineAB.setAttribute('x1', 0);
+        lineAB.setAttribute('y1', 0);
+        lineAB.setAttribute('x2', 0);
+        lineAB.setAttribute('y2', 0);
+      }
+      
+      // 计算并更新法向量
+      // 法向量 (0,0) 到 (ya - yb, xb - xa)
+      const nx = (ay - by) * scale;
+      const ny = -(bx - ax) * scale;
+      
+      normalVector.setAttribute('x2', nx);
+      normalVector.setAttribute('y2', -ny); // SVG y轴向下，需要取反
+      
+      // 更新法向量标签位置并显示其值
+      normalVectorText.setAttribute('x', nx + 10);
+      normalVectorText.setAttribute('y', -ny + 10);
+      normalVectorText.textContent = `N(${(ay - by).toFixed(0)}, ${(bx - ax).toFixed(0)})`;
+    }
+    
+    // 处理点的拖动
+    let activePoint = null;
+    let startX, startY;
+    
+    function startPointDrag(e, point) {
+      e.preventDefault();
+      activePoint = point;
+      const pt = svg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+      startX = svgP.x - parseFloat(point.getAttribute('cx'));
+      startY = svgP.y - parseFloat(point.getAttribute('cy'));
+    }
+    
+    pointA.addEventListener('mousedown', (e) => startPointDrag(e, pointA));
+    pointB.addEventListener('mousedown', (e) => startPointDrag(e, pointB));
+    
+    // 触摸设备支持
+    pointA.addEventListener('touchstart', (e) => startPointDrag(e.touches[0], pointA));
+    pointB.addEventListener('touchstart', (e) => startPointDrag(e.touches[0], pointB));
+    
+    document.addEventListener('mousemove', (e) => {
+      if (activePoint) {
+        const pt = svg.createSVGPoint();
+        pt.x = e.clientX;
+        pt.y = e.clientY;
+        const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+        let newX = svgP.x - startX;
+        let newY = svgP.y - startY;
+    
+        // 限制点在网格范围内
+        newX = Math.max(-gridLimit * scale, Math.min(gridLimit * scale, newX));
+        newY = Math.max(-gridLimit * scale, Math.min(gridLimit * scale, newY));
+    
+        activePoint.setAttribute('cx', newX);
+        activePoint.setAttribute('cy', newY);
+        
+        const text = (activePoint.id === 'pointA') ? pointAText : pointBText;
+        text.setAttribute('x', newX + 10);
+        text.setAttribute('y', newY + 10);
+        updatePointLabel(activePoint, text);
+        
+        // 实时更新直线和解析式
+        updateLineAndEquation();
+      }
+    });
+    
+    document.addEventListener('touchmove', (e) => {
+      if (activePoint) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const pt = svg.createSVGPoint();
+        pt.x = touch.clientX;
+        pt.y = touch.clientY;
+        const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+        let newX = svgP.x - startX;
+        let newY = svgP.y - startY;
+    
+        // 限制点在网格范围内
+        newX = Math.max(-gridLimit * scale, Math.min(gridLimit * scale, newX));
+        newY = Math.max(-gridLimit * scale, Math.min(gridLimit * scale, newY));
+    
+        activePoint.setAttribute('cx', newX);
+        activePoint.setAttribute('cy', newY);
+        
+        const text = (activePoint.id === 'pointA') ? pointAText : pointBText;
+        text.setAttribute('x', newX + 10);
+        text.setAttribute('y', newY + 10);
+        updatePointLabel(activePoint, text);
+        
+        // 实时更新直线和解析式
+        updateLineAndEquation();
+      }
+    }, { passive: false });
+    
+    document.addEventListener('mouseup', () => {
+      if (activePoint) {
+        let roundedX = parseFloat(activePoint.getAttribute('cx'));
+        let roundedY = parseFloat(activePoint.getAttribute('cy'));
+        
+        // 吸附到最近的刻度点（保留0位小数，显示整数）
+        roundedX = Math.round(roundedX / scale) * scale;
+        roundedY = Math.round(roundedY / scale) * scale;
+        
+        activePoint.setAttribute('cx', roundedX);
+        activePoint.setAttribute('cy', roundedY);
+        
+        const text = (activePoint.id === 'pointA') ? pointAText : pointBText;
+        text.setAttribute('x', roundedX + 10);
+        text.setAttribute('y', roundedY + 10);
+        updatePointLabel(activePoint, text);
+        updateLineAndEquation();
+      }
+      activePoint = null;
+    });
+    
+    document.addEventListener('touchend', () => {
+      if (activePoint) {
+        let roundedX = parseFloat(activePoint.getAttribute('cx'));
+        let roundedY = parseFloat(activePoint.getAttribute('cy'));
+        
+        // 吸附到最近的刻度点（保留0位小数，显示整数）
+        roundedX = Math.round(roundedX / scale) * scale;
+        roundedY = Math.round(roundedY / scale) * scale;
+        
+        activePoint.setAttribute('cx', roundedX);
+        activePoint.setAttribute('cy', roundedY);
+        
+        const text = (activePoint.id === 'pointA') ? pointAText : pointBText;
+        text.setAttribute('x', roundedX + 10);
+        text.setAttribute('y', roundedY + 10);
+        updatePointLabel(activePoint, text);
+        updateLineAndEquation();
+      }
+      activePoint = null;
+    });
+    
+    // 初始化
+    drawGrid();
+    updatePointLabel(pointA, pointAText);
+    updatePointLabel(pointB, pointBText);
+    updateLineAndEquation();
+  </script>
+</body>
+</html>
