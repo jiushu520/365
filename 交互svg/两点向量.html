@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>动态缩放坐标系与向量AB</title>
+  <style>
+    .label {
+      font-family: Arial;
+      font-size: 14px;
+      user-select: none;
+    }
+    /* 添加容器样式以确保滚轮事件正常工作 */
+    #container {
+      width: 1200px;
+      height: 900px;
+      border: 1px solid #ccc;
+      overflow: hidden;
+      margin: 0 auto; /* 居中显示容器 */
+      position: relative;
+    }
+    /* 向量数值显示样式 */
+    #vectorInfo {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-family: Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <svg width="1200" height="900" id="coordinateSystem">
+      <defs>
+        <!-- 定义箭头标记 -->
+        <marker id="arrowhead" markerWidth="10" markerHeight="7"
+                refX="10" refY="3.5" orient="auto"
+                markerUnits="userSpaceOnUse">
+          <polygon points="0 0, 10 3.5, 0 7" fill="green" />
+        </marker>
+      </defs>
+      <g id="grid" transform="translate(600,450)">
+        <g id="gridLines"></g>
+        
+        <!-- 原点标记 -->
+        <text x="10" y="20" class="label">O(0,0)</text>
+        
+        <!-- 可移动的点 -->
+        <g id="points">
+          <circle id="pointA" cx="160" cy="-40" r="9" fill="red" style="cursor: pointer"/>
+          <text id="pointAText" x="170" y="-30" class="label">A</text>
+          
+          <circle id="pointB" cx="80" cy="-120" r="9" fill="blue" style="cursor: pointer"/>
+          <text id="pointBText" x="90" y="-110" class="label">B</text>
+        </g>
+
+        <!-- 向量AB -->
+        <g id="vectorAB">
+          <line id="vectorLine" x1="160" y1="-40" x2="80" y2="-120" stroke="green" stroke-width="2" marker-end="url(#arrowhead)"/>
+        </g>
+      </g>
+    </svg>
+
+    <!-- 向量信息显示 -->
+    <div id="vectorInfo">
+      <strong>向量 AB:</strong><br>
+      Δx: <span id="deltaX">-80</span><br>
+      Δy: <span id="deltaY">-80</span><br>
+      |AB|: <span id="magnitude">113.14</span>
+    </div>
+  </div>
+  
+  <script>
+    const svg = document.getElementById('coordinateSystem');
+    const grid = document.getElementById('gridLines');
+    const pointA = document.getElementById('pointA');
+    const pointB = document.getElementById('pointB');
+    const pointAText = document.getElementById('pointAText');
+    const pointBText = document.getElementById('pointBText');
+    const vectorLine = document.getElementById('vectorLine');
+    const deltaXText = document.getElementById('deltaX');
+    const deltaYText = document.getElementById('deltaY');
+    const magnitudeText = document.getElementById('magnitude');
+    const container = document.getElementById('container');
+
+    const config = {
+      scale: 35,          // 每个单位的像素数
+      minScale: 10,       // 最小缩放比例
+      maxScale: 100,      // 最大缩放比例
+      gridRangeX: 0,      // 水平方向网格范围，将动态计算
+      gridRangeY: 0,      // 垂直方向网格范围，将动态计算
+      gridColor: "#ddd",
+      axisColor: "black",
+      pointRadius: 9,
+      pointStyles: {
+        A: { fill: "red" },
+        B: { fill: "blue" }
+      }
+    };
+    
+    /**
+     * 动态计算网格范围
+     */
+    function calculateGridRange() {
+      const svgWidthHalf = svg.clientWidth / 2;   // 600
+      const svgHeightHalf = svg.clientHeight / 2; // 450
+      config.gridRangeX = Math.ceil(svgWidthHalf / config.scale);
+      config.gridRangeY = Math.ceil(svgHeightHalf / config.scale);
+    }
+    
+    // 初始计算网格范围
+    calculateGridRange();
+    
+    // 绘制网格和坐标轴
+    function drawGrid() {
+      grid.innerHTML = '';
+      // 绘制水平网格线和Y轴标签
+      for (let i = -config.gridRangeY; i <= config.gridRangeY; i++) {
+        const pos = i * config.scale;
+        
+        if (i !== 0) {
+          // 水平网格线
+          const hLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          hLine.setAttribute("x1", -config.gridRangeX * config.scale);
+          hLine.setAttribute("y1", pos);
+          hLine.setAttribute("x2", config.gridRangeX * config.scale);
+          hLine.setAttribute("y2", pos);
+          hLine.setAttribute("stroke", config.gridColor);
+          hLine.setAttribute("stroke-width", "1");
+          grid.appendChild(hLine);
+
+          // Y轴标签
+          const yLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          yLabel.setAttribute("x", 5);
+          yLabel.setAttribute("y", -pos + 5);
+          yLabel.setAttribute("class", "label");
+          yLabel.textContent = i;
+          grid.appendChild(yLabel);
+        }
+      }
+      
+      // 绘制垂直网格线和X轴标签
+      for (let i = -config.gridRangeX; i <= config.gridRangeX; i++) {
+        const pos = i * config.scale;
+        
+        if (i !== 0) {
+          // 垂直网格线
+          const vLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          vLine.setAttribute("x1", pos);
+          vLine.setAttribute("y1", -config.gridRangeY * config.scale);
+          vLine.setAttribute("x2", pos);
+          vLine.setAttribute("y2", config.gridRangeY * config.scale);
+          vLine.setAttribute("stroke", config.gridColor);
+          vLine.setAttribute("stroke-width", "1");
+          grid.appendChild(vLine);
+
+          // X轴标签
+          const xLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          xLabel.setAttribute("x", pos);
+          xLabel.setAttribute("y", 20);
+          xLabel.setAttribute("class", "label");
+          xLabel.setAttribute("text-anchor", "middle");
+          xLabel.textContent = i;
+          grid.appendChild(xLabel);
+        }
+      }
+      
+      // 绘制坐标轴
+      const xAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      xAxis.setAttribute("x1", -config.gridRangeX * config.scale);
+      xAxis.setAttribute("y1", 0);
+      xAxis.setAttribute("x2", config.gridRangeX * config.scale);
+      xAxis.setAttribute("y2", 0);
+      xAxis.setAttribute("stroke", config.axisColor);
+      xAxis.setAttribute("stroke-width", "2");
+      grid.appendChild(xAxis);
+    
+      const yAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      yAxis.setAttribute("x1", 0);
+      yAxis.setAttribute("y1", -config.gridRangeY * config.scale);
+      yAxis.setAttribute("x2", 0);
+      yAxis.setAttribute("y2", config.gridRangeY * config.scale);
+      yAxis.setAttribute("stroke", config.axisColor);
+      yAxis.setAttribute("stroke-width", "2");
+      grid.appendChild(yAxis);
+    }
+    
+    // 更新点的坐标显示
+    function updatePointLabel(point, text) {
+      const cx = parseFloat(point.getAttribute('cx'));
+      const cy = parseFloat(point.getAttribute('cy'));
+      const x = Math.round(cx / config.scale);
+      const y = Math.round(-cy / config.scale);
+      text.textContent = `${point.id.slice(-1)}(${x}, ${y})`;
+    }
+    
+    // 更新所有点的位置和标签
+    function updateAllPoints() {
+      [pointA, pointB].forEach(point => {
+        const text = (point.id === 'pointA') ? pointAText : pointBText;
+        const x = Math.round(parseFloat(point.getAttribute('cx')) / config.scale);
+        const y = Math.round(-parseFloat(point.getAttribute('cy')) / config.scale);
+        text.textContent = `${point.id.slice(-1)}(${x}, ${y})`;
+        text.setAttribute('x', parseFloat(point.getAttribute('cx')) + 10);
+        text.setAttribute('y', parseFloat(point.getAttribute('cy')) + 10);
+      });
+      updateVector();
+    }
+    
+    // 吸附所有点到最近的网格点
+    function snapToGrid() {
+      [pointA, pointB].forEach(point => {
+        const roundedX = Math.round(parseFloat(point.getAttribute('cx')) / config.scale) * config.scale;
+        const roundedY = Math.round(parseFloat(point.getAttribute('cy')) / config.scale) * config.scale;
+        point.setAttribute('cx', roundedX);
+        point.setAttribute('cy', roundedY);
+      });
+      updateAllPoints();
+    }
+
+    /**
+     * 更新向量 AB 的位置和数值
+     */
+    function updateVector() {
+      const ax = parseFloat(pointA.getAttribute('cx'));
+      const ay = parseFloat(pointA.getAttribute('cy'));
+      const bx = parseFloat(pointB.getAttribute('cx'));
+      const by = parseFloat(pointB.getAttribute('cy'));
+
+      // 更新向量线的位置
+      vectorLine.setAttribute('x1', ax);
+      vectorLine.setAttribute('y1', ay);
+      vectorLine.setAttribute('x2', bx);
+      vectorLine.setAttribute('y2', by);
+
+      // 计算向量分量
+      const deltaX = Math.round((bx - ax) / config.scale);
+      const deltaY = Math.round((-by + ay) / config.scale); // 注意y轴方向
+
+      // 计算向量模长
+      const magnitude = Math.sqrt(deltaX * deltaX + deltaY * deltaY).toFixed(2);
+
+      // 更新显示的数值
+      deltaXText.textContent = deltaX;
+      deltaYText.textContent = deltaY;
+      magnitudeText.textContent = magnitude;
+
+      // 动态调整箭头大小以适应当前缩放比例
+      const marker = document.getElementById('arrowhead');
+      const newMarkerWidth = 10 * (config.scale / 35); // 基准scale为35
+      const newMarkerHeight = 7 * (config.scale / 35);
+      marker.setAttribute('markerWidth', newMarkerWidth);
+      marker.setAttribute('markerHeight', newMarkerHeight);
+      marker.querySelector('polygon').setAttribute('points', `0 0, ${newMarkerWidth} ${newMarkerHeight / 2}, 0 ${newMarkerHeight}`);
+    }
+    
+    // 处理点的拖动
+    let activePoint = null;
+    let startX, startY;
+    
+    function startPointDrag(e, point) {
+      e.preventDefault();
+      activePoint = point;
+      const pt = svg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+      startX = svgP.x - parseFloat(point.getAttribute('cx'));
+      startY = svgP.y - parseFloat(point.getAttribute('cy'));
+    }
+    
+    pointA.addEventListener('mousedown', (e) => startPointDrag(e, pointA));
+    pointB.addEventListener('mousedown', (e) => startPointDrag(e, pointB));
+    
+    document.addEventListener('mousemove', (e) => {
+      if (activePoint) {
+        const pt = svg.createSVGPoint();
+        pt.x = e.clientX;
+        pt.y = e.clientY;
+        const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+        const newX = svgP.x - startX;
+        const newY = svgP.y - startY;
+    
+        // 取整到网格
+        const roundedX = Math.round(newX / config.scale) * config.scale;
+        const roundedY = Math.round(newY / config.scale) * config.scale;
+    
+        activePoint.setAttribute('cx', roundedX);
+        activePoint.setAttribute('cy', roundedY);
+    
+        const text = (activePoint.id === 'pointA') ? pointAText : pointBText;
+        text.setAttribute('x', roundedX + 10);
+        text.setAttribute('y', roundedY + 10);
+        updatePointLabel(activePoint, text);
+        
+        // 调用 updateVector 以实时更新向量
+        updateVector();
+      }
+    });
+    
+    // 吸附到最近格点
+    document.addEventListener('mouseup', () => {
+      if (activePoint) {
+        const roundedX = Math.round(parseFloat(activePoint.getAttribute('cx')) / config.scale) * config.scale;
+        const roundedY = Math.round(parseFloat(activePoint.getAttribute('cy')) / config.scale) * config.scale;
+    
+        activePoint.setAttribute('cx', roundedX);
+        activePoint.setAttribute('cy', roundedY);
+    
+        const text = (activePoint.id === 'pointA') ? pointAText : pointBText;
+        text.setAttribute('x', roundedX + 10);
+        text.setAttribute('y', roundedY + 10);
+        updatePointLabel(activePoint, text);
+        updateVector();
+      }
+      activePoint = null;
+    });
+    
+    /**
+     * 添加滚轮事件监听器，实现缩放功能
+     */
+    svg.addEventListener('wheel', (e) => {
+      e.preventDefault(); // 防止页面滚动
+    
+      const delta = e.deltaY;
+      if (delta < 0) {
+        // 向上滚动，放大
+        config.scale = Math.min(config.scale + 5, config.maxScale);
+      } else {
+        // 向下滚动，缩小
+        config.scale = Math.max(config.scale - 5, config.minScale);
+      }
+      
+      // 动态计算新的网格范围
+      calculateGridRange();
+    
+      // 重新绘制网格
+      drawGrid();
+      
+      // 吸附所有点到最近的网格点
+      snapToGrid();
+    }, { passive: false }); // 设置 passive 为 false 以便调用 preventDefault
+    
+    // 初始化
+    drawGrid();
+    snapToGrid(); // 在初始化时吸附所有点到网格
+  </script>
+</body>
+</html>

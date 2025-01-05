@@ -222,6 +222,12 @@ const videoData = {
    }, 
 
   {
+        "title": "两点直线解析式",
+        "url":  "https://jiushu.cpolar.cn/交互svg/两点直线解析式.html"
+   }, 
+
+
+  {
         "title": "向量加法",
         "url":  "https://jiushu.cpolar.cn/交互svg/向量加法.html"
    }, 
