@@ -11,8 +11,8 @@
     }
     /* 添加容器样式以确保滚轮事件正常工作 */
     #container {
-      width: 1200px;
-      height: 900px;
+      width: 900px;
+      height: 750px;
       border: 1px solid #ccc;
       overflow: hidden;
       margin: 0 auto; /* 居中显示容器 */
@@ -46,7 +46,7 @@
 <body>
   <div id="container">
     <svg width="1200" height="900" id="coordinateSystem">
-      <g id="grid" transform="translate(600,450)">
+      <g id="grid" transform="translate(150,450)">
         <g id="gridLines"></g>
         
         <!-- 原点标记 -->
@@ -502,7 +502,7 @@
      */
     let isPanning = false;
     let panStart = { x: 0, y: 0 };
-    let currentTranslate = { x: 600, y: 450 }; // 初始中心点
+    let currentTranslate = { x: 150, y: 450 }; // 初始中心点
     
     /**
      * 更新 grid 的 transform
