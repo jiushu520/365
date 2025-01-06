@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>玖数学</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            background-color: #e0f7fa;
+        }
+        .top, .left, .center {
+            border: 1px solid #000;
+            box-sizing: border-box;
+        }
+        .top {
+            padding: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 50px;
+        }
+        .main {
+            display: flex;
+            flex-grow: 1;
+            height: calc(100vh - 50px);
+            transition: margin-left 0.3s;
+        }
+        .left {
+            flex: 0.3;
+            overflow-y: auto;
+            transition: transform 0.3s ease-in-out;
+        }
+        .left.hidden {
+            transform: translateX(-100%);
+        }
+        .center {
+            flex: 4;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: flex 0.3s;
+            overflow: hidden;
+        }
+        .top-content {
+            flex: 1 1 auto;
+            overflow: hidden;
+        }
+        /* 删除了 .canvas-switch 和相关样式 */
+        .menu-item {
+            cursor: pointer;
+            margin: 10px 0;
+            padding: 5px;
+            text-decoration: none;
+            color: black;
+            display: block;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        #search {
+            width: 90%;
+            padding: 5px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .toggle-menu-btn {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border: 1px solid #e0f7fa;
+            border-radius: 0px;
+            padding: 0px 0px;
+            cursor: pointer;
+            z-index: 1000;
+            transition: background-color 0.3s;
+        }
+        .toggle-menu-btn:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        .main.menu-hidden .left {
+            flex: 0;
+            max-width: 0;
+            overflow: hidden;
+        }
+        .main.menu-hidden .center {
+            flex: 1;
+        }
+        @media (max-width: 768px) {
+            .left {
+                position: absolute;
+                z-index: 1000;
+                background-color: #fff;
+                height: 100%;
+                width: 250px;
+                box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+            }
+            .left.hidden {
+                transform: translateX(-100%);
+            }
+            .main.menu-hidden .center {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main" id="main">
+        <div class="left" id="menu">
+            <input type="text" id="search" placeholder="搜索目录..." onkeyup="filterMenu()">
+            <!-- 一级菜单项将通过JavaScript动态生成 -->
+        </div>
+        <div class="center" id="content">
+            <div class="toggle-menu-btn" onclick="toggleMenu()">目录</div>
+            <div class="top-content">
+                <iframe src="两点直线解析式.html" frameborder="0"></iframe>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const menuData = [
+            { text: '两点直线解析式', url: '两点直线解析式.html' },
+            { text: '两点法向量', url: '两点法向量.html' },
+            { text: '单位圆上的三角函数', url: '单位圆上的三角函数.html' },
+            { text: '数轴距离', url: '数轴距离.html' },
+            { text: '行列式', url: '行列式.html' },
+            { text: '两点直线解析式', url: '两点直线解析式.html' },
+            { text: '两点直线解析式', url: '两点直线解析式.html' },
+            { text: '两点直线解析式', url: '两点直线解析式.html' },
+            { text: '两点直线解析式', url: '两点直线解析式.html' },
+
+
+
+
+        ];
+
+        function generateMenu() {
+            const menu = document.getElementById('menu');
+            menuData.forEach(item => {
+                const link = document.createElement('a');
+                link.href = 'javascript:void(0);';
+                link.className = 'menu-item';
+                link.textContent = item.text;
+                link.onclick = () => showContent(item.url);
+                menu.appendChild(link);
+            });
+        }
+
+        function showContent(url) {
+            document.querySelector('.top-content iframe').src = url;
+        }
+
+        function filterMenu() {
+            const input = document.getElementById('search');
+            const filter = input.value.toLowerCase();
+            const menuItems = document.querySelectorAll('.menu-item');
+
+            menuItems.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(filter)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function toggleMenu() {
+            const main = document.getElementById('main');
+            const menu = document.getElementById('menu');
+            main.classList.toggle('menu-hidden');
+            menu.classList.toggle('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            generateMenu();
+        });
+    </script>
+</body>
+</html>
