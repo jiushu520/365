@@ -18,7 +18,6 @@
             }
         };
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
 
     <!-- Prism.js 核心及语言组件 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-okaidia.min.css" rel="stylesheet" />
@@ -31,6 +30,9 @@
     <!-- 选择一个主题，例如 "monokai" -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/monokai.min.css">
 
+    <!-- noUiSlider CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet" />
+
     <!-- CodeMirror JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js" defer></script>
     <!-- 语言模式，例如 HTML, JavaScript, Python -->
@@ -38,6 +40,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js" defer></script>
+
+    <!-- noUiSlider JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js" defer></script>
 
     <style>
         :root {
@@ -75,11 +80,47 @@
             flex-shrink: 0;
         }
 
+        /* 滑动条容器样式 */
+        #slider-container {
+            padding: 5px 0px; /* 保持左右填充以与页面整体布局一致 */
+
+            border-bottom: 1px solid #ccc;
+            width: 100%; /* 使容器占满全宽 */
+            box-sizing: border-box; /* 确保填充不影响总宽度 */
+        }
+
+/* noUiSlider 样式调整 */
+#slider {
+    width: 100%; /* 使滑动条占满容器宽度 */
+    max-width: none; /* 移除最大宽度限制 */
+    margin: 0; /* 去除默认的上下外边距 */
+}
+
+
+/* 滑块悬停时的样式（可选） */
+#slider .noUi-handle:hover {
+    background: #333; /* 悬停时略微变浅 */
+    border: 2px solid #333;
+}
+
+/* 滑块活动状态时的样式（可选） */
+#slider .noUi-handle:active {
+    background: #555; /* 点击并拖动时进一步变浅 */
+    border: 2px solid #555;
+}
+
+/* 移除滑块获得焦点时的轮廓（可选） */
+#slider .noUi-handle:focus {
+    box-shadow: none;
+    outline: none;
+}
+
         #container {
             display: flex;
             flex: 1;
-            height: calc(100vh - 60px);
+            height: calc(100vh - 120px); /* 调整高度以适应滑动条和头部 */
             overflow: hidden;
+            width: 100%; /* 确保容器占满全宽 */
         }
 
         /* 左侧：聊天窗口 */
@@ -87,7 +128,7 @@
             background-color: var(--chat-bg);
             border-right: 1px solid #ccc;
             width: 25%;
-            min-width: 250px;
+            /* min-width: 250px; */ /* 已移除 */
             display: flex;
             flex-direction: column;
         }
@@ -169,7 +210,7 @@
             background-color: #343a40;
             border-right: 1px solid #ccc;
             width: 35%;
-            min-width: 300px;
+            /* min-width: 300px; */ /* 已移除 */
             display: flex;
             flex-direction: column;
             color: white;
@@ -324,9 +365,12 @@
 </head>
 <body>
 
-    <header>
-        代码编辑与预览工具
-    </header>
+
+
+    <!-- 滑动条容器 -->
+    <div id="slider-container">
+        <div id="slider"></div>
+    </div>
 
     <div id="container">
 
@@ -416,8 +460,10 @@
             const messageElement = document.createElement("div");
             messageElement.classList.add("message", sender === "用户" ? "user" : "assistant");
 
-            // 将 ```语言名\n代码``` 转换为 <pre><code class="language-语言名">代码</code></pre>
-            let formattedMessage = message.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+            // 将 
+            // 语言名\n代码
+            // 转换为 <pre><code class="language-语言名">代码</code></pre>
+            let formattedMessage = message.replace(/(\w+)?\n([\s\S]*?)/g, (match, lang, code) => {
                 const language = lang ? `language-${lang}` : 'language-none';
                 return `
                     <div class="code-block">
@@ -558,6 +604,47 @@
         clearChatBtn.addEventListener("click", () => {
             chatMessages.innerHTML = "";
         });
+
+        // 初始化 noUiSlider
+        const slider = document.getElementById('slider');
+
+        noUiSlider.create(slider, {
+            start: [25, 60], // 初始值：聊天窗口25%，编辑器35%，预览40%
+            connect: true,
+            range: {
+                'min': 0,
+                'max': 100
+            },
+            step: 0.01,
+            tooltips: true,
+format: {
+    to: function (value) {
+        return value.toFixed(2) + '%';
+    },
+    from: function (value) {
+        return Number(value.replace('%', ''));
+    }
+}
+
+        });
+
+        const chatContainer = document.getElementById("chat-container");
+        const editorContainer = document.getElementById("editor-container");
+        const previewContainer = document.getElementById("preview-container");
+
+slider.noUiSlider.on('update', (values, handle) => {
+    const chatWidth = parseFloat(values[0]);
+    const editorWidth = parseFloat(values[1]) - chatWidth;
+    const previewWidth = 100 - parseFloat(values[1]);
+
+    // 设置各个容器的宽度，保留两位小数
+    chatContainer.style.width = `${chatWidth.toFixed(2)}%`;
+    editorContainer.style.width = `${editorWidth.toFixed(2)}%`;
+    previewContainer.style.width = `${previewWidth.toFixed(2)}%`;
+});
+
+        // 调整初始宽度
+        slider.noUiSlider.set([25, 60]);
     });
 </script>
 
