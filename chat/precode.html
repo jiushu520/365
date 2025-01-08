@@ -4,86 +4,346 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>代码编辑与预览</title>
-   <link rel="icon" href="code_logo.ico" type="image/x-icon">
+    <link rel="icon" href="code_logo.ico" type="image/x-icon">
+
+    <!-- MathJax 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
+
+    <!-- Prism.js 核心及语言组件 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-okaidia.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-javascript.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-python.min.js" defer></script>
+
+    <!-- CodeMirror CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <!-- 选择一个主题，例如 "monokai" -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/monokai.min.css">
+
+    <!-- CodeMirror JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js" defer></script>
+    <!-- 语言模式，例如 HTML, JavaScript, Python -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js" defer></script>
+
     <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --background-color: #f8f9fa;
+            --editor-bg: #2c2c2c;
+            --preview-bg: #ffffff;
+            --chat-bg: #e9ecef;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body, html {
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
+            font-family: var(--font-family);
             height: 100%;
             display: flex;
             flex-direction: column;
+            background-color: var(--background-color);
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 1.5em;
+            flex-shrink: 0;
         }
 
         #container {
             display: flex;
             flex: 1;
             height: calc(100vh - 60px);
+            overflow: hidden;
         }
 
-        #editor-container, #preview-container {
-            padding: 10px;
-            box-sizing: border-box;
-            overflow: auto;
-        }
-
-        #editor-container {
-            background-color: #f5f5f5;
+        /* 左侧：聊天窗口 */
+        #chat-container {
+            background-color: var(--chat-bg);
             border-right: 1px solid #ccc;
-            resize: horizontal;
-            width: 40%; /* 初始宽度为 40% */
-            min-width: 200px;
+            width: 25%;
+            min-width: 250px;
+            display: flex;
+            flex-direction: column;
         }
 
-        #preview-container {
-            background-color: #fff;
-            flex: 1; /* 剩余空间全给预览区 */
+        #chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background-color: var(--secondary-color);
+            color: white;
         }
 
-        #code-input {
-            width: 100%;
-            height: 85%;
+        #chat-header h3 {
+            margin: 0;
+            font-size: 1.2em;
+        }
+
+        #clear-chat-btn {
+            background-color: var(--danger-color);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            color: white;
+            transition: background-color 0.3s;
+        }
+
+        #clear-chat-btn:hover {
+            background-color: #c82333; /* 更深的危险色 */
+        }
+
+        #chat-messages {
+            flex: 1;
+            padding: 10px 15px;
+            overflow-y: auto;
+        }
+
+        #chat-input-container {
+            display: flex;
+            padding: 10px 15px;
+            border-top: 1px solid #ccc;
+            background-color: #f1f1f1;
+        }
+
+        #chat-input {
+            flex: 1;
             padding: 10px;
-            font-family: 'Courier New', Courier, monospace;
             font-size: 1em;
             border: 1px solid #ccc;
             border-radius: 4px;
             resize: none;
+            transition: border-color 0.3s;
+        }
+
+        #chat-input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        #send-btn {
+            margin-left: 10px;
+            padding: 10px 20px;
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+
+        #send-btn:hover {
+            background-color: #218838; /* 更深的成功色 */
+        }
+
+        /* 中间：代码编辑区域 */
+        #editor-container {
+            background-color: #343a40;
+            border-right: 1px solid #ccc;
+            width: 35%;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            color: white;
+        }
+
+        #editor-container h3 {
+            margin: 0;
+            padding: 15px;
+            background-color: #495057;
+            font-size: 1.2em;
+        }
+
+        /* 移除 textarea 的样式，CodeMirror 将替代 */
+        #code-input {
+            display: none;
+        }
+
+        /* CodeMirror 编辑器样式 */
+        .CodeMirror {
             flex: 1;
+            height: 100%;
+            width: 100%;
+            font-size: 1em;
         }
 
         #button-container {
             display: flex;
-            justify-content: space-between; /* 按钮一左一右分散排列 */
-            margin-top: 10px;
-            align-items: center; /* 垂直方向居中对齐（可选） */
+            justify-content: space-between;
+            padding: 10px 15px;
+            background-color: #495057;
         }
 
-        button {
-            padding: 10px;
-            background-color: #007bff;
+        #button-container button {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
             font-size: 1em;
+            transition: background-color 0.3s;
         }
 
-        iframe {
-            width: 100%;
-            height: 100%;
+        #button-container button:hover {
+            background-color: #0069d9; /* 更深的主色 */
+        }
+
+        /* 右侧：实时预览区域 */
+        #preview-container {
+            background-color: var(--preview-bg);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #preview-container h3 {
+            margin: 0;
+            padding: 15px;
+            background-color: #495057;
+            color: white;
+            font-size: 1.2em;
+        }
+
+        #preview-iframe {
+            flex: 1;
             border: none;
+            width: 100%;
+        }
+
+        /* 聊天消息样式 */
+        .message {
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .message strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .assistant {
+            color: var(--primary-color);
+        }
+
+        .user {
+            color: var(--success-color);
+        }
+
+        /* 复制按钮样式 */
+        .copy-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(76, 175, 80, 0.8);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 0.8em;
+            opacity: 0.8;
+            transition: opacity 0.3s, background-color 0.3s;
+            z-index: 10;
+        }
+
+        .copy-btn:hover {
+            opacity: 1;
+            background-color: rgba(76, 175, 80, 1);
+        }
+
+        /* 代码块容器 */
+        .code-block {
+            position: relative;
+            margin: 10px 0;
+        }
+
+        pre {
+            background: #2d2d2d;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 0;
+        }
+
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            #container {
+                flex-direction: column;
+            }
+
+            #chat-container, #editor-container, #preview-container {
+                width: 100%;
+                min-width: unset;
+                height: 33.33%;
+            }
+
+            #preview-iframe {
+                height: 100%;
+            }
+        }
+
+        /* MathJax 样式调整（可选） */
+        .mjx-container {
+            font-size: 1em !important;
         }
     </style>
 </head>
 <body>
 
-    <h2 style="text-align: center; margin-top: 10px;">在线代码编辑与实时预览</h2>
+    <header>
+        代码编辑与预览工具
+    </header>
 
     <div id="container">
-        <!-- 左侧：代码编辑区域 -->
+
+        <!-- 左侧：聊天窗口 -->
+        <div id="chat-container">
+            <div id="chat-header">
+                <h3>聊天窗口</h3>
+                <button id="clear-chat-btn">清除聊天</button>
+            </div>
+            <div id="chat-messages"></div>
+            <div id="chat-input-container">
+                <textarea id="chat-input" placeholder="输入消息..." rows="2"></textarea>
+                <button id="send-btn">发送</button>
+            </div>
+        </div>
+
+        <!-- 中间：代码编辑区域 -->
         <div id="editor-container">
             <h3>代码编辑区</h3>
             <textarea id="code-input" placeholder="在这里输入 HTML 代码..."></textarea>
@@ -101,35 +361,205 @@
     </div>
 
 <script>
-    const codeInput = document.getElementById("code-input");
-    const previewIframe = document.getElementById("preview-iframe");
-    const clearBtn = document.getElementById("clear-btn"); // 获取清除按钮
-    const runBtn = document.getElementById("run-btn"); // 获取运行按钮
+    document.addEventListener("DOMContentLoaded", () => {
+        // 初始化 CodeMirror
+        const codeTextarea = document.getElementById("code-input");
+        const codeMirror = CodeMirror.fromTextArea(codeTextarea, {
+            mode: "htmlmixed", // 可根据需要更改为 "javascript", "python" 等
+            theme: "monokai",  // 与现有界面主题一致
+            lineNumbers: true,
+            lineWrapping: true,
+            autofocus: true,
+            extraKeys: {
+                "Ctrl-Space": "autocomplete"
+            }
+        });
 
-    // 自动更新预览
-    codeInput.addEventListener("input", () => {
-        const codeWithCacheBuster = codeInput.value.replace(/src="(.+?)"/g, 'src="$1?' + new Date().getTime() + '"');
-        previewIframe.srcdoc = codeWithCacheBuster;
-    });
+        // 设置 CodeMirror 的高度适应父容器
+        codeMirror.setSize("100%", "100%");
 
-    // 清除按钮功能：清空代码输入框和预览
-    clearBtn.addEventListener("click", () => {
-        codeInput.value = ""; // 清空代码输入框
-        previewIframe.srcdoc = ""; // 清空预览区
-    });
+        const previewIframe = document.getElementById("preview-iframe");
+        const clearBtn = document.getElementById("clear-btn");
+        const runBtn = document.getElementById("run-btn");
 
-    // 运行按钮功能：手动刷新预览区
-    runBtn.addEventListener("click", () => {
-        const codeWithCacheBuster = codeInput.value.replace(/src="(.+?)"/g, 'src="$1?' + new Date().getTime() + '"');
-        previewIframe.srcdoc = codeWithCacheBuster;
-    });
+        // 自动更新预览
+        codeMirror.on("change", () => {
+            const codeWithCacheBuster = codeMirror.getValue().replace(/src="(.+?)"/g, 'src="$1?' + new Date().getTime() + '"');
+            previewIframe.srcdoc = codeWithCacheBuster;
+        });
 
-    // 页面加载时初始化 iframe 的内容
-    window.addEventListener("load", () => {
-        previewIframe.srcdoc = codeInput.value;
+        // 清除按钮功能：清空代码输入框和预览
+        clearBtn.addEventListener("click", () => {
+            codeMirror.setValue(""); // 清空代码编辑器
+            previewIframe.srcdoc = ""; // 清空预览区
+        });
+
+        // 运行按钮功能：手动刷新预览区
+        runBtn.addEventListener("click", () => {
+            const codeWithCacheBuster = codeMirror.getValue().replace(/src="(.+?)"/g, 'src="$1?' + new Date().getTime() + '"');
+            previewIframe.srcdoc = codeWithCacheBuster;
+        });
+
+        // 页面加载时初始化 iframe 的内容
+        window.addEventListener("load", () => {
+            previewIframe.srcdoc = codeMirror.getValue();
+        });
+
+        // 聊天窗口功能
+        const chatMessages = document.getElementById("chat-messages");
+        const chatInput = document.getElementById("chat-input");
+        const sendBtn = document.getElementById("send-btn");
+        const clearChatBtn = document.getElementById("clear-chat-btn");
+
+        // 添加消息到聊天窗口
+        function addMessage(sender, message) {
+            const messageElement = document.createElement("div");
+            messageElement.classList.add("message", sender === "用户" ? "user" : "assistant");
+
+            // 将 ```语言名\n代码``` 转换为 <pre><code class="language-语言名">代码</code></pre>
+            let formattedMessage = message.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+                const language = lang ? `language-${lang}` : 'language-none';
+                return `
+                    <div class="code-block">
+                        <button class="copy-btn">复制</button>
+                        <pre><code class="${language}">${escapeHtml(code)}</code></pre>
+                    </div>
+                `;
+            });
+
+            // 直接插入消息内容，让 MathJax 处理 LaTeX
+            messageElement.innerHTML = `<strong>${sender}:</strong> ${formattedMessage}`;
+            chatMessages.appendChild(messageElement);
+
+            // 对新增的代码块进行语法高亮
+            const codeBlocks = messageElement.querySelectorAll('code');
+            codeBlocks.forEach((block) => {
+                Prism.highlightElement(block);
+            });
+
+            // 渲染 LaTeX
+            if (typeof MathJax !== 'undefined') {
+                MathJax.typesetPromise([messageElement]).then(() => {
+                    console.log('MathJax 渲染完成');
+                }).catch((err) => console.error('MathJax 渲染失败: ', err.message));
+            }
+
+            // 添加复制按钮的事件监听
+            const copyButtons = messageElement.querySelectorAll('.copy-btn');
+            copyButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    const codeElement = button.nextElementSibling.querySelector('code');
+                    const code = codeElement.innerText;
+                    copyToClipboard(code);
+                    button.textContent = '已复制';
+                    button.disabled = true; // 禁用按钮防止多次点击
+                    setTimeout(() => {
+                        button.textContent = '复制';
+                        button.disabled = false;
+                    }, 2000);
+                });
+            });
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // 辅助函数：转义HTML字符，防止XSS攻击
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        // 复制到剪贴板的函数
+        function copyToClipboard(text) {
+            if (!navigator.clipboard) {
+                // 旧版浏览器的兼容处理
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed"; // 避免滚动到页面底部
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    console.log('复制成功');
+                } catch (err) {
+                    console.error('复制失败: ', err);
+                }
+                document.body.removeChild(textArea);
+                return;
+            }
+            navigator.clipboard.writeText(text).then(() => {
+                console.log('复制成功');
+            }).catch(err => {
+                console.error('复制失败: ', err);
+            });
+        }
+
+        // 发送消息
+        sendBtn.addEventListener("click", async () => {
+            const userMessage = chatInput.value.trim();
+            if (userMessage === "") return;
+
+            addMessage("用户", userMessage);
+            chatInput.value = "";
+
+            // 显示加载状态
+            addMessage("助手", "正在回复...");
+
+            try {
+                const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer sk-fd790ecc4101410bb877daa5b6a9a5c1' // 请替换为您的实际API密钥
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-chat",
+                        messages: [
+                            { role: "system", content: "你是一个优透的前端工程师，擅长于写HTML，所有程序如无特别要求，写成HTML。" },
+                            { role: "user", content: userMessage }
+                        ],
+                        temperature: 0
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('网络响应错误');
+                }
+
+                const data = await response.json();
+                const assistantMessage = data.choices[0].message.content;
+                // 移除加载状态
+                chatMessages.removeChild(chatMessages.lastChild);
+                addMessage("助手", assistantMessage);
+            } catch (error) {
+                console.error('Error:', error);
+                // 显示错误消息
+                chatMessages.removeChild(chatMessages.lastChild);
+                addMessage("助手", "抱歉，发生了错误。");
+            }
+        });
+
+        // 允许按下Enter键发送消息
+        chatInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                sendBtn.click();
+            }
+        });
+
+        // 清除聊天功能
+        clearChatBtn.addEventListener("click", () => {
+            chatMessages.innerHTML = "";
+        });
     });
 </script>
-
 
 </body>
 </html>
