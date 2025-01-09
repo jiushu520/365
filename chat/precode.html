@@ -98,7 +98,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 15px;
+            padding: 13.5px 15px;
             background-color: var(--secondary-color);
             color: white;
         }
@@ -367,16 +367,23 @@
                 <div>
                     <!-- 模型选择菜单 -->
                     <select id="model-select">
-           
+ 
                     </select>
-                    <button id="clear-chat-btn">清除聊天</button>
+
+     
                 </div>
             </div>
             <div id="chat-messages"></div>
+
             <div id="chat-input-container">
+          <button id="clear-chat-btn">清除</button>
+     
                 <textarea id="chat-input" placeholder="输入消息..." rows="2"></textarea>
+                
                 <button id="send-btn">发送</button>
+
             </div>
+        
         </div>
 
         <!-- 中间：代码编辑区域 -->
