@@ -253,46 +253,37 @@
    <!-- 引入 MathJax 库 -->
 <script id="MathJax-script" defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
-<!-- 动态加载 proverbs.js 和 accounts.js 并处理加载失败 -->
 <script>
-  // 动态加载脚本函数
-  function loadScript(remoteSrc, localSrc, callback) {
+function loadScript(remoteSrc, callback) {
     const script = document.createElement('script');
     script.src = remoteSrc;
     script.onload = () => {
-      console.log(`成功加载远程脚本: ${remoteSrc}`);
-      if (callback) callback(null);
+        console.log(`成功加载远程脚本: ${remoteSrc}`);
+        if (callback) callback(null);
     };
     script.onerror = () => {
-      console.warn(`无法加载远程脚本: ${remoteSrc}，尝试加载本地备份: ${localSrc}`);
-      const localScript = document.createElement('script');
-      localScript.src = localSrc;
-      localScript.onload = () => {
-        console.log(`成功加载本地脚本: ${localSrc}`);
-        if (callback) callback(null);
-      };
-      localScript.onerror = () => {
-        console.error(`无法加载本地备份脚本: ${localSrc}`);
-        if (callback) callback(new Error(`无法加载 ${remoteSrc} 和 ${localSrc}`));
-      };
-      document.head.appendChild(localScript);
+        console.error(`无法加载远程脚本: ${remoteSrc}`);
+        if (callback) callback(new Error(`无法加载 ${remoteSrc}`));
     };
     document.head.appendChild(script);
-  }
+}
 
-  // 加载 proverbs.js
-  loadScript('http://jiushu.vip.cpolar.cn/proverbs.js', 'proverbs.js', function(error) {
-    if (error) {
-      displayMessage("无法加载谚言脚本，请联系管理员。", "error");
-    }
-  });
 
-  // 加载 accounts.js
-  loadScript('http://jiushu.vip.cpolar.cn/accounts.js', 'accounts.js', function(error) {
+
+// 加载 proverbs.js
+loadScript('http://jiushu.vip.cpolar.cn/proverbs.js', function(error) {
     if (error) {
-      displayMessage("无法加载账号脚本，请联系管理员。", "error");
+        displayMessage("无法加载谚言脚本，请联系管理员。", "error");
     }
-  });
+});
+
+// 加载 accounts.js
+loadScript('http://jiushu.vip.cpolar.cn/accounts.js', function(error) {
+    if (error) {
+        displayMessage("无法加载账号脚本，请联系管理员。", "error");
+    }
+});
+
 </script>
     <script>
     document.addEventListener("DOMContentLoaded", () => {
