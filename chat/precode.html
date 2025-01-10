@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+    <!-- ... 原有的 head 内容 ... -->
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>代码编辑与预览</title>
@@ -355,35 +357,54 @@
         }
     </style>
 </head>
+
+    <style>
+        /* 添加模态窗口的样式 */
+        #add-model-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            width: 300px;
+            border-radius: 8px;
+        }
+        #modal-overlay {
+            display: none;
+            position: fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+    </style>
+</head>
 <body>
 
-
     <div id="container">
-
         <!-- 左侧：聊天窗口 -->
         <div id="chat-container">
             <div id="chat-header">
-     
                 <div>
                     <!-- 模型选择菜单 -->
                     <select id="model-select">
- 
                     </select>
-
-     
+                    <button id="add-model-btn" style="margin-left:10px;">添加模型</button>
                 </div>
             </div>
             <div id="chat-messages"></div>
 
             <div id="chat-input-container">
-          <button id="clear-chat-btn">清除</button>
-     
+                <button id="clear-chat-btn">清除</button>
                 <textarea id="chat-input" placeholder="输入消息..." rows="2"></textarea>
-                
                 <button id="send-btn">发送</button>
-
             </div>
-        
         </div>
 
         <!-- 中间：代码编辑区域 -->
@@ -403,47 +424,70 @@
         </div>
     </div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        // 模型配置数组
-        const models = [
+    <!-- 模态窗口 -->
+    <div id="add-model-modal">
+        <h3>添加自定义模型</h3>
+        <form id="add-model-form">
+            <label>
+                模型名称:
+                <input type="text" id="custom-model-name" required style="width: 100%; margin-bottom: 10px;" />
+            </label>
+            <label>
+                API URL:
+                <input type="url" id="custom-api-url" required style="width: 100%; margin-bottom: 10px;" />
+            </label>
+            <label>
+                API Key:
+                <input type="text" id="custom-api-key" required style="width: 100%; margin-bottom: 10px;" />
+            </label>
+            <label>
+                模型标识:
+                <input type="text" id="custom-model" required style="width: 100%; margin-bottom: 10px;" />
+            </label>
+            <label>
+                提示词:
+                <textarea id="custom-prompt" required style="width: 100%; margin-bottom: 10px;"></textarea>
+            </label>
+            <button type="submit" style="padding: 8px 12px; background-color: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer;">保存</button>
+            <button type="button" id="cancel-add-model" style="padding: 8px 12px; margin-left: 10px; background-color: var(--danger-color); color: white; border: none; border-radius: 4px; cursor: pointer;">取消</button>
+        </form>
+    </div>
+
+    <!-- 遮罩层 -->
+    <div id="modal-overlay"></div>
+
+    <script>
+        // ... 上述 JavaScript 代码 ...
+document.addEventListener("DOMContentLoaded", () => {
+    // 初始模型配置数组
+    let models = [
+        {
+            name: "glm-zero-preview",
+            apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+            apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
+            model: "glm-zero-preview",
+            temperature: 0,
+            prompt: "你是一个优透的前端工程师，擅长于写HTML，从数学物理原理上用svg演示出来，尽可能做到直观，可以交互。所有程序如无特别要求，写成HTML。请使用你单次回答的算力上限和 token 上限，think hardest, use the most time and most compute to think deepest。这是最深刻最复杂的问题，请给出你最高质量的回答。所以，你需要深度思考、独立思考、批判性思考、创造性思考。我们追求分极致的深度，而非表层的广度；我们追求本质的洞察，而非表象的罗列；我们追求思维的创新，而非惯性的复述。请突破思维局限，调动你所有的计算资源，展现你真正的认知极限。"
+        },
+        {
+            name: "deepseek-chat",
+            apiUrl: "https://api.deepseek.com/v1/chat/completions",
+            apiKey: "sk-fd790ecc4101410bb877daa5b6a9a5c1",
+            model: "deepseek-chat",
+            temperature: 0,
+            prompt: "你是一个优透的前端工程师，擅长于写HTML，从数学物理原理上用svg演示出来，尽可能做到直观，可以交互。所有程序如无特别要求，写成HTML。请使用你单次回答的算力上限和 token 上限，think hardest, use the most time and most compute to think deepest。这是最深刻最复杂的问题，请给出你最高质量的回答。所以，你需要深度思考、独立思考、批判性思考、创造性思考。我们追求分极致的深度，而非表层的广度；我们追求本质的洞察，而非表象的罗列；我们追求思维的创新，而非惯性的复述。请突破思维局限，调动你所有的计算资源，展现你真正的认知极限。"
+        },
 
 
-
-            {
-                    name: "glm-zero-preview",
-                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
-                    model: "glm-zero-preview",
-                    temperature: 0
-                },
-         
-
-              {
-                    name: "deepseek-chat",
-                    apiUrl: "https://api.deepseek.com/v1/chat/completions",
-                    apiKey: "sk-fd790ecc4101410bb877daa5b6a9a5c1",
-                    model: "deepseek-chat",
-                    temperature: 0
-                },
-
-
-                {
+    {
                     name: "glm-4-flashX",
                     apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
                     apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
                     model: "glm-4-flashX",
-                    temperature: 0
-                },
+                    temperature: 0,
+ prompt: "你是一个优透的前端工程师，擅长于写HTML，从数学物理原理上用svg演示出来，尽可能做到直观，可以交互。所有程序如无特别要求，写成HTML。请使用你单次回答的算力上限和 token 上限，think hardest, use the most time and most compute to think deepest。这是最深刻最复杂的问题，请给出你最高质量的回答。所以，你需要深度思考、独立思考、批判性思考、创造性思考。我们追求分极致的深度，而非表层的广度；我们追求本质的洞察，而非表象的罗列；我们追求思维的创新，而非惯性的复述。请突破思维局限，调动你所有的计算资源，展现你真正的认知极限。"
 
-                {
-                    name: "qwen-plus",
-                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
-                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
-                    model: "qwen-plus",
-                    temperature: 0
                 },
-   
 
 
                 {
@@ -451,250 +495,336 @@
                     apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
                     apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
                     model: "glm-4-flash",
-                    temperature: 0
+                    temperature: 0,
+ prompt: "你是一个优透的前端工程师，擅长于写HTML，从数学物理原理上用svg演示出来，尽可能做到直观，可以交互。所有程序如无特别要求，写成HTML。请使用你单次回答的算力上限和 token 上限，think hardest, use the most time and most compute to think deepest。这是最深刻最复杂的问题，请给出你最高质量的回答。所以，你需要深度思考、独立思考、批判性思考、创造性思考。我们追求分极致的深度，而非表层的广度；我们追求本质的洞察，而非表象的罗列；我们追求思维的创新，而非惯性的复述。请突破思维局限，调动你所有的计算资源，展现你真正的认知极限。"
+
                 },
         
+                {
+                    name: "qwen-plus",
+                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
+                    model: "qwen-plus",
+                    temperature: 0,
+ prompt: "你是一个优透的前端工程师，擅长于写HTML，从数学物理原理上用svg演示出来，尽可能做到直观，可以交互。所有程序如无特别要求，写成HTML。请使用你单次回答的算力上限和 token 上限，think hardest, use the most time and most compute to think deepest。这是最深刻最复杂的问题，请给出你最高质量的回答。所以，你需要深度思考、独立思考、批判性思考、创造性思考。我们追求分极致的深度，而非表层的广度；我们追求本质的洞察，而非表象的罗列；我们追求思维的创新，而非惯性的复述。请突破思维局限，调动你所有的计算资源，展现你真正的认知极限。"
+
+                },
 
 
 
 
 
 
-   
-  
 
 
-        ];
 
-        // 当前选中的模型索引，默认第一个
-        let currentModelIndex = 0;
 
-        // 初始化 Split.js
-        Split(['#chat-container', '#editor-container', '#preview-container'], {
-            sizes: [25, 35, 40], // 初始宽度比例
-            minSize: [0, 0, 0], // 解除聊天窗口最小宽度限制，编辑区和预览区保持最小宽度
-            gutterSize: 10, // 分隔条的宽度
-            cursor: 'col-resize',
-            direction: 'horizontal',
-            onDragEnd: () => {
-                console.log('调整大小完成');
-            }
-        });
+        // 其他模型...
+    ];
 
-        // 初始化 CodeMirror
-        const codeTextarea = document.getElementById("code-input");
-        const codeMirror = CodeMirror.fromTextArea(codeTextarea, {
-            mode: "htmlmixed", // 可根据需要更改为 "javascript", "python" 等
-            theme: "monokai",  // 与现有界面主题一致
-            lineNumbers: true,
-            lineWrapping: true,
-            autofocus: true,
-            extraKeys: {
-                "Ctrl-Space": "autocomplete"
-            }
-        });
+    // 尝试从本地存储加载模型
+    const savedModels = JSON.parse(localStorage.getItem('models'));
+    if (savedModels && Array.isArray(savedModels)) {
+        models = savedModels;
+    }
 
-        // 设置 CodeMirror 的高度适应父容器
-        codeMirror.setSize("100%", "100%");
+    // 当前选中的模型索引，默认第一个
+    let currentModelIndex = 0;
 
-        const previewIframe = document.getElementById("preview-iframe");
-        const clearBtn = document.getElementById("clear-btn");
-        const runBtn = document.getElementById("run-btn");
+    // 初始化 Split.js (保持不变)
+    Split(['#chat-container', '#editor-container', '#preview-container'], {
+        sizes: [25, 35, 40], // 初始宽度比例
+        minSize: [0, 0, 0], // 解除聊天窗口最小宽度限制，编辑区和预览区保持最小宽度
+        gutterSize: 10, // 分隔条的宽度
+        cursor: 'col-resize',
+        direction: 'horizontal',
+        onDragEnd: () => {
+            console.log('调整大小完成');
+        }
+    });
 
-        // 自动更新预览
-        codeMirror.on("change", () => {
-            const codeWithCacheBuster = codeMirror.getValue().replace(/src="(.+?)"/g, 'src="$1?' + new Date().getTime() + '"');
-            previewIframe.srcdoc = codeWithCacheBuster;
-        });
+    // 初始化 CodeMirror (保持不变)
+    const codeTextarea = document.getElementById("code-input");
+    const codeMirror = CodeMirror.fromTextArea(codeTextarea, {
+        mode: "htmlmixed", // 可根据需要更改为 "javascript", "python" 等
+        theme: "monokai",  // 与现有界面主题一致
+        lineNumbers: true,
+        lineWrapping: true,
+        autofocus: true,
+        extraKeys: {
+            "Ctrl-Space": "autocomplete"
+        }
+    });
 
-        // 清除按钮功能：清空代码输入框和预览
-        clearBtn.addEventListener("click", () => {
-            codeMirror.setValue(""); // 清空代码编辑器
-            previewIframe.srcdoc = ""; // 清空预览区
-        });
+    // 设置 CodeMirror 的高度适应父容器
+    codeMirror.setSize("100%", "100%");
 
-        // 运行按钮功能：手动刷新预览区
-        runBtn.addEventListener("click", () => {
-            const codeWithCacheBuster = codeMirror.getValue().replace(/src="(.+?)"/g, 'src="$1?' + new Date().getTime() + '"');
-            previewIframe.srcdoc = codeWithCacheBuster;
-        });
+    const previewIframe = document.getElementById("preview-iframe");
+    const clearBtn = document.getElementById("clear-btn");
+    const runBtn = document.getElementById("run-btn");
 
-        // 页面加载时初始化 iframe 的内容
-        window.addEventListener("load", () => {
-            previewIframe.srcdoc = codeMirror.getValue();
-        });
+    // 自动更新预览 (保持不变)
+    codeMirror.on("change", () => {
+        const codeWithCacheBuster = codeMirror.getValue().replace(/src="(.+?)"/g, 'src="$1?' + new Date().getTime() + '"');
+        previewIframe.srcdoc = codeWithCacheBuster;
+    });
 
-        // 聊天窗口功能
-        const chatMessages = document.getElementById("chat-messages");
-        const chatInput = document.getElementById("chat-input");
-        const sendBtn = document.getElementById("send-btn");
-        const clearChatBtn = document.getElementById("clear-chat-btn");
-        const modelSelect = document.getElementById("model-select");
+    // 清除按钮功能 (保持不变)
+    clearBtn.addEventListener("click", () => {
+        codeMirror.setValue(""); // 清空代码编辑器
+        previewIframe.srcdoc = ""; // 清空预览区
+    });
 
-        // 模型选择菜单初始化
+    // 运行按钮功能 (保持不变)
+    runBtn.addEventListener("click", () => {
+        const codeWithCacheBuster = codeMirror.getValue().replace(/src="(.+?)"/g, 'src="$1?' + new Date().getTime() + '"');
+        previewIframe.srcdoc = codeWithCacheBuster;
+    });
+
+    // 页面加载时初始化 iframe 的内容 (保持不变)
+    window.addEventListener("load", () => {
+        previewIframe.srcdoc = codeMirror.getValue();
+    });
+
+    // 聊天窗口功能 (大部分保持不变)
+    const chatMessages = document.getElementById("chat-messages");
+    const chatInput = document.getElementById("chat-input");
+    const sendBtn = document.getElementById("send-btn");
+    const clearChatBtn = document.getElementById("clear-chat-btn");
+    const modelSelect = document.getElementById("model-select");
+
+    // 模型选择菜单初始化
+    function populateModelSelect() {
+        modelSelect.innerHTML = ''; // 清空现有选项
         models.forEach((model, index) => {
             const option = document.createElement("option");
             option.value = index;
             option.textContent = model.name;
             modelSelect.appendChild(option);
         });
+    }
 
-        // 监听模型选择变化
-        modelSelect.addEventListener("change", (event) => {
-            currentModelIndex = parseInt(event.target.value, 10);
-            console.log(`已选择模型: ${models[currentModelIndex].name}`);
-        });
+    populateModelSelect();
 
-        // 添加消息到聊天窗口
-        function addMessage(sender, message) {
-            const messageElement = document.createElement("div");
-            messageElement.classList.add("message", sender === "用户" ? "user" : "assistant");
-
-            // 将 ```语言名\n代码``` 转换为 <pre><code class="language-语言名">代码</code></pre>
-            let formattedMessage = message.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
-                const language = lang ? `language-${lang}` : 'language-none';
-                return `
-                    <div class="code-block">
-                        <button class="copy-btn">复制</button>
-                        <pre><code class="${language}">${escapeHtml(code)}</code></pre>
-                    </div>
-                `;
-            });
-
-            // 直接插入消息内容，让 MathJax 处理 LaTeX
-            messageElement.innerHTML = `<strong>${sender}:</strong> ${formattedMessage}`;
-            chatMessages.appendChild(messageElement);
-
-            // 对新增的代码块进行语法高亮
-            const codeBlocks = messageElement.querySelectorAll('code');
-            codeBlocks.forEach((block) => {
-                Prism.highlightElement(block);
-            });
-
-            // 渲染 LaTeX
-            if (typeof MathJax !== 'undefined') {
-                MathJax.typesetPromise([messageElement]).then(() => {
-                    console.log('MathJax 渲染完成');
-                }).catch((err) => console.error('MathJax 渲染失败: ', err.message));
-            }
-
-            // 添加复制按钮的事件监听
-            const copyButtons = messageElement.querySelectorAll('.copy-btn');
-            copyButtons.forEach((button) => {
-                button.addEventListener('click', () => {
-                    const codeElement = button.nextElementSibling.querySelector('code');
-                    const code = codeElement.innerText;
-                    copyToClipboard(code);
-                    button.textContent = '已复制';
-                    button.disabled = true; // 禁用按钮防止多次点击
-                    setTimeout(() => {
-                        button.textContent = '复制';
-                        button.disabled = false;
-                    }, 2000);
-                });
-            });
-
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        // 辅助函数：转义HTML字符，防止XSS攻击
-        function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-        }
-
-        // 复制到剪贴板的函数
-        function copyToClipboard(text) {
-            if (!navigator.clipboard) {
-                // 旧版浏览器的兼容处理
-                const textArea = document.createElement("textarea");
-                textArea.value = text;
-                textArea.style.position = "fixed"; // 避免滚动到页面底部
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
-                try {
-                    document.execCommand('copy');
-                    console.log('复制成功');
-                } catch (err) {
-                    console.error('复制失败: ', err);
-                }
-                document.body.removeChild(textArea);
-                return;
-            }
-            navigator.clipboard.writeText(text).then(() => {
-                console.log('复制成功');
-            }).catch(err => {
-                console.error('复制失败: ', err);
-            });
-        }
-
-        // 发送消息
-        sendBtn.addEventListener("click", async () => {
-            const userMessage = chatInput.value.trim();
-            if (userMessage === "") return;
-
-            addMessage("用户", userMessage);
-            chatInput.value = "";
-
-            // 显示加载状态
-            addMessage("玖数", "正在回复...");
-
-            try {
-                const selectedModel = models[currentModelIndex];
-                const response = await fetch(selectedModel.apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${selectedModel.apiKey}` // 使用所选模型的 API 密钥
-                    },
-                    body: JSON.stringify({
-                        model: selectedModel.model,
-                        messages: [
-                            { role: "system", content: "你是一个优透的前端工程师，擅长于写HTML，从数学物理原理上用svg演示出来，尽可能做到直观，可以交互。所有程序如无特别要求，写成HTML。" },
-                            { role: "user", content: userMessage }
-                        ],
-                        temperature: selectedModel.temperature
-                    }),
-                });
-
-                if (!response.ok) {
-                    throw new Error('网络响应错误');
-                }
-
-                const data = await response.json();
-                const assistantMessage = data.choices[0].message.content;
-                // 移除加载状态
-                chatMessages.removeChild(chatMessages.lastChild);
-                addMessage("玖数", assistantMessage);
-            } catch (error) {
-                console.error('Error:', error);
-                // 显示错误消息
-                chatMessages.removeChild(chatMessages.lastChild);
-                addMessage("玖数", "抱歉，发生了错误。");
-            }
-        });
-
-        // 允许按下Enter键发送消息
-        chatInput.addEventListener("keypress", function(event) {
-            if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-                sendBtn.click();
-            }
-        });
-
-        // 清除聊天功能
-        clearChatBtn.addEventListener("click", () => {
-            chatMessages.innerHTML = "";
-        });
+    // 监听模型选择变化
+    modelSelect.addEventListener("change", (event) => {
+        currentModelIndex = parseInt(event.target.value, 10);
+        console.log(`已选择模型: ${models[currentModelIndex].name}`);
     });
-</script>
+
+    // 添加消息到聊天窗口 (保持不变)
+    function addMessage(sender, message) {
+        const messageElement = document.createElement("div");
+        messageElement.classList.add("message", sender === "用户" ? "user" : "assistant");
+
+        // 将 ```语言名\n代码``` 转换为 <pre><code class="language-语言名">代码</code></pre>
+        let formattedMessage = message.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+            const language = lang ? `language-${lang}` : 'language-none';
+            return `
+                <div class="code-block">
+                    <button class="copy-btn">复制</button>
+                    <pre><code class="${language}">${escapeHtml(code)}</code></pre>
+                </div>
+            `;
+        });
+
+        // 直接插入消息内容，让 MathJax 处理 LaTeX
+        messageElement.innerHTML = `<strong>${sender}:</strong> ${formattedMessage}`;
+        chatMessages.appendChild(messageElement);
+
+        // 对新增的代码块进行语法高亮
+        const codeBlocks = messageElement.querySelectorAll('code');
+        codeBlocks.forEach((block) => {
+            Prism.highlightElement(block);
+        });
+
+        // 渲染 LaTeX
+        if (typeof MathJax !== 'undefined') {
+            MathJax.typesetPromise([messageElement]).then(() => {
+                console.log('MathJax 渲染完成');
+            }).catch((err) => console.error('MathJax 渲染失败: ', err.message));
+        }
+
+        // 添加复制按钮的事件监听
+        const copyButtons = messageElement.querySelectorAll('.copy-btn');
+        copyButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                const codeElement = button.nextElementSibling.querySelector('code');
+                const code = codeElement.innerText;
+                copyToClipboard(code);
+                button.textContent = '已复制';
+                button.disabled = true; // 禁用按钮防止多次点击
+                setTimeout(() => {
+                    button.textContent = '复制';
+                    button.disabled = false;
+                }, 2000);
+            });
+        });
+
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // 辅助函数：转义HTML字符，防止XSS攻击 (保持不变)
+    function escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
+
+    // 复制到剪贴板的函数 (保持不变)
+    function copyToClipboard(text) {
+        if (!navigator.clipboard) {
+            // 旧版浏览器的兼容处理
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed"; // 避免滚动到页面底部
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                console.log('复制成功');
+            } catch (err) {
+                console.error('复制失败: ', err);
+            }
+            document.body.removeChild(textArea);
+            return;
+        }
+        navigator.clipboard.writeText(text).then(() => {
+            console.log('复制成功');
+        }).catch(err => {
+            console.error('复制失败: ', err);
+        });
+    }
+
+    // 发送消息
+    sendBtn.addEventListener("click", async () => {
+        const userMessage = chatInput.value.trim();
+        if (userMessage === "") return;
+
+        addMessage("用户", userMessage);
+        chatInput.value = "";
+
+        // 显示加载状态
+        addMessage("玖数", "正在回复...");
+
+        try {
+            const selectedModel = models[currentModelIndex];
+            const response = await fetch(selectedModel.apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${selectedModel.apiKey}` // 使用所选模型的 API 密钥
+                },
+                body: JSON.stringify({
+                    model: selectedModel.model,
+                    messages: [
+                        { role: "system", content: selectedModel.prompt || "你是一个优透的前端工程师，擅长于写HTML，从数学物理原理上用svg演示出来，尽可能做到直观，可以交互。所有程序如无特别要求，写成HTML。" },
+                        { role: "user", content: userMessage }
+                    ],
+                    temperature: selectedModel.temperature
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('网络响应错误');
+            }
+
+            const data = await response.json();
+            const assistantMessage = data.choices[0].message.content;
+            // 移除加载状态
+            chatMessages.removeChild(chatMessages.lastChild);
+            addMessage("玖数", assistantMessage);
+        } catch (error) {
+            console.error('Error:', error);
+            // 显示错误消息
+            chatMessages.removeChild(chatMessages.lastChild);
+            addMessage("玖数", "抱歉，发生了错误。");
+        }
+    });
+
+    // 允许按下Enter键发送消息 (保持不变)
+    chatInput.addEventListener("keypress", function(event) {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            sendBtn.click();
+        }
+    });
+
+    // 清除聊天功能 (保持不变)
+    clearChatBtn.addEventListener("click", () => {
+        chatMessages.innerHTML = "";
+    });
+
+    // 添加模型按钮功能
+    const addModelBtn = document.getElementById("add-model-btn");
+    const addModelModal = document.getElementById("add-model-modal");
+    const modalOverlay = document.getElementById("modal-overlay");
+    const cancelAddModelBtn = document.getElementById("cancel-add-model");
+    const addModelForm = document.getElementById("add-model-form");
+
+    // 显示模态窗口
+    addModelBtn.addEventListener("click", () => {
+        addModelModal.style.display = "block";
+        modalOverlay.style.display = "block";
+    });
+
+    // 取消添加模型，隐藏模态窗口
+    cancelAddModelBtn.addEventListener("click", () => {
+        addModelModal.style.display = "none";
+        modalOverlay.style.display = "none";
+        addModelForm.reset();
+    });
+
+    // 点击遮罩层也隐藏模态窗口
+    modalOverlay.addEventListener("click", () => {
+        addModelModal.style.display = "none";
+        modalOverlay.style.display = "none";
+        addModelForm.reset();
+    });
+
+    // 处理表单提交，添加自定义模型
+    addModelForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const name = document.getElementById("custom-model-name").value.trim();
+        const apiUrl = document.getElementById("custom-api-url").value.trim();
+        const apiKey = document.getElementById("custom-api-key").value.trim();
+        const model = document.getElementById("custom-model").value.trim();
+        const prompt = document.getElementById("custom-prompt").value.trim();
+
+        if (name && apiUrl && apiKey && model) {
+            const newModel = {
+                name,
+                apiUrl,
+                apiKey,
+                model,
+                temperature: 0, // 默认值，可根据需要修改
+                prompt: prompt || "你是一个优透的前端工程师，擅长于写HTML，从数学物理原理上用svg演示出来，尽可能做到直观，可以交互。所有程序如无特别要求，写成HTML。"
+            };
+            models.push(newModel);
+            populateModelSelect();
+            modelSelect.value = models.length - 1; // 选择新添加的模型
+            currentModelIndex = models.length - 1;
+
+            // 保存到本地存储
+            localStorage.setItem('models', JSON.stringify(models));
+
+            // 关闭模态窗口
+            addModelModal.style.display = "none";
+            modalOverlay.style.display = "none";
+            addModelForm.reset();
+        } else {
+            alert("请填写所有必填字段。");
+        }
+    });
+});
+
+    </script>
 
 </body>
 </html>

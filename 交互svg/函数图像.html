@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>函数图像绘制</title>
+  <style>
+    .label {
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      user-select: none;
+    }
+    /* 容器样式 */
+    #container {
+      width: 900px;
+      height: 750px;
+      border: 1px solid #ccc;
+      overflow: hidden;
+      margin: 20px auto; /* 上下添加间距，居中显示容器 */
+      position: relative;
+      background-color: #f9f9f9;
+    }
+    #container.grabbing {
+      cursor: grabbing; /* 拖动时的光标样式 */
+    }
+    /* 输入框和按钮样式 */
+    #inputContainer {
+      width: 900px;
+      margin: 0 auto 10px auto;
+      text-align: center;
+    }
+    #functionInput {
+      width: 400px;
+      padding: 5px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    #plotButton, #resetButton {
+      padding: 5px 10px;
+      font-size: 14px;
+      margin-left: 5px;
+      border: none;
+      border-radius: 4px;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s, opacity 0.3s;
+    }
+    #resetButton {
+      background-color: #f44336;
+    }
+    #plotButton:hover, #resetButton:hover {
+      opacity: 0.8;
+    }
+    /* 参数容器样式 */
+    #parameterContainer {
+      width: 900px;
+      margin: 10px auto;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #fff;
+      /* 添加背景颜色和z-index以确保可见性 */
+      position: relative;
+      z-index: 1;
+    }
+    .parameter {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .parameter label {
+      width: 50px;
+      margin-right: 15px;
+      font-weight: bold;
+    }
+    .parameter .button {
+      width: 30px;
+      height: 30px;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      transition: background-color 0.3s;
+    }
+    .parameter .button:hover {
+      background-color: #45a049;
+    }
+    .parameter .button:active {
+      background-color: #3e8e41;
+    }
+    .parameter .button.up::after {
+      content: '';
+      border: solid white;
+      border-width: 0 4px 4px 0;
+      display: inline-block;
+      padding: 6px;
+      transform: rotate(-45deg);
+    }
+    .parameter .button.down::after {
+      content: '';
+      border: solid white;
+      border-width: 4px 4px 0 0;
+      display: inline-block;
+      padding: 6px;
+      transform: rotate(-135deg);
+    }
+    .parameter input[type=range] {
+      flex: 1;
+      margin-right: 10px;
+      -webkit-appearance: none; /* 去除默认样式 */
+      appearance: none;
+      height: 8px;
+      border-radius: 5px;
+      background: #d3d3d3;
+      outline: none;
+      transition: background 0.3s;
+    }
+    /* 滑动条轨道 */
+    .parameter input[type=range]::-webkit-slider-runnable-track {
+      height: 8px;
+      background: #4CAF50;
+      border-radius: 5px;
+    }
+    .parameter input[type=range]::-moz-range-track {
+      height: 8px;
+      background: #4CAF50;
+      border-radius: 5px;
+    }
+    /* 滑动块 */
+    .parameter input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: #ffffff;
+      border: 2px solid #4CAF50;
+      border-radius: 50%;
+      cursor: pointer;
+      margin-top: -6px; /* 垂直居中滑动块 */
+      transition: background 0.3s, transform 0.3s;
+      position: relative;
+      z-index: 2;
+    }
+    .parameter input[type=range]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: #ffffff;
+      border: 2px solid #4CAF50;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+      position: relative;
+      z-index: 2;
+    }
+    /* 滑动块悬停和活动状态 */
+    .parameter input[type=range]:hover::-webkit-slider-thumb {
+      background: #f1f1f1;
+      transform: scale(1.1);
+    }
+    .parameter input[type=range]:active::-webkit-slider-thumb {
+      background: #e0e0e0;
+      transform: scale(1.2);
+    }
+    .parameter input[type=range]:hover::-moz-range-thumb {
+      background: #f1f1f1;
+      transform: scale(1.1);
+    }
+    .parameter input[type=range]:active::-moz-range-thumb {
+      background: #e0e0e0;
+      transform: scale(1.2);
+    }
+    .parameter-value {
+      width: 50px;
+      text-align: right;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 输入框和按钮 -->
+  <div id="inputContainer">
+    <input type="text" id="functionInput" placeholder="请输入函数，例如 y=2*a*x+3、y=a*x^2+b、y=a*sin(b*x)、y=ln(a*x)、y=\\sqrt{a*x}">
+    <button id="plotButton">绘制图像</button>
+    <button id="resetButton">重置视图</button>
+  </div>
+  
+  <!-- 参数滑动条容器 -->
+  <div id="parameterContainer" style="display: none;">
+    <div id="parameters"></div>
+  </div>
+  
+  <div id="container">
+    <svg width="900" height="750" id="coordinateSystem">
+      <g id="grid" transform="translate(450,375)"> <!-- 调整初始平移以居中 -->
+        <g id="gridLines"></g>
+        
+        <!-- 原点标记 -->
+        <text x="10" y="20" class="label">O(0,0)</text>
+        
+        <!-- 绘制函数图像的容器 -->
+        <g id="functionGraph"></g>
+      </g>
+    </svg>
+  </div>
+  
+  <script>
+    (function() {
+      const svg = document.getElementById('coordinateSystem');
+      const grid = document.getElementById('gridLines');
+      const functionGraph = document.getElementById('functionGraph');
+      const container = document.getElementById('container');
+      const gridGroup = document.getElementById('grid');
+      const functionInput = document.getElementById('functionInput');
+      const plotButton = document.getElementById('plotButton');
+      const resetButton = document.getElementById('resetButton');
+      const parameterContainer = document.getElementById('parameterContainer');
+      const parametersDiv = document.getElementById('parameters');
+
+      const config = {
+        scale: 35,          // 每个单位的像素数
+        minScale: 10,       // 最小缩放比例
+        maxScale: 100,      // 最大缩放比例
+        gridColor: "#ddd",
+        axisColor: "black",
+        graphColor: "blue",
+        graphWidth: 2,
+        step: 0.1          // 采样步长，精确到一位小数
+      };
+      
+      let parameters = {}; // 存储参数及其当前值
+
+      /**
+       * 计算最大公约数（Euclidean算法）
+       */
+      function gcd(a, b) {
+        a = Math.abs(a);
+        b = Math.abs(b);
+        if (b === 0) return a;
+        return gcd(b, a % b);
+      }
+
+      function gcdMultiple(...numbers) {
+        return numbers.reduce((acc, num) => {
+          if (num === 0) return acc;
+          return gcd(acc, num);
+        }, 0);
+      }
+
+      /**
+       * 动态计算网格范围
+       * 根据当前的平移和缩放，计算需要绘制的网格线数量
+       */
+      function calculateGridRange() {
+        const svgWidthHalf = svg.clientWidth / 2;
+        const svgHeightHalf = svg.clientHeight / 2;
+        
+        // 根据平移和缩放计算可见范围
+        const visibleLeft = -currentTranslate.x / config.scale;
+        const visibleRight = (svg.clientWidth - currentTranslate.x) / config.scale;
+        const visibleTop = currentTranslate.y / config.scale;
+        const visibleBottom = (-svg.clientHeight + currentTranslate.y) / config.scale;
+        
+        config.gridRangeX = Math.ceil(Math.max(Math.abs(visibleLeft), Math.abs(visibleRight)));
+        config.gridRangeY = Math.ceil(Math.max(Math.abs(visibleTop), Math.abs(visibleBottom)));
+      }
+      
+      /**
+       * 绘制网格和坐标轴
+       */
+      function drawGrid() {
+        grid.innerHTML = '';
+        
+        // 绘制水平网格线和Y轴标签
+        for (let i = -config.gridRangeY; i <= config.gridRangeY; i++) {
+          const pos = i * config.scale;
+          
+          if (i !== 0) {
+            // 水平网格线
+            const hLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            hLine.setAttribute("x1", -config.gridRangeX * config.scale);
+            hLine.setAttribute("y1", pos);
+            hLine.setAttribute("x2", config.gridRangeX * config.scale);
+            hLine.setAttribute("y2", pos);
+            hLine.setAttribute("stroke", config.gridColor);
+            hLine.setAttribute("stroke-width", "1");
+            grid.appendChild(hLine);
+
+            // Y轴标签
+            const yLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            yLabel.setAttribute("x", 5);
+            yLabel.setAttribute("y", -pos + 5);
+            yLabel.setAttribute("class", "label");
+            yLabel.textContent = i;
+            grid.appendChild(yLabel);
+          }
+        }
+        
+        // 绘制垂直网格线和X轴标签
+        for (let i = -config.gridRangeX; i <= config.gridRangeX; i++) {
+          const pos = i * config.scale;
+          
+          if (i !== 0) {
+            // 垂直网格线
+            const vLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            vLine.setAttribute("x1", pos);
+            vLine.setAttribute("y1", -config.gridRangeY * config.scale);
+            vLine.setAttribute("x2", pos);
+            vLine.setAttribute("y2", config.gridRangeY * config.scale);
+            vLine.setAttribute("stroke", config.gridColor);
+            vLine.setAttribute("stroke-width", "1");
+            grid.appendChild(vLine);
+
+            // X轴标签
+            const xLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            xLabel.setAttribute("x", pos);
+            xLabel.setAttribute("y", 20);
+            xLabel.setAttribute("class", "label");
+            xLabel.setAttribute("text-anchor", "middle");
+            xLabel.textContent = i;
+            grid.appendChild(xLabel);
+          }
+        }
+        
+        // 绘制坐标轴
+        const xAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        xAxis.setAttribute("x1", -config.gridRangeX * config.scale);
+        xAxis.setAttribute("y1", 0);
+        xAxis.setAttribute("x2", config.gridRangeX * config.scale);
+        xAxis.setAttribute("y2", 0);
+        xAxis.setAttribute("stroke", config.axisColor);
+        xAxis.setAttribute("stroke-width", "2");
+        grid.appendChild(xAxis);
+      
+        const yAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        yAxis.setAttribute("x1", 0);
+        yAxis.setAttribute("y1", -config.gridRangeY * config.scale);
+        yAxis.setAttribute("x2", 0);
+        yAxis.setAttribute("y2", config.gridRangeY * config.scale);
+        yAxis.setAttribute("stroke", config.axisColor);
+        yAxis.setAttribute("stroke-width", "2");
+        grid.appendChild(yAxis);
+      }
+      
+      /**
+       * 绘制函数图像
+       * @param {string} funcStr 用户输入的函数字符串，例如 "y=2*a*x+3"
+       */
+      function plotFunction(funcStr) {
+        functionGraph.innerHTML = ''; // 清除之前的图像
+        
+        // 简单解析函数，支持 y=表达式 或 仅表达式
+        funcStr = funcStr.trim();
+        let expression = '';
+        
+        if (funcStr.toLowerCase().startsWith('y=')) {
+          expression = funcStr.slice(2).trim(); // 去掉"y="
+        } else {
+          expression = funcStr; // 直接使用整个输入作为表达式
+        }
+        
+        // 自动在数字和x之间插入 '*'，例如 '2x' -> '2*x'
+        expression = insertMultiplication(expression);
+        
+        // 自动替换 '^'为 '**'，并处理其他数学函数
+        expression = replaceOperators(expression);
+        
+        // 定义数学函数列表
+        const mathFunctions = Object.getOwnPropertyNames(Math).filter(prop => typeof Math[prop] === 'function');
+        // 额外添加一些别名或自定义函数名，如果有需要的话
+        // 比如 'log10' 等，可以根据 replaceOperators 中的替换进行调整
+        
+        // 识别参数（除x和Math外的变量）
+        const paramRegex = /\b[a-zA-Z]+\b/g;
+        const tokens = expression.match(paramRegex) || [];
+        const uniqueParams = Array.from(new Set(
+          tokens.filter(token => 
+            !['x', 'Math', 'PI', 'E'].includes(token) &&
+            !mathFunctions.includes(token)
+          )
+        ));
+        
+        // 如果有参数，显示参数滑动条
+        if (uniqueParams.length > 0) {
+          parameterContainer.style.display = 'block';
+          parametersDiv.innerHTML = ''; // 清空之前的参数滑动条
+          uniqueParams.forEach(param => {
+            if (!(param in parameters)) {
+              parameters[param] = 1; // 默认值为1
+            }
+            createParameterSlider(param, parameters[param]);
+          });
+        } else {
+          parameterContainer.style.display = 'none';
+        }
+        
+        // 替换参数为其当前值
+        let finalExpression = expression;
+        for (const [param, value] of Object.entries(parameters)) {
+          const regex = new RegExp(`\\b${param}\\b`, 'g');
+          finalExpression = finalExpression.replace(regex, `(${value})`);
+        }
+        
+        // 创建一个函数，将x映射到y
+        let func;
+        try {
+          func = new Function('x', 'return ' + finalExpression + ';');
+          // 测试函数
+          func(1);
+        } catch (e) {
+          alert('函数表达式有误，请检查后重试。\n错误信息: ' + e.message);
+          return;
+        }
+        
+        // 计算绘图范围内的x值
+        const xStart = -config.gridRangeX;
+        const xEnd = config.gridRangeX;
+        const step = config.step * 0.01; // 0.1步长
+        
+        let pathData = '';
+        let firstPoint = true;
+
+        for (let i = xStart; i <= xEnd; i += step) {
+          const x = parseFloat(i.toFixed(3)); // 保证x精确到一位小数
+          let y;
+          try {
+            y = func(x);
+            y = parseFloat(y.toFixed(3)); // 保证y精确到两位小数
+          } catch (e) {
+            y = NaN;
+          }
+          if (isNaN(y) || !isFinite(y)) {
+            // 跳过无法计算的点
+            firstPoint = true; // 下一个有效点重新开始路径
+            continue;
+          }
+          const svgX = parseFloat((x * config.scale).toFixed(3));
+          const svgY = parseFloat((-y * config.scale).toFixed(3)); // SVG y轴向下
+          if (firstPoint) {
+            pathData += `M ${svgX} ${svgY} `;
+            firstPoint = false;
+          } else {
+            pathData += `L ${svgX} ${svgY} `;
+          }
+        }
+        
+        // 创建路径元素
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", pathData);
+        path.setAttribute("stroke", config.graphColor);
+        path.setAttribute("stroke-width", config.graphWidth);
+        path.setAttribute("fill", "none");
+        functionGraph.appendChild(path);
+      }
+      
+      /**
+       * 自动在数字和x之间插入 '*'，例如 '2x' -> '2*x'
+       * 支持多种情况，例如 '3.5x', 'x2', '2x^2', 'sin(x)2', 等
+       * @param {string} expr 原始表达式
+       * @returns {string} 替换后的表达式
+       */
+      function insertMultiplication(expr) {
+        // 在数字后面跟着字母（x、pi、e）时插入 '*'
+        expr = expr.replace(/(\d)(pi|e|x)/g, '$1*$2');
+        
+        // 在字母（x、pi、e）后面跟着数字或字母时插入 '*'
+        expr = expr.replace(/(pi|e|x)(\d|pi|e|x)/g, '$1*$2');
+        
+        // 在右括号后面跟着字母或数字时插入 '*'
+        expr = expr.replace(/(\))([a-zA-Z0-9])/g, '$1*$2');
+        
+        // 在数字后面跟着左括号时插入 '*'
+        expr = expr.replace(/(\d)\(/g, '$1*(');
+        
+        // 在右括号后面跟着左括号时插入 '*'
+        expr = expr.replace(/(\))\(/g, '$1*(');
+        
+        return expr;
+      }
+
+      /**
+       * 自动替换数学运算符和函数
+       * 包括 '^'、'ln('、'log('、'lg('、'\sqrt{...}', 'sin(', 'cos(', 'tan(' 等
+       * @param {string} expr 原始表达式
+       * @returns {string} 替换后的表达式
+       */
+      function replaceOperators(expr) {
+        // 替换 '^' 为 '**' 以支持幂运算
+        expr = expr.replace(/\^/g, '**');
+        
+        // 替换 'ln(' 为 'Math.log('
+        expr = expr.replace(/ln\(/g, 'Math.log(');
+        
+        // 替换 'log(' 为 'Math.log10('
+        expr = expr.replace(/log\(/g, 'Math.log10(');
+        
+        // 替换 'lg(' 为 'Math.log2('
+        // 如果 'lg(x)' 也表示 log10(x)，请将 'Math.log2(' 改为 'Math.log10('
+        expr = expr.replace(/lg\(/g, 'Math.log2(');
+        
+        // 替换 '\sqrt{...}' 为 'Math.sqrt(...)'
+        expr = expr.replace(/\\sqrt\{([^}]+)\}/g, 'Math.sqrt($1)');
+        
+        // 替换 'sin(', 'cos(', 'tan(' 等常见三角函数
+        expr = expr.replace(/sin\(/g, 'Math.sin(');
+        expr = expr.replace(/cos\(/g, 'Math.cos(');
+        expr = expr.replace(/tan\(/g, 'Math.tan(');
+        expr = expr.replace(/asin\(/g, 'Math.asin(');
+        expr = expr.replace(/acos\(/g, 'Math.acos(');
+        expr = expr.replace(/atan\(/g, 'Math.atan(');
+        
+        // 替换 'pi' 为 'Math.PI'，'e' 为 'Math.E'
+        expr = expr.replace(/\bpi\b/g, 'Math.PI');
+        expr = expr.replace(/\be\b/g, 'Math.E');
+        
+        return expr;
+      }
+
+      /**
+       * 创建参数滑动条
+       * @param {string} param 参数名称
+       * @param {number} value 参数默认值
+       */
+      function createParameterSlider(param, value) {
+        const paramDiv = document.createElement('div');
+        paramDiv.className = 'parameter';
+        
+        const label = document.createElement('label');
+        label.setAttribute('for', `param_${param}`);
+        label.textContent = `${param}: `;
+        
+        // 减少按钮
+        const decrementButton = document.createElement('button');
+        decrementButton.className = 'button down';
+        decrementButton.type = 'button';
+        decrementButton.title = `减少 ${param}`;
+        
+        // 增加按钮
+        const incrementButton = document.createElement('button');
+        incrementButton.className = 'button up';
+        incrementButton.type = 'button';
+        incrementButton.title = `增加 ${param}`;
+        
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.id = `param_${param}`;
+        slider.name = param;
+        slider.min = -10;
+        slider.max = 10;
+        slider.step = config.step;
+        slider.value = value;
+        
+        const valueDisplay = document.createElement('span');
+        valueDisplay.className = 'parameter-value';
+        valueDisplay.id = `value_${param}`;
+        valueDisplay.textContent = value;
+        
+        // 监听滑动条变化
+        slider.addEventListener('input', (e) => {
+          const newValue = parseFloat(e.target.value);
+          parameters[param] = newValue;
+          valueDisplay.textContent = newValue.toFixed(1);
+          // 重新绘制函数图像
+          plotFunction(functionInput.value);
+        });
+        
+        // 监听减少按钮点击事件
+        decrementButton.addEventListener('click', () => {
+          let currentValue = parseFloat(slider.value);
+          let newValue = currentValue - config.step;
+          if (newValue < parseFloat(slider.min)) {
+            newValue = parseFloat(slider.min);
+          }
+          slider.value = newValue.toFixed(1);
+          parameters[param] = newValue;
+          valueDisplay.textContent = newValue.toFixed(1);
+          plotFunction(functionInput.value);
+        });
+        
+        // 监听增加按钮点击事件
+        incrementButton.addEventListener('click', () => {
+          let currentValue = parseFloat(slider.value);
+          let newValue = currentValue + config.step;
+          if (newValue > parseFloat(slider.max)) {
+            newValue = parseFloat(slider.max);
+          }
+          slider.value = newValue.toFixed(1);
+          parameters[param] = newValue;
+          valueDisplay.textContent = newValue.toFixed(1);
+          plotFunction(functionInput.value);
+        });
+        
+        paramDiv.appendChild(label);
+        paramDiv.appendChild(decrementButton);
+        paramDiv.appendChild(slider);
+        paramDiv.appendChild(incrementButton);
+        paramDiv.appendChild(valueDisplay);
+        parametersDiv.appendChild(paramDiv);
+      }
+      
+      /**
+       * 添加滚轮事件监听器，实现缩放功能
+       */
+      svg.addEventListener('wheel', (e) => {
+        e.preventDefault(); // 防止页面滚动
+
+        const delta = e.deltaY;
+        if (delta < 0) {
+          // 向上滚动，放大
+          config.scale = Math.min(config.scale + 5, config.maxScale);
+        } else {
+          // 向下滚动，缩小
+          config.scale = Math.max(config.scale - 5, config.minScale);
+        }
+        
+        // 动态计算新的网格范围
+        calculateGridRange();
+
+        // 重新绘制网格
+        drawGrid();
+        
+        // 重新绘制函数图像
+        const currentFunc = functionInput.value;
+        if (currentFunc.trim() !== '') {
+          plotFunction(currentFunc);
+        }
+      }, { passive: false }); // 设置 passive 为 false 以便调用 preventDefault
+      
+      /**
+       * 添加平移功能（右键控制）
+       */
+      let isPanning = false;
+      let panStart = { x: 0, y: 0 };
+      let currentTranslate = { x: 450, y: 375 }; // 初始中心点 (调整为 svg 的中心)
+
+      /**
+       * 更新 grid 的 transform
+       */
+      function updateGridTransform() {
+        gridGroup.setAttribute('transform', `translate(${currentTranslate.x},${currentTranslate.y})`);
+        calculateGridRange();
+        drawGrid();
+        // 重新绘制函数图像
+        const currentFunc = functionInput.value;
+        if (currentFunc.trim() !== '') {
+          plotFunction(currentFunc);
+        }
+      }
+      
+      // 监听鼠标按下开始平移（仅右键）
+      container.addEventListener('mousedown', (e) => {
+        // 检查是否是右键
+        if (e.button === 2) {
+          isPanning = true;
+          panStart.x = e.clientX;
+          panStart.y = e.clientY;
+          container.classList.add('grabbing');
+        }
+      });
+      
+      // 监听鼠标移动进行平移
+      document.addEventListener('mousemove', (e) => {
+        if (isPanning) {
+          const dx = e.clientX - panStart.x;
+          const dy = e.clientY - panStart.y;
+          panStart.x = e.clientX;
+          panStart.y = e.clientY;
+          currentTranslate.x += dx;
+          currentTranslate.y += dy;
+          updateGridTransform();
+        }
+      });
+      
+      // 监听鼠标释放结束平移
+      document.addEventListener('mouseup', () => {
+        if (isPanning) {
+          isPanning = false;
+          container.classList.remove('grabbing');
+        }
+      });
+      
+      // 禁止在SVG内部拖动时触发平移
+      svg.addEventListener('mousedown', (e) => {
+        if (e.button === 2) {
+          // 如果点击的是点或文本，阻止平移
+          if (e.target.tagName === 'circle' || e.target.tagName === 'text') {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }
+      });
+      
+      // 禁止右键菜单
+      container.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+      });
+      
+      /**
+       * 处理绘制按钮点击事件
+       */
+      plotButton.addEventListener('click', () => {
+        const funcStr = functionInput.value;
+        if (funcStr.trim() === '') {
+          alert('请输入一个函数或方程。');
+          return;
+        }
+        plotFunction(funcStr);
+      });
+      
+      /**
+       * 处理重置按钮点击事件
+       */
+      resetButton.addEventListener('click', () => {
+        // 重置缩放
+        config.scale = 35;
+        // 重置平移
+        currentTranslate = { x: 450, y: 375 };
+        updateGridTransform();
+        // 清除函数图像
+        functionGraph.innerHTML = '';
+        // 清空输入框
+        functionInput.value = '';
+        // 清除参数
+        parameters = {};
+        parameterContainer.style.display = 'none';
+        parametersDiv.innerHTML = '';
+      });
+      
+      /**
+       * 允许按回车键绘制函数
+       */
+      functionInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          plotButton.click();
+        }
+      });
+      
+      /**
+       * 初始化
+       */
+      function initialize() {
+        calculateGridRange();
+        drawGrid();
+      }
+      
+      // 初始化
+      initialize();
+    })();
+  </script>
+</body>
+</html>
