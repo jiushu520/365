@@ -77,7 +77,6 @@
 
     <!-- 向量信息显示 -->
     <div id="vectorInfo">
-
       <div id="areaInfo">
         平行四边形面积: <span id="area">0</span>
       </div>
@@ -94,9 +93,6 @@
     const pointBText = document.getElementById('pointBText');
     const pointCText = document.getElementById('pointCText');
     const parallelogram = document.getElementById('parallelogram');
-    const pointAInfo = document.getElementById('pointAInfo');
-    const pointBInfo = document.getElementById('pointBInfo');
-    // const pointCInfo = document.getElementById('pointCInfo'); // 已移除
     const areaInfo = document.getElementById('area');
     const container = document.getElementById('container');
     const gridGroup = document.getElementById('grid');
@@ -107,39 +103,13 @@
       maxScale: 100,      // 最大缩放比例
       gridColor: "#ddd",
       axisColor: "black",
-      pointRadius: 9,
-      pointStyles: {
-        A: { fill: "red" },
-        B: { fill: "blue" },
-        C: { fill: "green" }
-      }
+      pointRadius: 9
     };
     
     /**
-     * 计算最大公约数（Euclidean算法）
-     */
-    function gcd(a, b) {
-      a = Math.abs(a);
-      b = Math.abs(b);
-      if (b === 0) return a;
-      return gcd(b, a % b);
-    }
-
-    function gcdMultiple(...numbers) {
-      return numbers.reduce((acc, num) => {
-        if (num === 0) return acc;
-        return gcd(acc, num);
-      }, 0);
-    }
-
-    /**
      * 动态计算网格范围
-     * 根据当前的平移和缩放，计算需要绘制的网格线数量
      */
     function calculateGridRange() {
-      const svgWidthHalf = svg.clientWidth / 2;
-      const svgHeightHalf = svg.clientHeight / 2;
-      
       // 根据平移和缩放计算可见范围
       const visibleLeft = -currentTranslate.x / config.scale;
       const visibleRight = (svg.clientWidth - currentTranslate.x) / config.scale;
@@ -230,19 +200,16 @@
     /**
      * 更新点的坐标显示
      */
-    function updatePointLabel(point, text, infoElement = null) {
+    function updatePointLabel(point, text) {
       const cx = parseFloat(point.getAttribute('cx'));
       const cy = parseFloat(point.getAttribute('cy'));
-      const grid_x = Math.round(cx / config.scale);
-      const grid_y = Math.round(-cy / config.scale);
+      const grid_x = (cx / config.scale).toFixed(2);
+      const grid_y = (-cy / config.scale).toFixed(2);
       
       if (point.id !== 'pointC') {
         text.textContent = `${point.id.slice(-1)}(${grid_x}, ${grid_y})`;
         text.setAttribute('x', cx + 10);
         text.setAttribute('y', cy + 10);
-        if (infoElement) {
-          infoElement.textContent = `${point.id.slice(-1)}: (${grid_x}, ${grid_y})`;
-        }
       } else {
         // 对于点C，在其旁边显示坐标
         text.textContent = `C(${grid_x}, ${grid_y})`;
@@ -256,28 +223,23 @@
      */
     function updateAllPoints() {
       // 更新点A
-      updatePointLabel(pointA, pointAText, pointAInfo);
+      updatePointLabel(pointA, pointAText);
       
       // 更新点B
-      updatePointLabel(pointB, pointBText, pointBInfo);
+      updatePointLabel(pointB, pointBText);
       
       // 计算并更新点C的位置
-      const grid_ax = Math.round(parseFloat(pointA.getAttribute('cx')) / config.scale);
-      const grid_ay = Math.round(-parseFloat(pointA.getAttribute('cy')) / config.scale);
-      const grid_bx = Math.round(parseFloat(pointB.getAttribute('cx')) / config.scale);
-      const grid_by = Math.round(-parseFloat(pointB.getAttribute('cy')) / config.scale);
+      const ax = parseFloat(pointA.getAttribute('cx'));
+      const ay = parseFloat(pointA.getAttribute('cy'));
+      const bx = parseFloat(pointB.getAttribute('cx'));
+      const by = parseFloat(pointB.getAttribute('cy'));
       
-      const grid_cx = grid_ax + grid_bx;
-      const grid_cy = grid_ay + grid_by;
+      const cx = ax + bx;
+      const cy = ay + by;
       
-      const pixel_cx = grid_cx * config.scale;
-      const pixel_cy = -grid_cy * config.scale;
-      
-      pointC.setAttribute('cx', pixel_cx);
-      pointC.setAttribute('cy', pixel_cy);
+      pointC.setAttribute('cx', cx);
+      pointC.setAttribute('cy', cy);
       // 更新点C的文本位置和内容
-      pointCText.setAttribute('x', pixel_cx + 10);
-      pointCText.setAttribute('y', pixel_cy + 10);
       updatePointLabel(pointC, pointCText);
       
       // 更新平行四边形的边
@@ -331,16 +293,21 @@
      * 计算并显示平行四边形的面积
      */
     function calculateArea() {
-      const grid_ax = Math.round(parseFloat(pointA.getAttribute('cx')) / config.scale);
-      const grid_ay = Math.round(-parseFloat(pointA.getAttribute('cy')) / config.scale);
-      const grid_bx = Math.round(parseFloat(pointB.getAttribute('cx')) / config.scale);
-      const grid_by = Math.round(-parseFloat(pointB.getAttribute('cy')) / config.scale);
+      const ax = parseFloat(pointA.getAttribute('cx'));
+      const ay = parseFloat(pointA.getAttribute('cy'));
+      const bx = parseFloat(pointB.getAttribute('cx'));
+      const by = parseFloat(pointB.getAttribute('cy'));
       
-      // 计算向量A × 向量B
+      // 计算向量A × 向量B (在网格坐标系下)
+      const grid_ax = ax / config.scale;
+      const grid_ay = -ay / config.scale;
+      const grid_bx = bx / config.scale;
+      const grid_by = -by / config.scale;
+      
       const crossProduct = grid_ax * grid_by - grid_ay * grid_bx;
       const area = Math.abs(crossProduct);
       
-      areaInfo.textContent = area;
+      areaInfo.textContent = area.toFixed(2);
     }
     
     /**
@@ -387,39 +354,26 @@
         const newX = svgP.x - startX;
         const newY = svgP.y - startY;
     
-        // 取整到网格
-        const roundedX = Math.round(newX / config.scale) * config.scale;
-        const roundedY = Math.round(newY / config.scale) * config.scale;
+        // [修改重点] 移动时直接用浮动值，不进行网格吸附
+        activePoint.setAttribute('cx', newX);
+        activePoint.setAttribute('cy', newY);
     
-        activePoint.setAttribute('cx', roundedX);
-        activePoint.setAttribute('cy', roundedY);
-    
+        // 同步更新文字标签
         const text = (activePoint.id === 'pointA') ? pointAText : pointBText;
-        const infoElement = (activePoint.id === 'pointA') ? pointAInfo : pointBInfo;
-        text.setAttribute('x', roundedX + 10);
-        text.setAttribute('y', roundedY + 10);
-        updatePointLabel(activePoint, text, infoElement);
-        
-        // 调用 updateAllPoints 以实时更新点C和面积
+        text.setAttribute('x', newX + 10);
+        text.setAttribute('y', newY + 10);
+    
+        // 更新显示(此时也会更新平行四边形和面积)
+        updatePointLabel(activePoint, text);
         updateAllPoints();
       }
     });
     
-    // 吸附到最近格点
+    // [修改重点] 在 mouseup 时进行网格吸附
     document.addEventListener('mouseup', (e) => {
       if (activePoint) {
-        const roundedX = Math.round(parseFloat(activePoint.getAttribute('cx')) / config.scale) * config.scale;
-        const roundedY = Math.round(parseFloat(activePoint.getAttribute('cy')) / config.scale) * config.scale;
-    
-        activePoint.setAttribute('cx', roundedX);
-        activePoint.setAttribute('cy', roundedY);
-    
-        const text = (activePoint.id === 'pointA') ? pointAText : pointBText;
-        const infoElement = (activePoint.id === 'pointA') ? pointAInfo : pointBInfo;
-        text.setAttribute('x', roundedX + 10);
-        text.setAttribute('y', roundedY + 10);
-        updatePointLabel(activePoint, text, infoElement);
-        updateAllPoints();
+        // 松开后再吸附到网格
+        snapToGrid();
       }
       activePoint = null;
     });
