@@ -112,10 +112,10 @@
     const pointBText = document.getElementById('pointBText');
     const lineVector = document.getElementById('lineVector');
     const equationText = document.getElementById('equation');
-    const container = document.getElementById('container');
-    const gridGroup = document.getElementById('grid');
     const normalLine = document.getElementById('normalLine');
     const normalText = document.getElementById('normalText');
+    const container = document.getElementById('container');
+    const gridGroup = document.getElementById('grid');
 
     const config = {
       scale: 35,          // 每个单位的像素数
@@ -152,9 +152,6 @@
      * 根据当前的平移和缩放，计算需要绘制的网格线数量
      */
     function calculateGridRange() {
-      const svgWidthHalf = svg.clientWidth / 2;
-      const svgHeightHalf = svg.clientHeight / 2;
-      
       // 根据平移和缩放计算可见范围
       const visibleLeft = -currentTranslate.x / config.scale;
       const visibleRight = (svg.clientWidth - currentTranslate.x) / config.scale;
@@ -248,23 +245,27 @@
     function updatePointLabel(point, text) {
       const cx = parseFloat(point.getAttribute('cx'));
       const cy = parseFloat(point.getAttribute('cy'));
-      const grid_x = Math.round(cx / config.scale);
-      const grid_y = Math.round(-cy / config.scale);
-      text.textContent = `${point.id.slice(-1)}(${grid_x}, ${grid_y})`;
+      const grid_x = (cx / config.scale).toFixed(2);
+      const grid_y = (-cy / config.scale).toFixed(2);
+      
+      if (point.id !== 'normalLine' && point.id !== 'normalText') { // 排除法向量相关元素
+        text.textContent = `${point.id.slice(-1)}(${grid_x}, ${grid_y})`;
+        text.setAttribute('x', cx + 10);
+        text.setAttribute('y', cy + 10);
+      }
     }
     
     /**
      * 更新所有点的位置和标签
      */
     function updateAllPoints() {
-      [pointA, pointB].forEach(point => {
-        const text = (point.id === 'pointA') ? pointAText : pointBText;
-        const grid_x = Math.round(parseFloat(point.getAttribute('cx')) / config.scale);
-        const grid_y = Math.round(-parseFloat(point.getAttribute('cy')) / config.scale);
-        text.textContent = `${point.id.slice(-1)}(${grid_x}, ${grid_y})`;
-        text.setAttribute('x', parseFloat(point.getAttribute('cx')) + 10);
-        text.setAttribute('y', parseFloat(point.getAttribute('cy')) + 10);
-      });
+      // 更新点A
+      updatePointLabel(pointA, pointAText);
+      
+      // 更新点B
+      updatePointLabel(pointB, pointBText);
+      
+      // 更新直线AB的位置
       updateLine();
     }
     
@@ -291,104 +292,113 @@
       const by = parseFloat(pointB.getAttribute('cy'));
 
       // 转换为网格单位
-      const grid_ax = Math.round(ax / config.scale);
-      const grid_ay = Math.round(-ay / config.scale);
-      const grid_bx = Math.round(bx / config.scale);
-      const grid_by = Math.round(-by / config.scale);
+      const grid_ax = ax / config.scale;
+      const grid_ay = -ay / config.scale;
+      const grid_bx = bx / config.scale;
+      const grid_by = -by / config.scale;
 
       // 计算直线 AB 的解析式: (ya - yb)x + (xb - xa)y + (yb*xa - ya*xb) = 0
       let A_coef = grid_ay - grid_by;
       let B_coef = grid_bx - grid_ax;
       let C_coef = grid_by * grid_ax - grid_ay * grid_bx;
 
-      // 计算最大公约数
-      const gcdValue = gcdMultiple(A_coef, B_coef, C_coef);
-
-      if (gcdValue !== 0) {
-        A_coef /= gcdValue;
-        B_coef /= gcdValue;
-        C_coef /= gcdValue;
+      // 这里不再做 gcd 化简，直接保留浮点数
+      // 为了显示美观，可以做一下小数截断:
+      function toFloatStr(num) {
+        return parseFloat(num.toFixed(2)); // 保留 2 位小数，可自行调整
       }
 
-      // 处理负系数，确保 A_coef 为正
+      A_coef = toFloatStr(A_coef);
+      B_coef = toFloatStr(B_coef);
+      C_coef = toFloatStr(C_coef);
+
+      // 如果想保持 A 为正，可以做:
       if (A_coef < 0) {
         A_coef = -A_coef;
         B_coef = -B_coef;
         C_coef = -C_coef;
       }
 
-      // 更新直线解析式显示
-      // 使用一个数组来存储各项
-      const terms = [];
-
-      // 处理 A 项
-      if (A_coef !== 0) {
-        if (A_coef === 1) {
-          terms.push('x');
+      // 拼接成字符串
+      // 注意要处理正负号
+      function formatTerm(coef, varName) {
+        // 0 不输出
+        if (coef === 0) return '';
+        // 系数为 1 或 -1 的特殊输出
+        let signStr = (coef >= 0) ? '+' : '-';
+        let absVal = Math.abs(coef);
+        
+        // 如果 absVal === 1，则只输出 varName
+        if (absVal === 1) {
+          return (varName) 
+            ? `${signStr} ${varName}` 
+            : `${signStr} 1`; // 常数项时没变量
         } else {
-          terms.push(`${A_coef}x`);
+          return (varName)
+            ? `${signStr} ${absVal}${varName}`
+            : `${signStr} ${absVal}`;
         }
       }
 
-      // 处理 B 项
+      let eqStr = '';
+      // 处理 A_coef * x
+      if (A_coef !== 0) {
+        // 第一个项单独处理正负号
+        eqStr += (A_coef > 0) 
+          ? (A_coef === 1 ? 'x' : `${A_coef}x`)
+          : (A_coef === -1 ? '- x' : `${A_coef}x`);
+      }
+
+      // 处理 B_coef * y
       if (B_coef !== 0) {
-        if (B_coef > 0) {
-          if (terms.length > 0) {
-            if (B_coef === 1) {
-              terms.push('+ y');
-            } else {
-              terms.push(`+ ${B_coef}y`);
-            }
+        if (A_coef === 0) {
+          // 如果 A=0，那 B 可能是第一个项
+          if (B_coef > 0) {
+            eqStr += (B_coef === 1 ? 'y' : `${B_coef}y`);
           } else {
-            if (B_coef === 1) {
-              terms.push('y');
-            } else {
-              terms.push(`${B_coef}y`);
-            }
+            eqStr += (B_coef === -1 ? '- y' : `${B_coef}y`);
           }
-        } else { // B_coef < 0
-          if (B_coef === -1) {
-            terms.push('- y');
-          } else {
-            terms.push(`- ${-B_coef}y`);
-          }
+        } else {
+          // 否则后续用 formatTerm
+          eqStr += ' ' + formatTerm(B_coef, 'y');
         }
       }
 
-      // 处理 C 项
+      // 处理 C_coef
       if (C_coef !== 0) {
-        if (C_coef > 0) {
-          if (terms.length > 0) {
-            terms.push(`+ ${C_coef}`);
-          } else {
-            terms.push(`${C_coef}`);
-          }
-        } else { // C_coef < 0
-          terms.push(`- ${-C_coef}`);
+        // 如果前面都没输出，就相当于第一个项
+        if (!eqStr) {
+          eqStr = (C_coef > 0) ? `${C_coef}` : `${C_coef}`;
+        } else {
+          eqStr += ' ' + formatTerm(C_coef, '');
         }
       }
 
-      // 组合所有项
-      let equationStr = terms.join(' ');
-      equationStr += ' = 0';
-
-      // 如果所有系数为0，特殊处理
-      if (A_coef === 0 && B_coef === 0 && C_coef === 0) {
-        equationStr = '0 = 0';
+      // 如果所有系数都为0
+      if (!eqStr) {
+        eqStr = '0';
       }
 
-      equationText.textContent = `${equationStr}`;
+      // 去掉开头多余的 '+'
+      eqStr = eqStr.replace(/^\+\s*/, '').trim();
+      // 最后补 "= 0"
+      eqStr += ' = 0';
 
-      // 计算直线在SVG坐标系中的两个端点，使其跨越整个网格
+      // 显示到界面
+      equationText.textContent = `${eqStr}`;
+
+      // === 计算直线在 SVG 中的可视化绘制（浮点，不做取整）===
+      // 根据 A, B, C 在 [-gridRangeX, gridRangeX] 范围内画线
+      //   y = (-A x - C) / B
       let x1, y1, x2, y2;
 
-      if (B_coef !== 0) {
-        // 当 B_coef 不为零时，计算当 x = -gridRangeX 和 x = gridRangeX 时的 y 值
+      // 如果 B_coef 不为零
+      if (Math.abs(B_coef) > 1e-10) {
         x1 = -config.gridRangeX;
         y1 = (-A_coef * x1 - C_coef) / B_coef;
         x2 = config.gridRangeX;
         y2 = (-A_coef * x2 - C_coef) / B_coef;
-      } else if (A_coef !== 0) {
+      } else if (Math.abs(A_coef) > 1e-10) {
         // 当 B_coef 为零，且 A_coef 不为零时，直线平行于 y 轴
         x1 = -config.gridRangeX;
         y1 = -config.gridRangeY;
@@ -403,7 +413,7 @@
       }
 
       // 限制 y1 和 y2 在网格范围内
-      if (B_coef !== 0) {
+      if (Math.abs(B_coef) > 1e-10) {
         if (y1 > config.gridRangeY) {
           y1 = config.gridRangeY;
           x1 = (-B_coef * y1 - C_coef) / A_coef;
@@ -474,9 +484,9 @@
         labelY += labelOffset;
       }
 
-      // 格式化数值，确保显示整数
-      const formattedA = A;
-      const formattedB = B;
+      // 格式化数值，确保显示两位小数
+      const formattedA = A.toFixed(2);
+      const formattedB = B.toFixed(2);
 
       // 更新标签文本内容
       normalText.textContent = `法向量 (${formattedA}, ${formattedB})`;
@@ -515,37 +525,26 @@
         const newX = svgP.x - startX;
         const newY = svgP.y - startY;
     
-        // 取整到网格
-        const roundedX = Math.round(newX / config.scale) * config.scale;
-        const roundedY = Math.round(newY / config.scale) * config.scale;
+        // [修改重点] 移动时直接用浮动值，不进行网格吸附
+        activePoint.setAttribute('cx', newX);
+        activePoint.setAttribute('cy', newY);
     
-        activePoint.setAttribute('cx', roundedX);
-        activePoint.setAttribute('cy', roundedY);
-    
+        // 同步更新文字标签
         const text = (activePoint.id === 'pointA') ? pointAText : pointBText;
-        text.setAttribute('x', roundedX + 10);
-        text.setAttribute('y', roundedY + 10);
+        text.setAttribute('x', newX + 10);
+        text.setAttribute('y', newY + 10);
+    
+        // 更新显示(标签 & 直线 & 法向量)
         updatePointLabel(activePoint, text);
-        
-        // 调用 updateLine 以实时更新直线
-        updateLine();
+        updateLine(); // 即时刷新直线和法向量
       }
     });
     
-    // 吸附到最近格点
+    // [修改重点] 在 mouseup 时进行网格吸附
     document.addEventListener('mouseup', (e) => {
       if (activePoint) {
-        const roundedX = Math.round(parseFloat(activePoint.getAttribute('cx')) / config.scale) * config.scale;
-        const roundedY = Math.round(parseFloat(activePoint.getAttribute('cy')) / config.scale) * config.scale;
-    
-        activePoint.setAttribute('cx', roundedX);
-        activePoint.setAttribute('cy', roundedY);
-    
-        const text = (activePoint.id === 'pointA') ? pointAText : pointBText;
-        text.setAttribute('x', roundedX + 10);
-        text.setAttribute('y', roundedY + 10);
-        updatePointLabel(activePoint, text);
-        updateLine();
+        // 松开后再吸附到网格
+        snapToGrid();
       }
       activePoint = null;
     });
