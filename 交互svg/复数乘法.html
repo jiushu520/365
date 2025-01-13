@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>复数乘法演示</title>
+  <style>
+    .label {
+      font-family: Arial;
+      font-size: 14px;
+      user-select: none;
+    }
+    /* 容器样式确保滚轮事件正常工作 */
+    #container {
+      width: 900px;
+      height: 750px;
+      border: 1px solid #ccc;
+      overflow: hidden;
+      margin: 0 auto; /* 居中显示容器 */
+      position: relative;
+    }
+    #container.grabbing {
+      cursor: grabbing; /* 拖动时的光标样式 */
+    }
+    /* 向量信息显示样式 */
+    #vectorInfo {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-family: Arial, sans-serif;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <svg width="1600" height="900" id="coordinateSystem">
+      <defs>
+        <!-- 定义箭头标记 -->
+        <marker id="arrowhead" markerWidth="10" markerHeight="7"
+                refX="10" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="black"/>
+        </marker>
+      </defs>
+      <g id="grid" transform="translate(150,450)">
+        <g id="gridLines"></g>
+        
+        <!-- 原点标记 -->
+        <text x="5" y="15" class="label">O</text>
+        
+        <!-- 可移动的点 -->
+        <g id="points">
+          <circle id="pointA" cx="100" cy="-40" r="6" fill="red" style="cursor: pointer"/>
+          <text id="pointAText" x="110" y="-30" class="label">A</text>
+          
+          <circle id="pointB" cx="60" cy="-60" r="6" fill="blue" style="cursor: pointer"/>
+          <text id="pointBText" x="60" y="-60" class="label">B</text>
+        </g>
+
+        <!-- 新增的向量显示 -->
+        <g ="vectors">
+          <!-- 向量OA -->
+          <line id="vectorOA" x1="0" y1="0" x2="0" y2="0" stroke="red" stroke-width="2" marker-end="url(#arrowhead)"/>
+        
+          
+          <!-- 向量OB -->
+          <line id="vectorOB" x1="0" y1="0" x2="0" y2="0" stroke="blue" stroke-width="2" marker-end="url(#arrowhead)"/>
+      
+          
+          <!-- VectorOC: xa * OB -->
+          <line id="vector1" x1="0" y1="0" x2="0" y2="0" stroke="orange" stroke-width="2" marker-end="url(#arrowhead)"/>
+          <text id="vector1Label" x="0" y="0" class="label" fill="orange">Vector1</text>
+          
+          <!-- VectorOD: ya * (-yb, xb) -->
+          <line id="vector2" x1="0" y1="0" x2="0" y2="0" stroke="purple" stroke-width="2" marker-end="url(#arrowhead)"/>
+          <text id="vector2Label" x="0" y="0" class="label" fill="purple">Vector2</text>
+          
+          <!-- VectorProductOE: Vector1 + Vector2 -->
+          <line id="vectorProduct" x1="0" y1="0" x2="0" y2="0" stroke="green" stroke-width="2" marker-end="url(#arrowhead)"/>
+          <text id="vectorProductLabel" x="0" y="0" class="label" fill="green">Product</text>
+          
+          <!-- 有向线段，从Vector1指向VectorProduct -->
+          <line id="vectorConnection" x1="0" y1="0" x2="0" y2="0" stroke="gray" stroke-width="1.5" marker-end="url(#arrowhead)" stroke-dasharray="5,5"/>
+          <text id="vectorConnectionLabel" x="0" y="0" class="label" fill="gray">Connection</text>
+        </g>
+      </g>
+    </svg>
+
+
+    </div>
+  </div>
+  
+  <script>
+    const svg = document.getElementById('coordinateSystem');
+    const grid = document.getElementById('gridLines');
+    const pointA = document.getElementById('pointA');
+    const pointB = document.getElementById('pointB');
+    const pointAText = document.getElementById('pointAText');
+    const pointBText = document.getElementById('pointBText');
+    
+    // 新增的向量元素
+    const vectorOA = document.getElementById('vectorOA');
+    const vectorOB = document.getElementById('vectorOB');
+    const vector1 = document.getElementById('vector1');
+    const vector2 = document.getElementById('vector2');
+    const vectorProduct = document.getElementById('vectorProduct');
+    
+    const vectorOALabel = document.getElementById('vectorOALabel');
+    const vectorOBLabel = document.getElementById('vectorOBLabel');
+    const vector1Label = document.getElementById('vector1Label');
+    const vector2Label = document.getElementById('vector2Label');
+    const vectorProductLabel = document.getElementById('vectorProductLabel');
+    
+    // 新增的有向线段
+    const vectorConnection = document.getElementById('vectorConnection');
+    const vectorConnectionLabel = document.getElementById('vectorConnectionLabel');
+
+    const container = document.getElementById('container');
+    const gridGroup = document.getElementById('grid');
+
+    const config = {
+      scale: 35,          // 每个单位的像素数
+      minScale: 10,       // 最小缩放比例
+      maxScale: 100,      // 最大缩放比例
+      gridColor: "#ddd",
+      axisColor: "black",
+      pointRadius: 9
+    };
+    
+    /**
+     * 将网格坐标转换为SVG像素坐标
+     */
+    function gridToSVG(x, y) {
+      return {
+        x: x * config.scale,
+        y: -y * config.scale
+      };
+    }
+    
+    /**
+     * 动态计算网格范围
+     */
+    function calculateGridRange() {
+      // 根据平移和缩放计算可见范围
+      const visibleLeft = -currentTranslate.x / config.scale;
+      const visibleRight = (svg.clientWidth - currentTranslate.x) / config.scale;
+      const visibleTop = currentTranslate.y / config.scale;
+      const visibleBottom = (-svg.clientHeight + currentTranslate.y) / config.scale;
+      
+      config.gridRangeX = Math.ceil(Math.max(Math.abs(visibleLeft), Math.abs(visibleRight)));
+      config.gridRangeY = Math.ceil(Math.max(Math.abs(visibleTop), Math.abs(visibleBottom)));
+    }
+    
+    /**
+     * 绘制网格和坐标轴
+     */
+    function drawGrid() {
+      grid.innerHTML = '';
+      
+      // 绘制水平网格线和Y轴标签
+      for (let i = -config.gridRangeY; i <= config.gridRangeY; i++) {
+        const pos = i * config.scale;
+        
+        if (i !== 0) {
+          // 水平网格线
+          const hLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          hLine.setAttribute("x1", -config.gridRangeX * config.scale);
+          hLine.setAttribute("y1", pos);
+          hLine.setAttribute("x2", config.gridRangeX * config.scale);
+          hLine.setAttribute("y2", pos);
+          hLine.setAttribute("stroke", config.gridColor);
+          hLine.setAttribute("stroke-width", "1");
+          grid.appendChild(hLine);
+
+          // Y轴标签
+          const yLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          yLabel.setAttribute("x", 5);
+          yLabel.setAttribute("y", -pos + 5);
+          yLabel.setAttribute("class", "label");
+          yLabel.textContent = i;
+          grid.appendChild(yLabel);
+        }
+      }
+      
+      // 绘制垂直网格线和X轴标签
+      for (let i = -config.gridRangeX; i <= config.gridRangeX; i++) {
+        const pos = i * config.scale;
+        
+        if (i !== 0) {
+          // 垂直网格线
+          const vLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          vLine.setAttribute("x1", pos);
+          vLine.setAttribute("y1", -config.gridRangeY * config.scale);
+          vLine.setAttribute("x2", pos);
+          vLine.setAttribute("y2", config.gridRangeY * config.scale);
+          vLine.setAttribute("stroke", config.gridColor);
+          vLine.setAttribute("stroke-width", "1");
+          grid.appendChild(vLine);
+
+          // X轴标签
+          const xLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          xLabel.setAttribute("x", pos);
+          xLabel.setAttribute("y", 20);
+          xLabel.setAttribute("class", "label");
+          xLabel.setAttribute("text-anchor", "middle");
+          xLabel.textContent = i;
+          grid.appendChild(xLabel);
+        }
+      }
+      
+      // 绘制坐标轴
+      const xAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      xAxis.setAttribute("x1", -config.gridRangeX * config.scale);
+      xAxis.setAttribute("y1", 0);
+      xAxis.setAttribute("x2", config.gridRangeX * config.scale);
+      xAxis.setAttribute("y2", 0);
+      xAxis.setAttribute("stroke", "black");
+      xAxis.setAttribute("stroke-width", "2");
+      grid.appendChild(xAxis);
+    
+      const yAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      yAxis.setAttribute("x1", 0);
+      yAxis.setAttribute("y1", -config.gridRangeY * config.scale);
+      yAxis.setAttribute("x2", 0);
+      yAxis.setAttribute("y2", config.gridRangeY * config.scale);
+      yAxis.setAttribute("stroke", "black");
+      yAxis.setAttribute("stroke-width", "2");
+      grid.appendChild(yAxis);
+    }
+    
+    /**
+     * 更新点的标签文字
+     */
+    function updatePointLabel(point, text) {
+      const cx = parseFloat(point.getAttribute('cx'));
+      const cy = parseFloat(point.getAttribute('cy'));
+      let grid_x = cx / config.scale;
+      let grid_y = -cy / config.scale;
+
+      // 判断是否为整数坐标（考虑浮点误差）
+      const epsilon = 1e-6;
+      const isGridXInt = Math.abs(grid_x - Math.round(grid_x)) < epsilon;
+      const isGridYInt = Math.abs(grid_y - Math.round(grid_y)) < epsilon;
+
+      // 根据是否为整数选择显示格式
+      grid_x = isGridXInt ? Math.round(grid_x) : grid_x.toFixed(2);
+      grid_y = isGridYInt ? Math.round(grid_y) : grid_y.toFixed(2);
+
+      text.textContent = `${point.id.slice(-1)}(${grid_x}, ${grid_y})`;
+    }
+    
+    /**
+     * 更新所有点与向量
+     */
+    function updateAllPoints() {
+      [pointA, pointB].forEach(point => {
+        const text = (point.id === 'pointA') ? pointAText : pointBText;
+        const cx = parseFloat(point.getAttribute('cx'));
+        const cy = parseFloat(point.getAttribute('cy'));
+        text.setAttribute('x', cx + 10);
+        text.setAttribute('y', cy + 10);
+        updatePointLabel(point, text);
+      });
+      updateVectors();
+    }
+    
+    /**
+     * 吸附到最近的网格点
+     */
+    function snapToGrid() {
+      [pointA, pointB].forEach(point => {
+        const cx = parseFloat(point.getAttribute('cx'));
+        const cy = parseFloat(point.getAttribute('cy'));
+        const roundedX = Math.round(cx / config.scale) * config.scale;
+        const roundedY = Math.round(cy / config.scale) * config.scale;
+        point.setAttribute('cx', roundedX);
+        point.setAttribute('cy', roundedY);
+      });
+      updateAllPoints();
+    }
+
+    /**
+     * 更新所有向量的位置和标签
+     */
+    function updateVectors() {
+      // 获取OA和OB的网格坐标
+      const xa = parseFloat(pointA.getAttribute('cx')) / config.scale;
+      const ya = -parseFloat(pointA.getAttribute('cy')) / config.scale;
+      const xb = parseFloat(pointB.getAttribute('cx')) / config.scale;
+      const yb = -parseFloat(pointB.getAttribute('cy')) / config.scale;
+
+      // 计算OA = (xa, ya)
+      const svg_OA_end = gridToSVG(xa, ya);
+
+      // 计算OB = (xb, yb)
+      const svg_OB_end = gridToSVG(xb, yb);
+
+      // 计算Vector1 = xa * OB = (xa * xb, xa * yb)
+      const vector1_x = xa * xb;
+      const vector1_y = xa * yb;
+
+      // 计算Vector2 = ya * (-yb, xb) = (ya * -yb, ya * xb)
+      const vector2_x = ya * (-yb);
+      const vector2_y = ya * xb;
+
+      // 计算VectorProduct = Vector1 + Vector2 = (xa * xb - ya * yb, xa * yb + ya * xb)
+      const product_x = vector1_x + vector2_x;
+      const product_y = vector1_y + vector2_y;
+
+      // 将网格坐标转换为SVG像素坐标
+      const svg_vectorOA_end = gridToSVG(xa, ya);
+      const svg_vectorOB_end = gridToSVG(xb, yb);
+      const svg_vector1_end = gridToSVG(vector1_x, vector1_y);
+      const svg_vector2_end = gridToSVG(vector2_x, vector2_y);
+      const svg_product_end = gridToSVG(product_x, product_y);
+
+      // 更新向量OA的位置
+      vectorOA.setAttribute('x1', 0);
+      vectorOA.setAttribute('y1', 0);
+      vectorOA.setAttribute('x2', svg_vectorOA_end.x);
+      vectorOA.setAttribute('y2', svg_vectorOA_end.y);
+
+
+
+      // 更新向量OB的位置
+      vectorOB.setAttribute('x1', 0);
+      vectorOB.setAttribute('y1', 0);
+      vectorOB.setAttribute('x2', svg_vectorOB_end.x);
+      vectorOB.setAttribute('y2', svg_vectorOB_end.y);
+
+
+
+
+      // 更新Vector1的位置
+      vector1.setAttribute('x1', 0);
+      vector1.setAttribute('y1', 0);
+      vector1.setAttribute('x2', svg_vector1_end.x);
+      vector1.setAttribute('y2', svg_vector1_end.y);
+
+      // 更新Vector1的标签
+      vector1Label.setAttribute('x', svg_vector1_end.x + 5);
+      vector1Label.setAttribute('y', svg_vector1_end.y - 5);
+      vector1Label.textContent = `C (${vector1_x.toFixed(0)}, ${vector1_y.toFixed(0)})`;
+
+      // 更新Vector2的位置
+      vector2.setAttribute('x1', 0);
+      vector2.setAttribute('y1', 0);
+      vector2.setAttribute('x2', svg_vector2_end.x);
+      vector2.setAttribute('y2', svg_vector2_end.y);
+
+      // 更新Vector2的标签
+      vector2Label.setAttribute('x', svg_vector2_end.x + 5);
+      vector2Label.setAttribute('y', svg_vector2_end.y - 5);
+      vector2Label.textContent = `D (${vector2_x.toFixed(0)}, ${vector2_y.toFixed(0)})`;
+
+      // 更新VectorProduct的位置
+      vectorProduct.setAttribute('x1', 0);
+      vectorProduct.setAttribute('y1', 0);
+      vectorProduct.setAttribute('x2', svg_product_end.x);
+      vectorProduct.setAttribute('y2', svg_product_end.y);
+
+      // 更新VectorProduct的标签
+      vectorProductLabel.setAttribute('x', svg_product_end.x + 5);
+      vectorProductLabel.setAttribute('y', svg_product_end.y - 5);
+      vectorProductLabel.textContent = `E (${product_x.toFixed(0)}, ${product_y.toFixed(0)})`;
+
+      // 更新有向线段（从Vector1指向VectorProduct）
+      vectorConnection.setAttribute('x1', svg_vector1_end.x);
+      vectorConnection.setAttribute('y1', svg_vector1_end.y);
+      vectorConnection.setAttribute('x2', svg_product_end.x);
+      vectorConnection.setAttribute('y2', svg_product_end.y);
+
+      // 更新有向线段的标签
+      vectorConnectionLabel.setAttribute('x', (svg_vector1_end.x + svg_product_end.x) / 2 + 5);
+      vectorConnectionLabel.setAttribute('y', (svg_vector1_end.y + svg_product_end.y) / 2 - 5);
+      vectorConnectionLabel.textContent = ``;
+    }
+
+    /**
+     * 拖动逻辑
+     */
+    let activePoint = null;
+    let startX, startY;
+    
+    function startPointDrag(e, point) {
+      // 仅左键开始拖动
+      if (e.button !== 0) return;
+      e.preventDefault();
+      activePoint = point;
+      const pt = svg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+      startX = svgP.x - parseFloat(point.getAttribute('cx'));
+      startY = svgP.y - parseFloat(point.getAttribute('cy'));
+    }
+    
+    pointA.addEventListener('mousedown', (e) => startPointDrag(e, pointA));
+    pointB.addEventListener('mousedown', (e) => startPointDrag(e, pointB));
+    
+    document.addEventListener('mousemove', (e) => {
+      if (activePoint) {
+        const pt = svg.createSVGPoint();
+        pt.x = e.clientX;
+        pt.y = e.clientY;
+        const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+
+        // 拖动过程中使用浮点坐标
+        const newX = svgP.x - startX;
+        const newY = svgP.y - startY;
+
+        activePoint.setAttribute('cx', newX);
+        activePoint.setAttribute('cy', newY);
+
+        // 更新显示(标签 & 向量)
+        const text = (activePoint.id === 'pointA') ? pointAText : pointBText;
+        text.setAttribute('x', newX + 10);
+        text.setAttribute('y', newY + 10);
+        updatePointLabel(activePoint, text);
+        updateVectors(); // 更新向量
+      }
+    });
+    
+    document.addEventListener('mouseup', (e) => {
+      if (activePoint) {
+        // 松开后再把点吸附到最近网格
+        snapToGrid();
+      }
+      activePoint = null;
+    });
+    
+    /**
+     * 滚轮缩放
+     */
+    svg.addEventListener('wheel', (e) => {
+      e.preventDefault(); // 防止页面滚动
+      const delta = e.deltaY;
+      if (delta < 0) {
+        // 放大
+        config.scale = Math.min(config.scale + 5, config.maxScale);
+      } else {
+        // 缩小
+        config.scale = Math.max(config.scale - 5, config.minScale);
+      }
+      
+      calculateGridRange();
+      drawGrid();
+      // 缩放后，让点也吸到网格
+      snapToGrid();
+    }, { passive: false });
+    
+    /**
+     * 右键平移
+     */
+    let isPanning = false;
+    let panStart = { x: 0, y: 0 };
+    let currentTranslate = { x: 150, y: 450 }; // 初始中心
+    
+    function updateGridTransform() {
+      gridGroup.setAttribute('transform', `translate(${currentTranslate.x},${currentTranslate.y})`);
+      calculateGridRange();
+      drawGrid();
+      updateAllPoints();
+    }
+    
+    container.addEventListener('mousedown', (e) => {
+      if (e.button === 2) {
+        isPanning = true;
+        panStart.x = e.clientX;
+        panStart.y = e.clientY;
+        container.classList.add('grabbing');
+      }
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (isPanning) {
+        const dx = e.clientX - panStart.x;
+        const dy = e.clientY - panStart.y;
+        panStart.x = e.clientX;
+        panStart.y = e.clientY;
+        currentTranslate.x += dx;
+        currentTranslate.y += dy;
+        gridGroup.setAttribute('transform', `translate(${currentTranslate.x},${currentTranslate.y})`);
+        calculateGridRange();
+        drawGrid();
+        updateAllPoints();
+      }
+    });
+    document.addEventListener('mouseup', () => {
+      if (isPanning) {
+        isPanning = false;
+        container.classList.remove('grabbing');
+      }
+    });
+    
+    // 禁止右键菜单
+    container.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+    });
+    
+    // 初始
+    calculateGridRange();
+    drawGrid();
+    // 吸附一次初始位置
+    snapToGrid();
+  </script>
+</body>
+</html>

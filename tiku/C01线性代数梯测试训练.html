@@ -267,8 +267,7 @@ const videoConfig = {
     3: "<iframe src='https://player.bilibili.com/player.html?bvid=BV1yP4y1w7hh&high_quality=1&danmaku=0' width='640' height='360' allowfullscreen allow='autoplay; fullscreen' frameborder='0'></iframe>",
     4: "<iframe src='https://player.bilibili.com/player.html?bvid=BV12U4y1Z7tQ&high_quality=1&danmaku=0' width='640' height='360' allowfullscreen allow='autoplay; fullscreen' frameborder='0'></iframe>",
     5: "<iframe src='https://player.bilibili.com/player.html?bvid=BV12U4y1Z7tQ&high_quality=1&danmaku=0' width='640' height='360' allowfullscreen allow='autoplay; fullscreen' frameborder='0'></iframe>",
-    6: "<iframe src='https://player.bilibili.com/player.html?bvid=BV1ix4y1t7Hy&high_quality=1&danmaku=0' width='640' height='360' allowfullscreen allow='autoplay; fullscreen' frameborder='0'></iframe>",
-
+    6: "<iframe src='../交互svg/复数乘法.html' width='1600' height='900' allowfullscreen frameborder='0'></iframe>",  // 替换为你的网页
     
 };
 
@@ -568,11 +567,7 @@ function generateLevel6Question() {
                  \\
                 \\]`;
 
-    // 随机选择一张图片
-    let imageFile = Math.random() < 0.5 ? 'c0101.gif' : 'c0102.gif';
-
-    // 将图片HTML添加到问题文本中
-    textq += `<br/><img src="./images/${imageFile}" style="width:30%;"><br/>`;
+ 
 
     // 仅返回问题文本
     return textq;
