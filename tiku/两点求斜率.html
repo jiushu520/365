@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一次函数阶梯测试训练两点求斜率</title>
+
+    <!-- 引入 MathJax 用于渲染 LaTeX 数学公式 -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --primary-hover: #0056b3;
+            --border-color: #ccc;
+            --background-color: #f9f9f9;
+            --correct-color: green;
+            --incorrect-color: red;
+            --font-size: 16px;
+            --max-width: 800px;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: var(--background-color);
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* 确保子元素水平居中 */
+            text-align: center;
+            margin-top: 20px;
+            width: 90%;
+            max-width: var(--max-width);
+        }
+
+        input,
+        #rendered-answer {
+            padding: 10px;
+            font-size: var(--font-size);
+            width: 80%;
+            max-width: 300px;
+            margin: 10px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+        }
+
+        /* 修改后的 #rendered-answer */
+        #rendered-answer {
+            background-color: white;
+            min-height: 40px; /* 设置最小高度，避免空时高度塌陷 */
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px auto; /* 上下边距为10px，左右自动 */
+            text-align: left;
+            width: 80%; /* 确保宽度与输入框一致 */
+            max-width: 300px; /* 确保最大宽度与输入框一致 */
+        }
+
+        button.submit-button {
+            padding: 10px 20px;
+            font-size: var(--font-size);
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--primary-color);
+            color: white;
+            transition: background-color 0.3s;
+        }
+
+        button.submit-button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        #result,
+        #score {
+            margin: 10px 0;
+            font-size: 18px;
+        }
+
+        /* 历史记录使用 Flexbox */
+        .history-container {
+            margin-top: 20px;
+            width: 100%;
+            max-width: var(--max-width);
+            border: 1px solid var(--border-color);
+            border-collapse: collapse;
+        }
+
+        .history-header, .history-row {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .history-header {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+
+        .history-header > div, .history-row > div {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            vertical-align: top;
+        }
+
+        .history-row:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        /* 限制历史记录中 SVG 的大小 */
+        .history-svg {
+            width: 100px;
+            height: auto;
+            max-width: 100%;
+        }
+
+        .inline-svg {
+            width: 100%;
+            height: auto;
+        }
+
+        .correct {
+            color: var(--correct-color);
+        }
+
+        .incorrect {
+            color: var(--incorrect-color);
+        }
+
+        .coordinate-system {
+            border: 1px solid var(--border-color);
+            background-color: white;
+            margin-top: 10px;
+        }
+
+        .point-label {
+            font-size: 12px;
+            fill: black;
+        }
+
+        .axis,
+        .line,
+        .point {
+            stroke-width: 2;
+        }
+
+        .axis {
+            stroke: black;
+        }
+
+        .line {
+            stroke: red;
+        }
+
+        .point {
+            stroke: black;
+            stroke-width: 1;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 600px) {
+            input,
+            #rendered-answer {
+                width: 100%;
+                max-width: none;
+            }
+
+            .history-svg {
+                width: 80px;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <h3>一次函数阶梯测试训练两点求斜率</h3>
+
+        <div id="question"></div>
+        <div id="rendered-answer">\\(\\text{您的答案将实时渲染在此处}\\)</div>
+
+        <input type="text" id="answer" placeholder="输入你的答案" aria-label="输入你的答案">
+        <button class="submit-button" onclick="checkAnswer()">提交答案</button>
+        <!-- rendered-answer 始终显示，并添加默认提示 -->
+
+        <div id="result"></div>
+        <div id="score">正确: 0 | 错误: 0</div>
+
+        <div class="history-container">
+            <div class="history-header">
+                <div>题目</div>
+                <div>你的答案</div>
+                <div>正确答案</div>
+                <div>结果</div>
+            </div>
+            <div class="history-body" id="history"></div>
+        </div>
+    </div>
+
+    <script>
+        const state = {
+            correctAnswer: [],
+            correctCount: 0,
+            incorrectCount: 0
+        };
+
+        document.addEventListener("DOMContentLoaded", newQuestion);
+        document.getElementById('answer').addEventListener('keyup', event => {
+            if (event.key === 'Enter') checkAnswer();
+        });
+
+        function newQuestion() {
+            const questionHTML = generateQuestion();
+            document.getElementById('question').innerHTML = questionHTML;
+            MathJax.typesetPromise([document.getElementById('question')]).catch(console.error);
+            clearInput();
+        }
+
+        function clearInput() {
+            document.getElementById('answer').value = '';
+            document.getElementById('result').textContent = '';
+            updateRenderedAnswer(''); // 清空渲染的答案
+        }
+
+        function generateQuestion() {
+            const { xa, ya, xb, yb, k } = generateLevel4Question();
+            state.correctAnswer = [`${k}`];
+
+            const svg = generateSVG(xa, ya, xb, yb);
+            return `
+                \\(
+                过点A(${xa}, ${ya}), B(${xb}, ${yb});
+                直线的斜率k=?
+                \\)
+                <div class="coordinate-system">
+                    ${svg}
+                </div>
+            `;
+        }
+
+        function generateLevel4Question() {
+            let xa, ya, xb, yb, k, offset, direction;
+
+            while (true) {
+                xa = getRandomInt(-5, 5);
+                ya = getRandomInt(-5, 5);
+                direction = Math.random() < 0.5 ? -1 : 1;
+
+                const maxOffset = direction === 1 ? 10 - xa : xa + 10;
+                const validMaxOffset = Math.max(1, Math.floor(Math.min(maxOffset, 10)));
+
+                if (validMaxOffset < 1) continue;
+
+                offset = getRandomInt(1, validMaxOffset);
+                xb = xa + offset * direction;
+
+                const maxK = Math.max(1, Math.floor((10 - Math.abs(ya)) / offset));
+                const possibleK = [...Array(maxK).keys()].slice(1).flatMap(i => [i, -i]);
+
+                if (possibleK.length === 0) continue;
+
+                k = possibleK[getRandomInt(0, possibleK.length - 1)];
+                yb = ya + k * offset * direction;
+
+                if (yb >= -10 && yb <= 10) break;
+            }
+
+            return { xa, ya, xb, yb, k };
+        }
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateSVG(xa, ya, xb, yb) {
+            const size = 400;
+            const unit = 20;
+            const center = size / 2;
+
+            const coordToSvg = (x, y) => ({
+                x: center + x * unit,
+                y: center - y * unit
+            });
+
+            const pointA = coordToSvg(xa, ya);
+            const pointB = coordToSvg(xb, yb);
+
+            let lineStart, lineEnd;
+
+            if (xb !== xa) {
+                const slope = (yb - ya) / (xb - xa);
+                const intercept = ya - slope * xa;
+
+                const intersections = findLineIntersections(slope, intercept);
+
+                if (intersections.length >= 2) {
+                    const svgStart = coordToSvg(intersections[0].x, intersections[0].y);
+                    const svgEnd = coordToSvg(intersections[1].x, intersections[1].y);
+                    lineStart = svgStart;
+                    lineEnd = svgEnd;
+                } else {
+                    // 如果交点不足两个，退回仅绘制两点之间的线
+                    lineStart = pointA;
+                    lineEnd = pointB;
+                }
+            } else {
+                // 垂直线
+                const x = center + xa * unit;
+                lineStart = { x: x, y: 0 };
+                lineEnd = { x: x, y: size };
+            }
+
+            return `
+                <svg viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg" class="inline-svg">
+                    <!-- 坐标轴 -->
+                    <line x1="0" y1="${center}" x2="${size}" y2="${center}" class="axis" />
+                    <line x1="${center}" y1="0" x2="${center}" y2="${size}" class="axis" />
+
+                    <!-- 斜率直线 -->
+                    <line x1="${lineStart.x}" y1="${lineStart.y}" x2="${lineEnd.x}" y2="${lineEnd.y}" class="line" />
+
+                    <!-- 点 A -->
+                    <circle cx="${pointA.x}" cy="${pointA.y}" r="5" fill="blue" class="point" />
+                    <text x="${pointA.x + 5}" y="${pointA.y - 5}" class="point-label">A(${xa},${ya})</text>
+
+                    <!-- 点 B -->
+                    <circle cx="${pointB.x}" cy="${pointB.y}" r="5" fill="red" class="point" />
+                    <text x="${pointB.x + 5}" y="${pointB.y - 5}" class="point-label">B(${xb},${yb})</text>
+                </svg>
+            `;
+        }
+
+        function findLineIntersections(k, b) {
+            const intersections = [];
+
+            // 直线与 x = -10 的交点
+            let y = k * (-10) + b;
+            if (y >= -10 && y <= 10) {
+                intersections.push({ x: -10, y: y });
+            }
+
+            // 直线与 x = 10 的交点
+            y = k * 10 + b;
+            if (y >= -10 && y <= 10) {
+                intersections.push({ x: 10, y: y });
+            }
+
+            // 直线与 y = 10 的交点
+            if (k !== 0) { // 避免除以零
+                let x = (10 - b) / k;
+                if (x >= -10 && x <= 10) {
+                    intersections.push({ x: x, y: 10 });
+                }
+
+                // 直线与 y = -10 的交点
+                x = (-10 - b) / k;
+                if (x >= -10 && x <= 10) {
+                    intersections.push({ x: x, y: -10 });
+                }
+            }
+
+            // 移除重复交点
+            const unique = [];
+            const map = new Map();
+            intersections.forEach(pt => {
+                const key = `${pt.x.toFixed(5)},${pt.y.toFixed(5)}`; // 使用固定小数位防止浮点数问题
+                if (!map.has(key)) {
+                    map.set(key, true);
+                    unique.push(pt);
+                }
+            });
+
+            return unique.slice(0, 2); // 返回前两个唯一交点
+        }
+
+        function clamp(value, min, max) {
+            return Math.min(Math.max(value, min), max);
+        }
+
+        function toHalfWidth(str) {
+            return str.replace(/[\uFF01-\uFF5E]/g, char =>
+                String.fromCharCode(char.charCodeAt(0) - 0xFEE0)
+            ).replace(/\u3000/g, ' ');
+        }
+
+        function updateRenderedAnswer(content) {
+            const rendered = document.getElementById('rendered-answer');
+            if (content) {
+                rendered.innerHTML = `\\(${content}\\)`;
+            } else {
+                rendered.innerHTML = '\\(\\text{您的答案将实时渲染在此处}\\)';
+            }
+            MathJax.typesetPromise([rendered]).catch(console.error);
+        }
+
+        function updatePreview() {
+            const input = document.getElementById('answer').value;
+            updateRenderedAnswer(input);
+        }
+
+        document.getElementById('answer').addEventListener('input', updatePreview);
+
+        function checkAnswer() {
+            const userAnswer = toHalfWidth(document.getElementById('answer').value.trim());
+            if (!userAnswer) {
+                showResult('请输入答案！', false);
+                return;
+            }
+
+            const isCorrect = state.correctAnswer.some(
+                ans => userAnswer === toHalfWidth(ans.toLowerCase())
+            );
+
+            if (isCorrect) {
+                showResult('正确!', true);
+                state.correctCount++;
+            } else {
+                showResult(`错误。正确答案是: ${state.correctAnswer.join(' 或 ')}`, false);
+                state.incorrectCount++;
+            }
+
+            updateScore();
+            updateHistory(isCorrect);
+            newQuestion();
+        }
+
+        function showResult(message, isCorrect) {
+            const result = document.getElementById('result');
+            result.textContent = message;
+            result.className = isCorrect ? 'correct' : 'incorrect';
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = `正确: ${state.correctCount} | 错误: ${state.incorrectCount}`;
+        }
+
+        function updateHistory(isCorrect) {
+            const history = document.getElementById('history');
+            const row = document.createElement('div');
+            row.classList.add('history-row', isCorrect ? 'correct' : 'incorrect');
+
+            const questionClone = document.getElementById('question').cloneNode(true);
+
+            // 给 SVG 添加类以便在历史记录中缩小
+            const svg = questionClone.querySelector('svg');
+            if (svg) {
+                svg.classList.add('history-svg');
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+            }
+
+            row.innerHTML = `
+                <div>${questionClone.innerHTML}</div>
+                <div>\\(${document.getElementById('answer').value}\\)</div>
+                <div>\\(${state.correctAnswer.join('\\) 或 \\(')}\\)</div>
+                <div>${isCorrect ? '正确' : '错误'}</div>
+            `;
+            history.prepend(row);
+
+            MathJax.typesetPromise([row]).catch(console.error);
+        }
+    </script>
+</body>
+
+</html>

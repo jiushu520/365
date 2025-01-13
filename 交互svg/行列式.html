@@ -203,19 +203,29 @@
     function updatePointLabel(point, text) {
       const cx = parseFloat(point.getAttribute('cx'));
       const cy = parseFloat(point.getAttribute('cy'));
-      const grid_x = (cx / config.scale).toFixed(2);
-      const grid_y = (-cy / config.scale).toFixed(2);
-      
+      let grid_x = cx / config.scale;
+      let grid_y = -cy / config.scale;
+
+      // 判断是否为整数坐标（考虑浮点误差）
+      const epsilon = 1e-6;
+      const isGridXInt = Math.abs(grid_x - Math.round(grid_x)) < epsilon;
+      const isGridYInt = Math.abs(grid_y - Math.round(grid_y)) < epsilon;
+
+      // 根据是否为整数选择显示格式
+      grid_x = isGridXInt ? Math.round(grid_x) : grid_x.toFixed(2);
+      grid_y = isGridYInt ? Math.round(grid_y) : grid_y.toFixed(2);
+
+      // 更新文本内容
       if (point.id !== 'pointC') {
         text.textContent = `${point.id.slice(-1)}(${grid_x}, ${grid_y})`;
-        text.setAttribute('x', cx + 10);
-        text.setAttribute('y', cy + 10);
       } else {
         // 对于点C，在其旁边显示坐标
         text.textContent = `C(${grid_x}, ${grid_y})`;
-        text.setAttribute('x', cx + 10);
-        text.setAttribute('y', cy + 10);
       }
+
+      // 更新标签位置
+      text.setAttribute('x', cx + 10);
+      text.setAttribute('y', cy + 10);
     }
     
     /**
@@ -354,22 +364,18 @@
         const newX = svgP.x - startX;
         const newY = svgP.y - startY;
     
-        // [修改重点] 移动时直接用浮动值，不进行网格吸附
+        // 移动时直接用浮动值，不进行网格吸附
         activePoint.setAttribute('cx', newX);
         activePoint.setAttribute('cy', newY);
     
         // 同步更新文字标签
         const text = (activePoint.id === 'pointA') ? pointAText : pointBText;
-        text.setAttribute('x', newX + 10);
-        text.setAttribute('y', newY + 10);
-    
-        // 更新显示(此时也会更新平行四边形和面积)
         updatePointLabel(activePoint, text);
-        updateAllPoints();
+        updateAllPoints(); // 更新点C、平行四边形和面积
       }
     });
     
-    // [修改重点] 在 mouseup 时进行网格吸附
+    // 在 mouseup 时进行网格吸附
     document.addEventListener('mouseup', (e) => {
       if (activePoint) {
         // 松开后再吸附到网格

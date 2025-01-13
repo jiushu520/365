@@ -190,12 +190,20 @@
      * 更新点的标签文字
      */
     function updatePointLabel(point, text) {
-      // 直接使用浮点坐标除以 scale 得到网格坐标(可能是小数)
       const cx = parseFloat(point.getAttribute('cx'));
       const cy = parseFloat(point.getAttribute('cy'));
-      const grid_x = (cx / config.scale).toFixed(2);   // 保留2位小数做示例
-      const grid_y = (-cy / config.scale).toFixed(2);
-      
+      let grid_x = cx / config.scale;
+      let grid_y = -cy / config.scale;
+
+      // 判断是否为整数坐标（考虑浮点误差）
+      const epsilon = 1e-6;
+      const isGridXInt = Math.abs(grid_x - Math.round(grid_x)) < epsilon;
+      const isGridYInt = Math.abs(grid_y - Math.round(grid_y)) < epsilon;
+
+      // 根据是否为整数选择显示格式
+      grid_x = isGridXInt ? Math.round(grid_x) : grid_x.toFixed(2);
+      grid_y = isGridYInt ? Math.round(grid_y) : grid_y.toFixed(2);
+
       text.textContent = `${point.id.slice(-1)}(${grid_x}, ${grid_y})`;
     }
     
