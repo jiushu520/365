@@ -18,6 +18,8 @@
       margin: 20px auto; /* 上下添加间距，居中显示容器 */
       position: relative;
       background-color: #f9f9f9;
+      /* 禁用浏览器的默认触摸行为，如双指缩放 */
+      touch-action: none;
     }
     #container.grabbing {
       cursor: grabbing; /* 拖动时的光标样式 */
@@ -420,17 +422,17 @@
         // 计算绘图范围内的x值
         const xStart = -config.gridRangeX;
         const xEnd = config.gridRangeX;
-        const step = config.step * 0.01; // 0.1步长
+        const step = config.step * 0.1; // 采样步长
         
         let pathData = '';
         let firstPoint = true;
 
         for (let i = xStart; i <= xEnd; i += step) {
-          const x = parseFloat(i.toFixed(3)); // 保证x精确到一位小数
+          const x = parseFloat(i.toFixed(3)); // 保证x精确到三位小数
           let y;
           try {
             y = func(x);
-            y = parseFloat(y.toFixed(3)); // 保证y精确到两位小数
+            y = parseFloat(y.toFixed(3)); // 保证y精确到三位小数
           } catch (e) {
             y = NaN;
           }
@@ -632,11 +634,16 @@
       }, { passive: false }); // 设置 passive 为 false 以便调用 preventDefault
       
       /**
-       * 添加平移功能（右键控制）
+       * 添加平移和捏合缩放功能（鼠标右键平移与双指触控）
        */
       let isPanning = false;
       let panStart = { x: 0, y: 0 };
       let currentTranslate = { x: 450, y: 375 }; // 初始中心点 (调整为 svg 的中心)
+      
+      // 新增变量用于捏合缩放
+      let initialDistance = 0;
+      let initialScale = config.scale;
+      let pinchMidpoint = { x: 0, y: 0 };
 
       /**
        * 更新 grid 的 transform
@@ -663,9 +670,28 @@
         }
       });
       
+      // 监听触摸开始进行平移和缩放（双指触控）
+      container.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) { // 双指触摸
+          isPanning = true;
+          // 记录初始双指距离和初始缩放比例
+          const touch1 = e.touches[0];
+          const touch2 = e.touches[1];
+          initialDistance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
+          initialScale = config.scale;
+          // 记录初始中点
+          pinchMidpoint.x = (touch1.clientX + touch2.clientX) / 2;
+          pinchMidpoint.y = (touch1.clientY + touch2.clientY) / 2;
+          panStart.x = pinchMidpoint.x;
+          panStart.y = pinchMidpoint.y;
+          container.classList.add('grabbing');
+          e.preventDefault();
+        }
+      }, { passive: false });
+      
       // 监听鼠标移动进行平移
       document.addEventListener('mousemove', (e) => {
-        if (isPanning) {
+        if (isPanning && e.buttons === 2) { // 仅在右键拖动时平移
           const dx = e.clientX - panStart.x;
           const dy = e.clientY - panStart.y;
           panStart.x = e.clientX;
@@ -676,9 +702,43 @@
         }
       });
       
+      // 监听触摸移动进行平移和缩放（双指触控）
+      document.addEventListener('touchmove', (e) => {
+        if (isPanning && e.touches.length === 2) {
+          const touch1 = e.touches[0];
+          const touch2 = e.touches[1];
+          const currentDistance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
+          const scaleFactor = currentDistance / initialDistance;
+          config.scale = Math.min(Math.max(initialScale * scaleFactor, config.minScale), config.maxScale);
+
+          // 计算新的中点用于平移
+          const currentMidX = (touch1.clientX + touch2.clientX) / 2;
+          const currentMidY = (touch1.clientY + touch2.clientY) / 2;
+          const dx = currentMidX - panStart.x;
+          const dy = currentMidY - panStart.y;
+          panStart.x = currentMidX;
+          panStart.y = currentMidY;
+          currentTranslate.x += dx;
+          currentTranslate.y += dy;
+
+          updateGridTransform();
+          snapToGrid(); // 吸附到网格
+
+          e.preventDefault();
+        }
+      }, { passive: false });
+      
       // 监听鼠标释放结束平移
-      document.addEventListener('mouseup', () => {
-        if (isPanning) {
+      document.addEventListener('mouseup', (e) => {
+        if (isPanning && e.button === 2) {
+          isPanning = false;
+          container.classList.remove('grabbing');
+        }
+      });
+      
+      // 监听触摸结束结束平移
+      document.addEventListener('touchend', (e) => {
+        if (isPanning && e.touches.length < 2) {
           isPanning = false;
           container.classList.remove('grabbing');
         }
@@ -750,6 +810,56 @@
       
       // 初始化
       initialize();
+      
+      /**
+       * 更新点的坐标显示
+       * （此功能在当前代码中未使用，但保留以防将来扩展）
+       */
+      /*
+      function updatePointLabel(point, text) {
+        const cx = parseFloat(point.getAttribute('cx'));
+        const cy = parseFloat(point.getAttribute('cy'));
+        let grid_x = cx / config.scale;
+        let grid_y = -cy / config.scale;
+
+        // 判断是否为整数坐标（考虑浮点误差）
+        const epsilon = 1e-6;
+        const isGridXInt = Math.abs(grid_x - Math.round(grid_x)) < epsilon;
+        const isGridYInt = Math.abs(grid_y - Math.round(grid_y)) < epsilon;
+
+        // 根据是否为整数选择显示格式
+        grid_x = isGridXInt ? Math.round(grid_x) : grid_x.toFixed(2);
+        grid_y = isGridYInt ? Math.round(grid_y) : grid_y.toFixed(2);
+
+        // 更新文本内容
+        text.textContent = `${point.id.slice(-1)}(${grid_x}, ${grid_y})`;
+
+        // 更新标签位置
+        text.setAttribute('x', cx + 10);
+        text.setAttribute('y', cy + 10);
+      }
+      */
+
+      /**
+       * 吸附所有点到最近的网格点
+       * （此功能在当前代码中未使用，因为没有可拖动的点）
+       */
+      function snapToGrid() {
+        // 此功能在当前代码中未使用
+        // 如果将来添加可拖动的点，可以在此实现吸附功能
+      }
+      
+      /**
+       * 自动替换数学运算符和函数
+       * （保留此功能以支持函数解析）
+       */
+      // ... 已在plotFunction中实现 ...
+
+      /**
+       * 创建参数滑动条
+       * （已在上方实现）
+       */
+
     })();
   </script>
 </body>

@@ -17,6 +17,7 @@
       overflow: hidden;
       margin: 0 auto; /* 居中显示容器 */
       position: relative;
+      touch-action: none; /* 禁止浏览器默认的触摸行为，如双指缩放 */
     }
     #container.grabbing {
       cursor: grabbing; /* 拖动时的光标样式 */
@@ -31,7 +32,7 @@
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 5px;
-      font-family: Arial, sans-serif;
+      font-family: Arial, sans-serif, sans-serif;
       z-index: 10;
     }
   </style>
@@ -54,15 +55,15 @@
         
         <!-- 可移动的点 -->
         <g id="points">
-          <circle id="pointA" cx="100" cy="-40" r="6" fill="red" style="cursor: pointer"/>
+          <circle id="pointA" cx="100" cy="-40" r="9" fill="red" style="cursor: pointer"/>
           <text id="pointAText" x="110" y="-30" class="label">A</text>
           
-          <circle id="pointB" cx="60" cy="-60" r="6" fill="blue" style="cursor: pointer"/>
+          <circle id="pointB" cx="60" cy="-60" r="9" fill="blue" style="cursor: pointer"/>
           <text id="pointBText" x="60" y="-60" class="label">B</text>
         </g>
 
         <!-- 新增的向量显示 -->
-        <g ="vectors">
+        <g id="vectors">
           <!-- 向量OA -->
           <line id="vectorOA" x1="0" y1="0" x2="0" y2="0" stroke="red" stroke-width="2" marker-end="url(#arrowhead)"/>
         
@@ -89,9 +90,6 @@
         </g>
       </g>
     </svg>
-
-
-    </div>
   </div>
   
   <script>
@@ -109,8 +107,6 @@
     const vector2 = document.getElementById('vector2');
     const vectorProduct = document.getElementById('vectorProduct');
     
-    const vectorOALabel = document.getElementById('vectorOALabel');
-    const vectorOBLabel = document.getElementById('vectorOBLabel');
     const vector1Label = document.getElementById('vector1Label');
     const vector2Label = document.getElementById('vector2Label');
     const vectorProductLabel = document.getElementById('vectorProductLabel');
@@ -324,16 +320,11 @@
       vectorOA.setAttribute('x2', svg_vectorOA_end.x);
       vectorOA.setAttribute('y2', svg_vectorOA_end.y);
 
-
-
       // 更新向量OB的位置
       vectorOB.setAttribute('x1', 0);
       vectorOB.setAttribute('y1', 0);
       vectorOB.setAttribute('x2', svg_vectorOB_end.x);
       vectorOB.setAttribute('y2', svg_vectorOB_end.y);
-
-
-
 
       // 更新Vector1的位置
       vector1.setAttribute('x1', 0);
@@ -377,7 +368,7 @@
       // 更新有向线段的标签
       vectorConnectionLabel.setAttribute('x', (svg_vector1_end.x + svg_product_end.x) / 2 + 5);
       vectorConnectionLabel.setAttribute('y', (svg_vector1_end.y + svg_product_end.y) / 2 - 5);
-      vectorConnectionLabel.textContent = ``;
+      vectorConnectionLabel.textContent = 'Connection';
     }
 
     /**
@@ -386,27 +377,35 @@
     let activePoint = null;
     let startX, startY;
     
+    function getEventPoint(e) {
+      if (e.touches && e.touches.length > 0) {
+        return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      } else {
+        return { x: e.clientX, y: e.clientY };
+      }
+    }
+
     function startPointDrag(e, point) {
-      // 仅左键开始拖动
-      if (e.button !== 0) return;
+      // 仅在左键点击或触摸时开始拖动
+      if (e.type === 'mousedown' && e.button !== 0) return;
       e.preventDefault();
       activePoint = point;
+      const { x, y } = getEventPoint(e);
       const pt = svg.createSVGPoint();
-      pt.x = e.clientX;
-      pt.y = e.clientY;
+      pt.x = x;
+      pt.y = y;
       const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
       startX = svgP.x - parseFloat(point.getAttribute('cx'));
       startY = svgP.y - parseFloat(point.getAttribute('cy'));
     }
-    
-    pointA.addEventListener('mousedown', (e) => startPointDrag(e, pointA));
-    pointB.addEventListener('mousedown', (e) => startPointDrag(e, pointB));
-    
-    document.addEventListener('mousemove', (e) => {
+
+    function movePoint(e) {
       if (activePoint) {
+        e.preventDefault();
+        const { x, y } = getEventPoint(e);
         const pt = svg.createSVGPoint();
-        pt.x = e.clientX;
-        pt.y = e.clientY;
+        pt.x = x;
+        pt.y = y;
         const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
 
         // 拖动过程中使用浮点坐标
@@ -423,15 +422,30 @@
         updatePointLabel(activePoint, text);
         updateVectors(); // 更新向量
       }
-    });
-    
-    document.addEventListener('mouseup', (e) => {
+    }
+
+    function endPointDrag(e) {
       if (activePoint) {
         // 松开后再把点吸附到最近网格
         snapToGrid();
       }
       activePoint = null;
-    });
+    }
+    
+    // 鼠标事件监听
+    pointA.addEventListener('mousedown', (e) => startPointDrag(e, pointA));
+    pointB.addEventListener('mousedown', (e) => startPointDrag(e, pointB));
+
+    // 触摸事件监听
+    pointA.addEventListener('touchstart', (e) => startPointDrag(e, pointA));
+    pointB.addEventListener('touchstart', (e) => startPointDrag(e, pointB));
+    
+    // 全局事件监听
+    document.addEventListener('mousemove', movePoint);
+    document.addEventListener('touchmove', movePoint, { passive: false });
+    
+    document.addEventListener('mouseup', endPointDrag);
+    document.addEventListener('touchend', endPointDrag);
     
     /**
      * 滚轮缩放
@@ -454,20 +468,30 @@
     }, { passive: false });
     
     /**
-     * 右键平移
+     * 添加平移功能（右键控制和双指触控）
      */
     let isPanning = false;
     let panStart = { x: 0, y: 0 };
     let currentTranslate = { x: 150, y: 450 }; // 初始中心
-    
+
+    // 新增变量用于捏合缩放
+    let initialDistance = 0;
+    let initialScale = config.scale;
+    let pinchMidpoint = { x: 0, y: 0 };
+
+    /**
+     * 更新 grid 的 transform
+     */
     function updateGridTransform() {
-      gridGroup.setAttribute('transform', `translate(${currentTranslate.x},${currentTranslate.y})`);
+      gridGroup.setAttribute('transform', `translate(${currentTranslate.x},${currentTranslate.y}) scale(${config.scale / 35})`); // 保持相对缩放
       calculateGridRange();
       drawGrid();
       updateAllPoints();
     }
     
+    // 鼠标右键平移
     container.addEventListener('mousedown', (e) => {
+      // 检查是否是右键
       if (e.button === 2) {
         isPanning = true;
         panStart.x = e.clientX;
@@ -475,24 +499,89 @@
         container.classList.add('grabbing');
       }
     });
+    
+    // 监听触摸开始进行平移（双指触控）
+    let touchPanStart = { x: 0, y: 0 };
+    container.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) { // 双指触控
+        isPanning = true;
+        // 记录初始双指距离和中点
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        initialDistance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
+        initialScale = config.scale;
+        pinchMidpoint.x = (touch1.clientX + touch2.clientX) / 2;
+        pinchMidpoint.y = (touch1.clientY + touch2.clientY) / 2;
+        panStart.x = pinchMidpoint.x;
+        panStart.y = pinchMidpoint.y;
+        container.classList.add('grabbing');
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    // 监听鼠标移动进行平移
     document.addEventListener('mousemove', (e) => {
-      if (isPanning) {
+      if (isPanning && e.buttons === 2) { // 仅在右键拖动时平移
         const dx = e.clientX - panStart.x;
         const dy = e.clientY - panStart.y;
         panStart.x = e.clientX;
         panStart.y = e.clientY;
         currentTranslate.x += dx;
         currentTranslate.y += dy;
-        gridGroup.setAttribute('transform', `translate(${currentTranslate.x},${currentTranslate.y})`);
-        calculateGridRange();
-        drawGrid();
-        updateAllPoints();
+        updateGridTransform();
       }
     });
-    document.addEventListener('mouseup', () => {
-      if (isPanning) {
+    
+    // 监听触摸移动进行平移和缩放（双指触控）
+    document.addEventListener('touchmove', (e) => {
+      if (isPanning && e.touches.length === 2) {
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const currentDistance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
+        const scaleFactor = currentDistance / initialDistance;
+        config.scale = Math.min(Math.max(initialScale * scaleFactor, config.minScale), config.maxScale);
+
+        // 计算新的中点用于平移
+        const currentMidX = (touch1.clientX + touch2.clientX) / 2;
+        const currentMidY = (touch1.clientY + touch2.clientY) / 2;
+        const dx = currentMidX - panStart.x;
+        const dy = currentMidY - panStart.y;
+        panStart.x = currentMidX;
+        panStart.y = currentMidY;
+        currentTranslate.x += dx;
+        currentTranslate.y += dy;
+
+        updateGridTransform();
+        snapToGrid(); // 吸附到网格
+
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    // 监听鼠标释放结束平移
+    document.addEventListener('mouseup', (e) => {
+      if (isPanning && e.button === 2) {
         isPanning = false;
         container.classList.remove('grabbing');
+      }
+    });
+    
+    // 监听触摸结束结束平移
+    document.addEventListener('touchend', (e) => {
+      if (isPanning && e.touches.length < 2) {
+        isPanning = false;
+        container.classList.remove('grabbing');
+      }
+    });
+    
+    // 禁止在SVG内部拖动时触发平移
+    svg.addEventListener('mousedown', (e) => {
+      if (e.button === 2) {
+        // 如果点击的是点或文本，阻止平移
+        if (e.target.tagName === 'circle' || e.target.tagName === 'text') {
+          e.preventDefault();
+          e.stopPropagation();
+        }
       }
     });
     
