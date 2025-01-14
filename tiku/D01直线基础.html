@@ -207,90 +207,40 @@
                 width: 80px;
                 height: auto;
             }
+
+            /* 调整滑动条样式以适应小屏幕 */
+            .slider-container {
+                width: 100%;
+            }
         }
 
         /* 新增的样式 */
 
-        .question-and-keyboard {
+        .question-and-slider {
             display: flex;
-            flex-direction: row;
-            align-items: flex-start;
+            flex-direction: column;
+            align-items: center;
             width: 100%;
         }
 
-        #question {
-            flex: 2;
-        }
-
-        #keyboard-container {
-            flex: 1;
-            margin-left: 20px;
-            background-color: #e9ecef;
-            padding: 10px;
-            border-radius: 5px;
-            /* 设置固定宽度和高度 */
-            width: 220px;
-            /* 根据需要调整高度 */
-        }
-
-        .keyboard-row {
+        .slider-container {
+            margin-top: 1px;
+            width: 100%;
+            max-width: 400px;
             display: flex;
-            justify-content: center;
-            margin-bottom: 5px;
+            align-items: center;
         }
 
-        .key-button {
-            width: 40px;
-            height: 40px;
-            margin: 2px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            background-color: var(--primary-color);
-            color: white;
-            transition: background-color 0.3s;
-            /* 保持固定大小 */
-            flex: 0 0 auto;
-        }
-
-        .key-button:hover {
-            background-color: var(--primary-hover);
-        }
-
-        .enter-button {
+        .slider-container input[type="range"] {
             flex: 1;
-            background-color: #28a745;
-            width: 100px; /* 固定宽度 */
+
         }
 
-        .enter-button:hover {
-            background-color: #218838;
+        .slider-value {
+            width: 10px;
+            text-align: center;
+            font-size: var(--font-size);
         }
-
-        /* 移除或注释掉以下响应式调整，以保持小键盘固定大小 */
-        /*
-        @media (max-width: 800px) {
-            .question-and-keyboard {
-                flex-direction: column;
-            }
-
-            #keyboard-container {
-                margin-left: 0;
-                margin-top: 20px;
-                width: 100%;
-            }
-
-            .key-button {
-                width: 100%;
-                margin: 2px 0;
-            }
-
-            .keyboard-row {
-                flex-wrap: wrap;
-            }
-        }
-        */
     </style>
 </head>
 
@@ -312,55 +262,22 @@
 
         <!-- 题目区域 -->
         <div id="question-section">
-            <div class="question-and-keyboard">
+            <div class="question-and-slider">
                 <div id="question"></div>
 
-                <!-- 小键盘容器 -->
-                <div id="keyboard-container">
-                    <div class="keyboard-row">
+ <span id="slider-value" class="slider-value">1</span>
 
-                        <button class="key-button">y</button>
-                        <button class="key-button">=</button>
-                        <button class="key-button">x</button>
-                    </div>
-                    <div class="keyboard-row">
-
-
-                        <button class="key-button">-</button>
-                        <button class="key-button">+</button>
-                        <button class="key-button">(</button>
-                        <button class="key-button">)</button>
-                    </div>
-                    <div class="keyboard-row">
-                        <button class="key-button">7</button>
-                        <button class="key-button">8</button>
-                        <button class="key-button">9</button>
-                    </div>
-                    <div class="keyboard-row">
-                        <button class="key-button">4</button>
-                        <button class="key-button">5</button>
-                        <button class="key-button">6</button>
-                    </div>
-                    <div class="keyboard-row">
-                        <button class="key-button">1</button>
-                        <button class="key-button">2</button>
-                        <button class="key-button">3</button>
-                    </div>
-                    <div class="keyboard-row">
-                        <button class="key-button">0</button>
-                        <button class="key-button">.</button>
-                        <button class="key-button">,</button>
-                    </div>
-                    <div class="keyboard-row">
-                        <button class="key-button enter-button">del</button>
-                        <button class="key-button enter-button">Enter</button>
-                    </div>
+                <!-- 数字滑动条容器 -->
+                <div class="slider-container" id="slider-container">
+                    <input type="range" id="number-slider" min="-10" max="10" step="0.1" value="1">
+           </div>
+                   
                 </div>
             </div>
 
             <input type="text" id="answer" placeholder="输入你的答案" aria-label="输入你的答案">
             <button class="submit-button">提交答案</button>
-            <!-- rendered-answer 始终显示，并添加默认提示 -->
+
 
             <div id="result"></div>
             <div id="score">正确: 0 | 错误: 0</div>
@@ -1139,7 +1056,9 @@
                 this.scoreElement = document.getElementById('score');
                 this.historyElement = document.getElementById('history');
                 this.typeButtons = document.querySelectorAll('.type-button');
-                this.keyButtons = document.querySelectorAll('.key-button'); // 新增
+                this.sliderContainer = document.getElementById('slider-container');
+                this.slider = document.getElementById('number-slider');
+                this.sliderValueDisplay = document.getElementById('slider-value');
 
                 // 绑定事件
                 this.bindEvents();
@@ -1168,19 +1087,12 @@
                 // 实时预览
                 this.answerInput.addEventListener('input', () => this.updatePreview());
 
-                // 小键盘按键点击事件
-                this.keyButtons.forEach(button => {
-                    button.addEventListener('click', () => {
-                        const key = button.textContent.toLowerCase(); // 转为小写以便比较
-                        if (key === 'enter') {
-                            this.checkAnswer();
-                        } else if (key === 'del') { // 处理 del 按钮
-                            this.deleteAtCursor(this.answerInput);
-                        } else {
-                            this.insertAtCursor(this.answerInput, button.textContent);
-                            this.answerInput.focus();
-                        }
-                    });
+                // 数字滑动条变化事件
+                this.slider.addEventListener('input', () => {
+                    const value = parseFloat(this.slider.value).toFixed(0);
+                    this.sliderValueDisplay.textContent = value;
+                    this.answerInput.value = value;
+                    this.updatePreview();
                 });
             }
 
@@ -1210,6 +1122,16 @@
                             btn.classList.remove('active');
                         }
                     });
+
+                    // 根据题型决定是否显示滑动条
+                    const typesWithSlider = ['slope', 'y-intercept', 'x-intercept', 'given-x-find-y', 'given-y-find-x'];
+                    if (typesWithSlider.includes(type)) {
+                        this.sliderContainer.style.display = 'flex';
+                    } else {
+                        this.sliderContainer.style.display = 'none';
+                        this.answerInput.value = '';
+                        this.updatePreview();
+                    }
                 }
             }
 
@@ -1231,6 +1153,10 @@
                 this.resultElement.textContent = '';
                 this.resultElement.className = '';
                 this.updateRenderedAnswer('');
+                if (this.sliderContainer.style.display === 'flex') {
+                    this.slider.value = 0;
+                    this.sliderValueDisplay.textContent = '0';
+                }
             }
 
             updateRenderedAnswer(content) {
@@ -1327,34 +1253,6 @@
                 this.historyElement.prepend(row);
 
                 MathJax.typesetPromise([row]).catch(console.error);
-            }
-
-            // 新增的方法：在光标位置插入字符
-            insertAtCursor(input, textToInsert) {
-                const start = input.selectionStart;
-                const end = input.selectionEnd;
-                const value = input.value;
-                input.value = value.substring(0, start) + textToInsert + value.substring(end);
-                input.selectionStart = input.selectionEnd = start + textToInsert.length;
-                this.updatePreview(); // 更新预览
-            }
-
-            // 新增的方法：在光标位置删除字符
-            deleteAtCursor(input) {
-                const start = input.selectionStart;
-                const end = input.selectionEnd;
-                if (start === 0 && end === 0) return; // 无需删除
-
-                // 如果有选中文本，删除选中的部分
-                if (start !== end) {
-                    input.value = input.value.substring(0, start) + input.value.substring(end);
-                    input.selectionStart = input.selectionEnd = start;
-                } else {
-                    // 删除光标前一个字符
-                    input.value = input.value.substring(0, start - 1) + input.value.substring(end);
-                    input.selectionStart = input.selectionEnd = start - 1;
-                }
-                this.updatePreview(); // 更新预览
             }
         }
 
