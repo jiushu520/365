@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>A02分数运算阶梯测试训练</title>
-
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         body {
@@ -122,9 +121,8 @@
         <div class="difficulty-buttons" id="difficultyButtons"></div>
         <div id="question"></div><br>
         <input type="text" id="answer" placeholder="输入你的答案" oninput="updatePreview()"><br>
-
-           \( \frac{1}{2}分数输出格式：\text{\frac{1}{2}} \)
-            <br>
+    
+        <br>
         <div id="rendered-answer"></div><br>
         <button onclick="checkAnswer()">提交答案</button><br>
         <div id="result"></div>
@@ -149,7 +147,11 @@
         let incorrectCount = 0;
         let currentDifficulty = 1;
 
-        const difficultyNames = ["01同分母加法", "02同分母减法", "03乘法", "04除法", "05整数分数乘法", "06整数分数除法", "07整数加分数化假分数", "08综合"];
+        const difficultyNames = [
+            "01同分母加法", "02同分母减法",  "03单位分数的加法","04乘法", "05除法", 
+            "06整数分数乘法", "07整数分数除法", "08整数加分数化假分数", "09综合",
+           
+        ];
 
         document.addEventListener("DOMContentLoaded", () => {
             generateDifficultyButtons();
@@ -158,6 +160,7 @@
 
         function generateDifficultyButtons() {
             const difficultyButtonsContainer = document.getElementById('difficultyButtons');
+            difficultyButtonsContainer.innerHTML = ''; // 清空现有按钮
             difficultyNames.forEach((name, index) => {
                 const button = document.createElement('button');
                 button.textContent = name;
@@ -178,68 +181,86 @@
             switch(currentDifficulty) {
                 case 1: return generateLevel1Question();
                 case 2: return generateLevel2Question();
-                case 3: return generateLevel3Question();
-                case 4: return generateLevel4Question();
-                case 5: return generateLevel5Question();
-                case 6: return generateLevel6Question();
-                case 7: return generateLevel7Question();
-                case 8: return generateLevel8Question();
+                case 3: return generateLevel9Question();
+                case 4: return generateLevel3Question();
+                case 5: return generateLevel4Question();
+                case 6: return generateLevel5Question();
+                case 7: return generateLevel6Question();
+                case 8: return generateLevel7Question();
+                case 9: return generateLevel8Question();
                 default: return "";
             }
         }
 
+        function gcd(x, y) {
+            while (y) {
+                let t = y;
+                y = x % y;
+                x = t;
+            }
+            return x;
+        }
 
-function gcd(x, y) {
-    while (y) {
-        let t = y;
-        y = x % y;
-        x = t;
-    }
-    return x;
-}
+        function generateLevel1Question() {
+            let m = (Math.floor(Math.random() * 8) + 2);
+            let a = (Math.floor(Math.random() * (m - 1)) + 1);
+            let b = (Math.floor(Math.random() * (m - 1)) + 1);
+            let c = a + b;
+            let d = gcd(c, m); // gcd函数用于求两个数的最大公约数
 
-function generateLevel1Question() {
-    let m = (Math.floor(Math.random() * 8) + 2);
-    let a = (Math.floor(Math.random() * (m - 1)) + 1);
-    let b = (Math.floor(Math.random() * (m - 1)) + 1);
-    let c = a + b;
-    let d = gcd(c, m); // gcd函数用于求两个数的最大公约数
+            // 简化后的分子和分母
+            let numerator = c / d;
+            let denominator = m / d;
+            let k = c / m;
+            
+            // 使用正确的模板字符串
+            let qtext = `\\Huge \\frac{${a}}{${m}} + \\frac{${b}}{${m}} = ?`;
 
-    // 简化后的分子和分母
-    let numerator = c / d;
-    let denominator = m / d;
-    let k = c / m;
-    
-    // 使用正确的模板字符串
-    let qtext = `\\Huge \\frac{${a}}{${m}} + \\frac{${b}}{${m}} = ?`;
+            // 检查是否可以简化为整数
+            correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`,`${numerator}/${denominator}`];
+            
+            return `\\(${qtext}\\)`;
+        }
 
-    // 检查是否可以简化为整数
-    correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`,`${numerator}/${denominator}`];
-    
-    return `\\(${qtext}\\)`;
-}
+        function generateLevel2Question() {
+            let m = (Math.floor(Math.random() * 8) + 2);
+            let a = (Math.floor(Math.random() * (m - 1)) + 1);
+            let b = (Math.floor(Math.random() * (m - 1)) + 1);
+            let c = Math.abs(a - b);
+            let d = gcd(c, m); // gcd函数用于求两个数的最大公约数
+
+            // 简化后的分子和分母
+            let numerator = c / d;
+            let denominator = m / d;
+            let k = c / m;
+            
+            // 使用正确的模板字符串
+            let qtext = `\\Huge \\frac{${Math.max(a,b)}}{${m}} - \\frac{${Math.min(a,b)}}{${m}} = ?`;
+
+            // 检查是否可以简化为整数
+            correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
+            
+            return `\\(${qtext}\\)`;
+        }
 
 
+        function generateLevel2Question() {
+            let m = (Math.floor(Math.random() * 8) + 2);
+            let a = (Math.floor(Math.random() * (m - 1)) + 1);
+            let b = (Math.floor(Math.random() * (m - 1)) + 1);
+            let c = Math.abs(a - b);
+            let d = gcd(c, m); // gcd函数用于求两个数的最大公约数
 
+            // 简化后的分子和分母
+            let numerator = c / d;
+            let denominator = m / d;
+            let k = c / m;
+            
+            // 使用正确的模板字符串
+            let qtext = `\\Huge \\frac{${Math.max(a,b)}}{${m}} - \\frac{${Math.min(a,b)}}{${m}} = ?`;
 
-
-function generateLevel2Question() {
-    let m = (Math.floor(Math.random() * 8) + 2);
-    let a = (Math.floor(Math.random() * (m - 1)) + 1);
-    let b = (Math.floor(Math.random() * (m - 1)) + 1);
-    let c = Math.abs(a - b);
-    let d = gcd(c, m); // gcd函数用于求两个数的最大公约数
-
-    // 简化后的分子和分母
-    let numerator = c / d;
-    let denominator = m / d;
-    let k = c / m;
-    
-    // 使用正确的模板字符串
-    let qtext = `\\Huge \\frac{${Math.max(a,b)}}{${m}} - \\frac{${Math.min(a,b)}}{${m}} = ?`;
-
-    // 检查是否可以简化为整数
-    correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
+            // 检查是否可以简化为整数
+            correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
     
     return `\\(${qtext}\\)`;
 }
@@ -530,6 +551,50 @@ function generateLevel7bQuestion() {
             return selectedFunction();
         }
 
+        function generateLevel9Question() {
+            console.log("生成单位分数的加法题目");
+            let m = (Math.floor(Math.random() * 8) + 2);
+            let n = (Math.floor(Math.random() * 8) + 2);
+            while (n === m) { // 确保两个分母不同
+                n = (Math.floor(Math.random() * 8) + 2);
+            }
+
+            let numerator = m + n;
+            let denominator = m * n;
+            let gcdValue = gcd(numerator, denominator); // 计算最大公约数
+
+            let simplifiedNumerator = numerator / gcdValue;
+            let simplifiedDenominator = denominator / gcdValue;
+
+            let qtext = `\\Huge \\frac{1}{${m}} + \\frac{1}{${n}} = ?`;
+
+            correctAnswer = simplifiedNumerator === simplifiedDenominator ? [`${1}`] : [`\\frac{${simplifiedNumerator}}{${simplifiedDenominator}}`, `${simplifiedNumerator}/${simplifiedDenominator}`];
+            
+            return `\\(${qtext}\\)`;
+        }
+
+        function newQuestion() {
+            console.log("生成新题目");
+            const question = generateQuestion();
+            document.getElementById('question').innerHTML = question;
+            MathJax.typesetPromise([document.getElementById('question')]).catch((err) => console.log(err));
+            document.getElementById('answer').value = '';
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('rendered-answer').style.display = 'none';
+        }
+
+        function toHalfWidth(str) {
+            return str.replace(/[\uFF01-\uFF5E]/g, function(char) {
+                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            }).replace(/\u3000/g, ' ');
+        }
+
+        function updatePreview() {
+            const input = document.getElementById('answer').value;
+            const renderedAnswer = Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
+    
+    return `\\(\\begin{array}{l}${qtext}\\\\  \\huge \\end{array}\\)`;
+}
 
 
 
