@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>两点直线解析式</title>
+  <style>
+    .label {
+      font-family: Arial;
+      font-size: 14px;
+      user-select: none;
+    }
+    /* 添加容器样式以确保滚轮事件正常工作 */
+    #container {
+      width: 900px;
+      height: 750px;
+      border: 1px solid #ccc;
+      overflow: hidden;
+      margin: 0 auto; /* 居中显示容器 */
+      position: relative;
+      /* 禁用浏览器的默认触摸行为，如双指缩放 */
+      touch-action: none;
+    }
+    #container.grabbing {
+      cursor: grabbing; /* 拖动时的光标样式 */
+    }
+    /* 向量信息显示样式 */
+    #vectorInfo {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-family: Arial, sans-serif;
+      z-index: 10;
+    }
+    /* 解析式显示样式 */
+    #lineEquation {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <svg width="1200" height="900" id="coordinateSystem">
+      <!-- 定义箭头标记 -->
+      <defs>
+        <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                refX="10" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="green" />
+        </marker>
+      </defs>
+      <g id="grid" transform="translate(150,450)">
+        <g id="gridLines"></g>
+        
+        <!-- 原点标记 -->
+        <text x="10" y="20" class="label">O</text>
+        
+        <!-- 直线AB 已移除 -->
+      </g>
+    </svg>
+
+    <!-- 向量信息显示 已移除 -->
+  </div>
+  
+  <script>
+    const svg = document.getElementById('coordinateSystem');
+    const grid = document.getElementById('gridLines');
+    const container = document.getElementById('container');
+    const gridGroup = document.getElementById('grid');
+
+    const config = {
+      scale: 35,          // 每个单位的像素数
+      minScale: 10,       // 最小缩放比例
+      maxScale: 100,      // 最大缩放比例
+      gridColor: "#ddd",
+      axisColor: "black",
+      gridRangeX: 0, // 初始化值
+      gridRangeY: 0  // 初始化值
+    };
+    
+    /**
+     * 动态计算网格范围
+     * 根据当前的平移和缩放，计算需要绘制的网格线数量
+     */
+    function calculateGridRange() {
+      // 根据平移和缩放计算可见范围
+      const visibleLeft = -currentTranslate.x / config.scale;
+      const visibleRight = (svg.clientWidth - currentTranslate.x) / config.scale;
+      const visibleTop = currentTranslate.y / config.scale;
+      const visibleBottom = (-svg.clientHeight + currentTranslate.y) / config.scale;
+      
+      config.gridRangeX = Math.ceil(Math.max(Math.abs(visibleLeft), Math.abs(visibleRight)));
+      config.gridRangeY = Math.ceil(Math.max(Math.abs(visibleTop), Math.abs(visibleBottom)));
+    }
+    
+    /**
+     * 绘制网格和坐标轴
+     */
+    function drawGrid() {
+      grid.innerHTML = '';
+      
+      // 绘制水平网格线和Y轴标签
+      for (let i = -config.gridRangeY; i <= config.gridRangeY; i++) {
+        const pos = i * config.scale;
+        
+        if (i !== 0) {
+          // 水平网格线
+          const hLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          hLine.setAttribute("x1", -config.gridRangeX * config.scale);
+          hLine.setAttribute("y1", pos);
+          hLine.setAttribute("x2", config.gridRangeX * config.scale);
+          hLine.setAttribute("y2", pos);
+          hLine.setAttribute("stroke", config.gridColor);
+          hLine.setAttribute("stroke-width", "1");
+          grid.appendChild(hLine);
+
+          // Y轴标签
+          const yLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          yLabel.setAttribute("x", 5);
+          yLabel.setAttribute("y", -pos + 5);
+          yLabel.setAttribute("class", "label");
+          yLabel.textContent = i;
+          grid.appendChild(yLabel);
+        }
+      }
+      
+      // 绘制垂直网格线和X轴标签
+      for (let i = -config.gridRangeX; i <= config.gridRangeX; i++) {
+        const pos = i * config.scale;
+        
+        if (i !== 0) {
+          // 垂直网格线
+          const vLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          vLine.setAttribute("x1", pos);
+          vLine.setAttribute("y1", -config.gridRangeY * config.scale);
+          vLine.setAttribute("x2", pos);
+          vLine.setAttribute("y2", config.gridRangeY * config.scale);
+          vLine.setAttribute("stroke", config.gridColor);
+          vLine.setAttribute("stroke-width", "1");
+          grid.appendChild(vLine);
+
+          // X轴标签
+          const xLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          xLabel.setAttribute("x", pos);
+          xLabel.setAttribute("y", 20);
+          xLabel.setAttribute("class", "label");
+          xLabel.setAttribute("text-anchor", "middle");
+          xLabel.textContent = i;
+          grid.appendChild(xLabel);
+        }
+      }
+      
+      // 绘制坐标轴
+      const xAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      xAxis.setAttribute("x1", -config.gridRangeX * config.scale);
+      xAxis.setAttribute("y1", 0);
+      xAxis.setAttribute("x2", config.gridRangeX * config.scale);
+      xAxis.setAttribute("y2", 0);
+      xAxis.setAttribute("stroke", config.axisColor);
+      xAxis.setAttribute("stroke-width", "2");
+      grid.appendChild(xAxis);
+    
+      const yAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      yAxis.setAttribute("x1", 0);
+      yAxis.setAttribute("y1", -config.gridRangeY * config.scale);
+      yAxis.setAttribute("x2", 0);
+      yAxis.setAttribute("y2", config.gridRangeY * config.scale);
+      yAxis.setAttribute("stroke", config.axisColor);
+      yAxis.setAttribute("stroke-width", "2");
+      grid.appendChild(yAxis);
+    }
+
+    /**
+     * 处理缩放和平移
+     */
+    let isPanning = false;
+    let panStart = { x: 0, y: 0 };
+    let currentTranslate = { x: 150, y: 450 }; // 初始中心点
+
+    // 新增变量用于捏合缩放
+    let initialDistance = 0;
+    let initialScale = config.scale;
+    let pinchMidpoint = { x: 0, y: 0 };
+
+    /**
+     * 更新 grid 的 transform
+     */
+    function updateGridTransform() {
+      gridGroup.setAttribute('transform', `translate(${currentTranslate.x},${currentTranslate.y})`);
+      calculateGridRange();
+      drawGrid();
+    }
+
+    // 添加滚轮事件监听器，实现缩放功能
+    svg.addEventListener('wheel', (e) => {
+      e.preventDefault(); // 防止页面滚动
+
+      const delta = e.deltaY;
+      if (delta < 0) {
+        // 向上滚动，放大
+        config.scale = Math.min(config.scale + 5, config.maxScale);
+      } else {
+        // 向下滚动，缩小
+        config.scale = Math.max(config.scale - 5, config.minScale);
+      }
+      
+      // 动态计算新的网格范围
+      calculateGridRange();
+
+      // 重新绘制网格
+      drawGrid();
+    }, { passive: false }); // 设置 passive 为 false 以便调用 preventDefault
+
+    /**
+     * 添加平移功能（右键控制和双指触控）
+     */
+
+    // 监听鼠标按下开始平移（仅右键）
+    container.addEventListener('mousedown', (e) => {
+      // 检查是否是右键
+      if (e.button === 2) {
+        isPanning = true;
+        panStart.x = e.clientX;
+        panStart.y = e.clientY;
+        container.classList.add('grabbing');
+      }
+    });
+
+    // 监听触摸开始进行平移和缩放（双指触控）
+    container.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) { // 双指触摸
+        isPanning = true;
+        // 记录初始双指距离和初始缩放比例
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        initialDistance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
+        initialScale = config.scale;
+        // 记录初始中点
+        pinchMidpoint.x = (touch1.clientX + touch2.clientX) / 2;
+        pinchMidpoint.y = (touch1.clientY + touch2.clientY) / 2;
+        panStart.x = pinchMidpoint.x;
+        panStart.y = pinchMidpoint.y;
+        container.classList.add('grabbing');
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    // 监听鼠标移动进行平移
+    document.addEventListener('mousemove', (e) => {
+      if (isPanning && e.buttons === 2) { // 仅在右键拖动时平移
+        const dx = e.clientX - panStart.x;
+        const dy = e.clientY - panStart.y;
+        panStart.x = e.clientX;
+        panStart.y = e.clientY;
+        currentTranslate.x += dx;
+        currentTranslate.y += dy;
+        updateGridTransform();
+      }
+    });
+    
+    // 监听触摸移动进行平移和缩放（双指触控）
+    document.addEventListener('touchmove', (e) => {
+      if (isPanning && e.touches.length === 2) {
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const currentDistance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
+        const scaleFactor = currentDistance / initialDistance;
+        config.scale = Math.min(Math.max(initialScale * scaleFactor, config.minScale), config.maxScale);
+
+        // 计算新的中点用于平移
+        const currentMidX = (touch1.clientX + touch2.clientX) / 2;
+        const currentMidY = (touch1.clientY + touch2.clientY) / 2;
+        const dx = currentMidX - panStart.x;
+        const dy = currentMidY - panStart.y;
+        panStart.x = currentMidX;
+        panStart.y = currentMidY;
+        currentTranslate.x += dx;
+        currentTranslate.y += dy;
+
+        updateGridTransform();
+
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    // 监听鼠标释放结束平移
+    document.addEventListener('mouseup', (e) => {
+      if (isPanning && e.button === 2) {
+        isPanning = false;
+        container.classList.remove('grabbing');
+      }
+    });
+    
+    // 监听触摸结束结束平移
+    document.addEventListener('touchend', (e) => {
+      if (isPanning && e.touches.length < 2) {
+        isPanning = false;
+        container.classList.remove('grabbing');
+      }
+    });
+    
+    // 禁止在SVG内部拖动时触发平移
+    svg.addEventListener('mousedown', (e) => {
+      if (e.button === 2) {
+        // 如果点击的是点或文本，阻止平移
+        if (e.target.tagName === 'circle' || e.target.tagName === 'text') {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }
+    });
+    
+    // 禁止右键菜单
+    container.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+    });
+    
+    // 初始化
+    calculateGridRange();
+    drawGrid();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>几何操作演示：添加点、直线、线段、多边形、向量</title>
+  <style>
+    .label {
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      user-select: none;
+    }
+    /* 容器样式，确保滚轮事件正常工作 */
+    #container {
+      width: 900px;
+      height: 750px;
+      border: 1px solid #ccc;
+      overflow: hidden;
+      margin: 2px auto 0 auto; 
+      position: relative;
+      /* 禁用浏览器的默认触摸行为，如双指缩放 */
+      touch-action: none;
+    }
+    #container.grabbing {
+      cursor: grabbing; /* 拖动时的光标样式 */
+    }
+    /* 工具栏样式 */
+    #toolbar {
+      width: 900px;
+      margin: 0 auto;
+      padding: 0px;
+      background-color: #f5f5f5;
+      border: 1px solid #ccc;
+      border-bottom: none;
+      display: flex;
+      justify-content: flex-start;
+      gap: 10px;
+    }
+    #toolbar button {
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      background-color: white;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    #toolbar button.active {
+      background-color: #007BFF;
+      color: white;
+      border-color: #007BFF;
+    }
+    #toolbar button:hover {
+      background-color: #e0e0e0;
+    }
+    /* 选中状态的点、线段、多边形等加粗或变色 */
+    .point.selected {
+      stroke: #000;
+      stroke-width: 2px;
+    }
+    .lineSegment.selected {
+      stroke: #FF5722;
+      stroke-width: 3px;
+    }
+    .polygon.selected {
+      stroke: #9C27B0;
+      stroke-width: 3px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 工具栏 -->
+  <div id="toolbar">
+    <button id="selectModeBtn" class="active">选择</button>
+    <button id="addPointBtn">点</button>
+    <button id="drawLineBtn">直线</button>
+    <button id="addLineSegmentBtn">线段</button>
+    <button id="addVectorBtn">向量</button> 
+    <button id="addPolygonBtn">多边形</button>
+   <button id="refreshPageBtn">刷新</button>
+
+<!-- 新增按钮 -->
+  </div>
+
+  <!-- 主容器 -->
+  <div id="container">
+    <svg width="1200" height="900" id="coordinateSystem">
+      <!-- 定义箭头标记，可被线和向量复用 -->
+      <defs>
+        <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                refX="10" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="green" />
+        </marker>
+      </defs>
+
+      <g id="grid">
+        <g id="gridLines"></g>
+        
+        <!-- 原点标记，仅做示例 -->
+        <text x="10" y="20" class="label">O</text>
+        
+        <!-- 可移动的点（初始为空） -->
+        <g id="points"></g>
+
+        <!-- 直线组 -->
+        <g id="lines"></g>
+
+        <!-- 线段组 -->
+        <g id="lineSegments"></g>
+
+        <!-- 多边形组 -->
+        <g id="polygons"></g>
+
+        <!-- 向量组 -->
+        <g id="vectors"></g>
+      </g>
+    </svg>
+  </div>
+  
+  <script>
+    // 获取关键节点
+    const svg = document.getElementById('coordinateSystem');
+    const grid = document.getElementById('gridLines');
+    const pointsGroup = document.getElementById('points');
+    const linesGroup = document.getElementById('lines');
+    const lineSegmentsGroup = document.getElementById('lineSegments');
+    const polygonsGroup = document.getElementById('polygons');
+    const vectorsGroup = document.getElementById('vectors');
+    const container = document.getElementById('container');
+    const gridGroup = document.getElementById('grid');
+
+    // 工具栏按钮
+    const toolbar = document.getElementById('toolbar');
+    const selectModeBtn = document.getElementById('selectModeBtn');
+    const addPointBtn = document.getElementById('addPointBtn');
+    const drawLineBtn = document.getElementById('drawLineBtn');
+    const addLineSegmentBtn = document.getElementById('addLineSegmentBtn');
+    const addPolygonBtn = document.getElementById('addPolygonBtn');
+    const addVectorBtn = document.getElementById('addVectorBtn');
+
+
+
+// 获取“刷新”按钮
+const refreshPageBtn = document.getElementById('refreshPageBtn');
+
+// 绑定点击事件
+refreshPageBtn.addEventListener('click', () => {
+  location.reload(); // 刷新页面
+});
+
+    // 模式与全局变量
+    let currentMode = 'select';  // 可选模式：'select', 'add', 'drawLine', 'addLineSegment', 'addPolygon', 'addVector'
+    let pointCounter = 0;        // 用于给新添加的点命名（A, B, C, ...）
+    
+    // 存储绘制信息的数组
+    const lines = [];       // 直线信息 { id, pointAId, pointBId }
+    const lineSegments = [];// 线段信息 { id, pointAId, pointBId }
+    const polygons = [];    // 多边形信息 { id, pointIds: [] }
+    const vectors = [];     // 向量信息 { id, pointAId, pointBId }
+
+    // 选中点的临时数组
+    let selectedPointsForLine = [];
+    let selectedPointsForLineSegment = [];
+    let selectedPointsForPolygon = [];
+    let selectedPointsForVector = [];
+
+    // SVG 配置
+    const config = {
+      scale: 35,       // 每个单位的像素数
+      minScale: 10,    // 最小缩放比例
+      maxScale: 100,   // 最大缩放比例
+      gridColor: "#ddd",
+      axisColor: "black",
+      pointRadius: 9
+    };
+
+    // 平移缩放相关
+    let isPanning = false;
+    let panStart = { x: 0, y: 0 };
+    let currentTranslate = { x: 200, y: 400 }; 
+    let initialDistance = 0;
+    let initialScale = config.scale;
+    let pinchMidpoint = { x: 0, y: 0 };
+
+    /************************************************************
+     *    绘制 & 更新逻辑
+     ************************************************************/
+    // 动态计算网格范围
+    function calculateGridRange() {
+      const visibleLeft = -currentTranslate.x / config.scale;
+      const visibleRight = (svg.clientWidth - currentTranslate.x) / config.scale;
+      const visibleTop = currentTranslate.y / config.scale;
+      const visibleBottom = (-svg.clientHeight + currentTranslate.y) / config.scale;
+      
+      config.gridRangeX = Math.ceil(Math.max(Math.abs(visibleLeft), Math.abs(visibleRight)));
+      config.gridRangeY = Math.ceil(Math.max(Math.abs(visibleTop), Math.abs(visibleBottom)));
+    }
+
+    // 绘制网格和坐标轴
+    function drawGrid() {
+      grid.innerHTML = '';
+      
+      for (let i = -config.gridRangeY; i <= config.gridRangeY; i++) {
+        const pos = i * config.scale;
+        if (i !== 0) {
+          // 水平网格线
+          const hLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          hLine.setAttribute("x1", -config.gridRangeX * config.scale);
+          hLine.setAttribute("y1", pos);
+          hLine.setAttribute("x2", config.gridRangeX * config.scale);
+          hLine.setAttribute("y2", pos);
+          hLine.setAttribute("stroke", config.gridColor);
+          hLine.setAttribute("stroke-width", "1");
+          grid.appendChild(hLine);
+
+          // Y 轴标签
+          const yLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          yLabel.setAttribute("x", 5);
+          yLabel.setAttribute("y", -pos + 5);
+          yLabel.setAttribute("class", "label");
+          yLabel.textContent = i;
+          grid.appendChild(yLabel);
+        }
+      }
+      
+      for (let i = -config.gridRangeX; i <= config.gridRangeX; i++) {
+        const pos = i * config.scale;
+        if (i !== 0) {
+          // 垂直网格线
+          const vLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          vLine.setAttribute("x1", pos);
+          vLine.setAttribute("y1", -config.gridRangeY * config.scale);
+          vLine.setAttribute("x2", pos);
+          vLine.setAttribute("y2", config.gridRangeY * config.scale);
+          vLine.setAttribute("stroke", config.gridColor);
+          vLine.setAttribute("stroke-width", "1");
+          grid.appendChild(vLine);
+
+          // X 轴标签
+          const xLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          xLabel.setAttribute("x", pos);
+          xLabel.setAttribute("y", 20);
+          xLabel.setAttribute("class", "label");
+          xLabel.setAttribute("text-anchor", "middle");
+          xLabel.textContent = i;
+          grid.appendChild(xLabel);
+        }
+      }
+      
+      // 主坐标轴
+      const xAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      xAxis.setAttribute("x1", -config.gridRangeX * config.scale);
+      xAxis.setAttribute("y1", 0);
+      xAxis.setAttribute("x2", config.gridRangeX * config.scale);
+      xAxis.setAttribute("y2", 0);
+      xAxis.setAttribute("stroke", config.axisColor);
+      xAxis.setAttribute("stroke-width", "2");
+      grid.appendChild(xAxis);
+    
+      const yAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      yAxis.setAttribute("x1", 0);
+      yAxis.setAttribute("y1", -config.gridRangeY * config.scale);
+      yAxis.setAttribute("x2", 0);
+      yAxis.setAttribute("y2", config.gridRangeY * config.scale);
+      yAxis.setAttribute("stroke", config.axisColor);
+      yAxis.setAttribute("stroke-width", "2");
+      grid.appendChild(yAxis);
+    }
+
+    // 更新点文本标签
+    function updatePointLabel(point, text) {
+      const cx = parseFloat(point.getAttribute('cx'));
+      const cy = parseFloat(point.getAttribute('cy'));
+      let grid_x = cx / config.scale;
+      let grid_y = -cy / config.scale;
+
+      // 判断是否为整数坐标（考虑浮点误差）
+      const epsilon = 1e-6;
+      const isGridXInt = Math.abs(grid_x - Math.round(grid_x)) < epsilon;
+      const isGridYInt = Math.abs(grid_y - Math.round(grid_y)) < epsilon;
+
+      // 根据是否为整数选择显示格式
+      grid_x = isGridXInt ? Math.round(grid_x) : grid_x.toFixed(2);
+      grid_y = isGridYInt ? Math.round(grid_y) : grid_y.toFixed(2);
+
+      const label = `${point.getAttribute('data-label')}(${grid_x}, ${grid_y})`;
+      text.textContent = label;
+
+      // 标签位置稍微偏移
+      text.setAttribute('x', cx + 10);
+      text.setAttribute('y', cy + 10);
+    }
+
+    // 更新所有点和直线、线段、多边形、向量
+    function updateAllPoints() {
+      const allPoints = pointsGroup.querySelectorAll('circle');
+      allPoints.forEach(point => {
+        const text = document.getElementById(point.id + 'Text');
+        updatePointLabel(point, text);
+      });
+      
+      updateAllLines();
+      updateAllLineSegments();
+      updateAllPolygons();
+      updateAllVectors();
+    }
+
+    // 吸附所有点到最近的网格点
+    function snapToGrid() {
+      const allPoints = pointsGroup.querySelectorAll('circle');
+      allPoints.forEach(point => {
+        const roundedX = Math.round(parseFloat(point.getAttribute('cx')) / config.scale) * config.scale;
+        const roundedY = Math.round(parseFloat(point.getAttribute('cy')) / config.scale) * config.scale;
+        point.setAttribute('cx', roundedX);
+        point.setAttribute('cy', roundedY);
+      });
+      updateAllPoints();
+    }
+
+    /************************************************************
+     *    直线、线段、多边形、向量 的绘制与更新
+     ************************************************************/
+    // ---- 直线 ----
+    function updateAllLines() {
+      linesGroup.innerHTML = '';
+      lines.forEach(lineInfo => {
+        drawLine(lineInfo);
+      });
+    }
+    function drawLine(lineInfo) {
+      const pointA = document.getElementById(lineInfo.pointAId);
+      const pointB = document.getElementById(lineInfo.pointBId);
+      if (!pointA || !pointB) return;
+
+      const ax = parseFloat(pointA.getAttribute('cx'));
+      const ay = parseFloat(pointA.getAttribute('cy'));
+      const bx = parseFloat(pointB.getAttribute('cx'));
+      const by = parseFloat(pointB.getAttribute('cy'));
+
+      // 计算网格单位下的坐标
+      const grid_ax = ax / config.scale;
+      const grid_ay = -ay / config.scale;
+      const grid_bx = bx / config.scale;
+      const grid_by = -by / config.scale;
+
+      // 直线方程 (ya-yb)x + (xb-xa)y + (yb*xa - ya*xb) = 0
+      function toFloatStr(num) { return parseFloat(num.toFixed(2)); }
+      let A_coef = toFloatStr(grid_ay - grid_by);
+      let B_coef = toFloatStr(grid_bx - grid_ax);
+      let C_coef = toFloatStr(grid_by * grid_ax - grid_ay * grid_bx);
+
+      // 拼接成字符串
+      function formatTerm(coef, varName, isFirstTerm = false) {
+        if (coef === 0) return '';
+        let term = '';
+        if (coef > 0 && !isFirstTerm) {
+          term += ' + ';
+        } else if (coef < 0) {
+          term += ' - ';
+        }
+        const absCoef = Math.abs(coef);
+        if (varName) {
+          if (absCoef === 1) term += `${varName}`;
+          else term += `${absCoef}${varName}`;
+        } else {
+          term += `${absCoef}`;
+        }
+        return term;
+      }
+      let eqStr = '';
+      let isFirst = true;
+      if (A_coef !== 0) { eqStr += formatTerm(A_coef, 'x', isFirst); isFirst = false; }
+      if (B_coef !== 0) { eqStr += formatTerm(B_coef, 'y', isFirst); isFirst = false; }
+      if (C_coef !== 0) { eqStr += formatTerm(C_coef, '', isFirst); }
+      if (!eqStr) eqStr = '0';
+      eqStr += ' = 0';
+
+      // 计算无限延伸直线的端点
+      let x1, y1, x2, y2;
+      if (Math.abs(B_coef) > 1e-10) {
+        x1 = -config.gridRangeX;
+        y1 = (-A_coef * x1 - C_coef) / B_coef;
+        x2 = config.gridRangeX;
+        y2 = (-A_coef * x2 - C_coef) / B_coef;
+      } else if (Math.abs(A_coef) > 1e-10) {
+        x1 = grid_ax;
+        y1 = -config.gridRangeY;
+        x2 = grid_ax;
+        y2 = config.gridRangeY;
+      } else {
+        x1 = -config.gridRangeX;
+        y1 = 0;
+        x2 = config.gridRangeX;
+        y2 = 0;
+      }
+
+      // 转换回像素单位
+      x1 *= config.scale;
+      y1 *= config.scale;
+      x2 *= config.scale;
+      y2 *= config.scale;
+
+      // 创建直线元素
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute('x1', x1);
+      line.setAttribute('y1', -y1);
+      line.setAttribute('x2', x2);
+      line.setAttribute('y2', -y2);
+      line.setAttribute('stroke', "green");
+      line.setAttribute('stroke-width', "2");
+      line.setAttribute('marker-end', "url(#arrowhead)");
+      linesGroup.appendChild(line);
+
+      // 在直线中点位置显示解析式
+      const midX = (ax + bx) / 2;
+      const midY = (ay + by) / 2;
+      const eqText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      eqText.setAttribute('x', midX);
+      eqText.setAttribute('y', midY - 10);
+      eqText.setAttribute('class', 'label');
+      eqText.setAttribute('fill', "green");
+      eqText.setAttribute('font-size', '12px');
+      eqText.textContent = `直线${lineInfo.id}: ${eqStr}`;
+      linesGroup.appendChild(eqText);
+
+      // 可选：添加背景矩形提升可读性
+      const bbox = eqText.getBBox();
+      const padding = 2;
+      const bgRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      bgRect.setAttribute('x', bbox.x - padding);
+      bgRect.setAttribute('y', bbox.y - padding);
+      bgRect.setAttribute('width', bbox.width + padding * 2);
+      bgRect.setAttribute('height', bbox.height + padding * 2);
+      bgRect.setAttribute('fill', 'white');
+      bgRect.setAttribute('opacity', '0.7');
+      linesGroup.appendChild(bgRect);
+      linesGroup.appendChild(eqText);
+    }
+
+    // ---- 线段 ----
+    function updateAllLineSegments() {
+      lineSegmentsGroup.innerHTML = '';
+      lineSegments.forEach(lineSegmentInfo => {
+        drawLineSegment(lineSegmentInfo);
+      });
+    }
+    function drawLineSegment(lineSegmentInfo) {
+      const pointA = document.getElementById(lineSegmentInfo.pointAId);
+      const pointB = document.getElementById(lineSegmentInfo.pointBId);
+      if (!pointA || !pointB) return;
+
+      const ax = parseFloat(pointA.getAttribute('cx'));
+      const ay = parseFloat(pointA.getAttribute('cy'));
+      const bx = parseFloat(pointB.getAttribute('cx'));
+      const by = parseFloat(pointB.getAttribute('cy'));
+
+      const lineSegment = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      lineSegment.setAttribute('x1', ax);
+      lineSegment.setAttribute('y1', ay);
+      lineSegment.setAttribute('x2', bx);
+      lineSegment.setAttribute('y2', by);
+      lineSegment.setAttribute('stroke', "#FF5722");
+      lineSegment.setAttribute('stroke-width', "2");
+      lineSegmentsGroup.appendChild(lineSegment);
+
+      // 计算线段长度
+      const length = Math.hypot(bx - ax, by - ay) / config.scale;
+      const lengthStr = length.toFixed(2);
+
+      // 在中点位置显示长度
+      const midX = (ax + bx) / 2;
+      const midY = (ay + by) / 2;
+      const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      label.setAttribute('x', midX + 5);
+      label.setAttribute('y', midY - 5);
+      label.setAttribute('class', 'label');
+      label.setAttribute('fill', "#FF5722");
+      label.textContent = `长度: ${lengthStr}`;
+      lineSegmentsGroup.appendChild(label);
+    }
+
+    // ---- 多边形 ----
+    function updateAllPolygons() {
+      polygonsGroup.innerHTML = '';
+      polygons.forEach(polygonInfo => {
+        drawPolygon(polygonInfo);
+      });
+    }
+    function drawPolygon(polygonInfo) {
+      const pointsAttr = polygonInfo.pointIds.map(id => {
+        const p = document.getElementById(id);
+        return p ? `${p.getAttribute('cx')},${p.getAttribute('cy')}` : null;
+      }).filter(item => item !== null).join(' ');
+      if (!pointsAttr) return;
+
+      // 多边形
+      const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+      polygon.setAttribute('points', pointsAttr);
+      polygon.setAttribute('fill', 'rgba(156, 39, 176, 0.3)');
+      polygon.setAttribute('stroke', '#9C27B0');
+      polygon.setAttribute('stroke-width', '2');
+      polygonsGroup.appendChild(polygon);
+
+      // 简单计算周长（不考虑凹多边形或交叉情况）
+      let perimeter = 0;
+      for (let i = 0; i < polygonInfo.pointIds.length; i++) {
+        const curr = document.getElementById(polygonInfo.pointIds[i]);
+        const next = document.getElementById(polygonInfo.pointIds[(i+1) % polygonInfo.pointIds.length]);
+        if (curr && next) {
+          const dx = parseFloat(next.getAttribute('cx')) - parseFloat(curr.getAttribute('cx'));
+          const dy = parseFloat(next.getAttribute('cy')) - parseFloat(curr.getAttribute('cy'));
+          perimeter += Math.hypot(dx, dy) / config.scale;
+        }
+      }
+      const perimeterStr = perimeter.toFixed(2);
+
+      // 在多边形质心处显示周长
+      const centroid = calculateCentroid(polygonInfo.pointIds);
+      const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      label.setAttribute('x', centroid.x + 5);
+      label.setAttribute('y', centroid.y - 5);
+      label.setAttribute('class', 'label');
+      label.setAttribute('fill', "#9C27B0");
+      label.textContent = `周长: ${perimeterStr}`;
+      polygonsGroup.appendChild(label);
+    }
+    function calculateCentroid(pointIds) {
+      let sumX = 0, sumY = 0, count = 0;
+      pointIds.forEach(id => {
+        const p = document.getElementById(id);
+        if (p) {
+          sumX += parseFloat(p.getAttribute('cx'));
+          sumY += parseFloat(p.getAttribute('cy'));
+          count += 1;
+        }
+      });
+      return count ? { x: sumX / count, y: sumY / count } : { x: 0, y: 0 };
+    }
+
+    // ---- 向量 ----
+    function updateAllVectors() {
+      vectorsGroup.innerHTML = '';
+      vectors.forEach(vecInfo => {
+        drawVector(vecInfo);
+      });
+    }
+    function drawVector(vectorInfo) {
+      const pointA = document.getElementById(vectorInfo.pointAId);
+      const pointB = document.getElementById(vectorInfo.pointBId);
+      if (!pointA || !pointB) return;
+
+      const ax = parseFloat(pointA.getAttribute('cx'));
+      const ay = parseFloat(pointA.getAttribute('cy'));
+      const bx = parseFloat(pointB.getAttribute('cx'));
+      const by = parseFloat(pointB.getAttribute('cy'));
+
+      // 绘制向量线（带箭头）
+      const vectorLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      vectorLine.setAttribute('x1', ax);
+      vectorLine.setAttribute('y1', ay);
+      vectorLine.setAttribute('x2', bx);
+      vectorLine.setAttribute('y2', by);
+      vectorLine.setAttribute('stroke', "purple");
+      vectorLine.setAttribute('stroke-width', "2");
+      vectorLine.setAttribute('marker-end', "url(#arrowhead)");
+      vectorsGroup.appendChild(vectorLine);
+
+      // 计算向量分量（网格单位）
+      const vx = (bx - ax) / config.scale;
+      const vy = -((by - ay) / config.scale);  // y 取反
+      const vxStr = vx.toFixed(2);
+      const vyStr = vy.toFixed(2);
+
+      // 在中点显示向量分量
+      const midX = (ax + bx) / 2;
+      const midY = (ay + by) / 2;
+      const vectorLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      vectorLabel.setAttribute('x', midX);
+      vectorLabel.setAttribute('y', midY - 10);
+      vectorLabel.setAttribute('class', 'label');
+      vectorLabel.setAttribute('fill', "purple");
+      vectorLabel.setAttribute('font-size', '12px');
+      vectorLabel.textContent = `向量${vectorInfo.id}: (${vxStr}, ${vyStr})`;
+      vectorsGroup.appendChild(vectorLabel);
+
+      // 为文本添加一个半透明矩形背景
+      const bbox = vectorLabel.getBBox();
+      const padding = 3;
+      const bgRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      bgRect.setAttribute('x', bbox.x - padding);
+      bgRect.setAttribute('y', bbox.y - padding);
+      bgRect.setAttribute('width', bbox.width + padding * 2);
+      bgRect.setAttribute('height', bbox.height + padding * 2);
+      bgRect.setAttribute('fill', 'white');
+      bgRect.setAttribute('opacity', '0.7');
+      vectorsGroup.insertBefore(bgRect, vectorLabel);
+    }
+
+    /************************************************************
+     *    事件绑定：工具栏 & 点选 & 拖动 & 平移缩放
+     ************************************************************/
+    // 工具栏按钮事件
+    selectModeBtn.addEventListener('click', () => {
+      currentMode = 'select';
+      setActiveButton(selectModeBtn);
+      clearSelectedPoints();
+    });
+    addPointBtn.addEventListener('click', () => {
+      currentMode = 'add';
+      setActiveButton(addPointBtn);
+      clearSelectedPoints();
+    });
+    drawLineBtn.addEventListener('click', () => {
+      currentMode = 'drawLine';
+      setActiveButton(drawLineBtn);
+      clearSelectedPoints();
+    });
+    addLineSegmentBtn.addEventListener('click', () => {
+      currentMode = 'addLineSegment';
+      setActiveButton(addLineSegmentBtn);
+      clearSelectedPoints();
+    });
+    addPolygonBtn.addEventListener('click', () => {
+      currentMode = 'addPolygon';
+      setActiveButton(addPolygonBtn);
+      clearSelectedPoints();
+    });
+    addVectorBtn.addEventListener('click', () => {
+      currentMode = 'addVector';
+      setActiveButton(addVectorBtn);
+      clearSelectedPoints();
+    });
+
+    function setActiveButton(activeBtn) {
+      const buttons = toolbar.querySelectorAll('button');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      activeBtn.classList.add('active');
+    }
+
+    // 移除所有选中的点
+    function clearSelectedPoints() {
+      const allPoints = pointsGroup.querySelectorAll('circle');
+      allPoints.forEach(point => point.classList.remove('selected'));
+      selectedPointsForLine = [];
+      selectedPointsForLineSegment = [];
+      selectedPointsForPolygon = [];
+      selectedPointsForVector = [];
+    }
+
+    // 添加点模式：在 SVG 上点击即可添加
+    svg.addEventListener('click', (e) => {
+      if (currentMode !== 'add') return;
+      const pt = svg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+
+      // 创建新点
+      pointCounter += 1;
+      const label = String.fromCharCode(64 + pointCounter); // A, B, C, ...
+      const newPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      newPoint.setAttribute('cx', svgP.x-200);
+      newPoint.setAttribute('cy', svgP.y-400);
+      newPoint.setAttribute('r', config.pointRadius);
+      newPoint.setAttribute('fill', (pointCounter <= 2) ? (pointCounter === 1 ? 'red' : 'blue') : 'green');
+      newPoint.setAttribute('style', 'cursor: pointer');
+      newPoint.setAttribute('id', `point${label}`);
+      newPoint.setAttribute('data-label', label);
+      pointsGroup.appendChild(newPoint);
+
+      // 文本标签
+      const newText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      newText.setAttribute('id', `point${label}Text`);
+      newText.setAttribute('class', 'label');
+      newText.setAttribute('x', svgP.x + 10);
+      newText.setAttribute('y', svgP.y + 10);
+      newText.textContent = `${label}(${(svgP.x / config.scale).toFixed(2)}, ${(-svgP.y / config.scale).toFixed(2)})`;
+      pointsGroup.appendChild(newText);
+
+      // 绑定事件并更新
+      bindPointEvents(newPoint);
+      updateAllPoints();
+    });
+
+    // 点的事件绑定函数
+    function bindPointEvents(point) {
+      point.addEventListener('mousedown', (e) => startPointDrag(e, point));
+      point.addEventListener('touchstart', (e) => startPointDrag(e, point));
+      point.addEventListener('click', (e) => {
+        if (currentMode === 'drawLine') {
+          handlePointSelectionForLine(point);
+        } else if (currentMode === 'addLineSegment') {
+          handlePointSelectionForLineSegment(point);
+        } else if (currentMode === 'addPolygon') {
+          handlePointSelectionForPolygon(point);
+        } else if (currentMode === 'addVector') {
+          handlePointSelectionForVector(point);
+        }
+      });
+    }
+
+    // ---- 各种 handleXxx 函数 ----
+    function handlePointSelectionForLine(point) {
+      if (selectedPointsForLine.length === 0) {
+        selectedPointsForLine.push(point);
+        point.classList.add('selected');
+      } else if (selectedPointsForLine.length === 1) {
+        if (selectedPointsForLine[0].id === point.id) return;
+        selectedPointsForLine.push(point);
+        point.classList.add('selected');
+        createLineBetweenPoints(selectedPointsForLine[0], selectedPointsForLine[1]);
+        selectedPointsForLine.forEach(p => p.classList.remove('selected'));
+        selectedPointsForLine = [];
+      }
+    }
+    function handlePointSelectionForLineSegment(point) {
+      if (selectedPointsForLineSegment.length === 0) {
+        selectedPointsForLineSegment.push(point);
+        point.classList.add('selected');
+      } else if (selectedPointsForLineSegment.length === 1) {
+        if (selectedPointsForLineSegment[0].id === point.id) return;
+        selectedPointsForLineSegment.push(point);
+        point.classList.add('selected');
+        createLineSegmentBetweenPoints(selectedPointsForLineSegment[0], selectedPointsForLineSegment[1]);
+        selectedPointsForLineSegment.forEach(p => p.classList.remove('selected'));
+        selectedPointsForLineSegment = [];
+      }
+    }
+    function handlePointSelectionForPolygon(point) {
+      if (selectedPointsForPolygon.length === 0) {
+        selectedPointsForPolygon.push(point);
+        point.classList.add('selected');
+      } else {
+        // 如果点击第一个点且已经 >= 3 点，闭合多边形
+        if (point.id === selectedPointsForPolygon[0].id && selectedPointsForPolygon.length >= 3) {
+          createPolygon(selectedPointsForPolygon);
+          selectedPointsForPolygon.forEach(p => p.classList.remove('selected'));
+          selectedPointsForPolygon = [];
+        } else {
+          selectedPointsForPolygon.push(point);
+          point.classList.add('selected');
+        }
+      }
+    }
+    function handlePointSelectionForVector(point) {
+      if (selectedPointsForVector.length === 0) {
+        selectedPointsForVector.push(point);
+        point.classList.add('selected');
+      } else if (selectedPointsForVector.length === 1) {
+        if (selectedPointsForVector[0].id === point.id) return;
+        selectedPointsForVector.push(point);
+        point.classList.add('selected');
+        createVectorBetweenPoints(selectedPointsForVector[0], selectedPointsForVector[1]);
+        selectedPointsForVector.forEach(p => p.classList.remove('selected'));
+        selectedPointsForVector = [];
+      }
+    }
+
+    // ---- 创建各种图形的函数 ----
+    function createLineBetweenPoints(pointA, pointB) {
+      for (let line of lines) {
+        if (
+          (line.pointAId === pointA.id && line.pointBId === pointB.id) ||
+          (line.pointAId === pointB.id && line.pointBId === pointA.id)
+        ) {
+          alert('这两个点之间的直线已经存在。');
+          return;
+        }
+      }
+      const lineId = lines.length + 1;
+      lines.push({ id: lineId, pointAId: pointA.id, pointBId: pointB.id });
+      updateAllLines();
+    }
+    function createLineSegmentBetweenPoints(pointA, pointB) {
+      for (let seg of lineSegments) {
+        if (
+          (seg.pointAId === pointA.id && seg.pointBId === pointB.id) ||
+          (seg.pointAId === pointB.id && seg.pointBId === pointA.id)
+        ) {
+          alert('这两个点之间的线段已经存在。');
+          return;
+        }
+      }
+      const segmentId = lineSegments.length + 1;
+      lineSegments.push({ id: segmentId, pointAId: pointA.id, pointBId: pointB.id });
+      updateAllLineSegments();
+    }
+    function createPolygon(selectedPoints) {
+      const pointIds = selectedPoints.map(p => p.id);
+      for (let poly of polygons) {
+        if (poly.pointIds.length === pointIds.length && poly.pointIds.every((id, idx) => id === pointIds[idx])) {
+          alert('这个多边形已经存在。');
+          return;
+        }
+      }
+      const polygonId = polygons.length + 1;
+      polygons.push({ id: polygonId, pointIds: [...pointIds] });
+      updateAllPolygons();
+    }
+    function createVectorBetweenPoints(pointA, pointB) {
+      for (let vec of vectors) {
+        if ((vec.pointAId === pointA.id && vec.pointBId === pointB.id)) {
+          alert('这个向量已经存在。');
+          return;
+        }
+      }
+      const vectorId = vectors.length + 1;
+      vectors.push({ id: vectorId, pointAId: pointA.id, pointBId: pointB.id });
+      updateAllVectors();
+    }
+
+    /************************************************************
+     *    点的拖动事件
+     ************************************************************/
+    let activePoint = null;
+    let startX, startY;
+
+    function startPointDrag(e, point) {
+      if (e.type === 'mousedown' && e.button !== 0) return; // 仅左键
+      if (currentMode !== 'select') return; 
+      e.preventDefault();
+      activePoint = point;
+      
+      let clientX, clientY;
+      if (e.type.startsWith('touch')) {
+        const touch = e.touches[0];
+        clientX = touch.clientX;
+        clientY = touch.clientY;
+      } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+      }
+      
+      const pt = svg.createSVGPoint();
+      pt.x = clientX;
+      pt.y = clientY;
+      const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+      startX = svgP.x - parseFloat(point.getAttribute('cx'));
+      startY = svgP.y - parseFloat(point.getAttribute('cy'));
+    }
+
+    document.addEventListener('mousemove', (e) => {
+      if (activePoint && currentMode === 'select') {
+        const pt = svg.createSVGPoint();
+        pt.x = e.clientX;
+        pt.y = e.clientY;
+        const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+        const newX = svgP.x - startX;
+        const newY = svgP.y - startY;
+        activePoint.setAttribute('cx', newX);
+        activePoint.setAttribute('cy', newY);
+
+        const text = document.getElementById(activePoint.id + 'Text');
+        updatePointLabel(activePoint, text);
+        // 更新所有图形
+        updateAllLines();
+        updateAllLineSegments();
+        updateAllPolygons();
+        updateAllVectors();
+      }
+    });
+    document.addEventListener('touchmove', (e) => {
+      if (activePoint && currentMode === 'select') {
+        const touch = e.touches[0];
+        const pt = svg.createSVGPoint();
+        pt.x = touch.clientX;
+        pt.y = touch.clientY;
+        const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+        const newX = svgP.x - startX;
+        const newY = svgP.y - startY;
+        activePoint.setAttribute('cx', newX);
+        activePoint.setAttribute('cy', newY);
+
+        const text = document.getElementById(activePoint.id + 'Text');
+        updatePointLabel(activePoint, text);
+        updateAllLines();
+        updateAllLineSegments();
+        updateAllPolygons();
+        updateAllVectors();
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    document.addEventListener('mouseup', (e) => {
+      if (activePoint && currentMode === 'select') {
+        snapToGrid(); 
+      }
+      activePoint = null;
+    });
+    document.addEventListener('touchend', (e) => {
+      if (activePoint && currentMode === 'select') {
+        snapToGrid();
+      }
+      activePoint = null;
+    });
+
+    /************************************************************
+     *    平移与缩放 (鼠标滚轮, 右键拖拽, 触摸)
+     ************************************************************/
+    // 滚轮缩放
+    svg.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY;
+      if (delta < 0) {
+        config.scale = Math.min(config.scale + 5, config.maxScale);
+      } else {
+        config.scale = Math.max(config.scale - 5, config.minScale);
+      }
+      calculateGridRange();
+      drawGrid();
+      snapToGrid();
+    }, { passive: false });
+
+    // 右键平移（鼠标）
+    container.addEventListener('mousedown', (e) => {
+      if (e.button === 2 && currentMode === 'select') {
+        isPanning = true;
+        panStart.x = e.clientX;
+        panStart.y = e.clientY;
+        container.classList.add('grabbing');
+      }
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (isPanning && e.buttons === 2 && currentMode === 'select') {
+        const dx = e.clientX - panStart.x;
+        const dy = e.clientY - panStart.y;
+        panStart.x = e.clientX;
+        panStart.y = e.clientY;
+        currentTranslate.x += dx;
+        currentTranslate.y += dy;
+        updateGridTransform();
+      }
+    });
+    document.addEventListener('mouseup', (e) => {
+      if (isPanning && e.button === 2 && currentMode === 'select') {
+        isPanning = false;
+        container.classList.remove('grabbing');
+      }
+    });
+
+    // 双指触控（平移 + 捏合缩放）
+    container.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2 && currentMode === 'select') {
+        isPanning = true;
+        const [touch1, touch2] = e.touches;
+        initialDistance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
+        initialScale = config.scale;
+        pinchMidpoint.x = (touch1.clientX + touch2.clientX) / 2;
+        pinchMidpoint.y = (touch1.clientY + touch2.clientY) / 2;
+        panStart.x = pinchMidpoint.x;
+        panStart.y = pinchMidpoint.y;
+        container.classList.add('grabbing');
+        e.preventDefault();
+      }
+    }, { passive: false });
+    document.addEventListener('touchmove', (e) => {
+      if (isPanning && e.touches.length === 2 && currentMode === 'select') {
+        const [touch1, touch2] = e.touches;
+        const currentDistance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
+        const scaleFactor = currentDistance / initialDistance;
+        config.scale = Math.min(Math.max(initialScale * scaleFactor, config.minScale), config.maxScale);
+
+        const currentMidX = (touch1.clientX + touch2.clientX) / 2;
+        const currentMidY = (touch1.clientY + touch2.clientY) / 2;
+        const dx = currentMidX - panStart.x;
+        const dy = currentMidY - panStart.y;
+        panStart.x = currentMidX;
+        panStart.y = currentMidY;
+        currentTranslate.x += dx;
+        currentTranslate.y += dy;
+
+        updateGridTransform();
+        snapToGrid();
+        e.preventDefault();
+      }
+    }, { passive: false });
+    document.addEventListener('touchend', (e) => {
+      if (isPanning && e.touches.length < 2 && currentMode === 'select') {
+        isPanning = false;
+        container.classList.remove('grabbing');
+      }
+    });
+
+    // 禁止默认右键菜单
+    container.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    // 防止在点击点或文本时，触发平移
+    svg.addEventListener('mousedown', (e) => {
+      if (e.button === 2 && currentMode === 'select') {
+        if (e.target.tagName === 'circle' || e.target.tagName === 'text') {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }
+    });
+
+    // 更新 gridGroup 的 transform
+    function updateGridTransform() {
+      gridGroup.setAttribute('transform', `translate(${currentTranslate.x}, ${currentTranslate.y})`);
+      calculateGridRange();
+      drawGrid();
+      updateAllPoints();
+    }
+
+    // 初始化
+    calculateGridRange();
+    updateGridTransform();
+    snapToGrid();
+
+
+
+
+
+  </script>
+</body>
+</html>

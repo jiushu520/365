@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>科赫雪花曲线</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            margin-top: 20px;
+        }
+        #controls {
+            margin-bottom: 20px;
+        }
+        svg {
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <label for="level">迭代级数: <span id="levelValue">0</span></label>
+        <input type="range" id="level" min="0" max="6" value="0">
+    </div>
+    <svg id="kochSnowflake" width="600" height="600" viewBox="-300 -300 600 600">
+        <!-- 科赫雪花曲线将在这里绘制 -->
+    </svg>
+
+    <script>
+        // 获取HTML元素
+        const levelInput = document.getElementById('level');
+        const levelValue = document.getElementById('levelValue');
+        const svg = document.getElementById('kochSnowflake');
+
+        // 更新显示的级数
+        levelInput.addEventListener('input', () => {
+            levelValue.textContent = levelInput.value;
+            drawKochSnowflake(parseInt(levelInput.value));
+        });
+
+        // 初始绘制
+        drawKochSnowflake(parseInt(levelInput.value));
+
+        /**
+         * 计算科赫雪花曲线的点
+         * @param {number} level - 迭代级数
+         * @returns {Array} - 点的数组，每个点是一个对象包含x和y坐标
+         */
+        function generateKochSnowflake(level) {
+            // 初始等边三角形
+            const size = 200;
+            const height = size * Math.sqrt(3) / 2;
+            let points = [
+                {x: -size / 2, y: -height / 3},
+                {x: size / 2, y:-height / 3},
+                {x: 0, y: -2 * -height / 3},
+                {x: -size / 2, y:- height / 3} // 回到起点
+            ];
+
+            // 迭代生成
+            for (let i = 0; i < level; i++) {
+                let newPoints = [];
+                for (let j = 0; j < points.length - 1; j++) {
+                    const p1 = points[j];
+                    const p2 = points[j + 1];
+
+                    // 计算分割点
+                    const deltaX = p2.x - p1.x;
+                    const deltaY = p2.y - p1.y;
+
+                    const oneThird = {x: p1.x + deltaX / 3, y: p1.y + deltaY / 3};
+                    const twoThirds = {x: p1.x + 2 * deltaX / 3, y: p1.y + 2 * deltaY / 3};
+
+                    // 计算峰值点
+                    const angle = Math.atan2(deltaY, deltaX) - Math.PI / 3;
+                    const length = Math.sqrt(deltaX * deltaX + deltaY * deltaY) / 3;
+                    const peak = {
+                        x: oneThird.x + length * Math.cos(angle),
+                        y: oneThird.y + length * Math.sin(angle)
+                    };
+
+                    // 添加新的点
+                    newPoints.push(p1, oneThird, peak, twoThirds);
+                }
+                newPoints.push(points[points.length - 1]); // 保留最后一个点
+                points = newPoints;
+            }
+
+            return points;
+        }
+
+        /**
+         * 绘制科赫雪花曲线
+         * @param {number} level - 迭代级数
+         */
+        function drawKochSnowflake(level) {
+            const points = generateKochSnowflake(level);
+            let pathData = `M ${points[0].x} ${points[0].y}`;
+            for (let i = 1; i < points.length; i++) {
+                pathData += ` L ${points[i].x} ${points[i].y}`;
+            }
+
+            // 清空SVG并绘制新的路径
+            svg.innerHTML = '';
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute('d', pathData);
+            path.setAttribute('stroke', 'blue');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke-width', '1');
+            svg.appendChild(path);
+        }
+    </script>
+</body>
+</html>
