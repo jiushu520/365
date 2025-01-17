@@ -10,113 +10,152 @@
             margin: 0;
             padding: 0;
             text-align: center;
+            background-color: #f4f4f4;
         }
-
+        h1 {
+            color: #333;
+            margin-top: 30px;
+        }
         button {
-            font-size: 20px;
-            margin: 20px;
-            padding: 10px 20px;
-            cursor: pointer;
-        }
-
-        #status {
             font-size: 18px;
-            color: green;
+            margin: 10px 0;
+            padding: 25px 30px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
         }
-
-#messages {
-    margin-top: 20px;
-    text-align: center;
-    margin: 20px auto; /* 上下20px，左右自动居中 */
-    width: 80%; /* 可以根据需要调整宽度 */
-}
-
-        #controls {
+        button:hover {
+            background-color: #45a049;
+        }
+        #status {
+            font-size: 15px;
+            color: #333;
+        }
+        #messages {
             margin-top: 20px;
+            text-align: center;
+            margin: 10px auto;
+            max-width: 100%;
+            height: 600px;
+            overflow-y: scroll;
+            padding: 10px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        #messages p {
+            background-color: #e1f7e1;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+        }
+        .message-user {
+            background-color: #e0f7fa;
+            text-align: right;
+        }
+        .status-recording {
+            color: #ff4d4d; /* 红色：录音已停止 */
+        }
+        .status-waiting {
+            color: #4CAF50; /* 绿色：正在录音 */
+        }
+        @media (max-width: 600px) {
+            button {
+                font-size: 16px;
+                padding: 12px 25px;
+            }
+            #messages {
+                height: 200px;
+            }
         }
     </style>
 </head>
 <body>
 
-<h1>玖数对问</h1>
+<h3>玖数对问</h3>
 
-<button id="startButton">按住录音</button>
-
-<div id="controls">
-    <button id="stopPlaybackButton" style="display: none;">停止回复</button>
-</div>
-<p id="status">状态：等待录音...</p>
 <div id="messages"></div>
 
+
+<button id="playPauseButton" style="background-color: #f44336;">播放</button>
+<button id="startButton">开始录音</button>
+<p id="status" class="status-waiting">状态：等待录音...</p>
 
 <script>
     const apiKey = "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU";  // 替换为你的 API 密钥
     let audioRecorder;
     let audioChunks = [];
     let isRecording = false;
-    let isReplying = false;
-    let conversationHistory = [];
-    let audioStream;
-    let audioElement;
+    let conversationHistory = []; // 用于存储对话历史
+    let currentAudio = null; // 当前播放的音频
 
     const startButton = document.getElementById('startButton');
+    const playPauseButton = document.getElementById('playPauseButton');
     const statusElement = document.getElementById('status');
     const messagesElement = document.getElementById('messages');
-    const stopPlaybackButton = document.getElementById('stopPlaybackButton');
 
-    startButton.onmousedown = () => {
-        if (!isRecording && !isReplying) {
-            startRecording();
-        } else if (isReplying) {
-            stopAudioPlayback();
-            startRecording();
-        }
-    };
-
-    startButton.onmouseup = () => {
+    // 开始录音
+    startButton.onclick = () => {
         if (isRecording) {
             stopRecording();
+        } else {
+            startRecording();
         }
     };
 
-    stopPlaybackButton.onclick = () => {
-        stopAudioPlayback();
-    };
-
-    async function startRecording() {
+    // 初始化音频录制
+    function startRecording() {
         audioChunks = [];
         isRecording = true;
+        startButton.innerText = '停止录音';
         statusElement.innerText = '状态：正在录音...';
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            audioStream = stream;
-            audioRecorder = new MediaRecorder(stream);
-            audioRecorder.ondataavailable = event => {
-                audioChunks.push(event.data);
-            };
-            audioRecorder.onstop = () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                sendAudioToServer(audioBlob);
-            };
-            audioRecorder.start();
-        } catch (error) {
-            console.error('录音失败', error);
-            statusElement.innerText = '状态：录音失败，请检查麦克风权限';
+
+        // 强制设置颜色为红色
+        statusElement.style.color = '#ff4d4d';
+
+        // 停止正在播放的音频
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio = null;
         }
+
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                audioRecorder = new MediaRecorder(stream);
+                audioRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+                audioRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    sendAudioToServer(audioBlob);
+                };
+                audioRecorder.start();
+            })
+            .catch(error => {
+                console.error('录音失败', error);
+                statusElement.innerText = '状态：录音失败，请检查麦克风权限';
+            });
     }
 
+    // 停止录音
     function stopRecording() {
-        if (audioRecorder) {
-            audioRecorder.stop();
-            audioStream.getTracks().forEach(track => track.stop());
-            isRecording = false;
-            statusElement.innerText = '状态：录音已停止';
-        }
+        audioRecorder.stop();
+        isRecording = false;
+        startButton.innerText = '开始录音';
+        statusElement.innerText = '状态：录音已停止';
+
+        // 强制设置颜色为绿色
+        statusElement.style.color = '#4CAF50';
     }
 
-    async function sendAudioToServer(audioBlob) {
+    // 将音频数据发送到服务器
+    function sendAudioToServer(audioBlob) {
         const reader = new FileReader();
-        reader.onloadend = async () => {
+        reader.onloadend = () => {
             const base64Audio = reader.result.split(',')[1];
             const requestPayload = {
                 model: "glm-4-voice",
@@ -124,41 +163,84 @@
                 max_tokens: 1024,
                 stream: false
             };
-            try {
-                const response = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify(requestPayload)
-                });
-                const data = await response.json();
-                handleResponse(data);
-            } catch (error) {
+
+            fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify(requestPayload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('API 响应：', data);
+                if (data.choices && data.choices[0].message) {
+                    const message = data.choices[0].message;
+                    if (message.audio) {
+                        const audioData = message.audio.data;
+                        const audioBlob = base64ToBlob(audioData);
+                        playAudio(audioBlob);
+                    } else {
+                        messagesElement.innerHTML += `<p>AI: ${message.content}</p>`;
+                    }
+
+                    // 更新对话历史
+                    if (message.audio && message.audio.id) {
+                        conversationHistory.push({
+                            role: "assistant",
+                            audio: { id: message.audio.id }
+                        });
+                    } else {
+                        conversationHistory.push({
+                            role: "assistant",
+                            content: message.content
+                        });
+                    }
+                }
+            })
+            .catch(error => {
                 console.error('API 请求失败', error);
                 statusElement.innerText = '状态：与服务器通信失败';
-            }
+            });
         };
         reader.readAsDataURL(audioBlob);
     }
 
+    // 构建消息体，包括用户和 AI 的对话内容
     function buildMessages(base64Audio) {
         let messages = [{
             role: "user",
             content: [{
                 type: "input_audio",
-                input_audio: { data: base64Audio, format: "wav" }
-            }]
+                input_audio: {
+                    data: base64Audio,
+                    format: "wav"
+                }
+            } ]
         }];
 
+        // 如果有历史对话，添加到消息中
         conversationHistory.forEach(item => {
-            messages.push(item.audio ? { role: item.role, audio: { id: item.audio.id } } : { role: item.role, content: item.content });
+            if (item.audio && item.audio.id) {
+                messages.push({
+                    role: item.role,
+                    audio: {
+                        id: item.audio.id
+                    }
+                });
+            } else {
+                messages.push({
+                    role: item.role,
+                    content: item.content
+                });
+            }
         });
 
-        return messages.reverse();
+        return messages.reverse(); // 最新消息放在最前面
     }
 
+    // 将 Base64 字符串转换为 Blob 对象
     function base64ToBlob(base64) {
         const binaryString = atob(base64);
         const arrayBuffer = new ArrayBuffer(binaryString.length);
@@ -169,55 +251,32 @@
         return new Blob([uint8Array], { type: 'audio/wav' });
     }
 
+    // 播放接收到的音频
     function playAudio(blob) {
-        stopAudioPlayback();
-
         const audioUrl = URL.createObjectURL(blob);
-        audioElement = document.createElement('audio');
-        audioElement.src = audioUrl;
-        audioElement.play().catch(error => {
-            console.error("音频播放失败：", error);
-        });
+        currentAudio = new Audio(audioUrl);
+        currentAudio.play();
         messagesElement.innerHTML += `<p>玖数正在回复...</p>`;
-        stopPlaybackButton.style.display = 'inline-block';
-        isReplying = true;
 
-        audioElement.onended = () => {
-            isReplying = false;
-            statusElement.innerText = '状态：等待录音...';
-            stopPlaybackButton.style.display = 'none';
-        };
+        // 启动播放暂停按钮
+        playPauseButton.innerText = "暂停";
+        playPauseButton.style.backgroundColor = "#ff9800"; // 暂停按钮颜色
     }
 
-    function stopAudioPlayback() {
-        if (audioElement) {
-            audioElement.pause();
-            audioElement.currentTime = 0;
-            isReplying = false;
-            statusElement.innerText = '状态：等待录音...';
-            stopPlaybackButton.style.display = 'none';
-        }
-    }
-
-    function handleResponse(data) {
-        console.log('API 响应：', data);
-        if (data.choices && data.choices[0].message) {
-            const message = data.choices[0].message;
-            if (message.audio) {
-                const audioData = message.audio.data;
-                const audioBlob = base64ToBlob(audioData);
-                playAudio(audioBlob);
+    // 播放/暂停音频
+    playPauseButton.onclick = () => {
+        if (currentAudio) {
+            if (currentAudio.paused) {
+                currentAudio.play();
+                playPauseButton.innerText = "暂停";
+                playPauseButton.style.backgroundColor = "#ff9800"; // 暂停按钮颜色
             } else {
-                messagesElement.innerHTML += `<p>AI: ${message.content}</p>`;
-            }
-
-            if (message.audio && message.audio.id) {
-                conversationHistory.push({ role: "assistant", audio: { id: message.audio.id } });
-            } else {
-                conversationHistory.push({ role: "assistant", content: message.content });
+                currentAudio.pause();
+                playPauseButton.innerText = "播放";
+                playPauseButton.style.backgroundColor = "#4CAF50"; // 播放按钮颜色
             }
         }
-    }
+    };
 </script>
 
 </body>
