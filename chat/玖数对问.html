@@ -127,13 +127,25 @@
     }
 
     // 开始录音
+    startButton.ontouchstart = () => {
+        if (!isRecording) {
+            startRecording();
+        }
+    };
+
+    startButton.ontouchend = () => {
+        if (isRecording) {
+            stopRecording();
+        }
+    };
+
+    // 如果需要兼容桌面设备和手机端，可以同时监听 `mousedown` 和 `touchstart` 事件
     startButton.onmousedown = () => {
         if (!isRecording) {
             startRecording();
         }
     };
 
-    // 停止录音
     startButton.onmouseup = () => {
         if (isRecording) {
             stopRecording();
@@ -145,6 +157,7 @@
         audioChunks = [];
         isRecording = true;
         startButton.innerText = '停止录音';
+        startButton.style.backgroundColor = '#ff4d4d'; // 录音状态时，按钮背景色为红色
         statusElement.innerText = '状态：正在录音...';
         statusElement.style.color = '#ff4d4d'; // 强制设置颜色为红色
 
@@ -180,6 +193,7 @@
         audioRecorder.stop();
         isRecording = false;
         startButton.innerText = '开始录音';
+        startButton.style.backgroundColor = '#4CAF50'; // 录音结束后按钮变为绿色
         statusElement.innerText = '状态：录音已停止';
         statusElement.style.color = '#4CAF50'; // 强制设置颜色为绿色
 
