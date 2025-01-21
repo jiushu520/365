@@ -4,90 +4,89 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>玖数对问</title>
-   <style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        text-align: center;
-        background-color: #f4f4f4;
-    }
-    h3 {
-        color: #333;
-        margin-top: 30px;
-    }
-    button {
-        font-size: 18px;
-        margin: 10px 0;
-        padding: 25px 30px;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 50px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-    button:hover {
-        background-color: #45a049;
-    }
-    #status {
-        font-size: 15px;
-        color: #333;
-    }
-    #messages {
-        margin-top: 10px;
-        text-align: left;
-        margin: 10px auto;
-        max-width: 100%;
-        height: 600px;
-        overflow-y: scroll;
-        padding: 10px;
-        background-color: white;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-    #messages p {
-        padding: 10px;
-        border-radius: 5px;
-        margin-bottom: 10px;
-        word-wrap: break-word;
-        max-width: 80%;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    .message-user {
-        background-color: #e0f7fa;
-        text-align: right;
-        border-radius: 20px;
-        max-width: 75%;
-        margin-left: auto;
-    }
-    .message-ai {
-        background-color: #e1f7e1;
-        padding: 10px;
-        border-radius: 5px;
-        margin-bottom: 10px;
-        word-wrap: break-word;
-        max-width: 75%;
-        margin-right: auto;
-    }
-    .status-recording {
-        color: #ff4d4d; /* 红色：录音已停止 */
-    }
-    .status-waiting {
-        color: #4CAF50; /* 绿色：正在录音 */
-    }
-    @media (max-width: 600px) {
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+        h3 {
+            color: #333;
+            margin-top: 30px;
+        }
         button {
-            font-size: 16px;
-            padding: 12px 25px;
+            font-size: 18px;
+            margin: 10px 0;
+            padding: 25px 30px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #status {
+            font-size: 15px;
+            color: #333;
         }
         #messages {
-            height: 450px;
+            margin-top: 10px;
+            text-align: left;
+            margin: 10px auto;
+            max-width: 100%;
+            height: 600px;
+            overflow-y: scroll;
+            padding: 10px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-    }
-</style>
-
+        #messages p {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .message-user {
+            background-color: #e0f7fa;
+            text-align: right;
+            border-radius: 20px;
+            max-width: 75%;
+            margin-left: auto;
+        }
+        .message-ai {
+            background-color: #e1f7e1;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+            max-width: 75%;
+            margin-right: auto;
+        }
+        .status-recording {
+            color: #ff4d4d; /* 红色：录音已停止 */
+        }
+        .status-waiting {
+            color: #4CAF50; /* 绿色：正在录音 */
+        }
+        @media (max-width: 600px) {
+            button {
+                font-size: 16px;
+                padding: 12px 25px;
+            }
+            #messages {
+                height: 450px;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -104,7 +103,6 @@
     let audioRecorder;
     let audioChunks = [];
     let isRecording = false;
-    let conversationHistory = []; // 用于存储对话历史
     let currentAudio = null; // 当前播放的音频
     let recognition;
 
@@ -117,85 +115,83 @@
     if ('webkitSpeechRecognition' in window) {
         recognition = new webkitSpeechRecognition();
         recognition.lang = 'zh-CN';
-        recognition.interimResults = false; // 是否允许返回中间结果
+        recognition.interimResults = false;  // 禁用中间结果，只获取最终结果
         recognition.onresult = (event) => {
             const userText = event.results[0][0].transcript;
             showUserText(userText);  // 显示用户的文字提问
+        };
+        recognition.onend = () => {
+            console.log('语音识别结束');
+            statusElement.innerText = '状态：语音识别已结束';
         };
     } else {
         alert('抱歉，您的浏览器不支持语音识别');
     }
 
-    // 开始录音
-    startButton.ontouchstart = () => {
-        if (!isRecording) {
-            startRecording();
-        }
-    };
-
-    startButton.ontouchend = () => {
-        if (isRecording) {
-            stopRecording();
-        }
-    };
-
-    // 如果需要兼容桌面设备和手机端，可以同时监听 `mousedown` 和 `touchstart` 事件
+    // 按下按钮时开始录音和识别
     startButton.onmousedown = () => {
         if (!isRecording) {
             startRecording();
         }
     };
 
+    // 松开按钮时停止录音和识别
     startButton.onmouseup = () => {
         if (isRecording) {
             stopRecording();
         }
     };
 
-    // 初始化音频录制
-    function startRecording() {
-        audioChunks = [];
-        isRecording = true;
-        startButton.innerText = '停止录音';
-        startButton.style.backgroundColor = '#ff4d4d'; // 录音状态时，按钮背景色为红色
-        statusElement.innerText = '状态：正在录音...';
-        statusElement.style.color = '#ff4d4d'; // 强制设置颜色为红色
-
-        // 停止正在播放的音频
-        if (currentAudio) {
-            currentAudio.pause();
-            currentAudio = null;
-        }
-
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(stream => {
-                audioRecorder = new MediaRecorder(stream);
-                audioRecorder.ondataavailable = event => {
-                    audioChunks.push(event.data);
-                };
-                audioRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    sendAudioToServer(audioBlob);
-                };
-                audioRecorder.start();
-            })
-            .catch(error => {
-                console.error('录音失败', error);
-                statusElement.innerText = '状态：录音失败，请检查麦克风权限';
-            });
-
-        // 开始语音识别
-        recognition.start();
+// 启动语音识别并录音
+function startRecording() {
+    // 如果当前有音频正在播放，暂停它
+    if (currentAudio && !currentAudio.paused) {
+        currentAudio.pause();  // 暂停当前音频
+        playPauseButton.innerText = "播放";  // 更新按钮为播放
+        playPauseButton.style.backgroundColor = "#4CAF50";  // 更新按钮颜色为绿色
     }
 
-    // 停止录音
+    audioChunks = [];
+    isRecording = true;
+    startButton.innerText = '停止录音';
+    statusElement.innerText = '状态：正在录音...';
+
+    // 设置录音时的背景色
+    statusElement.style.color = '#ff4d4d';  // 状态文字颜色设置为红色
+    startButton.style.backgroundColor = "#f44336";  // 设置录音按钮的背景色为红色（表示正在录音）
+
+    // 启动音频录制
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            audioRecorder = new MediaRecorder(stream);
+            audioRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+            audioRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                sendAudioToServer(audioBlob);
+            };
+            audioRecorder.start();
+        })
+        .catch(error => {
+            console.error('录音失败', error);
+            statusElement.innerText = '状态：录音失败，请检查麦克风权限';
+        });
+
+    // 启动语音识别
+    recognition.start();
+}
+
+
+    // 停止录音和识别
     function stopRecording() {
         audioRecorder.stop();
         isRecording = false;
         startButton.innerText = '开始录音';
-        startButton.style.backgroundColor = '#4CAF50'; // 录音结束后按钮变为绿色
         statusElement.innerText = '状态：录音已停止';
-        statusElement.style.color = '#4CAF50'; // 强制设置颜色为绿色
+    // 设置停止录音时的背景色
+    statusElement.style.color = '#4CAF50';  // 设置状态文字颜色为绿色
+    startButton.style.backgroundColor = "#4CAF50";  // 设置开始按钮背景色为绿色
 
         // 停止语音识别
         recognition.stop();
@@ -204,7 +200,7 @@
     // 显示用户提问的文字信息
     function showUserText(userText) {
         const userMessage = document.createElement('p');
-        userMessage.innerText = `${userText}`;
+        userMessage.innerText = ` ${userText}`;
         userMessage.classList.add('message-user');
         messagesElement.appendChild(userMessage);
     }
@@ -234,8 +230,6 @@
                 console.log('API 响应：', data);
                 if (data.choices && data.choices[0].message) {
                     const message = data.choices[0].message;
-                    
-                    // 显示 AI 的文字回复
                     if (message.content) {
                         const textMessage = document.createElement('p');
                         textMessage.innerText = `玖数: ${message.content}`;
@@ -248,19 +242,6 @@
                         const audioData = message.audio.data;
                         const audioBlob = base64ToBlob(audioData);
                         playAudio(audioBlob);
-                    }
-
-                    // 更新对话历史
-                    if (message.audio && message.audio.id) {
-                        conversationHistory.push({
-                            role: "assistant",
-                            audio: { id: message.audio.id }
-                        });
-                    } else {
-                        conversationHistory.push({
-                            role: "assistant",
-                            content: message.content
-                        });
                     }
                 }
             })
@@ -285,23 +266,6 @@
             }]
         }];
 
-        // 如果有历史对话，添加到消息中
-        conversationHistory.forEach(item => {
-            if (item.audio && item.audio.id) {
-                messages.push({
-                    role: item.role,
-                    audio: {
-                        id: item.audio.id
-                    }
-                });
-            } else {
-                messages.push({
-                    role: item.role,
-                    content: item.content
-                });
-            }
-        });
-
         return messages.reverse(); // 最新消息放在最前面
     }
 
@@ -322,24 +286,23 @@
         currentAudio = new Audio(audioUrl);
         currentAudio.play().then(() => {
             playPauseButton.innerText = "暂停";
-            playPauseButton.style.backgroundColor = "#ff9800"; // 暂停按钮颜色
-        }).catch((error) => {
-            console.error('音频播放失败', error);
-            statusElement.innerText = '状态：无法播放音频';
+            playPauseButton.style.backgroundColor = "#FF5722";
+        }).catch(error => {
+            console.error('播放音频失败', error);
         });
     }
 
-    // 播放/暂停音频
+    // 暂停音频播放
     playPauseButton.onclick = () => {
         if (currentAudio) {
             if (currentAudio.paused) {
                 currentAudio.play();
                 playPauseButton.innerText = "暂停";
-                playPauseButton.style.backgroundColor = "#ff9800"; // 暂停按钮颜色
+                playPauseButton.style.backgroundColor = "#FF5722";
             } else {
                 currentAudio.pause();
                 playPauseButton.innerText = "播放";
-                playPauseButton.style.backgroundColor = "#4CAF50"; // 播放按钮颜色
+                playPauseButton.style.backgroundColor = "#f44336";
             }
         }
     };
