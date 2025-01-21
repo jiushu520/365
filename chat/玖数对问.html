@@ -105,6 +105,7 @@
     let isRecording = false;
     let currentAudio = null; // 当前播放的音频
     let recognition;
+    let userAudioBlob = null; // 存储用户的音频
 
     const startButton = document.getElementById('startButton');
     const playPauseButton = document.getElementById('playPauseButton');
@@ -142,46 +143,45 @@
         }
     };
 
-// 启动语音识别并录音
-function startRecording() {
-    // 如果当前有音频正在播放，暂停它
-    if (currentAudio && !currentAudio.paused) {
-        currentAudio.pause();  // 暂停当前音频
-        playPauseButton.innerText = "播放";  // 更新按钮为播放
-        playPauseButton.style.backgroundColor = "#4CAF50";  // 更新按钮颜色为绿色
+    // 启动语音识别并录音
+    function startRecording() {
+        // 如果当前有音频正在播放，暂停它
+        if (currentAudio && !currentAudio.paused) {
+            currentAudio.pause();  // 暂停当前音频
+            playPauseButton.innerText = "播放";  // 更新按钮为播放
+            playPauseButton.style.backgroundColor = "#4CAF50";  // 更新按钮颜色为绿色
+        }
+
+        audioChunks = [];
+        isRecording = true;
+        startButton.innerText = '停止录音';
+        statusElement.innerText = '状态：正在录音...';
+
+        // 设置录音时的背景色
+        statusElement.style.color = '#ff4d4d';  // 状态文字颜色设置为红色
+        startButton.style.backgroundColor = "#f44336";  // 设置录音按钮的背景色为红色（表示正在录音）
+
+        // 启动音频录制
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                audioRecorder = new MediaRecorder(stream);
+                audioRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+                audioRecorder.onstop = () => {
+                    userAudioBlob = new Blob(audioChunks, { type: 'audio/wav' }); // 保存用户的音频
+                    sendAudioToServer(userAudioBlob); // 发送音频到服务器
+                };
+                audioRecorder.start();
+            })
+            .catch(error => {
+                console.error('录音失败', error);
+                statusElement.innerText = '状态：录音失败，请检查麦克风权限';
+            });
+
+        // 启动语音识别
+        recognition.start();
     }
-
-    audioChunks = [];
-    isRecording = true;
-    startButton.innerText = '停止录音';
-    statusElement.innerText = '状态：正在录音...';
-
-    // 设置录音时的背景色
-    statusElement.style.color = '#ff4d4d';  // 状态文字颜色设置为红色
-    startButton.style.backgroundColor = "#f44336";  // 设置录音按钮的背景色为红色（表示正在录音）
-
-    // 启动音频录制
-    navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-            audioRecorder = new MediaRecorder(stream);
-            audioRecorder.ondataavailable = event => {
-                audioChunks.push(event.data);
-            };
-            audioRecorder.onstop = () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                sendAudioToServer(audioBlob);
-            };
-            audioRecorder.start();
-        })
-        .catch(error => {
-            console.error('录音失败', error);
-            statusElement.innerText = '状态：录音失败，请检查麦克风权限';
-        });
-
-    // 启动语音识别
-    recognition.start();
-}
-
 
     // 停止录音和识别
     function stopRecording() {
@@ -189,9 +189,9 @@ function startRecording() {
         isRecording = false;
         startButton.innerText = '开始录音';
         statusElement.innerText = '状态：录音已停止';
-    // 设置停止录音时的背景色
-    statusElement.style.color = '#4CAF50';  // 设置状态文字颜色为绿色
-    startButton.style.backgroundColor = "#4CAF50";  // 设置开始按钮背景色为绿色
+        // 设置停止录音时的背景色
+        statusElement.style.color = '#4CAF50';  // 设置状态文字颜色为绿色
+        startButton.style.backgroundColor = "#4CAF50";  // 设置开始按钮背景色为绿色
 
         // 停止语音识别
         recognition.stop();
@@ -237,11 +237,29 @@ function startRecording() {
                         messagesElement.appendChild(textMessage);
                     }
 
-                    // 如果有音频回复，则播放音频
+                    // 如果有音频回复，则自动播放音频
                     if (message.audio) {
                         const audioData = message.audio.data;
                         const audioBlob = base64ToBlob(audioData);
-                        playAudio(audioBlob);
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        
+                        // 自动播放 AI 的音频
+                        const currentAudio = new Audio(audioUrl);
+                        currentAudio.play();
+
+                        // 添加音频回放按钮
+                        const replayButton = document.createElement('button');
+                        replayButton.innerText = '重新播放助手音频';
+                        replayButton.onclick = () => playAudio(audioBlob);
+                        messagesElement.appendChild(replayButton);
+                    }
+                    
+                    // 如果有用户音频，也添加回放按钮
+                    if (userAudioBlob) {
+                        const replayButton = document.createElement('button');
+                        replayButton.innerText = '重新播放用户音频';
+                        replayButton.onclick = () => playUserAudio(userAudioBlob);
+                        messagesElement.appendChild(replayButton);
                     }
                 }
             })
@@ -251,6 +269,20 @@ function startRecording() {
             });
         };
         reader.readAsDataURL(audioBlob);
+    }
+
+    // 播放助手音频
+    function playAudio(blob) {
+        const audioUrl = URL.createObjectURL(blob);
+        const audio = new Audio(audioUrl);
+        audio.play();
+    }
+
+    // 播放用户音频
+    function playUserAudio(blob) {
+        const audioUrl = URL.createObjectURL(blob);
+        const audio = new Audio(audioUrl);
+        audio.play();
     }
 
     // 构建消息体，包括用户和 AI 的对话内容
@@ -279,33 +311,6 @@ function startRecording() {
         }
         return new Blob([uint8Array], { type: 'audio/wav' });
     }
-
-    // 播放接收到的音频
-    function playAudio(blob) {
-        const audioUrl = URL.createObjectURL(blob);
-        currentAudio = new Audio(audioUrl);
-        currentAudio.play().then(() => {
-            playPauseButton.innerText = "暂停";
-            playPauseButton.style.backgroundColor = "#FF5722";
-        }).catch(error => {
-            console.error('播放音频失败', error);
-        });
-    }
-
-    // 暂停音频播放
-    playPauseButton.onclick = () => {
-        if (currentAudio) {
-            if (currentAudio.paused) {
-                currentAudio.play();
-                playPauseButton.innerText = "暂停";
-                playPauseButton.style.backgroundColor = "#FF5722";
-            } else {
-                currentAudio.pause();
-                playPauseButton.innerText = "播放";
-                playPauseButton.style.backgroundColor = "#f44336";
-            }
-        }
-    };
 </script>
 
 </body>
