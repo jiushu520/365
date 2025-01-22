@@ -72,6 +72,7 @@
             margin: 5px 0;
             border-radius: 5px;
             cursor: pointer;
+            float: right; /* 添加此行 */
         }
         .message-user-rewind:hover {
             background-color: #b2ebf2;
@@ -105,8 +106,9 @@
 
 <div id="messages"></div>
 
-<button id="startButton">开始录音</button>
+
 <button id="playPauseButton" style="background-color: #f44336;">播放</button>
+<button id="startButton">开始录音</button>
 <p id="status">状态：等待录音...</p>
 
 <script>
