@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>玖数对问</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+        h3 {
+            color: #333;
+            margin-top: 30px;
+        }
+        button {
+            font-size: 18px;
+            margin: 10px 0;
+            padding: 25px 30px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #status {
+            font-size: 15px;
+            color: #333;
+        }
+        #messages {
+            margin-top: 10px;
+            text-align: left;
+            margin: 10px auto;
+            max-width: 100%;
+            height: 600px;
+            overflow-y: scroll;
+            padding: 10px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        #messages p {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .message-user {
+            background-color: #e0f7fa;
+            text-align: right;
+            border-radius: 20px;
+            max-width: 75%;
+            margin-left: auto;
+        }
+        .message-ai {
+            background-color: #e1f7e1;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+            max-width: 75%;
+            margin-right: auto;
+        }
+        .status-recording {
+            color: #ff4d4d; /* 红色：录音已停止 */
+        }
+        .status-waiting {
+            color: #4CAF50; /* 绿色：正在录音 */
+        }
+        @media (max-width: 600px) {
+            button {
+                font-size: 16px;
+                padding: 12px 25px;
+            }
+            #messages {
+                height: 450px;
+            }
+        }
+
+/* 用户的回播音频按钮样式 */
+.message-user-rewind {
+    background-color: #e0f7fa;
+    color: #333;
+    border: none;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.message-user-rewind:hover {
+    background-color: #b2ebf2;
+}
+
+/* 助手的回播音频按钮样式 */
+.message-ai-rewind {
+    background-color: #e1f7e1;
+    color: #333;
+    border: none;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.message-ai-rewind:hover {
+    background-color: #c8e6c9;
+}
+
+
+
+    </style>
+</head>
+<body>
+
+<h3>玖数对问</h3>
+
+<div id="messages"></div>
+
+<button id="playPauseButton" style="background-color: #f44336;">播放</button>
+<button id="startButton">开始录音</button>
+<p id="status" class="status-waiting">状态：等待录音...</p>
+
+<script>
+    const apiKey = "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU";  // 替换为你的 API 密钥
+    let audioRecorder;
+    let audioChunks = [];
+    let isRecording = false;
+    let currentAudio = null; // 当前播放的音频
+    let recognition;
+    let userAudioHistory = [];  // 保存用户音频的历史记录
+
+    const startButton = document.getElementById('startButton');
+    const playPauseButton = document.getElementById('playPauseButton');
+    const statusElement = document.getElementById('status');
+    const messagesElement = document.getElementById('messages');
+
+    // 初始化语音识别（使用 Web Speech API）
+    if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.lang = 'zh-CN';
+        recognition.interimResults = false;  // 禁用中间结果，只获取最终结果
+        recognition.onresult = (event) => {
+            const userText = event.results[0][0].transcript;
+            showUserText(userText);  // 显示用户的文字提问
+        };
+        recognition.onend = () => {
+            console.log('语音识别结束');
+            statusElement.innerText = '状态：语音识别已结束';
+        };
+    } else {
+        alert('抱歉，您的浏览器不支持语音识别');
+    }
+
+    // 按下按钮时开始录音和识别
+    startButton.onmousedown = () => {
+        if (!isRecording) {
+            startRecording();
+        }
+    };
+
+    // 松开按钮时停止录音和识别
+    startButton.onmouseup = () => {
+        if (isRecording) {
+            stopRecording();
+        }
+    };
+
+    // 启动语音识别并录音
+function startRecording() {
+    // 如果当前有音频正在播放，暂停它
+    if (currentAudio && !currentAudio.paused) {
+        currentAudio.pause();  // 暂停当前音频
+        playPauseButton.innerText = "播放";  // 更新按钮为播放
+        playPauseButton.style.backgroundColor = "#4CAF50";  // 更新按钮颜色为绿色
+    }
+
+    audioChunks = [];
+    isRecording = true;
+    startButton.innerText = '停止录音';
+    statusElement.innerText = '状态：正在录音...';
+
+    // 设置录音时的背景色
+    statusElement.style.color = '#ff4d4d';  // 状态文字颜色设置为红色
+    startButton.style.backgroundColor = "#f44336";  // 设置录音按钮的背景色为红色（表示正在录音）
+
+    // 启动音频录制
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            audioRecorder = new MediaRecorder(stream);
+            audioRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+            audioRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                saveUserAudio(audioBlob);  // 保存用户的音频
+                sendAudioToServer(audioBlob);  // 发送音频给服务器
+            };
+            audioRecorder.start();
+        })
+        .catch(error => {
+            console.error('录音失败', error);
+            statusElement.innerText = '状态：录音失败，请检查麦克风权限';
+        });
+
+    // 启动语音识别
+    recognition.start();
+}
+
+
+    // 停止录音和识别
+    function stopRecording() {
+        audioRecorder.stop();
+        isRecording = false;
+        startButton.innerText = '开始录音';
+        statusElement.innerText = '状态：录音已停止';
+        // 设置停止录音时的背景色
+        statusElement.style.color = '#4CAF50';  // 设置状态文字颜色为绿色
+        startButton.style.backgroundColor = "#4CAF50";  // 设置开始按钮背景色为绿色
+
+        // 停止语音识别
+        recognition.stop();
+    }
+
+// 保存用户的音频数据
+function saveUserAudio(audioBlob) {
+    const audioUrl = URL.createObjectURL(audioBlob);
+
+
+    const audioData = {
+        blob: audioBlob,
+        url: audioUrl
+    };
+    userAudioHistory.push(audioData);  // 保存用户音频到历史记录
+    createRewindButton(audioData, 'user');  // 创建回播按钮并传入角色类型
+}
+
+// 创建回播按钮并播放音频
+function createRewindButton(audioData, role) {
+    const rewindButton = document.createElement('button');
+    rewindButton.innerText = "回播音频";
+    if (role === 'user') {
+        rewindButton.classList.add('message-user-rewind');  // 用户的回播按钮样式
+    } else {
+        rewindButton.classList.add('message-ai-rewind');  // 助手的回播按钮样式
+    }
+    rewindButton.onclick = () => playAudio(audioData.blob);
+    messagesElement.appendChild(rewindButton);
+}
+
+
+    // 播放音频
+    function playAudio(blob) {
+        const audioUrl = URL.createObjectURL(blob);
+        currentAudio = new Audio(audioUrl);
+        currentAudio.play().then(() => {
+            playPauseButton.innerText = "暂停";
+            playPauseButton.style.backgroundColor = "#FF5722";
+        }).catch(error => {
+            console.error('播放音频失败', error);
+        });
+    }
+
+    // 显示用户提问的文字信息
+    function showUserText(userText) {
+        const userMessage = document.createElement('p');
+        userMessage.innerText = ` ${userText}`;
+        userMessage.classList.add('message-user');
+        messagesElement.appendChild(userMessage);
+    }
+
+    // 将音频数据发送到服务器
+    function sendAudioToServer(audioBlob) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64Audio = reader.result.split(',')[1];
+            const requestPayload = {
+                model: "glm-4-voice",
+                messages: buildMessages(base64Audio),
+                max_tokens: 1024,
+                stream: false
+            };
+
+            fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify(requestPayload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('API 响应：', data);
+                if (data.choices && data.choices[0].message) {
+                    const message = data.choices[0].message;
+                    if (message.content) {
+                        const textMessage = document.createElement('p');
+                        textMessage.innerText = `玖数: ${message.content}`;
+                        textMessage.classList.add('message-ai');
+                        messagesElement.appendChild(textMessage);
+                    }
+
+                    // 如果有音频回复，显示播放按钮并自动播放每次音频
+                    if (message.audio) {
+                        const audioData = message.audio.data;
+                        const audioBlob = base64ToBlob(audioData);
+                        createPlayButton(audioBlob);
+                        playAudio(audioBlob);  // 每次自动播放音频
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('API 请求失败', error);
+                statusElement.innerText = '状态：与服务器通信失败';
+            });
+        };
+        reader.readAsDataURL(audioBlob);
+    }
+
+    // 构建消息体
+    function buildMessages(base64Audio) {
+        let messages = [{
+            role: "user",
+            content: [{
+                type: "input_audio",
+                input_audio: {
+                    data: base64Audio,
+                    format: "wav"
+                }
+            }]
+        }];
+        return messages.reverse(); // 最新消息放在最前面
+    }
+
+    // 将 Base64 字符串转换为 Blob 对象
+    function base64ToBlob(base64) {
+        const binaryString = atob(base64);
+        const arrayBuffer = new ArrayBuffer(binaryString.length);
+        const uint8Array = new Uint8Array(arrayBuffer);
+        for (let i = 0; i < binaryString.length; i++) {
+            uint8Array[i] = binaryString.charCodeAt(i);
+        }
+        return new Blob([uint8Array], { type: 'audio/wav' });
+    }
+
+    // 创建播放按钮并播放音频
+    function createPlayButton(blob) {
+        const playButton = document.createElement('button');
+        playButton.innerText = "播放音频";
+        playButton.classList.add('message-ai');
+        playButton.onclick = () => playAudio(blob);
+        messagesElement.appendChild(playButton);
+    }
+
+    // 暂停音频播放
+    playPauseButton.onclick = () => {
+        if (currentAudio) {
+            if (currentAudio.paused) {
+                currentAudio.play();
+                playPauseButton.innerText = "暂停";
+                playPauseButton.style.backgroundColor = "#FF5722";
+            } else {
+                currentAudio.pause();
+                playPauseButton.innerText = "播放";
+                playPauseButton.style.backgroundColor = "#f44336";
+            }
+        }
+    };
+</script>
+
+</body>
+</html>
