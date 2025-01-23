@@ -174,10 +174,17 @@
 
 
 
+ 
 
 
 
-
+               {
+                    name: "deepseek-chat",
+                    apiUrl: "https://api.deepseek.com/v1/chat/completions",
+                    apiKey: "sk-eafb6da8cb3948ebbbd239f3bc40f2e2",
+                    model: "deepseek-chat",
+                    temperature: 0,
+                },
 
 
                 {
@@ -223,15 +230,15 @@
                     temperature: 0
                 },
 
-
-
-               {
-                    name: "deepseek-chat",
+              {
+                    name: "deepseek-reasoner",
                     apiUrl: "https://api.deepseek.com/v1/chat/completions",
                     apiKey: "sk-eafb6da8cb3948ebbbd239f3bc40f2e2",
-                    model: "deepseek-chat",
+                    model: "deepseek-reasoner",
                     temperature: 0,
                 },
+
+
                 // 添加更多模型配置
             ];
             this.currentConfigIndex = 0; // 默认使用第一个配置
