@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <!-- 数学公式渲染 -->
+    <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      }
+    };
+    </script>
+    <script id="MathJax-script" async 
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>可重命名会话</title>
+    <link rel="icon" href="faviconkimi.ico" type="image/x-icon">
+    <!-- 代码高亮 Prism -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-python.min.js" defer></script>
+
+    <style>
+        /* 让页面/容器占满全屏，以保证输入框固定底部效果 */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e0f7fa;
+        }
+
+        /* 整体布局：左侧会话列表 + 右侧聊天 */
+        #chat-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        /* 左侧：会话列表 */
+        #session-list-container {
+            width: 220px;
+            flex-shrink: 0; 
+            background: #ffffff;
+            border-right: 1px solid #ccc;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        #session-list-container h3 {
+            margin-top: 0;
+            font-size: 1.1em;
+        }
+        #session-list {
+            list-style: none;
+            padding-left: 0;
+            margin: 10px 0;
+        }
+        #session-list li {
+            padding: 5px;
+            margin: 5px 0;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #session-list li.active {
+            background-color: #a5d6a7;
+        }
+        #create-session-btn, #delete-session-btn, #rename-session-btn {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+        }
+        #create-session-btn {
+            background-color: #007bff;
+        }
+        #delete-session-btn {
+            background-color: #eb4d4b;
+        }
+        #rename-session-btn {
+            background-color: #7952b3;
+        }
+
+        /* 右侧：主聊天区 */
+        #chat-main {
+            flex: 1; 
+            display: flex;
+            flex-direction: column; 
+            position: relative;
+        }
+        /* 消息列表区，可滚动 */
+        #messages {
+            flex: 1; 
+            overflow-y: auto;
+            padding: 10px;
+            background-color: #e0f7fa;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        .user-message {
+            background-color: #daf7a6;
+            align-self: flex-end;
+        }
+        .assistant-message {
+            background-color: #ffeb99;
+            align-self: flex-start;
+        }
+        .message-content {
+            flex: 1 1 100%;
+            word-break: break-word;
+        }
+/* 修改后的输入容器样式 */
+#input-container {
+    flex-shrink: 0;
+    background-color: #fff;
+    border-top: 1px solid #ccc;
+    padding: 10px;
+    display: flex;
+    align-items: flex-start; /* 修改为顶部对齐 */
+    min-height: 60px; /* 最小高度保障基础输入 */
+    max-height: 50vh; /* 最大高度不超过视口一半 */
+    overflow-y: auto; /* 当内容超过高度时显示滚动条 */
+}
+
+/* 修改后的输入框样式 */
+#user-input {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    resize: none;
+    font-size: 1em;
+    overflow-y: auto; /* 改为自动显示滚动条 */
+    min-height: 40px;
+    max-height: 200px; /* 设置输入框最大高度 */
+    margin-right: 10px;
+}
+        #user-input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        #send-btn {
+            padding: 10px 10px;
+            border: none;
+            background-color: #007bff;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        #send-btn:disabled {
+            background-color: grey;
+            cursor: not-allowed;
+        }
+        #refresh-btn {
+            margin-left: 10px;
+            padding: 10px 10px;
+            border: none;
+            background-color: #28a745;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        #loading {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .timestamp {
+            font-size: 0.8em;
+            color: #555;
+            margin-left: 10px;
+        }
+        .code-container {
+            background-color: #272822;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: auto;
+        }
+        .code-content {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 模型设置区（可折叠） */
+        #model-options-wrapper {
+            background-color: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            display: none;
+            margin-bottom: 10px;
+        }
+        #toggle-model-btn {
+            background-color: #17a2b8;
+            border: none;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        #model-selector-container {
+            margin-bottom: 10px;
+        }
+        #system-message-preview {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #333;
+            white-space: pre-wrap;
+        }
+        #add-model-btn {
+            background-color: #f0932b;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 5px;
+            padding: 6px 10px;
+        }
+        #edit-model-btn {
+            background-color: #7952b3;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 5px;
+            padding: 6px 10px;
+        }
+        #delete-model-btn {
+            background-color: #eb4d4b;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 6px 10px;
+        }
+
+        /* 新增模型 & 编辑模型弹窗 */
+        #add-model-container, #edit-model-container {
+            position: fixed; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%);
+            background-color: #ffffff;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 20px;
+            min-width: 300px;
+            display: none;
+            z-index: 9999;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        .form-group label {
+            display: inline-block;
+            width: 100px;
+            text-align: right;
+            margin-right: 5px;
+        }
+        .form-group input, .form-group textarea {
+            width: 180px;
+        }
+        #model-form-buttons, #edit-model-form-buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+
+        <!-- 左侧：会话列表 -->
+        <div id="session-list-container">
+            <h3>会话列表</h3>
+            <ul id="session-list"></ul>
+
+            <button id="create-session-btn">新建会话</button>
+            <button id="rename-session-btn">重命名会话</button>
+            <button id="delete-session-btn">删除会话</button>
+        </div>
+
+        <!-- 右侧：聊天主区 -->
+        <div id="chat-main">
+            <!-- 模型设置 -->
+            <button id="toggle-model-btn">模型设置</button>
+            <div id="model-options-wrapper">
+                <div id="model-selector-container">
+                    <label for="model-selector">选择模型：</label>
+                    <select id="model-selector"></select>
+                </div>
+                <button id="add-model-btn">添加模型</button>
+                <button id="edit-model-btn">查看/修改模型</button>
+                <button id="delete-model-btn">删除当前模型</button>
+                <div id="system-message-preview"></div>
+            </div>
+
+            <!-- 聊天消息区域 -->
+            <div id="messages"></div>
+            <div id="loading">正在思考中...</div>
+
+            <!-- 输入框，固定在底部 -->
+            <div id="input-container">
+                <textarea id="user-input" placeholder="输入你的消息..." rows="1"></textarea>
+                <button id="send-btn" disabled>发送</button>
+                <button id="refresh-btn">清除对话</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增模型弹窗 -->
+    <div id="add-model-container">
+        <h3>添加自定义模型</h3>
+        <div class="form-group">
+            <label for="modelNameInput">模型名称</label>
+            <input type="text" id="modelNameInput" placeholder="如 my-awesome-model">
+        </div>
+        <div class="form-group">
+            <label for="modelApiUrlInput">API 地址</label>
+            <input type="text" id="modelApiUrlInput" placeholder="如 https://example.com/v1/chat">
+        </div>
+        <div class="form-group">
+            <label for="modelApiKeyInput">API Key</label>
+            <input type="text" id="modelApiKeyInput" placeholder="sk-xxxxxxx">
+        </div>
+        <div class="form-group">
+            <label for="modelFieldInput">model 字段</label>
+            <input type="text" id="modelFieldInput" placeholder="如 deepseek-chat">
+        </div>
+        <div class="form-group">
+            <label for="modelTempInput">temperature</label>
+            <input type="number" id="modelTempInput" step="0.1" min="0" max="1" value="0">
+        </div>
+        <div class="form-group">
+            <label for="modelPresetPromptInput">预设提示词</label>
+            <textarea id="modelPresetPromptInput" rows="4" placeholder="请输入此模型的System Prompt..."></textarea>
+        </div>
+        <div id="model-form-buttons">
+            <button id="confirmAddModelBtn">确认</button>
+            <button id="cancelAddModelBtn">取消</button>
+        </div>
+    </div>
+
+    <!-- 编辑模型弹窗 -->
+    <div id="edit-model-container">
+        <h3>查看/修改当前模型</h3>
+        <div class="form-group">
+            <label for="editModelNameInput">模型名称</label>
+            <input type="text" id="editModelNameInput">
+        </div>
+        <div class="form-group">
+            <label for="editModelApiUrlInput">API 地址</label>
+            <input type="text" id="editModelApiUrlInput">
+        </div>
+        <div class="form-group">
+            <label for="editModelApiKeyInput">API Key</label>
+            <input type="text" id="editModelApiKeyInput">
+        </div>
+        <div class="form-group">
+            <label for="editModelFieldInput">model 字段</label>
+            <input type="text" id="editModelFieldInput">
+        </div>
+        <div class="form-group">
+            <label for="editModelTempInput">temperature</label>
+            <input type="number" id="editModelTempInput" step="0.1" min="0" max="1">
+        </div>
+        <div class="form-group">
+            <label for="editModelPresetPromptInput">预设提示词</label>
+            <textarea id="editModelPresetPromptInput" rows="4"></textarea>
+        </div>
+        <div id="edit-model-form-buttons">
+            <button id="confirmEditModelBtn">确认修改</button>
+            <button id="cancelEditModelBtn">取消</button>
+        </div>
+    </div>
+
+    <script>
+    const LOCAL_STORAGE_KEY = "customModels"; // 模型本地存储
+    const SESSIONS_KEY = "chatSessions";      // 会话本地存储
+
+    class ChatApp {
+        constructor() {
+            // === 模型初始化 ===
+            this.defaultConfigs = [];
+            this.customConfigs = [];
+            const cStr = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (cStr) {
+                try {
+                    this.customConfigs = JSON.parse(cStr);
+                } catch (e) {
+                    console.error("解析自定义模型失败:", e);
+                }
+            }
+            this.CONFIG = [...this.defaultConfigs, ...this.customConfigs];
+            this.currentConfigIndex = 0;
+
+            // === 会话初始化 ===
+            this.sessions = [];
+            this.currentSessionIndex = -1;
+            this.loadSessions();
+            if (this.sessions.length === 0) {
+                this.createNewSession();
+            } else {
+                this.currentSessionIndex = 0;
+            }
+
+            // === 绑定DOM & 渲染 ===
+            this.initElements();
+            this.addEventListeners();
+            this.populateModelSelector();
+            this.renderSessionList();
+            this.switchSession(this.currentSessionIndex);
+        }
+
+        loadSessions() {
+            const str = localStorage.getItem(SESSIONS_KEY);
+            if (str) {
+                try {
+                    const parsed = JSON.parse(str);
+                    if (Array.isArray(parsed)) {
+                        this.sessions = parsed;
+                    }
+                } catch (e) {
+                    console.error("解析会话出错:", e);
+                }
+            }
+        }
+
+        saveSessions() {
+            localStorage.setItem(SESSIONS_KEY, JSON.stringify(this.sessions));
+        }
+
+        createNewSession() {
+            const newSession = {
+                id: Date.now().toString(),
+                name: "新会话 " + (this.sessions.length + 1),
+                messages: []
+            };
+            this.sessions.push(newSession);
+            this.saveSessions();
+            this.renderSessionList();
+            this.currentSessionIndex = this.sessions.length - 1;
+            this.switchSession(this.currentSessionIndex);
+        }
+
+        deleteCurrentSession() {
+            if (this.currentSessionIndex < 0 || this.currentSessionIndex >= this.sessions.length) {
+                alert("没有可删除的会话");
+                return;
+            }
+            if (!confirm("确定要删除此会话吗？")) return;
+            this.sessions.splice(this.currentSessionIndex, 1);
+            if (this.sessions.length === 0) {
+                this.createNewSession();
+            } else {
+                this.currentSessionIndex = 0;
+            }
+            this.saveSessions();
+            this.renderSessionList();
+            this.switchSession(this.currentSessionIndex);
+        }
+
+        // 新增：重命名会话
+        renameCurrentSession() {
+            if (!this.currentSession) {
+                alert("未选中任何会话");
+                return;
+            }
+            const oldName = this.currentSession.name;
+            // 用 prompt 简单实现，你也可以改成自己弹窗
+            const newName = prompt("请输入新的会话名称：", oldName);
+            if (newName && newName.trim()) {
+                this.currentSession.name = newName.trim();
+                this.saveSessions();
+                this.renderSessionList();
+            }
+        }
+
+        renderSessionList() {
+            this.sessionListEl.innerHTML = '';
+            this.sessions.forEach((s, idx) => {
+                const li = document.createElement('li');
+                li.textContent = s.name;
+                if (idx === this.currentSessionIndex) {
+                    li.classList.add('active');
+                }
+                li.addEventListener('click', () => {
+                    this.switchSession(idx);
+                });
+                this.sessionListEl.appendChild(li);
+            });
+        }
+
+        switchSession(index) {
+            if (index < 0 || index >= this.sessions.length) return;
+            this.currentSessionIndex = index;
+            this.renderSessionList();
+            this.renderAllMessagesOfCurrentSession();
+            this.initSystemPromptPreview(); 
+        }
+
+        get currentSession() {
+            if (this.currentSessionIndex < 0 || this.currentSessionIndex >= this.sessions.length) {
+                return null;
+            }
+            return this.sessions[this.currentSessionIndex];
+        }
+
+        renderAllMessagesOfCurrentSession() {
+            this.messagesContainer.innerHTML = '';
+            if (!this.currentSession) return;
+            for (let msg of this.currentSession.messages) {
+                if (msg.role === 'system') {
+                    // 不显示system或自定义显示
+                } else if (msg.role === 'user') {
+                    this.displayMessage("我：" + msg.content, 'user-message');
+                } else if (msg.role === 'assistant') {
+                    this.displayMessage("玖数：" + msg.content, 'assistant-message');
+                }
+            }
+        }
+
+        // =========== 模型相关 =========== //
+        initSystemPromptPreview() {
+            const config = this.CONFIG[this.currentConfigIndex];
+            const defaultPrompt = "你是 玖数 AI，默认System Prompt...";
+            const systemPrompt = config ? (config.presetPrompt || defaultPrompt) : defaultPrompt;
+            this.systemMessagePreview.textContent = "[System] " + systemPrompt;
+        }
+
+        populateModelSelector() {
+            this.modelSelector.innerHTML = '';
+            this.CONFIG.forEach((cfg, i) => {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = cfg.name;
+                this.modelSelector.appendChild(opt);
+            });
+            this.modelSelector.value = this.currentConfigIndex;
+        }
+
+        // =========== DOM =========== //
+        initElements() {
+            // 左侧会话
+            this.sessionListEl = document.getElementById('session-list');
+            this.createSessionBtn = document.getElementById('create-session-btn');
+            this.deleteSessionBtn = document.getElementById('delete-session-btn');
+            this.renameSessionBtn = document.getElementById('rename-session-btn');
+
+            // 右侧聊天
+            this.messagesContainer = document.getElementById('messages');
+            this.userInput = document.getElementById('user-input');
+            this.sendBtn = document.getElementById('send-btn');
+            this.refreshBtn = document.getElementById('refresh-btn');
+            this.loadingIndicator = document.getElementById('loading');
+
+            // 模型
+            this.toggleModelBtn = document.getElementById('toggle-model-btn');
+            this.modelOptionsWrapper = document.getElementById('model-options-wrapper');
+            this.modelSelector = document.getElementById('model-selector');
+            this.addModelBtn = document.getElementById('add-model-btn');
+            this.deleteModelBtn = document.getElementById('delete-model-btn');
+            this.editModelBtn = document.getElementById('edit-model-btn');
+            this.systemMessagePreview = document.getElementById('system-message-preview');
+
+            // 新增模型弹窗
+            this.addModelContainer = document.getElementById('add-model-container');
+            this.modelNameInput = document.getElementById('modelNameInput');
+            this.modelApiUrlInput = document.getElementById('modelApiUrlInput');
+            this.modelApiKeyInput = document.getElementById('modelApiKeyInput');
+            this.modelFieldInput = document.getElementById('modelFieldInput');
+            this.modelTempInput = document.getElementById('modelTempInput');
+            this.modelPresetPromptInput = document.getElementById('modelPresetPromptInput');
+            this.confirmAddModelBtn = document.getElementById('confirmAddModelBtn');
+            this.cancelAddModelBtn = document.getElementById('cancelAddModelBtn');
+
+            // 编辑模型弹窗
+            this.editModelContainer = document.getElementById('edit-model-container');
+            this.editModelNameInput = document.getElementById('editModelNameInput');
+            this.editModelApiUrlInput = document.getElementById('editModelApiUrlInput');
+            this.editModelApiKeyInput = document.getElementById('editModelApiKeyInput');
+            this.editModelFieldInput = document.getElementById('editModelFieldInput');
+            this.editModelTempInput = document.getElementById('editModelTempInput');
+            this.editModelPresetPromptInput = document.getElementById('editModelPresetPromptInput');
+            this.confirmEditModelBtn = document.getElementById('confirmEditModelBtn');
+            this.cancelEditModelBtn = document.getElementById('cancelEditModelBtn');
+        }
+
+        addEventListeners() {
+            // 会话
+            this.createSessionBtn.addEventListener('click', () => this.createNewSession());
+            this.deleteSessionBtn.addEventListener('click', () => this.deleteCurrentSession());
+            // 重命名
+            this.renameSessionBtn.addEventListener('click', () => this.renameCurrentSession());
+
+            // 输入框
+            this.userInput.addEventListener('input', () => {
+                this.updateSendButtonState();
+                this.autoResizeTextarea();
+            });
+            this.userInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.sendMessage();
+                }
+            });
+            this.sendBtn.addEventListener('click', () => this.sendMessage());
+            this.refreshBtn.addEventListener('click', () => {
+                this.clearCurrentSessionMessages();
+            });
+
+            // 模型切换
+            this.modelSelector.addEventListener('change', (e) => {
+                this.currentConfigIndex = parseInt(e.target.value);
+                this.initSystemPromptPreview();
+            });
+            this.toggleModelBtn.addEventListener('click', () => {
+                if (this.modelOptionsWrapper.style.display === '' || this.modelOptionsWrapper.style.display === 'none') {
+                    this.modelOptionsWrapper.style.display = 'block';
+                } else {
+                    this.modelOptionsWrapper.style.display = 'none';
+                }
+            });
+
+            // 模型CRUD
+            this.addModelBtn.addEventListener('click', () => this.showAddModelForm());
+            this.deleteModelBtn.addEventListener('click', () => this.deleteModel());
+            this.editModelBtn.addEventListener('click', () => this.showEditModelForm());
+            this.confirmAddModelBtn.addEventListener('click', () => this.confirmAddModel());
+            this.cancelAddModelBtn.addEventListener('click', () => this.hideAddModelForm());
+            this.confirmEditModelBtn.addEventListener('click', () => this.confirmEditModel());
+            this.cancelEditModelBtn.addEventListener('click', () => this.hideEditModelForm());
+        }
+
+        // 清空当前会话里的消息
+        clearCurrentSessionMessages() {
+            if (!this.currentSession) return;
+            this.currentSession.messages = [];
+            this.saveSessions();
+            this.renderAllMessagesOfCurrentSession();
+        }
+
+        updateSendButtonState() {
+            const hasContent = this.userInput.value.trim().length > 0;
+            this.sendBtn.disabled = !hasContent;
+        }
+
+        autoResizeTextarea() {
+            this.userInput.style.height = 'auto';
+            this.userInput.style.height = `${this.userInput.scrollHeight}px`;
+        }
+
+        // 发送消息
+        async sendMessage() {
+            if (!this.currentSession) {
+                alert("请先选择/创建一个会话！");
+                return;
+            }
+            const userMessage = this.userInput.value.trim();
+            if (!userMessage) return;
+
+            this.displayMessage("我：" + userMessage, 'user-message');
+            this.currentSession.messages.push({ role: 'user', content: userMessage });
+            this.saveSessions();
+            this.userInput.value = '';
+            this.updateSendButtonState();
+
+            await this.getAssistantReply();
+        }
+
+        // 调用模型
+        async getAssistantReply() {
+            this.loadingIndicator.style.display = 'block';
+
+            const config = this.CONFIG[this.currentConfigIndex];
+            if (!config) {
+                this.displayMessage("玖数：未选择模型或模型配置无效！", 'assistant-message');
+                this.loadingIndicator.style.display = 'none';
+                return;
+            }
+
+            // systemPrompt
+            const systemPrompt = config.presetPrompt || "你是 玖数 AI，默认system prompt...";
+            const allMessages = [
+                { role: 'system', content: systemPrompt },
+                ...this.currentSession.messages
+            ];
+
+            try {
+                const res = await fetch(config.apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${config.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: config.model,
+                        messages: allMessages,
+                        temperature: config.temperature
+                    })
+                });
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                const data = await res.json();
+                if (!data.choices || !data.choices[0].message) {
+                    throw new Error("接口返回格式不符预期");
+                }
+                const assistantMsg = data.choices[0].message.content;
+                this.displayMessageStepByStep("玖数：" + assistantMsg, 'assistant-message');
+                this.currentSession.messages.push({ role: 'assistant', content: assistantMsg });
+                this.saveSessions();
+            } catch (err) {
+                console.error(err);
+                this.displayMessage("玖数：对不起，接口调用失败。", 'assistant-message');
+            }
+
+            this.loadingIndicator.style.display = 'none';
+        }
+
+        // 显示消息
+        displayMessage(message, className) {
+            const msgEl = document.createElement('div');
+            msgEl.className = `message ${className}`;
+            const contentEl = document.createElement('div');
+            contentEl.className = 'message-content';
+            contentEl.textContent = message;
+            const timeEl = document.createElement('span');
+            timeEl.className = 'timestamp';
+            timeEl.textContent = new Date().toLocaleTimeString();
+            msgEl.appendChild(contentEl);
+            msgEl.appendChild(timeEl);
+            this.messagesContainer.appendChild(msgEl);
+            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+            MathJax.typesetPromise([msgEl]);
+        }
+
+        displayMessageStepByStep(message, className) {
+            if (message.includes("```")) {
+                this.displayCodeBlock(message, className);
+            } else {
+                this.displayTextStepByStep(message, className);
+            }
+        }
+
+        displayTextStepByStep(message, className) {
+            const msgEl = document.createElement('div');
+            msgEl.className = `message ${className}`;
+            const contentEl = document.createElement('div');
+            contentEl.className = 'message-content';
+            msgEl.appendChild(contentEl);
+            this.messagesContainer.appendChild(msgEl);
+            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+
+            const parts = message.split('###');
+            let partIndex = 0;
+            const showNextPart = () => {
+                if (partIndex < parts.length) {
+                    const p = parts[partIndex++];
+                    let charIndex = 0;
+                    const timer = setInterval(() => {
+                        if (charIndex < p.length) {
+                            contentEl.innerHTML += p[charIndex++];
+                            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+                        } else {
+                            clearInterval(timer);
+                            if (partIndex < parts.length) contentEl.innerHTML += '<br><br>';
+                            showNextPart();
+                        }
+                    }, 1);
+                } else {
+                    MathJax.typesetPromise([contentEl]);
+                }
+            };
+            showNextPart();
+        }
+
+        displayCodeBlock(message, className) {
+            const codeMatch = message.match(/```(\w+)?\n([\s\S]+?)```/);
+            const language = codeMatch ? (codeMatch[1] || 'plaintext') : 'plaintext';
+            const codeContent = codeMatch ? codeMatch[2].trim() : message.replace(/```/g, "").trim();
+
+            const msgEl = document.createElement('div');
+            msgEl.className = `message ${className}`;
+
+            const codeContainer = document.createElement('div');
+            codeContainer.className = 'code-container';
+            const preEl = document.createElement('pre');
+            preEl.className = `code-content language-${language}`;
+            const codeEl = document.createElement('code');
+            codeEl.className = `language-${language}`;
+            codeEl.textContent = codeContent;
+
+            preEl.appendChild(codeEl);
+            codeContainer.appendChild(preEl);
+            msgEl.appendChild(codeContainer);
+
+            this.messagesContainer.appendChild(msgEl);
+            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+
+            Prism.highlightElement(codeEl);
+            MathJax.typesetPromise([msgEl]);
+        }
+
+        // ========== 模型管理 ========== //
+        showAddModelForm() {
+            this.modelNameInput.value = "";
+            this.modelApiUrlInput.value = "";
+            this.modelApiKeyInput.value = "";
+            this.modelFieldInput.value = "";
+            this.modelTempInput.value = 0;
+            this.modelPresetPromptInput.value = "";
+            this.addModelContainer.style.display = "block";
+        }
+        hideAddModelForm() {
+            this.addModelContainer.style.display = "none";
+        }
+        confirmAddModel() {
+            const name = this.modelNameInput.value.trim();
+            const apiUrl = this.modelApiUrlInput.value.trim();
+            const apiKey = this.modelApiKeyInput.value.trim();
+            const modelID = this.modelFieldInput.value.trim();
+            const temperature = parseFloat(this.modelTempInput.value) || 0;
+            const presetPrompt = this.modelPresetPromptInput.value.trim();
+            if (!name || !apiUrl || !apiKey || !modelID) {
+                alert("请填写完整信息");
+                return;
+            }
+            const newCfg = { 
+                name, 
+                apiUrl, 
+                apiKey, 
+                model: modelID, 
+                temperature, 
+                presetPrompt 
+            };
+            this.customConfigs.push(newCfg);
+            this.CONFIG = [...this.defaultConfigs, ...this.customConfigs];
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(this.customConfigs));
+            this.hideAddModelForm();
+            this.populateModelSelector();
+            alert("模型添加成功！");
+        }
+
+        showEditModelForm() {
+            const idx = parseInt(this.modelSelector.value);
+            if (idx < 0 || idx >= this.CONFIG.length) {
+                alert("请选择要编辑的模型！");
+                return;
+            }
+            const cfg = this.CONFIG[idx];
+            this.editModelNameInput.value = cfg.name;
+            this.editModelApiUrlInput.value = cfg.apiUrl;
+            this.editModelApiKeyInput.value = cfg.apiKey;
+            this.editModelFieldInput.value = cfg.model;
+            this.editModelTempInput.value = cfg.temperature;
+            this.editModelPresetPromptInput.value = cfg.presetPrompt || "";
+            this.editModelContainer.style.display = "block";
+        }
+        hideEditModelForm() {
+            this.editModelContainer.style.display = "none";
+        }
+        confirmEditModel() {
+            const idx = parseInt(this.modelSelector.value);
+            if (idx < 0 || idx >= this.CONFIG.length) {
+                alert("模型索引无效！");
+                return;
+            }
+            const editName = this.editModelNameInput.value.trim();
+            const editApiUrl = this.editModelApiUrlInput.value.trim();
+            const editApiKey = this.editModelApiKeyInput.value.trim();
+            const editModelField = this.editModelFieldInput.value.trim();
+            const editTemp = parseFloat(this.editModelTempInput.value) || 0;
+            const editPrompt = this.editModelPresetPromptInput.value.trim();
+            if (!editName || !editApiUrl || !editApiKey || !editModelField) {
+                alert("请填写完整信息！");
+                return;
+            }
+            const customIdx = idx - this.defaultConfigs.length;
+            if (customIdx < 0 || customIdx >= this.customConfigs.length) {
+                alert("无法编辑默认模型或索引无效");
+                this.hideEditModelForm();
+                return;
+            }
+            this.customConfigs[customIdx] = {
+                name: editName,
+                apiUrl: editApiUrl,
+                apiKey: editApiKey,
+                model: editModelField,
+                temperature: editTemp,
+                presetPrompt: editPrompt
+            };
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(this.customConfigs));
+            this.CONFIG = [...this.defaultConfigs, ...this.customConfigs];
+            this.hideEditModelForm();
+            this.populateModelSelector();
+            alert("模型修改成功！");
+            this.initSystemPromptPreview();
+        }
+
+        deleteModel() {
+            const idx = parseInt(this.modelSelector.value);
+            if (idx < 0 || idx >= this.CONFIG.length) {
+                alert("请选择正确的模型！");
+                return;
+            }
+            const customIdx = idx - this.defaultConfigs.length;
+            if (customIdx < 0 || customIdx >= this.customConfigs.length) {
+                alert("无法删除默认模型或索引无效");
+                return;
+            }
+            this.customConfigs.splice(customIdx, 1);
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(this.customConfigs));
+            this.CONFIG = [...this.defaultConfigs, ...this.customConfigs];
+            this.populateModelSelector();
+            alert("模型删除成功！");
+            // 切回第0个
+            this.modelSelector.value = 0;
+            this.currentConfigIndex = 0;
+            this.initSystemPromptPreview();
+        }
+    }
+
+    // 页面就绪
+    document.addEventListener('DOMContentLoaded', () => {
+        const app = new ChatApp();
+    });
+    </script>
+</body>
+</html>
