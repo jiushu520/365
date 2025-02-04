@@ -519,11 +519,11 @@
                 return false;
             }
 
-            getSVG() {
-                const { xa, ya, xb, yb, xIntercept } = this.currentQuestion;
-                return generateSVG(xa, ya, xb, yb, true); // 传入参数指示需突出显示 x-intercept
-            }
-        }
+getSVG() {
+        const { xa, ya, xb, yb, xIntercept } = this.currentQuestion;
+        return generateSVG(xa, ya, xb, yb, true, false, xIntercept); // 传入xIntercept作为givenX参数
+    }
+}
 
         // 子类：LineEquationQuestion
         class LineEquationQuestion extends QuestionType {
