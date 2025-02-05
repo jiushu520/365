@@ -178,10 +178,13 @@
 
   <!-- MathJax for rendering LaTeX -->
   <script>
-    window.MathJax = {
-      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
-      svg: { fontCache: 'global' }
-    };
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(', '\\)']],  // 移除$符号作为分隔符
+    displayMath: [['\\[', '\\]']]  // 移除$$符号作为分隔符
+  },
+  svg: { fontCache: 'global' }
+};
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js"></script>
 
@@ -335,11 +338,11 @@
       updateSendButton();
 
       if (!textContent && imageBase64) {
-        textContent = "识别图片所有的内容，如果是数学公式就转换为latex的格式，只给出图片中的内容就可以，不要余的信息。";
+        textContent = "识别图片所有的内容，如果是数学公式就转换为不带$符号的纯latex代码（不要任何公式分隔符），只给出图片中的内容就可以，不要其他信息。";
       }
 
       if (textContent && !imageBase64) {
-        textContent += "识别图片所有的内容，如果是数学公式就转换为latex的格式，只给出图片中的内容就可以，不要余的信息。";
+        textContent += "识别图片所有的内容，如果是数学公式就转换为不带$符号的纯latex代码（不要任何公式分隔符），只给出图片中的内容就可以，不要其他信息。";
       }
 
       const messages = [];
@@ -372,7 +375,7 @@
             'Authorization': 'Bearer 046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU'
           },
           body: JSON.stringify({
-            model: "glm-4v-Flash",
+            model: "glm-4v-plus",
             messages: conversation
           })
         });
@@ -424,6 +427,8 @@
     }
 
     function parseContent(content) {
+ // 新增：移除所有$符号
+      content = content.replace(/\$/g, '');
       let parsedContent = content
         .replace(/\$\$(.*?)\$\$/gs, (match, p1) => `<span class="math">\\[${p1}\\]</span>`)
         .replace(/\$(.*?)\$/g, (match, p1) => `<span class="math">\\(${p1}\\)</span>`)
