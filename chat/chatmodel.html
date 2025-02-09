@@ -16,7 +16,7 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>可重命名会话</title>
+    <title>玖数智能模型</title>
     <link rel="icon" href="faviconkimi.ico" type="image/x-icon">
     <!-- 代码高亮 Prism -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-okaidia.min.css" rel="stylesheet" />
@@ -124,32 +124,32 @@
             flex: 1 1 100%;
             word-break: break-word;
         }
-/* 修改后的输入容器样式 */
-#input-container {
-    flex-shrink: 0;
-    background-color: #fff;
-    border-top: 1px solid #ccc;
-    padding: 10px;
-    display: flex;
-    align-items: flex-start; /* 修改为顶部对齐 */
-    min-height: 60px; /* 最小高度保障基础输入 */
-    max-height: 50vh; /* 最大高度不超过视口一半 */
-    overflow-y: auto; /* 当内容超过高度时显示滚动条 */
-}
+        /* 修改后的输入容器样式 */
+        #input-container {
+            flex-shrink: 0;
+            background-color: #fff;
+            border-top: 1px solid #ccc;
+            padding: 10px;
+            display: flex;
+            align-items: flex-start; /* 顶部对齐 */
+            min-height: 60px; /* 最小高度 */
+            max-height: 50vh; /* 最大高度不超过视口一半 */
+            overflow-y: auto;
+        }
 
-/* 修改后的输入框样式 */
-#user-input {
-    flex: 1;
-    padding: 10px;
-    border: 2px solid #ccc;
-    border-radius: 5px;
-    resize: none;
-    font-size: 1em;
-    overflow-y: auto; /* 改为自动显示滚动条 */
-    min-height: 40px;
-    max-height: 200px; /* 设置输入框最大高度 */
-    margin-right: 10px;
-}
+        /* 修改后的输入框样式 */
+        #user-input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+            font-size: 1em;
+            overflow-y: auto;
+            min-height: 40px;
+            max-height: 200px;
+            margin-right: 10px;
+        }
         #user-input:focus {
             outline: none;
             border-color: #007bff;
@@ -424,7 +424,7 @@
                 this.currentSessionIndex = 0;
             }
 
-            // === 绑定DOM & 渲染 ===
+            // === 绑定 DOM & 渲染 ===
             this.initElements();
             this.addEventListeners();
             this.populateModelSelector();
@@ -487,7 +487,6 @@
                 return;
             }
             const oldName = this.currentSession.name;
-            // 用 prompt 简单实现，你也可以改成自己弹窗
             const newName = prompt("请输入新的会话名称：", oldName);
             if (newName && newName.trim()) {
                 this.currentSession.name = newName.trim();
@@ -497,7 +496,8 @@
         }
 
         renderSessionList() {
-            this.sessionListEl.innerHTML = '';
+            // 使用 DocumentFragment 避免频繁重排
+            const fragment = document.createDocumentFragment();
             this.sessions.forEach((s, idx) => {
                 const li = document.createElement('li');
                 li.textContent = s.name;
@@ -507,8 +507,10 @@
                 li.addEventListener('click', () => {
                     this.switchSession(idx);
                 });
-                this.sessionListEl.appendChild(li);
+                fragment.appendChild(li);
             });
+            this.sessionListEl.innerHTML = '';
+            this.sessionListEl.appendChild(fragment);
         }
 
         switchSession(index) {
@@ -531,11 +533,11 @@
             if (!this.currentSession) return;
             for (let msg of this.currentSession.messages) {
                 if (msg.role === 'system') {
-                    // 不显示system或自定义显示
+                    // 此处可选择不显示 system 消息
                 } else if (msg.role === 'user') {
-                    this.displayMessage("我：" + msg.content, 'user-message');
+                    this.displayMessage(`我：${msg.content}`, 'user-message');
                 } else if (msg.role === 'assistant') {
-                    this.displayMessage("玖数：" + msg.content, 'assistant-message');
+                    this.displayMessage(`玖数：${msg.content}`, 'assistant-message');
                 }
             }
         }
@@ -559,7 +561,7 @@
             this.modelSelector.value = this.currentConfigIndex;
         }
 
-        // =========== DOM =========== //
+        // =========== DOM 相关 =========== //
         initElements() {
             // 左侧会话
             this.sessionListEl = document.getElementById('session-list');
@@ -607,13 +609,12 @@
         }
 
         addEventListeners() {
-            // 会话
+            // 会话相关
             this.createSessionBtn.addEventListener('click', () => this.createNewSession());
             this.deleteSessionBtn.addEventListener('click', () => this.deleteCurrentSession());
-            // 重命名
             this.renameSessionBtn.addEventListener('click', () => this.renameCurrentSession());
 
-            // 输入框
+            // 输入框事件
             this.userInput.addEventListener('input', () => {
                 this.updateSendButtonState();
                 this.autoResizeTextarea();
@@ -626,7 +627,9 @@
             });
             this.sendBtn.addEventListener('click', () => this.sendMessage());
             this.refreshBtn.addEventListener('click', () => {
-                this.clearCurrentSessionMessages();
+                if (confirm("确定清除当前会话内容？")) {
+                    this.clearCurrentSessionMessages();
+                }
             });
 
             // 模型切换
@@ -642,7 +645,7 @@
                 }
             });
 
-            // 模型CRUD
+            // 模型 CRUD 操作
             this.addModelBtn.addEventListener('click', () => this.showAddModelForm());
             this.deleteModelBtn.addEventListener('click', () => this.deleteModel());
             this.editModelBtn.addEventListener('click', () => this.showEditModelForm());
@@ -652,7 +655,6 @@
             this.cancelEditModelBtn.addEventListener('click', () => this.hideEditModelForm());
         }
 
-        // 清空当前会话里的消息
         clearCurrentSessionMessages() {
             if (!this.currentSession) return;
             this.currentSession.messages = [];
@@ -670,7 +672,6 @@
             this.userInput.style.height = `${this.userInput.scrollHeight}px`;
         }
 
-        // 发送消息
         async sendMessage() {
             if (!this.currentSession) {
                 alert("请先选择/创建一个会话！");
@@ -679,7 +680,7 @@
             const userMessage = this.userInput.value.trim();
             if (!userMessage) return;
 
-            this.displayMessage("我：" + userMessage, 'user-message');
+            this.displayMessage(`我：${userMessage}`, 'user-message');
             this.currentSession.messages.push({ role: 'user', content: userMessage });
             this.saveSessions();
             this.userInput.value = '';
@@ -688,7 +689,6 @@
             await this.getAssistantReply();
         }
 
-        // 调用模型
         async getAssistantReply() {
             this.loadingIndicator.style.display = 'block';
 
@@ -725,7 +725,7 @@
                     throw new Error("接口返回格式不符预期");
                 }
                 const assistantMsg = data.choices[0].message.content;
-                this.displayMessageStepByStep("玖数：" + assistantMsg, 'assistant-message');
+                this.displayMessageStepByStep(`玖数：${assistantMsg}`, 'assistant-message');
                 this.currentSession.messages.push({ role: 'assistant', content: assistantMsg });
                 this.saveSessions();
             } catch (err) {
@@ -736,7 +736,6 @@
             this.loadingIndicator.style.display = 'none';
         }
 
-        // 显示消息
         displayMessage(message, className) {
             const msgEl = document.createElement('div');
             msgEl.className = `message ${className}`;
@@ -794,7 +793,8 @@
         }
 
         displayCodeBlock(message, className) {
-            const codeMatch = message.match(/```(\w+)?\n([\s\S]+?)```/);
+            const codeRegex = /```(\w+)?\n([\s\S]+?)```/;
+            const codeMatch = message.match(codeRegex);
             const language = codeMatch ? (codeMatch[1] || 'plaintext') : 'plaintext';
             const codeContent = codeMatch ? codeMatch[2].trim() : message.replace(/```/g, "").trim();
 
@@ -927,6 +927,7 @@
                 alert("无法删除默认模型或索引无效");
                 return;
             }
+            if (!confirm("确定删除当前模型吗？")) return;
             this.customConfigs.splice(customIdx, 1);
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(this.customConfigs));
             this.CONFIG = [...this.defaultConfigs, ...this.customConfigs];
@@ -939,9 +940,8 @@
         }
     }
 
-    // 页面就绪
     document.addEventListener('DOMContentLoaded', () => {
-        const app = new ChatApp();
+        new ChatApp();
     });
     </script>
 </body>

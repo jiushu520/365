@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图片生成聊天程序</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 20px;
+      background-color: #f9f9f9;
+    }
+    .chat-container {
+      max-width: 600px;
+      margin: auto;
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+    .chat-messages {
+      margin-bottom: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px;
+      background: #f4f4f4;
+    }
+    .chat-messages img {
+      max-width: 100%;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    .chat-input {
+      display: flex;
+      gap: 10px;
+    }
+    .chat-input input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .chat-input button {
+      padding: 10px 20px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .chat-input button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <h1>图片生成聊天程序</h1>
+    <div class="chat-messages" id="chatMessages">
+      <!-- 消息记录 -->
+    </div>
+    <div class="chat-input">
+      <input type="text" id="promptInput" placeholder="请输入图片描述..." />
+      <button onclick="generateImage()">生成图片</button>
+    </div>
+  </div>
+
+  <script>
+    async function generateImage() {
+      const prompt = document.getElementById("promptInput").value.trim();
+      if (!prompt) {
+        alert("请输入图片描述！");
+        return;
+      }
+
+      // 更新消息框
+      const chatMessages = document.getElementById("chatMessages");
+      const userMessage = document.createElement("div");
+      userMessage.textContent = `用户: ${prompt}`;
+      chatMessages.appendChild(userMessage);
+
+      // 调用 API
+      const apiKey = "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU";
+      const model = "cogview-4";
+      const url = "https://open.bigmodel.cn/api/paas/v4/images/generations";
+
+      const requestData = {
+        model,
+        prompt,
+        size: "1024x1024"
+      };
+
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`
+          },
+          body: JSON.stringify(requestData)
+        });
+
+        const data = await response.json();
+
+        if (data.data && data.data.length > 0) {
+          const imageUrl = data.data[0].url;
+
+          // 显示图片
+          const imageElement = document.createElement("img");
+          imageElement.src = imageUrl;
+          chatMessages.appendChild(imageElement);
+        } else {
+          alert("未生成图片，请稍后再试！");
+        }
+      } catch (error) {
+        console.error("请求失败：", error);
+        alert("请求失败，请检查网络或API配置！");
+      }
+    }
+  </script>
+</body>
+</html>

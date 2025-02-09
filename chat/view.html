@@ -242,6 +242,35 @@ runButton.addEventListener("click", () => {
         constructor() {
             this.CONFIG = [
 
+
+        {
+                    name: "deepseek-reasoner",
+                    apiUrl: "https://api.deepseek.com/v1/chat/completions",
+                    apiKey: "sk-eafb6da8cb3948ebbbd239f3bc40f2e2",
+                    model: "deepseek-reasoner",
+                    temperature: 0,
+                },
+
+
+           {
+                    name: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
+                    apiUrl: "https://api.siliconflow.cn/v1/chat/completions",
+                    apiKey: "sk-nqwhbtuzjbhtluuegjfvyylkooyspduotvodnddmhouppzkz",
+                    model: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
+                    temperature: 0
+                },
+
+
+
+        {
+                    name: "deepseek-r1xiaojiangai",
+                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
+                    apiKey: "sk-PQUi1mRSyz3OtEadQ6X7PNGjVdP1sO3jDOz4cLjhhwZewjZK",
+                    model: "deepseek-r1",
+                    temperature: 0
+                },
+         
+
                 {
                     name: "glm-zero-preview",
                     apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",

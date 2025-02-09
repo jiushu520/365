@@ -171,8 +171,26 @@
     class ChatApp {
         constructor() {
             this.CONFIG = [
+
+
+            {
+                    name: "deepseek-r1xiaojiangai",
+                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
+                    apiKey: "sk-PQUi1mRSyz3OtEadQ6X7PNGjVdP1sO3jDOz4cLjhhwZewjZK",
+                    model: "deepseek-r1",
+                    temperature: 0
+                },
          
 
+
+
+                {
+                    name: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
+                    apiUrl: "https://api.siliconflow.cn/v1/chat/completions",
+                    apiKey: "sk-nqwhbtuzjbhtluuegjfvyylkooyspduotvodnddmhouppzkz",
+                    model: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
+                    temperature: 0
+                },
 
 
                 {
@@ -182,27 +200,15 @@
                     model: "deepseek-ai/DeepSeek-R1",
                     temperature: 0
                 },
-        {
-                    name: "deepseek-ai/DeepSeek-V2.5",
-                    apiUrl: "https://api.siliconflow.cn/v1/chat/completions",
-                    apiKey: "sk-nqwhbtuzjbhtluuegjfvyylkooyspduotvodnddmhouppzkz",
-                    model: "deepseek-ai/DeepSeek-V2.5",
-                    temperature: 0
-                },
 
 
-     {
+             {
                     name: "deepseek-ai/DeepSeek-V3",
                     apiUrl: "https://api.siliconflow.cn/v1/chat/completions",
                     apiKey: "sk-nqwhbtuzjbhtluuegjfvyylkooyspduotvodnddmhouppzkz",
                     model: "deepseek-ai/DeepSeek-V3",
                     temperature: 0
                 },
-
-
-
-
-
                 {
                     name: "qwen-plus",
                     apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
@@ -211,12 +217,6 @@
                     temperature: 0
                 },
  
-
-
-
- 
-
-
                 {
                     name: "glm-4-flashX",
                     apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
@@ -233,22 +233,7 @@
                     model: "glm-4-flash",
                     temperature: 0
                 },
-        
-
-
-
-
-
-                {
-                    name: "Grok Beta",
-                    apiUrl: "https://api.x.ai/v1/chat/completions",
-                    apiKey: "xai-3DNgwRHMO2NA8cpCbuXocWXS4WoOmoUuyIHdtCNQ6SqLAROVNlPffNlvHDPd5VOaRZGT5crIMGoizWpn",
-                    model: "grok-beta",
-                    temperature: 0
-                },
-
-
-   
+           
                 {
                     name: "glm-zero-preview",
                     apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
@@ -275,6 +260,16 @@
                 },
 
 
+            {
+                    name: "aili-deepseek-r1",
+                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
+                    model: "deepseek-r1",
+                    temperature: 0
+                },
+
+
+
           {
                     name: "aili-deepseek-v3",
                     apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
@@ -282,6 +277,26 @@
                     model: "deepseek-v3",
                     temperature: 0
                 },
+                {
+                    name: "Grok Beta",
+                    apiUrl: "https://api.x.ai/v1/chat/completions",
+                    apiKey: "xai-3DNgwRHMO2NA8cpCbuXocWXS4WoOmoUuyIHdtCNQ6SqLAROVNlPffNlvHDPd5VOaRZGT5crIMGoizWpn",
+                    model: "grok-beta",
+                    temperature: 0
+                },
+
+                {
+                    name: "gpt-4o-mini",
+                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
+                    apiKey: "sk-PQUi1mRSyz3OtEadQ6X7PNGjVdP1sO3jDOz4cLjhhwZewjZK",
+                    model: "gpt-4o-mini",
+                    temperature: 0
+                },
+
+           
+
+
+
 
 
                 // 添加更多模型配置
