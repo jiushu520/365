@@ -244,6 +244,47 @@ runButton.addEventListener("click", () => {
 
 
         {
+                    name: "qwen-max-0125",
+                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
+                    model: "qwen-max-0125",
+                    temperature: 0
+                },
+
+                {
+                    name: "qwen-plus",
+                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
+                    model: "qwen-plus",
+                    temperature: 0
+                },
+ 
+                {
+                    name: "glm-4-flashX",
+                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
+                    model: "glm-4-flashX",
+                    temperature: 0
+                },
+
+
+                {
+                    name: "glm-4-flash",
+                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
+                    model: "glm-4-flash",
+                    temperature: 0
+                },
+           
+                {
+                    name: "glm-zero-preview",
+                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
+                    model: "glm-zero-preview",
+                    temperature: 0
+                },
+
+              {
                     name: "deepseek-reasoner",
                     apiUrl: "https://api.deepseek.com/v1/chat/completions",
                     apiKey: "sk-eafb6da8cb3948ebbbd239f3bc40f2e2",
@@ -252,17 +293,33 @@ runButton.addEventListener("click", () => {
                 },
 
 
-           {
-                    name: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
-                    apiUrl: "https://api.siliconflow.cn/v1/chat/completions",
-                    apiKey: "sk-nqwhbtuzjbhtluuegjfvyylkooyspduotvodnddmhouppzkz",
-                    model: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
+              {
+                    name: "deepseek-chat",
+                    apiUrl: "https://api.deepseek.com/v1/chat/completions",
+                    apiKey: "sk-eafb6da8cb3948ebbbd239f3bc40f2e2",
+                    model: "deepseek-chat",
+                    temperature: 0,
+                },
+
+
+            {
+                    name: "aili-deepseek-r1",
+                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
+                    model: "deepseek-r1",
                     temperature: 0
                 },
 
 
 
-        {
+          {
+                    name: "aili-deepseek-v3",
+                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
+                    model: "deepseek-v3",
+                    temperature: 0
+                },
+                  {
                     name: "deepseek-r1xiaojiangai",
                     apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
                     apiKey: "sk-PQUi1mRSyz3OtEadQ6X7PNGjVdP1sO3jDOz4cLjhhwZewjZK",
@@ -272,52 +329,14 @@ runButton.addEventListener("click", () => {
          
 
                 {
-                    name: "glm-zero-preview",
-                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
-                    model: "glm-zero-preview",
-                    temperature: 0
-                },
-
-
-               {
-                    name: "o1-pro-all",
+                    name: "gpt-4o-mini",
                     apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
-                    apiKey: "sk-OUhVhJZoEP8wZjKlA4B9Bd865d7d40989f35623eDfA24516",
-                    model: "o1-pro-all",
+                    apiKey: "sk-PQUi1mRSyz3OtEadQ6X7PNGjVdP1sO3jDOz4cLjhhwZewjZK",
+                    model: "gpt-4o-mini",
                     temperature: 0
                 },
 
-                {
-                    name: "glm-4-flashX",
-                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
-                    model: "glm-4-flashX",
-                    temperature: 0
-                },
-                {
-                    name: "glm-4-flash",
-                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
-                    model: "glm-4-flash",
-                    temperature: 0
-                },
-                {
-                    name: "qwen-plus",
-                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
-                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
-                    model: "qwen-plus",
-                    temperature: 0
-                },
- 
 
-                {
-                    name: "Grok Beta",
-                    apiUrl: "https://api.x.ai/v1/chat/completions",
-                    apiKey: "xai-1vaHLycBuJvgZoVN2Fhwyt2LWTj3fxMy279O6DsPsOEto0ngsYRZgybenuhU0NNiQCgb8GyCbv3ool6x",
-                    model: "grok-beta",
-                    temperature: 0
-                },
 
             ];
             this.currentConfigIndex = 0; // 默认使用第一个配置
