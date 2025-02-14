@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>四则运算问题阶梯训练</title>
+    <title>A01四则运算问题阶梯训练</title>
 
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
@@ -189,7 +189,7 @@
     <div class="game-container">
         <header>
             <h1>玖数学测训系统</h1>
-            <h3>四则运算问题阶梯训练</h3>
+            <h3>A01四则运算问题阶梯训练</h3>
         </header>
         <section>
             <div class="difficulty-buttons" id="difficultyButtons" role="group" aria-label="难度选择"></div>
@@ -197,15 +197,11 @@
 
             <input type="text" id="answer" placeholder="输入你的答案" aria-label="答案输入">
             <div class="rendered-answer-container">
-                <div id="rendered-answer"></div>
+       
             </div><br>
             <button id="submitAnswer">提交答案</button><br>
 
-            <div class="switch-container">
-                <label for="videoToggle">视频开关</label>
-                <label class="switch">
-                    <input type="checkbox" id="videoToggle" aria-label="视频开关">
-                    <span class="slider"></span>
+  
                 </label>
             </div><br>
 
@@ -242,7 +238,7 @@
             let currentDifficulty = 1;
             let lastQuestionType = '';
             let currentQuestionLevel = 1;
-            const difficultyNames = ["一级简单", "二级中等", "三级困难", "四级混合", "五级综合", "六级挑战", "七级随机"];
+            const difficultyNames = ["01简单", "02中等", "03困难", "04混合", "05综合", "06挑战", "07随机"];
 
             const questionWeights = {
                 level1: 1,
