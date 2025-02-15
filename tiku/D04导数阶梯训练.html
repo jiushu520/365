@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>乘法公式阶梯测试训练</title>
+    <title>D04导数阶梯训练</title>
 
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
@@ -175,7 +175,7 @@
         let incorrectCount = 0;
         let currentDifficulty = 1;
 
-        const difficultyNames = ["01基础题", "02二次函数", "03三次函数", "04多项式函数", "05综合"];
+        const difficultyNames = ["01基础题", "02二次函数", "03三次函数", "04多项式函数", "05分式函数求", "06自然常数e", "07综合"];
 
         document.addEventListener("DOMContentLoaded", () => {
             generateDifficultyButtons();
@@ -207,6 +207,8 @@
                 case 3: return generateLevel3Question();
                 case 4: return generateLevel4Question();
                 case 5: return generateLevel5Question();
+                case 6: return generateLevel6Question();
+                case 7: return generateLevel7Question();
 
                 default: return "";
             }
@@ -393,6 +395,102 @@ function generateLevel4Question() {
 
 
 
+function generateLevel5Question() {
+    // 生成分子和分母的系数和常数项
+    let uCoeff = Math.floor(Math.random() * 5) + 1; // 系数范围为 1-5
+    let vCoeff = Math.floor(Math.random() * 5) + 1; // 系数范围为 1-5
+    let uConstant = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+    let vConstant = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+
+    // 确保分式不为常数
+    while (uCoeff === 1 && uConstant === 0) {
+        uConstant = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+    }
+    while (vCoeff === 1 && vConstant === 0) {
+        vConstant = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+    }
+
+    // 构建分子和分母
+    let uTerm = (uCoeff === 1 ? "" : uCoeff) + "x" + (uConstant >= 0 ? "+" : "") + uConstant;
+    let vTerm = (vCoeff === 1 ? "" : vCoeff) + "x" + (vConstant >= 0 ? "+" : "") + vConstant;
+
+    // 计算导数：u'(x) = uCoeff, v'(x) = vCoeff
+    let uPrime = uCoeff;
+    let vPrime = vCoeff;
+
+    // 展开分子
+    let expandedNumerator = `${vCoeff}x${uConstant >= 0 ? '+' : ''}${uConstant} * ${uPrime} - ${uCoeff}x${vConstant >= 0 ? '+' : ''}${vConstant} * ${vPrime}`;
+
+    // 分子展开后：将常数项和x项提取出来
+    let uTermNumerator = uPrime * vConstant - vPrime * uConstant;
+    let xTermNumerator = vCoeff * uCoeff - uCoeff * vCoeff;
+
+    // 合并同类项
+    let finalNumerator = '';
+
+    // 如果 x 的系数不为 0，显示 x 项
+    if (xTermNumerator !== 0) {
+        finalNumerator = `${xTermNumerator === 1 ? "x" : (xTermNumerator === -1 ? "-x" : (xTermNumerator >= 0 ? xTermNumerator : `(${xTermNumerator})`))}x`;
+    }
+
+    // 如果常数项不为 0，显示常数项
+    if (uTermNumerator !== 0) {
+        finalNumerator += `${uTermNumerator >= 0 ? uTermNumerator : `${uTermNumerator}`}`;
+    }
+
+    // 分母：保持为 (vTerm)^2 的形式
+    let denominator = `(${vTerm})^2`;
+
+    // 正确答案的分子
+    let correctNumerator = finalNumerator.replace(/x\+/g, "x+").replace(/x-/g, "x-");
+
+    correctAnswer = [ `\\frac{${correctNumerator}}{${denominator}}`];
+
+    // 返回 LaTeX 表达式
+    return `\\begin{gather}求导: f(x) = \\frac{${uTerm}}{${vTerm}}  \\end{gather}示例输出：\\frac{a}{(x+b)^2}`;
+}
+
+
+
+
+function generateLevel6Question() {
+    // 生成系数 a，确保 a 不为 0，范围是 -5 到 5（不包括 0）
+    let a;
+    do {
+        a = Math.floor(Math.random() * 10) - 5; // a 取值范围 -5 到 4
+    } while (a === 0);  // 确保 a 不为 0
+
+    // 生成线性因子中的 b，b 的范围是 -4 到 4，但不为 0
+    let b;
+    do {
+        b = Math.floor(Math.random() * 9) - 4; // b 取值范围 -4 到 4
+    } while (b === 0);  // 确保 b 不为 0
+
+    // 处理系数 a 的输出（x 前的系数 1 不显示，-1 显示 -，正数不加 +）
+    let textA = a === 1 ? '' : (a === -1 ? '-' : a);
+    
+    // 处理常数项 b 的输出（正数前加 +，负数显示 -）
+    let textB = b >= 0 ? `+${b}` : `${b}`;
+
+    // 构造多项式 e^x(ax + b)
+    let polynomial = `e^x(${textA}x ${textB})`;
+
+    // 展开 e^x(ax + b) = e^x * ax + e^x * b
+    let expandedPolynomial = `e^x(${textA}x ${textB}) = e^x * ${textA}x + e^x * ${b}`;
+
+    // 计算导数：e^x(ax + b) 的导数是 e^x(ax + b)' + (e^x)' * (ax + b)
+    // 导数 (ax + b)' = a，(e^x)' = e^x
+    let derivative = `e^x(${textA}x ${textB})  ${a}e^x`;
+        correctAnswer = [ `${derivative}`];
+
+    // 返回 LaTeX 表达式
+    return `\\begin{gather}求导:f(x) = e^x(${textA}x ${textB}) \\\\ f'(x) = ? \\end{gather}`;
+}
+
+
+
+
+ 
 
 
 
@@ -409,12 +507,17 @@ function generateLevel4Question() {
 
 
 
-        function generateLevel5Question() {
+
+
+
+        function generateLevel7Question() {
             const levelFunctions = [
                 generateLevel1Question,
                 generateLevel2Question,
                 generateLevel3Question,
                 generateLevel4Question,
+                generateLevel5Question,
+                generateLevel6Question,
 
 
             ];
