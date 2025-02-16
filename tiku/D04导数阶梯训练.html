@@ -441,10 +441,10 @@ function generateLevel5Question() {
     // 分母：保持为 (vTerm)^2 的形式
     let denominator = `(${vTerm})^2`;
 
-    // 正确答案的分子
-    let correctNumerator = finalNumerator.replace(/x\+/g, "x+").replace(/x-/g, "x-");
+// 计算导数分子（原错误部分修正）
+    let numeratorConstant = uCoeff * vConstant - vCoeff * uConstant;
 
-    correctAnswer = [ `\\frac{${correctNumerator}}{${denominator}}`];
+    correctAnswer = [`\\frac{${numeratorConstant}}{(${vTerm})^2}`];
 
     // 返回 LaTeX 表达式
     return `\\begin{gather}求导: f(x) = \\frac{${uTerm}}{${vTerm}}  \\end{gather}示例输出：\\frac{a}{(x+b)^2}`;
