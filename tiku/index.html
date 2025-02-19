@@ -152,14 +152,20 @@
             <input type="text" id="search" placeholder="搜索目录..." onkeyup="filterMenu()">
             <!-- 菜单将通过JavaScript动态生成 -->
         </div>
+
         <div class="center" id="content">
+
             <div class="toggle-menu-btn" onclick="toggleMenu()">目录</div>
+
             <div class="top-content">
+
                 <iframe src="https://shimo.im/docs/gO3odYvGvRfzMZqD" frameborder="0"></iframe>
             </div>
             <div class="bottom-content" id="canvasContainer">
                 <iframe src="" frameborder="0" id="canvasIframe"></iframe>
             </div>
+
+
             <div class="canvas-switch">
                 <label for="canvasSwitch">画布</label>
                 <input type="checkbox" id="canvasSwitch" onchange="toggleCanvas()">
@@ -167,7 +173,9 @@
                 <input type="range" id="canvasHeight" value="500" min="0" max="1000" oninput="setCanvasHeight()">
                 <span id="heightValue">500</span> px
             </div>
+
         </div>
+
     </div>
 
     <script>
@@ -176,9 +184,10 @@
                 title: '基础运算',
                 items: [
                     { text: 'A01四则运算阶梯训练', url: 'A01四则运算阶梯训练.html' },
-                    { text: 'A02分数运算阶梯测试训练', url: 'A02分数运算阶梯测试训练.html' },
-                    { text: 'A03有理数运算阶梯测试训练', url: 'A03有理数运算阶梯测试训练.html' },
-                    { text: 'A04根式运算阶梯测试训练', url: 'A04根式运算阶梯测试训练.html' }
+                    { text: 'A02小数四则运算阶梯训练', url: 'A02小数四则运算阶梯训练.html' },
+                    { text: 'A03分数运算阶梯测试训练', url: 'A03分数运算阶梯测试训练.html' },
+                    { text: 'A04有理数运算阶梯测试训练', url: 'A04有理数运算阶梯测试训练.html' },
+                    { text: 'A05根式运算阶梯测试训练', url: 'A05根式运算阶梯测试训练.html' },
                 ]
             },
             {

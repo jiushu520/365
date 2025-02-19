@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+ <link rel="icon" href="ico/公式.ico" type="image/x-icon">
   <meta charset="UTF-8">
   <title>玖数图文</title>
   <style>
@@ -338,11 +339,11 @@ window.MathJax = {
       updateSendButton();
 
       if (!textContent && imageBase64) {
-        textContent = "识别图片所有的内容，如果是数学公式就转换为不带$符号的纯latex代码（不要任何公式分隔符），只给出图片中的内容就可以，不要其他信息。";
+        textContent = "识别图片中的数学公式并转换为纯latex代码，要求：1.不要任何分隔符（如$、\\(、\\)等） 2.只返回公式内容 3.不要解释性文字";
       }
 
       if (textContent && !imageBase64) {
-        textContent += "识别图片所有的内容，如果是数学公式就转换为不带$符号的纯latex代码（不要任何公式分隔符），只给出图片中的内容就可以，不要其他信息。";
+        textContent +="识别图片中的数学公式并转换为纯latex代码，要求：1.不要任何分隔符（如$、\\(、\\)等） 2.只返回公式内容 3.不要解释性文字";
       }
 
       const messages = [];
@@ -426,16 +427,18 @@ window.MathJax = {
       imageBase64 = '';
     }
 
-    function parseContent(content) {
- // 新增：移除所有$符号
-      content = content.replace(/\$/g, '');
-      let parsedContent = content
-        .replace(/\$\$(.*?)\$\$/gs, (match, p1) => `<span class="math">\\[${p1}\\]</span>`)
-        .replace(/\$(.*?)\$/g, (match, p1) => `<span class="math">\\(${p1}\\)</span>`)
-        .replace(/```([\s\S]*?)```/g, (match, p1) => `<pre><code>${p1}</code></pre>`);
-      return parsedContent;
-    }
-
+function parseContent(content) {
+  // 移除所有可能的分隔符和转义字符
+  content = content.replace(/[$\\(\\)\\[\\]]/g, '');
+  
+  // 包裹公式内容以便MathJax渲染
+  let parsedContent = `\\(${content}\\)`; // 自动添加标准分隔符
+  
+  // 处理代码块（如果有）
+  parsedContent = parsedContent.replace(/```([\s\S]*?)```/g, (match, p1) => `<pre><code>${p1}</code></pre>`);
+  
+  return parsedContent;
+}
     function typeWriter(element, htmlContent) {
       let i = 0;
       let isTag = false;

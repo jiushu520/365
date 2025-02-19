@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>A01四则运算阶梯训练</title>
 
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         body {
             margin: 0;
@@ -142,8 +142,10 @@
 <body>
     <div class="game-container">
         <h1>玖数学测训系统</h1>
+
         <h3>A01四则运算阶梯训练</h3>
-        <div class="difficulty-buttons" id="difficultyButtons"></div>
+
+       <div class="difficulty-buttons" id="difficultyButtons"></div>
         <div id="question"></div><br>
         <input type="text" id="answer" placeholder="输入你的答案" oninput="updatePreview()"><br>
         <div id="rendered-answer"></div><br>
@@ -175,9 +177,10 @@
         let incorrectCount = 0;
         let currentDifficulty = 1;
 
+
         const difficultyNames = ["01加减法", "02表内乘法", "03除法", "04十几乘几", "05十几乘十几", "06多位数除法","07混合运算", "08综合"];
 
-        document.addEventListener("DOMContentLoaded", () => {
+       document.addEventListener("DOMContentLoaded", () => {
             generateDifficultyButtons();
             setDifficulty(1);
         });
@@ -210,6 +213,7 @@
                 case 6: return generateLevel6Question();
                 case 7: return generateLevel7Question();
                 case 8: return generateLevel8Question();
+
                 default: return "";
             }
         }
@@ -218,28 +222,49 @@
 
 
 
-function generateLevel1Question() {
-    // 生成两个非零整数（范围：-5到5，排除0）
-    let a = (Math.floor(Math.random() * 5) + 1) ;
-    let b = (Math.floor(Math.random() * 5) + 1) ;
-    
-    // 随机选择加法或减法
-    const isAddition = Math.random() < 0.5;
-    
-    // 构造显示表达式
-    let expression;
-    if (isAddition) {
-        expression = `${a} + ${b}`;
-        correctAnswer = [a + b];
-    } else {
-        // 处理负数显示（避免出现"--"）
-        const displayB = b < 0 ? `(${b})` : b;
-        expression = `${a} - ${displayB}`;
-        correctAnswer = [a - b];
-    }
-    
-    return `\\(${expression}\\)`;
+
+ 
+function generateLevel1aQuestion() {
+            let m = (Math.floor(Math.random() * 9) + 1) ;
+            let n = (Math.floor(Math.random() * 9) + 1) ;
+            let question =  `${m}+ ${n}`;
+  
+          
+            correctAnswer = [`${m+n}`];
+
+
+         return `\\(${question}\\)`;
 }
+
+
+function generateLevel1bQuestion() {
+            let m = (Math.floor(Math.random() * 9) + 1) ;
+            let n = (Math.floor(Math.random() * 9) + 1) ;
+            let question =  `${m+n}- ${n}`;
+  
+          
+            correctAnswer = [`${m}`];
+
+
+         return `\\(${question}\\)`;
+}
+
+
+        function generateLevel1Question() {
+            const levelFunctions = [
+                generateLevel1aQuestion,
+                generateLevel1bQuestion,
+
+
+            ];
+
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+
+            return selectedFunction();
+        }
+
+
 
 
 
@@ -344,15 +369,6 @@ function generateLevel7Question() {
 
 
 
-
-
-
-
-
-
-
-
-
         function generateLevel8Question() {
             const levelFunctions = [
                 generateLevel1Question,
@@ -375,6 +391,11 @@ function generateLevel7Question() {
 
 
 
+
+
+
+
+      
 
         // （由于篇幅限制，此处省略原有的题目生成函数，保持不变）
 
@@ -502,3 +523,4 @@ function generateLevel7Question() {
     </script>
 </body>
 </html>
+
