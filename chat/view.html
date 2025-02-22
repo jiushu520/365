@@ -1,564 +1,939 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <!-- MathJax for rendering mathematical expressions -->
-    <script>
-    window.MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']],
-        displayMath: [['$$', '$$'], ['\\[', '\\]']]
-      }
-    };
-    </script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>玖数动画演示</title>
-    <link rel="icon" href="faviconkimi.ico" type="image/x-icon">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <title>代码编辑与预览</title>
+    <link rel="icon" href="code_logo.ico" type="image/x-icon">
+
+    <!-- MathJax 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
+
+    <!-- Prism.js 核心及语言组件 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-okaidia.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-javascript.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-python.min.js" defer></script>
-    
-<style>
-        /* General Layout */
-      /* General Layout */
-body {
-    font-family: 'Arial', sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f7f8;
-    display: flex;
-    justify-content: space-between;
-    height: 100vh;
-}
 
-#chat-container {
-    flex: 0 1 33%;
-    max-width: 33vw; /* 限制聊天框的最大宽度为1/3屏幕宽度 */
-    background-color: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    margin: 20px;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-}
+    <!-- CodeMirror CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/monokai.min.css">
 
-pre {
-    background-color: #090909;
-    padding: 10px;
-    border-radius: 5px;
-    overflow: auto;
-    font-size: 0.9rem;
-    color: #ffffff;
-    max-width: 100%; /* 使代码框适应聊天框的宽度 */
-    width: 100%;
-    box-sizing: border-box; /* 确保padding不影响宽度 */
-    white-space: pre-wrap; /* 允许长行自动换行 */
-}
+    <!-- CodeMirror JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js" defer></script>
 
+    <!-- Split.js -->
+    <script src="https://cdn.jsdelivr.net/npm/split.js/dist/split.min.js"></script>
 
-#preview-container {
-    flex: 1; /* 右侧占2/3 */
-    background-color: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    margin: 20px;
-    display: flex;
-    flex-direction: column;
-}
-
-
-
-        #messages {
-            flex: 1;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            padding-right: 10px;
-            font-size: 1rem;
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --background-color: #f8f9fa;
+            --editor-bg: #2c2c2c;
+            --preview-bg: #ffffff;
+            --chat-bg: #e9ecef;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        .message {
-            margin: 8px 0;
-            padding: 12px;
-            border-radius: 8px;
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            height: 100%;
             display: flex;
-            align-items: flex-start;
-            flex-wrap: wrap;
-        }
-        .user-message {
-            background-color: #daf7a6;
-            align-self: flex-end;
-        }
-        .assistant-message {
-            background-color: #ffeb99;
-            align-self: flex-start;
-        }
-        .message-content {
-            flex: 1;
-            word-break: break-word;
+            flex-direction: column;
+            background-color: var(--background-color);
         }
 
-    #input-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between; /* 分开对齐输入框和按钮 */
-    margin-top: 10px;
-}
-
-#user-input {
-    flex: 1; /* 让输入框占据剩余空间 */
-    padding: 12px;
-    font-size: 1rem;
-    border-radius: 5px;
-    border: 2px solid #ccc;
-    resize: vertical;
-    background-color: #f9f9f9;
-}
-        #send-btn ,#refresh-btn{
-            padding: 10px 20px;
-            border: none;
-            background-color: #007bff;
+        header {
+            background-color: var(--primary-color);
             color: white;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 1.5em;
+            flex-shrink: 0;
+        }
+
+        #container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 60px);
+            overflow: hidden;
+        }
+
+        /* 左侧：聊天窗口 */
+        #chat-container {
+            background-color: var(--chat-bg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 13.5px 15px;
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        #chat-header h3 {
+            margin: 0;
+            font-size: 1.2em;
+        }
+
+        #model-select {
+            margin-left: 10px;
+            padding: 5px;
+            border: none;
+            border-radius: 3px;
+            font-size: 1em;
+        }
+
+        #clear-chat-btn {
+            background-color: var(--danger-color);
+            border: none;
+            padding: 5px 10px;
             border-radius: 3px;
             cursor: pointer;
-            margin-left: 1px;
+            color: white;
+            transition: background-color 0.3s;
+        }
+
+        #clear-chat-btn:hover {
+            background-color: #c82333;
+        }
+
+        #chat-messages {
+            flex: 1;
+            padding: 10px 15px;
+            overflow-y: auto;
+        }
+
+        #chat-input-container {
+            display: flex;
+            padding: 10px 15px;
+            border-top: 1px solid #ccc;
+            background-color: #f1f1f1;
+        }
+
+        #chat-input {
+            flex: 1;
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: none;
+            transition: border-color 0.3s;
+        }
+
+        #chat-input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        #send-btn {
+            margin-left: 10px;
+            padding: 10px 20px;
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
             font-size: 1em;
             transition: background-color 0.3s;
         }
 
-
-
-
-        #send-btn:disabled {
-            background-color: #cfcfcf;
-            cursor: not-allowed;
-        }
         #send-btn:hover {
-            background-color: #0056b3;
-            
+            background-color: #218838;
         }
-        #refresh-btn:hover {
-            background-color: #e6f7ff;
+
+        /* 中间：代码编辑区域 */
+        #editor-container {
+            background-color: #343a40;
+            display: flex;
+            flex-direction: column;
+            min-width: 0px;
+            overflow: hidden;
         }
-        #loading {
-            display: none;
-            text-align: center;
-            margin-top: 10px;
-            margin-bottom: 10px;
-            color: #007bff;
+
+        #editor-container h3 {
+            margin: 0;
+            padding: 15px;
+            background-color: #495057;
+            font-size: 1.2em;
+            color: white;
         }
-        #preview-iframe {
+
+        .CodeMirror {
+            flex: 1;
+            height: 100%;
             width: 100%;
-            height: 800px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
+            font-size: 1em;
         }
 
-
-
-        code {
-            font-family: 'Courier New', Courier, monospace;
+        #button-container {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 15px;
+            background-color: #495057;
         }
-        /* Copy button */
-        .copy-btn {
-            background-color: #4CAF50;
+
+        #button-container button {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 5px 10px;
-            font-size: 0.9rem;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
+            font-size: 1em;
             transition: background-color 0.3s;
         }
 
-        .copy-btn:hover {
-            background-color: #45a049;
+        #button-container button:hover {
+            background-color: #0069d9;
         }
 
-        #copy-message {
-            display: none;
-            color: green;
-            font-size: 0.8em;
-            background-color: #f0f8ff;
-            padding: 5px;
-            border-radius: 5px;
+        /* 右侧：实时预览区域 */
+        #preview-container {
+            background-color: var(--preview-bg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #preview-container h3 {
+            margin: 0;
+            padding: 15px;
+            background-color: #495057;
+            color: white;
+            font-size: 1.2em;
+        }
+
+        #preview-iframe {
+            flex: 1;
+            border: none;
+            width: 100%;
+        }
+
+        /* 聊天消息样式 */
+        .message {
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .message strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .assistant {
+            color: var(--primary-color);
+        }
+
+        .user {
+            color: var(--success-color);
+        }
+
+        .copy-btn {
             position: absolute;
-            top: 10px;
-            right: 20px;
-        }
-    </style>
-
-</head>
-<body>
-    <div id="chat-container">
-        <h3 id="title">玖数动画演示</h3>
-        
-        <div id="model-selector-container" style="text-align: center; margin-bottom: 10px;">
-            <label for="model-selector">选择模型：</label>
-            <select id="model-selector">
-                <!-- 下拉菜单选项将由JavaScript动态生成 -->
-            </select>
-        </div>
-        
-        <div id="messages"></div>
-
-        <div id="loading">正在思考中...</div>
-
-        <div id="input-container">
-            <textarea id="user-input" placeholder="输入你的消息..." rows="1"></textarea>
-            <button id="send-btn" disabled>发送</button>
-        </div>
-        <button id="refresh-btn">清除对话</button>
-    </div>
-
-    <div id="preview-container">
-
-
-      
-        <iframe id="preview-iframe"></iframe>
-       <button id="run-btn">运行代码</button>
-        <h3>HTML 代码预览</h3>
-
-        <textarea id="code-input" placeholder="编辑HTML代码..." rows="10"></textarea>
-    </div>
-
-    <script>
-    const runButton = document.getElementById("run-btn");
-    const previewIframe = document.getElementById("preview-iframe");
-    const codeInput = document.getElementById("code-input");
-
-    // 监听点击按钮来更新iframe内容
-runButton.addEventListener("click", () => {
-    const codeWithCacheBuster = codeInput.value.replace(/src="(.+?)"/g, 'src="$1?' + new Date().getTime() + '"');
-    previewIframe.srcdoc = codeWithCacheBuster;
-});
-
-
-
-    class ChatApp {
-        constructor() {
-            this.CONFIG = [
-
-
-        {
-                    name: "qwen-max-0125",
-                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
-                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
-                    model: "qwen-max-0125",
-                    temperature: 0
-                },
-
-                {
-                    name: "qwen-plus",
-                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
-                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
-                    model: "qwen-plus",
-                    temperature: 0
-                },
- 
-                {
-                    name: "glm-4-flashX",
-                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
-                    model: "glm-4-flashX",
-                    temperature: 0
-                },
-
-
-                {
-                    name: "glm-4-flash",
-                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
-                    model: "glm-4-flash",
-                    temperature: 0
-                },
-           
-                {
-                    name: "glm-zero-preview",
-                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
-                    model: "glm-zero-preview",
-                    temperature: 0
-                },
-
-              {
-                    name: "deepseek-reasoner",
-                    apiUrl: "https://api.deepseek.com/v1/chat/completions",
-                    apiKey: "sk-eafb6da8cb3948ebbbd239f3bc40f2e2",
-                    model: "deepseek-reasoner",
-                    temperature: 0,
-                },
-
-
-              {
-                    name: "deepseek-chat",
-                    apiUrl: "https://api.deepseek.com/v1/chat/completions",
-                    apiKey: "sk-eafb6da8cb3948ebbbd239f3bc40f2e2",
-                    model: "deepseek-chat",
-                    temperature: 0,
-                },
-
-
-            {
-                    name: "aili-deepseek-r1",
-                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
-                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
-                    model: "deepseek-r1",
-                    temperature: 0
-                },
-
-
-
-          {
-                    name: "aili-deepseek-v3",
-                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
-                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
-                    model: "deepseek-v3",
-                    temperature: 0
-                },
-                  {
-                    name: "deepseek-r1xiaojiangai",
-                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
-                    apiKey: "sk-PQUi1mRSyz3OtEadQ6X7PNGjVdP1sO3jDOz4cLjhhwZewjZK",
-                    model: "deepseek-r1",
-                    temperature: 0
-                },
-         
-
-                {
-                    name: "gpt-4o-mini",
-                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
-                    apiKey: "sk-PQUi1mRSyz3OtEadQ6X7PNGjVdP1sO3jDOz4cLjhhwZewjZK",
-                    model: "gpt-4o-mini",
-                    temperature: 0
-                },
-
-
-
-            ];
-            this.currentConfigIndex = 0; // 默认使用第一个配置
-            this.SYSTEM_MESSAGE = {
-                "role": "system",
-                "content": "请使用HTML创建一个宽800像素、高450像素的画布，坐标原点位于中心，通过动态图形展示数学原理，每一步尽可能详尽且以交互拖动为主。图形的变化应通过颜色、线条、形状和大小的变化来展示，不同步骤由按钮或滑块控制，用户可以通过操作这些控件观察参数的变化。动态过程应避免过多文字描述，尽量用图形或图像的变化代替，确保内容清晰、直观且具有强互动性，使学生一看就容易理解。"
-            };
-            this.messages = [this.SYSTEM_MESSAGE];
-            this.initElements();
-            this.populateModelSelector();
-            this.addEventListeners();
+            top: 5px;
+            right: 5px;
+            background-color: rgba(76, 175, 80, 0.8);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 0.8em;
+            opacity: 0.8;
+            transition: opacity 0.3s, background-color 0.3s;
+            z-index: 10;
         }
 
-        initElements() {
-            this.messagesContainer = document.getElementById('messages');
-            this.userInput = document.getElementById('user-input');
-            this.sendBtn = document.getElementById('send-btn');
-            this.refreshBtn = document.getElementById('refresh-btn');
-            this.loadingIndicator = document.getElementById('loading');
-            this.modelSelector = document.getElementById('model-selector');
+        .copy-btn:hover {
+            opacity: 1;
+            background-color: rgba(76, 175, 80, 1);
         }
 
-        populateModelSelector() {
-            this.CONFIG.forEach((config, index) => {
-                const option = document.createElement('option');
-                option.value = index;
-                option.textContent = config.name;
-                this.modelSelector.appendChild(option);
-            });
+        .code-block {
+            position: relative;
+            margin: 10px 0;
         }
 
-        addEventListeners() {
-            this.userInput.addEventListener('input', () => this.updateSendButtonState());
-            this.userInput.addEventListener('keydown', (event) => this.handleKeyDown(event));
-            this.sendBtn.addEventListener('click', () => this.handleSendMessage());
-            this.refreshBtn.addEventListener('click', () => this.handleRefreshConversation());
-            this.modelSelector.addEventListener('change', (event) => this.handleModelChange(event));
+        pre {
+            background: #2d2d2d;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 0;
         }
 
-        updateSendButtonState() {
-            this.sendBtn.disabled = this.userInput.value.trim().length === 0;
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
         }
 
-        autoResizeInput() {
-            this.userInput.style.height = 'auto';
-            this.userInput.style.height = (this.userInput.scrollHeight) + 'px';
+        .gutter {
+            background-color: #ccc;
+            height: 100%;
         }
 
-        handleKeyDown(event) {
-            if (event.key === 'Enter') {
-                if (event.shiftKey || event.ctrlKey) {
-                    this.userInput.value += '\n';
-                    this.autoResizeInput();
-                } else {
-                    event.preventDefault();
-                    this.handleSendMessage();
-                }
+        .gutter.gutter-horizontal {
+            cursor: col-resize;
+            width: 10px;
+            background-color: #ccc;
+            z-index: 1;
+            pointer-events: all;
+        }
+
+        .gutter:hover {
+            background-color: #999;
+        }
+
+        @media (max-width: 1200px) {
+            #container {
+                flex-direction: column;
+            }
+
+            #chat-container, #editor-container, #preview-container {
+                width: 100%;
+                height: 33.33%;
+            }
+
+            #preview-iframe {
+                height: 100%;
             }
         }
 
+        .mjx-container {
+            font-size: 1em !important;
+        }
 
-handleSendMessage() {
-    const userMessage = this.userInput.value.trim();
-    if (userMessage.length > 0) {
-        this.addMessage('user', userMessage);
-        this.sendToApi(userMessage);
-        this.userInput.value = ''; // 清空输入框
-        this.autoResizeInput(); // 重新调整输入框高度
+        /* 添加模型模态窗口样式 */
+        #add-model-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            width: 300px;
+            border-radius: 8px;
+        }
 
-        // 清空代码预览框和 iframe 内容
-        codeInput.value = ''; // 清空代码输入框
-        const iframeDoc = previewIframe.contentDocument || previewIframe.contentWindow.document;
-        iframeDoc.open();
-        iframeDoc.write(''); // 清空 iframe
-        iframeDoc.close();
+        #model-management-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            max-width: 600px;
+            width: 90%;
+            border-radius: 8px;
+        }
 
-        // 触发 runButton 的点击事件
-        runButton.click();
-    }
-}
+        #modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
 
+<div id="container">
+    <!-- 左侧：聊天窗口 -->
+    <div id="chat-container">
+        <div id="chat-header">
+            <div>
+                <select id="model-select"></select>
+                <button id="manage-models-btn" style="margin-left:10px;">管理模型</button>
+                <button id="add-model-btn">添加模型</button>
+            </div>
+        </div>
+        <div id="chat-messages"></div>
 
+        <div id="chat-input-container">
+            <button id="clear-chat-btn">清除</button>
+            <textarea id="chat-input" placeholder="输入消息..." rows="2"></textarea>
+            <button id="send-btn">发送</button>
+        </div>
+    </div>
 
+    <!-- 中间：代码编辑区域 -->
+    <div id="editor-container">
+        <h3>代码编辑区</h3>
+        <textarea id="code-input" placeholder="在这里输入 HTML 代码..."></textarea>
+        <div id="button-container">
+            <button id="clear-btn">清除代码</button>
+            <button id="run-btn">运行代码</button>
+        </div>
+    </div>
 
+    <!-- 右侧：实时预览区域 -->
+    <div id="preview-container">
+        <h3>实时预览区</h3>
+        <iframe id="preview-iframe"></iframe>
+    </div>
+</div>
 
-        async sendToApi(message) {
-            this.showLoadingIndicator(true);
-            const selectedConfig = this.CONFIG[this.currentConfigIndex];
+<!-- 模态窗口 -->
+<div id="add-model-modal">
+    <h3>添加自定义模型</h3>
+    <form id="add-model-form">
+        <label>
+            模型名称:
+            <input type="text" id="custom-model-name" required style="width: 100%; margin-bottom: 10px;" />
+        </label>
+        <label>
+            API URL:
+            <input type="url" id="custom-api-url" required style="width: 100%; margin-bottom: 10px;" />
+        </label>
+        <label>
+            API Key:
+            <input type="text" id="custom-api-key" required style="width: 100%; margin-bottom: 10px;" />
+        </label>
+        <label>
+            模型标识:
+            <input type="text" id="custom-model" required style="width: 100%; margin-bottom: 10px;" />
+        </label>
+        <label>
+            温度:
+            <input type="number" id="custom-temperature" min="0" max="1" step="0.1" value="0" style="width: 100%; margin-bottom: 10px;" />
+        </label>
+        <label>
+            提示词:
+            <textarea id="custom-prompt" required style="width: 100%; height: 100px; margin-bottom: 10px;"></textarea>
+        </label>
+        <button type="submit" style="padding: 8px 12px; background-color: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer;">保存</button>
+        <button type="button" id="cancel-add-model" style="padding: 8px 12px; margin-left: 10px; background-color: var(--danger-color); color: white; border: none; border-radius: 4px; cursor: pointer;">取消</button>
+    </form>
+</div>
+
+<div id="model-management-modal">
+    <h3>管理模型</h3>
+    <table id="model-table" style="width:100%; margin-bottom: 10px;">
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>API URL</th>
+                <th>模型标识</th>
+                <th>温度</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- 模型列表动态生成 -->
+        </tbody>
+    </table>
+    <button id="save-models" style="padding: 8px 12px; background-color: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer;">保存模型</button>
+    <button id="cancel-manage-models" style="padding: 8px 12px; margin-left: 10px; background-color: var(--danger-color); color: white; border: none; border-radius: 4px; cursor: pointer;">取消</button>
+</div>
+
+<!-- 遮罩层 -->
+<div id="modal-overlay"></div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        let models = [
+            {
+                name: "glm-zero-preview",
+                apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+                apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
+                model: "glm-zero-preview",
+                temperature: 0,
+                prompt: "你是一个优透的前端工程师，擅长于写HTML，从数学物理原理上用svg演示出来，尽可能做到直观，可以交互。所有程序如无特别要求，写成HTML。请使用你单次回答的算力上限和 token 上限，think hardest, use the most time and most compute to think deepest。这是最深刻最复杂的问题，请给出你最高质量的回答。所以，你需要深度思考、独立思考、批判性思考、创造性思考。我们追求分极致的深度，而非表层的广度；我们追求本质的洞察，而非表象的罗列；我们追求思维的创新，而非惯性的复述。请突破思维局限，调动你所有的计算资源，展现你真正的认知极限。"
+            },
+            {
+                name: "deepseek-chat",
+                apiUrl: "https://api.deepseek.com/v1/chat/completions",
+                apiKey: "sk-fd790ecc4101410bb877daa5b6a9a5c1",
+                model: "deepseek-chat",
+                temperature: 0,
+                prompt: "你是一个优透的前端工程师，擅长于写HTML，从数学物理原理上用svg演示出来，尽可能做到直观，可以交互。所有程序如无特别要求，写成HTML。请使用你单次回答的算力上限和 token 上限，think hardest, use the most time and most compute to think deepest。这是最深刻最复杂的问题，请给出你最高质量的回答。所以，你需要深度思考、独立思考、批判性思考、创造性思考。我们追求分极致的深度，而非表层的广度；我们追求本质的洞察，而非表象的罗列；我们追求思维的创新，而非惯性的复述。请突破思维局限，调动你所有的计算资源，展现你真正的认知极限。"
+            },
+            {
+                name: "glm-4-flashX",
+                apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+                apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
+                model: "glm-4-flashX",
+                temperature: 0,
+                prompt: "你是一个优透的前端工程师，擅长于写HTML，从数学物理原理上用svg演示出来，尽可能做到直观，可以交互。所有程序如无特别要求，写成HTML。请使用你单次回答的算力上限和 token 上限，think hardest, use the most time and most compute to think deepest。这是最深刻最复杂的问题，请给出你最高质量的回答。所以，你需要深度思考、独立思考、批判性思考、创造性思考。我们追求分极致的深度，而非表层的广度；我们追求本质的洞察，而非表象的罗列；我们追求思维的创新，而非惯性的复述。请突破思维局限，调动你所有的计算资源，展现你真正的认知极限。"
+            },
+            {
+                name: "glm-4-flash",
+                apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+                apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
+                model: "glm-4-flash",
+                temperature: 0,
+                prompt: "你是一个优透的前端工程师，擅长于写HTML，从数学物理原理上用svg演示出来，尽可能做到直观，可以交互。所有程序如无特别要求，写成HTML。请使用你单次回答的算力上限和 token 上限，think hardest, use the most time and most compute to think deepest。这是最深刻最复杂的问题，请给出你最高质量的回答。所以，你需要深度思考、独立思考、批判性思考、创造性思考。我们追求分极致的深度，而非表层的广度；我们追求本质的洞察，而非表象的罗列；我们追求思维的创新，而非惯性的复述。请突破思维局限，调动你所有的计算资源，展现你真正的认知极限。"
+            },
+            {
+                name: "qwen-plus",
+                apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+                apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
+                model: "qwen-plus",
+                temperature: 0,
+                prompt: "你是一个优透的前端工程师，擅长于写HTML，从数学物理原理上用svg演示出来，尽可能做到直观，可以交互。所有程序如无特别要求，写成HTML。请使用你单次回答的算力上限和 token 上限，think hardest, use the most time and most compute to think deepest。这是最深刻最复杂的问题，请给出你最高质量的回答。所以，你需要深度思考、独立思考、批判性思考、创造性思考。我们追求分极致的深度，而非表层的广度；我们追求本质的洞察，而非表象的罗列；我们追求思维的创新，而非惯性的复述。请突破思维局限，调动你所有的计算资源，展现你真正的认知极限。"
+            }
+        ];
+
+        const savedModels = JSON.parse(localStorage.getItem('models'));
+        if (savedModels && Array.isArray(savedModels)) {
+            models = savedModels;
+        }
+
+        let currentModelIndex = 0;
+
+        Split(['#chat-container', '#editor-container', '#preview-container'], {
+            sizes: [25, 35, 40],
+            minSize: [0, 0, 0],
+            gutterSize: 10,
+            cursor: 'col-resize',
+            direction: 'horizontal',
+            onDragEnd: () => {
+                console.log('调整大小完成');
+            }
+        });
+
+        const codeTextarea = document.getElementById("code-input");
+        const codeMirror = CodeMirror.fromTextArea(codeTextarea, {
+            mode: "htmlmixed",
+            theme: "monokai",
+            lineNumbers: true,
+            lineWrapping: true,
+            autofocus: true,
+            extraKeys: {
+                "Ctrl-Space": "autocomplete"
+            }
+        });
+
+        codeMirror.setSize("100%", "100%");
+
+        const previewIframe = document.getElementById("preview-iframe");
+        const clearBtn = document.getElementById("clear-btn");
+        const runBtn = document.getElementById("run-btn");
+
+        codeMirror.on("change", () => {
+            const codeWithCacheBuster = codeMirror.getValue().replace(/src="(.+?)"/g, 'src="$1?' + new Date().getTime() + '"');
+            previewIframe.srcdoc = codeWithCacheBuster;
+        });
+
+        clearBtn.addEventListener("click", () => {
+            codeMirror.setValue("");
+            previewIframe.srcdoc = "";
+        });
+
+        runBtn.addEventListener("click", () => {
+            const codeWithCacheBuster = codeMirror.getValue().replace(/src="(.+?)"/g, 'src="$1?' + new Date().getTime() + '"');
+            previewIframe.srcdoc = codeWithCacheBuster;
+        });
+
+        window.addEventListener("load", () => {
+            previewIframe.srcdoc = codeMirror.getValue();
+        });
+
+        const chatMessages = document.getElementById("chat-messages");
+        const chatInput = document.getElementById("chat-input");
+        const sendBtn = document.getElementById("send-btn");
+        const clearChatBtn = document.getElementById("clear-chat-btn");
+        const modelSelect = document.getElementById("model-select");
+        const manageModelsBtn = document.getElementById("manage-models-btn");
+        const addModelBtn = document.getElementById("add-model-btn");
+        const addModelModal = document.getElementById("add-model-modal");
+        const modelManagementModal = document.getElementById("model-management-modal");
+        const modalOverlay = document.getElementById("modal-overlay");
+        const cancelAddModelBtn = document.getElementById("cancel-add-model");
+        const addModelForm = document.getElementById("add-model-form");
+        const modelTableBody = document.getElementById("model-table").getElementsByTagName("tbody")[0];
+        const saveModelsBtn = document.getElementById("save-models");
+        const cancelManageModelsBtn = document.getElementById("cancel-manage-models");
+
+        function populateModelSelect() {
+            modelSelect.innerHTML = '';
+            models.forEach((model, index) => {
+                const option = document.createElement("option");
+                option.value = index;
+                option.textContent = model.name;
+                modelSelect.appendChild(option);
+            });
+        }
+
+        populateModelSelect();
+
+        modelSelect.addEventListener("change", (event) => {
+            currentModelIndex = parseInt(event.target.value, 10);
+            console.log(`已选择模型: ${models[currentModelIndex].name}`);
+        });
+
+        function addMessage(sender, message) {
+            const messageElement = document.createElement("div");
+            messageElement.classList.add("message", sender === "用户" ? "user" : "assistant");
+
+            let formattedMessage = message.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+                const language = lang ? `language-${lang}` : 'language-none';
+                return `
+                    <div class="code-block">
+                        <button class="copy-btn">复制</button>
+                        <pre><code class="${language}">${escapeHtml(code)}</code></pre>
+                    </div>
+                `;
+            });
+
+            messageElement.innerHTML = `<strong>${sender}:</strong> ${formattedMessage}`;
+            chatMessages.appendChild(messageElement);
+
+            const codeBlocks = messageElement.querySelectorAll('code');
+            codeBlocks.forEach((block) => {
+                Prism.highlightElement(block);
+            });
+
+            if (typeof MathJax !== 'undefined') {
+                MathJax.typesetPromise([messageElement]).then(() => {
+                    console.log('MathJax 渲染完成');
+                }).catch((err) => console.error('MathJax 渲染失败: ', err.message));
+            }
+
+            const copyButtons = messageElement.querySelectorAll('.copy-btn');
+            copyButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    const codeElement = button.nextElementSibling.querySelector('code');
+                    const code = codeElement.innerText;
+                    copyToClipboard(code);
+                    button.textContent = '已复制';
+                    button.disabled = true; 
+                    setTimeout(() => {
+                        button.textContent = '复制';
+                        button.disabled = false;
+                    }, 2000);
+                });
+            });
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        function copyToClipboard(text) {
+            if (!navigator.clipboard) {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    console.log('复制成功');
+                } catch (err) {
+                    console.error('复制失败: ', err);
+                }
+                document.body.removeChild(textArea);
+                return;
+            }
+            navigator.clipboard.writeText(text).then(() => {
+                console.log('复制成功');
+            }).catch(err => {
+                console.error('复制失败: ', err);
+            });
+        }
+
+        sendBtn.addEventListener("click", async () => {
+            const userMessage = chatInput.value.trim();
+            if (userMessage === "") return;
+
+            addMessage("用户", userMessage);
+            chatInput.value = "";
+
+            addMessage("玖数", "正在回复...");
+
             try {
-                const response = await fetch(selectedConfig.apiUrl, {
+                const selectedModel = models[currentModelIndex];
+                const response = await fetch(selectedModel.apiUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${selectedConfig.apiKey}`
+                        'Authorization': `Bearer ${selectedModel.apiKey}`
                     },
                     body: JSON.stringify({
-                        model: selectedConfig.model,
-                        messages: [...this.messages, { role: 'user', content: message }],
-                        temperature: selectedConfig.temperature
-                    })
+                        model: selectedModel.model,
+                        messages: [
+                            { role: "system", content: selectedModel.prompt },
+                            { role: "user", content: userMessage }
+                        ],
+                        temperature: selectedModel.temperature
+                    }),
                 });
 
-                const data = await response.json();
-                if (data && data.choices && data.choices.length > 0) {
-                    const assistantMessage = data.choices[0].message.content;
-                    this.addMessage('assistant', assistantMessage);
-
-                    // 提取 HTML 内容
-                    const htmlCode = this.extractHtmlCode(assistantMessage);
-
-                    // 自动运行AI回复的HTML代码
-                    this.runHtmlCode(htmlCode);
-                } else {
-                    this.addMessage('assistant', '抱歉，我没有收到有效的响应。');
+                if (!response.ok) {
+                    throw new Error('网络响应错误');
                 }
+
+                const data = await response.json();
+                const assistantMessage = data.choices[0].message.content;
+                chatMessages.removeChild(chatMessages.lastChild);
+                addMessage("玖数", assistantMessage);
             } catch (error) {
-                this.addMessage('assistant', `请求失败: ${error.message}`);
-            } finally {
-                this.showLoadingIndicator(false);
+                console.error('Error:', error);
+                chatMessages.removeChild(chatMessages.lastChild);
+                addMessage("玖数", "抱歉，发生了错误。");
             }
-        }
+        });
 
-        extractHtmlCode(message) {
-            const match = message.match(/<html[\s\S]*<\/html>/);
-            return match ? match[0] : '';  // 返回匹配到的 HTML 内容
-        }
+        chatInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                sendBtn.click();
+            }
+        });
 
-        runHtmlCode(htmlCode) {
-            const iframeDoc = previewIframe.contentDocument || previewIframe.contentWindow.document;
-            iframeDoc.open();
-            iframeDoc.write(htmlCode);
-            iframeDoc.close();
-        }
+        clearChatBtn.addEventListener("click", () => {
+            chatMessages.innerHTML = "";
+        });
 
-        showLoadingIndicator(isVisible) {
-            this.loadingIndicator.style.display = isVisible ? 'block' : 'none';
-        }
+        // 管理模型按钮功能
+        manageModelsBtn.addEventListener("click", () => {
+            modelManagementModal.style.display = "block";
+            modalOverlay.style.display = "block";
+            updateModelTable();
+        });
 
-addMessage(role, content) {
-    const messageElem = document.createElement('div');
-    messageElem.classList.add('message', role === 'user' ? 'user-message' : 'assistant-message');
-    const contentElem = document.createElement('div');
-    contentElem.classList.add('message-content');
+        // 更新模型表格
+        function updateModelTable() {
+            modelTableBody.innerHTML = '';
+            models.forEach((model, index) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${model.name}</td>
+                    <td>${model.apiUrl}</td>
+                    <td>${model.model}</td>
+                    <td>${model.temperature}</td>
+                    <td>
+                        <button class="edit-btn" data-index="${index}">修改</button>
+                        <button class="delete-btn" data-index="${index}">删除</button>
+                    </td>
+                `;
+                modelTableBody.appendChild(row);
+            });
 
-    // 检查是否包含代码块
-    if (content.includes('```')) {
-        // 将代码块内容提取并格式化
-        const codeMatch = content.match(/```([a-zA-Z0-9]*)\n([\s\S]*?)\n```/);
-        if (codeMatch) {
-            const lang = codeMatch[1];  // 获取代码语言
-            const code = codeMatch[2];  // 获取代码内容
+            // 绑定删除按钮事件
+            const deleteBtns = document.querySelectorAll("#model-table .delete-btn");
+            deleteBtns.forEach((btn) => {
+                btn.addEventListener("click", (e) => {
+                    const modelIndex = parseInt(e.target.dataset.index);
+                    models.splice(modelIndex, 1);
+                    localStorage.setItem('models', JSON.stringify(models));
+                    updateModelTable();
+                    populateModelSelect();
+                });
+            });
 
-            // 创建一个容器来包裹代码块和复制按钮
-            const preContainer = document.createElement('div');
-            preContainer.classList.add('pre-container'); // 为代码容器添加类
-
-            const preElem = document.createElement('pre');
-            const codeElem = document.createElement('code');
-            codeElem.classList.add(`language-${lang}`); // 添加语言类以便高亮
-            codeElem.textContent = code;
-            preElem.appendChild(codeElem);
-
-            // 创建复制按钮
-            const copyBtn = document.createElement('button');
-            copyBtn.classList.add('copy-btn');
-            copyBtn.textContent = '复制代码';
-            copyBtn.onclick = () => this.copyCode(code);
-
-            // 将复制按钮和代码块放入容器中
-            preContainer.appendChild(copyBtn);
-            preContainer.appendChild(preElem);
-
-            contentElem.appendChild(preContainer);
-        }
-    } else {
-        // 非代码内容
-        contentElem.textContent = content;
-    }
-
-    messageElem.appendChild(contentElem);
-    this.messagesContainer.appendChild(messageElem);
-    this.messages.push({ role, content });
-    this.scrollToBottom();
-}
-
-
-        copyCode(code) {
-            // 使用 clipboard API 复制代码
-            navigator.clipboard.writeText(code).then(() => {
-                this.showCopyMessage(true);
+            // 绑定修改按钮事件
+            const editBtns = document.querySelectorAll("#model-table .edit-btn");
+            editBtns.forEach((btn) => {
+                btn.addEventListener("click", (e) => {
+                    const modelIndex = parseInt(e.target.dataset.index);
+                    const model = models[modelIndex];
+                    showModelEditModal(model, modelIndex);
+                });
             });
         }
 
-        showCopyMessage(isVisible) {
-            const messageElem = document.createElement('div');
-            messageElem.id = 'copy-message';
-            messageElem.textContent = '代码已复制!';
-            document.body.appendChild(messageElem);
+        // 保存模型管理
+        saveModelsBtn.addEventListener("click", () => {
+            modelManagementModal.style.display = "none";
+            modalOverlay.style.display = "none";
+            localStorage.setItem('models', JSON.stringify(models));
+            populateModelSelect();
+        });
 
-            setTimeout(() => {
-                messageElem.style.display = 'none';
-            }, 2000);
+        cancelManageModelsBtn.addEventListener("click", () => {
+            modelManagementModal.style.display = "none";
+            modalOverlay.style.display = "none";
+        });
 
-            messageElem.style.display = 'block';
+        // 添加模型按钮功能
+        addModelBtn.addEventListener("click", () => {
+            addModelModal.style.display = "block";
+            modalOverlay.style.display = "block";
+        });
+
+        cancelAddModelBtn.addEventListener("click", () => {
+            addModelModal.style.display = "none";
+            modalOverlay.style.display = "none";
+            addModelForm.reset();
+        });
+
+        modalOverlay.addEventListener("click", () => {
+            addModelModal.style.display = "none";
+            modelManagementModal.style.display = "none";
+            modalOverlay.style.display = "none";
+            addModelForm.reset();
+        });
+
+        addModelForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const name = document.getElementById("custom-model-name").value.trim();
+            const apiUrl = document.getElementById("custom-api-url").value.trim();
+            const apiKey = document.getElementById("custom-api-key").value.trim();
+            const model = document.getElementById("custom-model").value.trim();
+            const temperature = parseFloat(document.getElementById("custom-temperature").value) || 0;
+            const prompt = document.getElementById("custom-prompt").value.trim();
+
+            if (name && apiUrl && apiKey && model) {
+                const newModel = {
+                    name,
+                    apiUrl,
+                    apiKey,
+                    model,
+                    temperature,
+                    prompt
+                };
+                models.push(newModel);
+                localStorage.setItem('models', JSON.stringify(models));
+                populateModelSelect();
+                modelSelect.value = models.length - 1;
+                currentModelIndex = models.length - 1;
+
+                addModelModal.style.display = "none";
+                modalOverlay.style.display = "none";
+                addModelForm.reset();
+            } else {
+                alert("请填写所有必填字段。");
+            }
+        });
+
+        // 修改模型功能
+        function showModelEditModal(model, index) {
+            const modal = document.createElement("div");
+            modal.style.display = "flex";
+            modal.style.flexDirection = "column";
+            modal.style.gap = "10px";
+            modal.style.padding = "20px";
+            modal.style.backgroundColor = "white";
+            modal.style.position = "fixed";
+            modal.style.top = "50%";
+            modal.style.left = "50%";
+            modal.style.transform = "translate(-50%, -50%)";
+            modal.style.boxShadow = "0 2px 10px rgba(0,0,0,0.1)";
+            modal.style.borderRadius = "8px";
+            modal.style.zIndex = "1001";
+
+            modal.innerHTML = `
+                <h3>修改模型</h3>
+                <label>
+                    名称:
+                    <input type="text" id="edit-model-name" value="${model.name}" required style="width: 100%; margin-bottom: 10px;" />
+                </label>
+                <label>
+                    API URL:
+                    <input type="url" id="edit-api-url" value="${model.apiUrl}" required style="width: 100%; margin-bottom: 10px;" />
+                </label>
+                <label>
+                    API Key:
+                    <input type="text" id="edit-api-key" value="${model.apiKey}" required style="width: 100%; margin-bottom: 10px;" />
+                </label>
+                <label>
+                    模型标识:
+                    <input type="text" id="edit-model" value="${model.model}" required style="width: 100%; margin-bottom: 10px;" />
+                </label>
+                <label>
+                    温度:
+                    <input type="number" id="edit-temperature" value="${model.temperature}" min="0" max="1" step="0.1" style="width: 100%; margin-bottom: 10px;" />
+                </label>
+                <label>
+                    提示词:
+                    <textarea id="edit-prompt" style="width: 100%; height: 100px; margin-bottom: 10px;">${model.prompt}</textarea>
+                </label>
+                <div>
+                    <button id="save-edit-btn" style="padding: 8px 12px; background-color: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer;">保存</button>
+                    <button id="cancel-edit-btn" style="padding: 8px 12px; margin-left: 10px; background-color: var(--danger-color); color: white; border: none; border-radius: 4px; cursor: pointer;">取消</button>
+                </div>
+            `;
+
+            const saveEditBtn = modal.querySelector("#save-edit-btn");
+            const cancelEditBtn = modal.querySelector("#cancel-edit-btn");
+
+            saveEditBtn.addEventListener("click", () => {
+                const newName = document.getElementById("edit-model-name").value.trim();
+                const newApiUrl = document.getElementById("edit-api-url").value.trim();
+                const newApiKey = document.getElementById("edit-api-key").value.trim();
+                const newModelId = document.getElementById("edit-model").value.trim();
+                const newTemperature = parseFloat(document.getElementById("edit-temperature").value) || 0;
+                const newPrompt = document.getElementById("edit-prompt").value.trim();
+
+                if (newName && newApiUrl && newApiKey && newModelId) {
+                    models[index] = {
+                        ...models[index],
+                        name: newName,
+                        apiUrl: newApiUrl,
+                        apiKey: newApiKey,
+                        model: newModelId,
+                        temperature: newTemperature,
+                        prompt: newPrompt
+                    };
+                    localStorage.setItem('models', JSON.stringify(models));
+                    updateModelTable();
+                    populateModelSelect();
+                    modal.style.display = "none";
+                } else {
+                    alert("请填写所有必填字段。");
+                }
+            });
+
+            cancelEditBtn.addEventListener("click", () => {
+                modal.style.display = "none";
+            });
+
+            document.body.appendChild(modal);
         }
+    });
+</script>
 
-        scrollToBottom() {
-            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
-        }
-
-        handleRefreshConversation() {
-            this.messages = [this.SYSTEM_MESSAGE];
-            this.messagesContainer.innerHTML = '';
-            this.userInput.value = '';
-        }
-
-        handleModelChange(event) {
-            this.currentConfigIndex = parseInt(event.target.value);
-        }
-    }
-
-    const chatApp = new ChatApp();
-    </script>
 </body>
 </html>
