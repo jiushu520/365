@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <link rel="icon" href="ico/识.ico" type="image/x-icon">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>公式与文字识别程序</title>
+    <title>公式与文字识别程序（带代码高亮）</title>
+    <!-- 引入 MathJax 用于渲染 LaTeX -->
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+    <!-- 引入 highlight.js 用于代码高亮 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -203,10 +206,40 @@
             content: '...';
             animation: blink 1s infinite;
         }
+
+        /* 代码框样式 */
+        pre {
+            position: relative;
+            background-color: #f6f8fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 5px 0;
+        }
+
+        pre code {
+            background: none;
+        }
+
+        pre button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            padding: 3px 6px;
+            font-size: 12px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        pre button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
-    <!-- 添加下拉菜单选择系统提示词 -->
     <select id="prompt-select">
         <option value="1">数学专家</option>
         <option value="2">文本和公式识别</option>
@@ -227,7 +260,6 @@
     </div>
 
     <script>
-        // 定义多个系统提示词
         const systemPrompts = {
             "1": "你是 玖数 人工智能助手，一个有20年经验的高级学者，精通数学问题。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型，并会给出题涉及的相关知识点。以杠精的语气回复，但请确保在提供帮助时保持专业和友好。如果问题与学习数理化学科或编程无关，请以同样风格进行回怼。",
             "2": "请完整识别图片中的所有文本内容，包括中文文字和数学公式。识别结果为纯文本格式：1. 对于中文文字，直接输出原始文本；2. 对于数学公式，转换为 LaTeX 代码；3. 每识别一个独立的文本块（文字或公式）后换行；4. 不要添加任何解释性文字、解题步骤或其他无关内容，只返回识别结果。",
@@ -246,9 +278,8 @@
         let currentConversationId = Date.now().toString();
         let conversations = JSON.parse(localStorage.getItem('conversations')) || {};
         let conversation;
-        let currentPromptId = "1"; // 默认选择第一个提示词
+        let currentPromptId = "1";
 
-        // 初始化会话
         if (!conversations[currentConversationId]) {
             conversation = {
                 id: currentConversationId,
@@ -264,23 +295,25 @@
             conversation.messages.forEach(msg => displayMessage(msg));
         }
 
-        // 保存会话到本地存储
         function saveConversation() {
             conversations[currentConversationId] = conversation;
             localStorage.setItem('conversations', JSON.stringify(conversations));
         }
 
-        // 监听下拉菜单变化，更新当前提示词
         promptSelect.addEventListener('change', function() {
             currentPromptId = this.value;
             conversation.messages[0].content = systemPrompts[currentPromptId];
             saveConversation();
         });
 
-        // 处理图片粘贴
         inputArea.addEventListener('paste', function(event) {
             event.preventDefault();
             const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+            const selection = window.getSelection();
+            if (!selection.rangeCount) return;
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+
             for (const item of items) {
                 if (item.type.indexOf('image') === 0) {
                     const blob = item.getAsFile();
@@ -288,14 +321,26 @@
                     reader.onload = function(e) {
                         const img = document.createElement('img');
                         img.src = e.target.result;
-                        inputArea.appendChild(img);
+                        range.insertNode(img);
+                        range.setStartAfter(img);
+                        range.setEndAfter(img);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
                     };
                     reader.readAsDataURL(blob);
+                } else if (item.type === 'text/plain') {
+                    item.getAsString(function(text) {
+                        const textNode = document.createTextNode(text);
+                        range.insertNode(textNode);
+                        range.setStartAfter(textNode);
+                        range.setEndAfter(textNode);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    });
                 }
             }
         });
 
-        // 处理文件上传
         fileInput.addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (file) {
@@ -310,7 +355,6 @@
             }
         });
 
-        // 键盘事件：Enter 发送，Shift + Enter 换行
         inputArea.addEventListener('keydown', function(event) {
             if (event.key === 'Enter') {
                 if (event.shiftKey) {
@@ -323,7 +367,6 @@
             }
         });
 
-        // 发送消息
         sendButton.addEventListener('click', async function() {
             const content = parseInputArea();
             if (content.length === 0) {
@@ -342,7 +385,6 @@
             inputArea.innerHTML = '';
             inputArea.focus();
 
-            // 添加“正在思考中”消息
             const pendingMessage = { 
                 role: "assistant", 
                 content: "正在思考中", 
@@ -360,19 +402,16 @@
                     content: response.choices[0].message.content, 
                     timestamp: new Date().toISOString()
                 };
-
-                // 替换“正在思考中”消息
                 conversation.messages.splice(pendingIndex, 1, assistantMessage);
-                renderChatHistory(); // 重新渲染整个聊天历史
+                renderChatHistory();
                 saveConversation();
             } catch (error) {
                 console.error('API 请求失败:', error);
-                conversation.messages.splice(pendingIndex, 1); // 移除“正在思考中”
+                conversation.messages.splice(pendingIndex, 1);
                 displayError('发送失败，请稍后重试');
             }
         });
 
-        // 新建对话
         function newConversation() {
             saveConversation();
             currentConversationId = Date.now().toString();
@@ -390,7 +429,6 @@
         }
         newConversationButton.addEventListener('click', newConversation);
 
-        // 查看历史记录
         viewHistoryButton.addEventListener('click', function() {
             saveConversation();
             const historyList = document.createElement('div');
@@ -450,12 +488,10 @@
             document.body.appendChild(historyList);
         });
 
-        // LaTeX 渲染开关
         latexToggle.addEventListener('change', function() {
             renderChatHistory();
         });
 
-        // 解析输入区域内容
         function parseInputArea() {
             const content = [];
             const children = inputArea.childNodes;
@@ -472,7 +508,6 @@
             return content;
         }
 
-        // 格式化时间戳
         function formatTimestamp(timestamp) {
             const date = new Date(timestamp);
             return date.toLocaleString('zh-CN', { 
@@ -484,7 +519,6 @@
             });
         }
 
-        // 显示消息
         function displayMessage(message) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${message.role}-message${message.isPending ? ' pending' : ''}`;
@@ -504,9 +538,47 @@
                     }
                 });
             } else if (message.role === 'assistant') {
-                contentDiv.textContent = message.isPending ? message.content : "玖数: " + message.content;
-                if (!message.isPending && latexToggle.checked) {
-                    MathJax.typesetPromise([contentDiv]).catch(err => console.error('MathJax 渲染失败:', err));
+                if (message.isPending) {
+                    contentDiv.textContent = message.content;
+                } else {
+                    const content = "玖数: " + message.content;
+                    const parts = content.split(/(```[\s\S]*?```)/g);
+                    parts.forEach(part => {
+                        if (part.match(/```(\w+)?\n([\s\S]*?)```/)) {
+                            const codeBlockMatch = part.match(/```(\w+)?\n([\s\S]*?)```/);
+                            const language = codeBlockMatch[1] || 'html'; // 默认HTML
+                            const code = codeBlockMatch[2];
+                            const pre = document.createElement('pre');
+                            const codeElement = document.createElement('code');
+                            codeElement.className = `language-${language}`;
+                            codeElement.textContent = code;
+                            pre.appendChild(codeElement);
+
+                            const copyButton = document.createElement('button');
+                            copyButton.textContent = '复制';
+                            copyButton.addEventListener('click', () => {
+                                navigator.clipboard.writeText(code).then(() => {
+                                    copyButton.textContent = '已复制';
+                                    setTimeout(() => {
+                                        copyButton.textContent = '复制';
+                                    }, 2000);
+                                });
+                            });
+                            pre.appendChild(copyButton);
+                            contentDiv.appendChild(pre);
+                        } else {
+                            const textP = document.createElement('p');
+                            textP.textContent = part;
+                            contentDiv.appendChild(textP);
+                        }
+                    });
+                    // 延迟高亮，确保DOM更新
+                    setTimeout(() => {
+                        hljs.highlightAll();
+                    }, 0);
+                    if (latexToggle.checked) {
+                        MathJax.typesetPromise([contentDiv]).catch(err => console.error('MathJax 渲染失败:', err));
+                    }
                 }
             }
 
@@ -520,7 +592,6 @@
             chatHistory.scrollTop = chatHistory.scrollHeight;
         }
 
-        // 渲染聊天历史
         function renderChatHistory() {
             chatHistory.innerHTML = '';
             conversation.messages.forEach(message => {
@@ -529,7 +600,6 @@
             });
         }
 
-        // 显示错误消息
         function displayError(errorText) {
             const errorDiv = document.createElement('div');
             errorDiv.className = 'message assistant-message error';
@@ -541,7 +611,6 @@
             chatHistory.scrollTop = chatHistory.scrollHeight;
         }
 
-        // 发送请求到 API
         async function sendToAPI(messages) {
             const apiKey = 'sk-56f75127a91347509775ef3f3a7573d6';
             const requestBody = {
