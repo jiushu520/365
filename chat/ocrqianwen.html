@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <link rel="icon" href="ico/识.ico" type="image/x-icon">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公式与文字识别程序</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        #chat-history {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #f5f5f5;
+            margin-bottom: 10px;
+        }
+
+        .message {
+            max-width: 80%;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-message {
+            align-self: flex-end;
+        }
+
+        .user-message .message-content {
+            background-color: #DCF8C6;
+            padding: 10px;
+            border-radius: 10px;
+            word-wrap: break-word;
+        }
+
+        .assistant-message {
+            align-self: flex-start;
+        }
+
+        .assistant-message .message-content {
+            background-color: #ffffff;
+            border: 1px solid #eee;
+            padding: 10px;
+            border-radius: 10px;
+            word-wrap: break-word;
+        }
+
+        .assistant-message.pending .message-content {
+            background-color: #f0f0f0;
+            color: #666;
+            font-style: italic;
+        }
+
+        .assistant-message.error .message-content {
+            color: red;
+            border: 1px solid red;
+            background-color: #ffe6e6;
+        }
+
+        img {
+            max-width: 200px;
+            max-height: 200px;
+            margin: 5px;
+            border-radius: 5px;
+        }
+
+        .timestamp {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+            align-self: flex-end;
+        }
+
+        #input-section {
+            margin-bottom: 10px;
+        }
+
+        #input-area {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            min-height: 50px;
+            overflow-y: auto;
+            background-color: #ffffff;
+        }
+
+        #input-area:empty::before {
+            content: '粘贴或上传包含公式和文字的图片...';
+            color: #aaa;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .controls > * {
+            margin-right: 10px;
+        }
+
+        select, input[type="text"], button, input[type="file"] {
+            padding: 5px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .conversation-controls {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+        }
+
+        #history-list {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        #history-list .history-item {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        #history-list .history-item span {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        #history-list .history-item button {
+            margin-left: 5px;
+            padding: 3px 6px;
+            font-size: 12px;
+            background-color: #007BFF;
+        }
+
+        #history-list .history-item button.delete {
+            background-color: #DC3545;
+        }
+
+        #history-list .history-item button:hover {
+            opacity: 0.8;
+        }
+
+        @media (max-width: 600px) {
+            .controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .controls > * {
+                margin-bottom: 5px;
+                margin-right: 0;
+            }
+            .conversation-controls {
+                flex-direction: column;
+            }
+            .conversation-controls button {
+                margin-bottom: 5px;
+            }
+        }
+
+        /* 闪烁动画 */
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .pending .message-content::after {
+            content: '...';
+            animation: blink 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- 添加下拉菜单选择系统提示词 -->
+    <select id="prompt-select">
+        <option value="1">数学专家</option>
+        <option value="2">文本和公式识别</option>
+        <option value="3">作业点评</option>
+    </select>
+    <div id="chat-history"></div>
+    <div id="input-section">
+        <div id="input-area" contenteditable="true"></div>
+        <div class="controls">
+            <input type="file" id="file-input" accept="image/*">
+            <button id="send-button">识别内容</button>
+            <label><input type="checkbox" id="latex-toggle" checked> 渲染LaTeX</label>
+        </div>
+    </div>
+    <div class="conversation-controls">
+        <button id="new-conversation">新建对话</button>
+        <button id="view-history">查看历史记录</button>
+    </div>
+
+    <script>
+        // 定义多个系统提示词
+        const systemPrompts = {
+            "1": "你是 玖数 人工智能助手，一个有20年经验的高级学者，精通数学问题。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型，并会给出题涉及的相关知识点。以杠精的语气回复，但请确保在提供帮助时保持专业和友好。如果问题与学习数理化学科或编程无关，请以同样风格进行回怼。",
+            "2": "请完整识别图片中的所有文本内容，包括中文文字和数学公式。识别结果为纯文本格式：1. 对于中文文字，直接输出原始文本；2. 对于数学公式，转换为 LaTeX 代码；3. 每识别一个独立的文本块（文字或公式）后换行；4. 不要添加任何解释性文字、解题步骤或其他无关内容，只返回识别结果。",
+            "3": "你是 玖数 人工智能助手，一个有20年经验的高级教师，精通点评学生的作业。请对学生的作业进行详细的点评，包括以下几个方面：\n\n1. **正确性**：检查作业中的答案是否正确，指出错误的地方并解释原因。\n\n2. **完整性**：评估作业是否完整，是否遗漏了某些部分。\n\n3. **清晰度**：评价学生的表达是否清晰，是否易于理解。\n\n4. **创新性**：如果作业中有创新的思路或方法，请给予肯定。\n\n5. **建议**：提供改进建议，帮助学生提高。\n\n请以鼓励和指导的语气进行点评，确保在提供反馈时保持专业和友好。"
+        };
+
+        const chatHistory = document.getElementById('chat-history');
+        const inputArea = document.getElementById('input-area');
+        const fileInput = document.getElementById('file-input');
+        const sendButton = document.getElementById('send-button');
+        const latexToggle = document.getElementById('latex-toggle');
+        const newConversationButton = document.getElementById('new-conversation');
+        const viewHistoryButton = document.getElementById('view-history');
+        const promptSelect = document.getElementById('prompt-select');
+
+        let currentConversationId = Date.now().toString();
+        let conversations = JSON.parse(localStorage.getItem('conversations')) || {};
+        let conversation;
+        let currentPromptId = "1"; // 默认选择第一个提示词
+
+        // 初始化会话
+        if (!conversations[currentConversationId]) {
+            conversation = {
+                id: currentConversationId,
+                name: `对话于 ${new Date(parseInt(currentConversationId)).toLocaleString()}`,
+                messages: [{
+                    role: "system",
+                    content: systemPrompts[currentPromptId]
+                }]
+            };
+            conversations[currentConversationId] = conversation;
+        } else {
+            conversation = conversations[currentConversationId];
+            conversation.messages.forEach(msg => displayMessage(msg));
+        }
+
+        // 保存会话到本地存储
+        function saveConversation() {
+            conversations[currentConversationId] = conversation;
+            localStorage.setItem('conversations', JSON.stringify(conversations));
+        }
+
+        // 监听下拉菜单变化，更新当前提示词
+        promptSelect.addEventListener('change', function() {
+            currentPromptId = this.value;
+            conversation.messages[0].content = systemPrompts[currentPromptId];
+            saveConversation();
+        });
+
+        // 处理图片粘贴
+        inputArea.addEventListener('paste', function(event) {
+            event.preventDefault();
+            const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+            for (const item of items) {
+                if (item.type.indexOf('image') === 0) {
+                    const blob = item.getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        inputArea.appendChild(img);
+                    };
+                    reader.readAsDataURL(blob);
+                }
+            }
+        });
+
+        // 处理文件上传
+        fileInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    inputArea.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+                fileInput.value = '';
+            }
+        });
+
+        // 键盘事件：Enter 发送，Shift + Enter 换行
+        inputArea.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                if (event.shiftKey) {
+                    event.preventDefault();
+                    document.execCommand('insertLineBreak');
+                } else {
+                    event.preventDefault();
+                    sendButton.click();
+                }
+            }
+        });
+
+        // 发送消息
+        sendButton.addEventListener('click', async function() {
+            const content = parseInputArea();
+            if (content.length === 0) {
+                displayError('请上传或粘贴图片，或输入文字');
+                return;
+            }
+
+            const userMessage = { 
+                role: "user", 
+                content: content, 
+                timestamp: new Date().toISOString()
+            };
+            conversation.messages.push(userMessage);
+            displayMessage(userMessage);
+
+            inputArea.innerHTML = '';
+            inputArea.focus();
+
+            // 添加“正在思考中”消息
+            const pendingMessage = { 
+                role: "assistant", 
+                content: "正在思考中", 
+                timestamp: new Date().toISOString(), 
+                isPending: true 
+            };
+            conversation.messages.push(pendingMessage);
+            const pendingIndex = conversation.messages.length - 1;
+            displayMessage(pendingMessage);
+
+            try {
+                const response = await sendToAPI(conversation.messages.filter(msg => !msg.isPending));
+                const assistantMessage = { 
+                    role: "assistant", 
+                    content: response.choices[0].message.content, 
+                    timestamp: new Date().toISOString()
+                };
+
+                // 替换“正在思考中”消息
+                conversation.messages.splice(pendingIndex, 1, assistantMessage);
+                renderChatHistory(); // 重新渲染整个聊天历史
+                saveConversation();
+            } catch (error) {
+                console.error('API 请求失败:', error);
+                conversation.messages.splice(pendingIndex, 1); // 移除“正在思考中”
+                displayError('发送失败，请稍后重试');
+            }
+        });
+
+        // 新建对话
+        function newConversation() {
+            saveConversation();
+            currentConversationId = Date.now().toString();
+            conversation = {
+                id: currentConversationId,
+                name: `对话于 ${new Date(parseInt(currentConversationId)).toLocaleString()}`,
+                messages: [{
+                    role: "system",
+                    content: systemPrompts[currentPromptId]
+                }]
+            };
+            conversations[currentConversationId] = conversation;
+            chatHistory.innerHTML = '';
+            renderChatHistory();
+        }
+        newConversationButton.addEventListener('click', newConversation);
+
+        // 查看历史记录
+        viewHistoryButton.addEventListener('click', function() {
+            saveConversation();
+            const historyList = document.createElement('div');
+            historyList.id = 'history-list';
+
+            const closeButton = document.createElement('button');
+            closeButton.textContent = '关闭';
+            closeButton.addEventListener('click', () => historyList.remove());
+            historyList.appendChild(closeButton);
+
+            Object.keys(conversations).forEach(id => {
+                const convo = conversations[id];
+                const item = document.createElement('div');
+                item.className = 'history-item';
+
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = convo.name;
+                nameSpan.addEventListener('click', () => {
+                    currentConversationId = id;
+                    conversation = conversations[id];
+                    chatHistory.innerHTML = '';
+                    renderChatHistory();
+                    historyList.remove();
+                });
+
+                const renameButton = document.createElement('button');
+                renameButton.textContent = '重命名';
+                renameButton.addEventListener('click', () => {
+                    const newName = prompt('请输入新名称:', convo.name);
+                    if (newName) {
+                        convo.name = newName;
+                        nameSpan.textContent = newName;
+                        saveConversation();
+                    }
+                });
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = '删除';
+                deleteButton.className = 'delete';
+                deleteButton.addEventListener('click', () => {
+                    if (confirm(`确定删除 "${convo.name}" 吗？`)) {
+                        delete conversations[id];
+                        item.remove();
+                        saveConversation();
+                        if (currentConversationId === id) {
+                            newConversation();
+                        }
+                    }
+                });
+
+                item.appendChild(nameSpan);
+                item.appendChild(renameButton);
+                item.appendChild(deleteButton);
+                historyList.appendChild(item);
+            });
+
+            document.body.appendChild(historyList);
+        });
+
+        // LaTeX 渲染开关
+        latexToggle.addEventListener('change', function() {
+            renderChatHistory();
+        });
+
+        // 解析输入区域内容
+        function parseInputArea() {
+            const content = [];
+            const children = inputArea.childNodes;
+            children.forEach(node => {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    const text = node.textContent.trim();
+                    if (text) {
+                        content.push({ type: 'text', text: text });
+                    }
+                } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'IMG') {
+                    content.push({ type: 'image_url', image_url: { url: node.src } });
+                }
+            });
+            return content;
+        }
+
+        // 格式化时间戳
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('zh-CN', { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        }
+
+        // 显示消息
+        function displayMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${message.role}-message${message.isPending ? ' pending' : ''}`;
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+
+            if (message.role === 'user') {
+                message.content.forEach(part => {
+                    if (part.type === 'text') {
+                        const textP = document.createElement('p');
+                        textP.textContent = part.text;
+                        contentDiv.appendChild(textP);
+                    } else if (part.type === 'image_url') {
+                        const img = document.createElement('img');
+                        img.src = part.image_url.url;
+                        contentDiv.appendChild(img);
+                    }
+                });
+            } else if (message.role === 'assistant') {
+                contentDiv.textContent = message.isPending ? message.content : "玖数: " + message.content;
+                if (!message.isPending && latexToggle.checked) {
+                    MathJax.typesetPromise([contentDiv]).catch(err => console.error('MathJax 渲染失败:', err));
+                }
+            }
+
+            const timestampDiv = document.createElement('span');
+            timestampDiv.className = 'timestamp';
+            timestampDiv.textContent = formatTimestamp(message.timestamp);
+            messageDiv.appendChild(contentDiv);
+            messageDiv.appendChild(timestampDiv);
+
+            chatHistory.appendChild(messageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        // 渲染聊天历史
+        function renderChatHistory() {
+            chatHistory.innerHTML = '';
+            conversation.messages.forEach(message => {
+                if (message.role === 'system') return;
+                displayMessage(message);
+            });
+        }
+
+        // 显示错误消息
+        function displayError(errorText) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'message assistant-message error';
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = errorText;
+            errorDiv.appendChild(contentDiv);
+            chatHistory.appendChild(errorDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        // 发送请求到 API
+        async function sendToAPI(messages) {
+            const apiKey = 'sk-56f75127a91347509775ef3f3a7573d6';
+            const requestBody = {
+                model: 'qwen2.5-vl-72b-instruct',
+                messages: messages
+            };
+            console.log('发送给 API 的请求:', JSON.stringify(requestBody, null, 2));
+            const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP 错误！状态码: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('API 返回的结果:', data);
+            return data;
+        }
+
+        renderChatHistory();
+    </script>
+</body>
+</html>
