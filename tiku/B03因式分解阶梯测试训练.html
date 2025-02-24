@@ -112,10 +112,6 @@
             width: 200px;
         }
 
-        .mathjax-answer {
-            font-size: 16px;
-        }
-
         .switch-container {
             display: inline-flex;
             align-items: center;
@@ -188,16 +184,13 @@
         <div id="rendered-answer"></div><br>
         <button onclick="checkAnswer()">提交答案</button><br>
 
+        <div class="switch-container">
 
-    <div class="switch-container">
-        <label for="videoToggle">视频开关</label>
             <label class="switch">
                 <input type="checkbox" id="videoToggle">
-                <span class="slider"></span>
+
             </label>
         </div><br>
-
-  
 
         <div id="videoContainer" style="display: none;">
             <video id="instructionalVideo" width="640" height="360" controls>
@@ -205,9 +198,6 @@
                 Your browser does not support the video tag.
             </video>
         </div>
-
-  
-
 
         <div id="result"></div>
         <div id="score">正确: 0 | 错误: 0</div>
@@ -231,16 +221,26 @@
         let incorrectCount = 0;
         let currentDifficulty = 1;
 
-         const difficultyNames = ["01首项系数为1", "02首项系数不为1", "03两大公式", "04首项系数为1十字交叉", "05首项系数不为1十字交叉", "06三次项", "07解二次方程", "08综合"];
+        const difficultyNames = [
+            "01首项系数为1",
+            "02首项系数不为1",
+            "03两大公式",
+            "04首项系数为1十字交叉",
+            "05首项系数不为1十字交叉",
+            "06三次项",
+            "07解二次方程",
+            "08双十字相乘",
+            "09综合",
+        ];
 
         document.addEventListener("DOMContentLoaded", () => {
             generateDifficultyButtons();
             setDifficulty(1);
 
-            // 添加视频开关事件监听
+            // 确保开关事件监听器在 DOM 加载完成后绑定
             const videoToggle = document.getElementById('videoToggle');
+            const videoContainer = document.getElementById('videoContainer');
             videoToggle.addEventListener('change', function () {
-                const videoContainer = document.getElementById('videoContainer');
                 if (this.checked) {
                     videoContainer.style.display = 'block';
                 } else {
@@ -260,48 +260,44 @@
             });
         }
 
-const videoConfig = {
-    1: "<video src='http://vs.leleketang.com/dat/ms/ma/k/video/18656.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
-    2: "<video src='http://vs.leleketang.com/dat/ms/ma/k/video/18656.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
-    3: "<video src='http://vs.leleketang.com/dat/ms/ma/k/video/18658.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
-    4: "<video src='http://v.leleketang.com/dat/ms/ma/k/video/18657.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
-    5: "<video src='http://v.leleketang.com/dat/ms/ma/k/video/18659.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
-    6: "<video src='https://v.leleketang.com/dat/hs/ma/k/video/21034.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
-    7: "<video src='http://vs.leleketang.com/dat/ms/ma/k/video/18660.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>"
-};
+        const videoConfig = {
+            1: "<video src='http://vs.leleketang.com/dat/ms/ma/k/video/18656.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
+            2: "<video src='http://vs.leleketang.com/dat/ms/ma/k/video/18656.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
+            3: "<video src='http://vs.leleketang.com/dat/ms/ma/k/video/18658.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
+            4: "<video src='http://v.leleketang.com/dat/ms/ma/k/video/18657.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
+            5: "<video src='http://v.leleketang.com/dat/ms/ma/k/video/18659.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
+            6: "<video src='https://v.leleketang.com/dat/hs/ma/k/video/21034.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
+            7: "<video src='http://vs.leleketang.com/dat/ms/ma/k/video/18660.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
+            9: "" // 暂不添加视频
+        };
 
+        function setDifficulty(level) {
+            currentDifficulty = level;
+            document.querySelectorAll('.difficulty-buttons button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`level${level}`).classList.add('active');
 
-function setDifficulty(level) {
-    currentDifficulty = level;
-    document.querySelectorAll('.difficulty-buttons button').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(`level${level}`).classList.add('active');
+            const videoContainer = document.getElementById('videoContainer');
+            const videoToggleContainer = document.querySelector('.switch-container');
+            const videoToggle = document.getElementById('videoToggle');
 
-    const videoContainer = document.getElementById('videoContainer');
-    const videoToggleContainer = document.querySelector('.switch-container');
+            if (videoConfig[level]) {
+                videoContainer.innerHTML = videoConfig[level];
+                videoToggleContainer.style.display = 'inline-flex';
+                videoToggle.checked = false; // 默认关闭
+                videoContainer.style.display = 'none'; // 默认隐藏
+            } else {
+                videoContainer.innerHTML = "";
+                videoToggleContainer.style.display = 'none';
+                videoToggle.checked = false;
+                videoContainer.style.display = 'none';
+            }
 
-    if (videoConfig[level]) {
-        videoContainer.innerHTML = videoConfig[level];
-        videoToggleContainer.style.display = 'inline-flex'; // 显示视频开关
-        // 自动开启视频
-        document.getElementById('videoToggle').checked = true;
-        videoContainer.style.display = 'block';
-    } else {
-        videoContainer.innerHTML = "";
-        videoToggleContainer.style.display = 'none'; // 隐藏视频开关
-        document.getElementById('videoToggle').checked = false;
-        videoContainer.style.display = 'none';
-    }
-
-    newQuestion();
-}
-
-
-
+            newQuestion();
+        }
 
         function generateQuestion() {
             switch (currentDifficulty) {
-                case 1:
-       case 1: return generateLevel1Question();
+                case 1: return generateLevel1Question();
                 case 2: return generateLevel2Question();
                 case 3: return generateLevel3Question();
                 case 4: return generateLevel4Question();
@@ -309,45 +305,26 @@ function setDifficulty(level) {
                 case 6: return generateLevel6Question();
                 case 7: return generateLevel7Question();
                 case 8: return generateLevel8Question();
-                default:
-                    return "";
+                case 9: return generateLevel9Question();
+                default: return "";
             }
         }
 
-        function separateSquareRoot(n) {
-            let a = 1;
-            let b = n;
-
-            for (let i = 2; i * i <= n; i++) {
-                while (b % (i * i) === 0) {
-                    a *= i;
-                    b /= i * i;
-                }
+        function gcd(x, y) {
+            while (y != 0) {
+                let temp = y;
+                y = x % y;
+                x = temp;
             }
-
-            return { a: a, b: b };
+            return x;
         }
-
-
-
-// 最大公约数 (Greatest Common Divisor)
-function gcd(x, y) {
-    while (y != 0) {
-        let temp = y;
-        y = x % y;
-        x = temp;
-    }
-    return x;
-}
-
 
         function generateLevel1aQuestion() {
             const factorizationQuestions = [
-                { question: "x^2 + 5x+6", answers: ["(x+2)(x+3)", "(x+3)(x+2)"] },
-                { question: "x^2 - x",  answers: ["x(x-1)", "(x-1)x"] },
-                { question: "x^2 + 2x",  answers: ["x(x+2)", "(x+2)x"] },
-                { question: "x^2 - 2x",  answers: ["x(x-2)", "(x-2)x"] },
-                // 可以添加更多题目
+                { question: "x^2 + 5x + 6", answers: ["(x+2)(x+3)", "(x+3)(x+2)"] },
+                { question: "x^2 - x", answers: ["x(x-1)", "(x-1)x"] },
+                { question: "x^2 + 2x", answers: ["x(x+2)", "(x+2)x"] },
+                { question: "x^2 - 2x", answers: ["x(x-2)", "(x-2)x"] }
             ];
 
             const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
@@ -355,438 +332,247 @@ function gcd(x, y) {
 
             correctAnswer = selectedQuestion.answers;
 
-            let questionHtml = `\\(\\begin{gather}因式分解: ${selectedQuestion.question} \\\\ \\begin{array}{|c|c|c|} \\hline x & x^2 & ax \\\\ \\hline & x & a \\\\ \\hline \\end{array} \\end{gather}\\)`;
-            if (selectedQuestion.img) {
-                questionHtml += `<br><img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">`;
-            }
-
-            return questionHtml;
+            return `\\(\\begin{gather}因式分解: ${selectedQuestion.question} \\\\ \\begin{array}{|c|c|c|} \\hline x & x^2 & ax \\\\ \\hline & x & a \\\\ \\hline \\end{array} \\end{gather}\\)`;
         }
 
-
-
-         function generateLevel1bQuestion() {
+        function generateLevel1bQuestion() {
             let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
             let textm = m === 1 ? "+1" : (m === -1 ? "-1" : (m > 1 ? `+${m}` : `${m}`));
             let textm2 = m === 1 ? "+" : (m === -1 ? "-" : (m > 1 ? `+${m}` : `${m}`));
-            correctAnswer = [`x(x${textm})` ];           
+            correctAnswer = [`x(x${textm})`, `(x${textm})x`];
             return `\\(\\begin{gather}因式分解:x^2${textm2}x \\\\ \\begin{array}{|c|c|c|} \\hline x & x^2 & ax \\\\ \\hline & x & a \\\\ \\hline \\end{array} \\end{gather}\\)`;
         }
 
-      function generateLevel1Question() {
-            const levelFunctions = [
-                generateLevel1aQuestion,
-                generateLevel1bQuestion,
-            ];
-
+        function generateLevel1Question() {
+            const levelFunctions = [generateLevel1aQuestion, generateLevel1bQuestion];
             const randomIndex = Math.floor(Math.random() * levelFunctions.length);
-            const selectedFunction = levelFunctions[randomIndex];
-
-            return selectedFunction();
+            return levelFunctions[randomIndex]();
         }
-
-
-
-
-
 
         function generateLevel2aQuestion() {
             let m = (Math.floor(Math.random() * 9) + 1) * (Math.random() < 0.5 ? 1 : -1);
             let n = (Math.floor(Math.random() * 9) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            let mn = m*n;    
+            let mn = m * n;
             let textm = m === 1 ? "+1" : (m === -1 ? "-1" : (m > 1 ? `+${m}` : `${m}`));
-            let textn  = n === 1 ? "" : (n === -1 ? "-" : (n > 1 ? `${n}` : `${n}`));
-            let textmn = mn=== 1 ? "+" : (mn === -1 ? "-" : (mn > 1 ? `+${mn}` : `${mn}`));
-            correctAnswer = [`${textn}x(x${textm})`, ];
-           return `\\(\\begin{gather}因式分解:${textn}x^2${textmn}x \\\\ \\begin{array}{|c|c|c|} \\hline bx & x^2 & abx \\\\ \\hline & x & a \\\\ \\hline \\end{array} \\end{gather}\\)`;
+            let textn = n === 1 ? "" : (n === -1 ? "-" : (n > 1 ? `${n}` : `${n}`));
+            let textmn = mn === 1 ? "+" : (mn === -1 ? "-" : (mn > 1 ? `+${mn}` : `${mn}`));
+            correctAnswer = [`${textn}x(x${textm})`, `(x${textm})${textn}x`];
+            return `\\(\\begin{gather}因式分解:${textn}x^2${textmn}x \\\\ \\begin{array}{|c|c|c|} \\hline bx & x^2 & abx \\\\ \\hline & x & a \\\\ \\hline \\end{array} \\end{gather}\\)`;
         }
 
-
-
-
-
-
-
-
-
-
-
-
-       function generateLevel2Question() {
-            const levelFunctions = [
-                generateLevel2aQuestion,
-            
-            ];
-
-            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
-            const selectedFunction = levelFunctions[randomIndex];
-
-            return selectedFunction();
+        function generateLevel2Question() {
+            return generateLevel2aQuestion();
         }
-
-
-
-
-
 
         function generateLevel3aQuestion() {
             let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-
-
             let textm = m > 0 ? `+${m}` : `${m}`;
-
-
             let p = m + m;
             let t = m * m;
-
             let textp = p === 0 ? "" : (p === 1 ? "+x" : (p === -1 ? "-x" : (p > 1 ? `+${p}x` : `${p}x`)));
             let textt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
             correctAnswer = [`(x${textm})(x${textm})`, `(x${textm})^2`];
-
             return `\\(\\begin{gather}因式分解:x^2${textp}${textt} \\\\ \\begin{array}{|c|c|c|} \\hline b&bx& ${textt}\\\\ \\hline x & x^2 &ax \\\\ \\hline  &x&a \\\\ \\hline  \\end{array} \\end{gather}\\)`;
         }
-
-
 
         function generateLevel3bQuestion() {
             let m = (Math.floor(Math.random() * 9) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            let n = -m ;
-
+            let n = -m;
             let textm = m > 0 ? `+${m}` : `${m}`;
             let textn = n > 0 ? `+${n}` : `${n}`;
-
-
-            let p = 0;
             let t = m * m;
-
-            let textp = p === 0 ? "" : (p === 1 ? "+x" : (p === -1 ? "-x" : (p > 1 ? `+${p}x` : `${p}x`)));
             let textt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
             correctAnswer = [`(x${textm})(x${textn})`, `(x${textn})(x${textm})`];
-
-            return `\\(\\begin{gather}因式分解:x^2-${t}\\\\ \\begin{array}{|c|c|c|} \\hline b&bx& ${-textt}\\\\ \\hline x & x^2 &ax \\\\ \\hline  &x&a \\\\ \\hline  \\end{array} \\end{gather}\\)`;
+            return `\\(\\begin{gather}因式分解:x^2 - ${t}\\\\ \\begin{array}{|c|c|c|} \\hline b&bx& -${textt}\\\\ \\hline x & x^2 &ax \\\\ \\hline  &x&a \\\\ \\hline  \\end{array} \\end{gather}\\)`;
         }
-
-
 
         function generateLevel3Question() {
-            const levelFunctions = [
-                generateLevel3aQuestion,
-                generateLevel3bQuestion,
-            ];
-
+            const levelFunctions = [generateLevel3aQuestion, generateLevel3bQuestion];
             const randomIndex = Math.floor(Math.random() * levelFunctions.length);
-            const selectedFunction = levelFunctions[randomIndex];
-
-            return selectedFunction();
+            return levelFunctions[randomIndex]();
         }
 
-
-
-
-
-        
         function generateLevel4aQuestion() {
             let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
             let n = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-
             let textm = m > 0 ? `+${m}` : `${m}`;
             let textn = n > 0 ? `+${n}` : `${n}`;
-
             let p = m + n;
             let t = m * n;
-
             let textp = p === 0 ? "" : (p === 1 ? "+x" : (p === -1 ? "-x" : (p > 1 ? `+${p}x` : `${p}x`)));
             let textt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
             correctAnswer = [`(x${textm})(x${textn})`, `(x${textn})(x${textm})`];
-            if (m === n) {
-                correctAnswer.push(`(x${textm})^2`);
-            }
-            return `\\(\\begin{gather}因式分解:x^2${textp}${textt} \\\\ \\begin{array}{|c|c|c|} \\hline b&bx& ${textt}\\\\ \\hline x & x^2 &ax \\\\ \\hline  &x&a \\\\ \\hline  \\end{array} \\end{gather}\\)`;
-        }
-
-        function generateLevel4bQuestion() {
-            let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            let n = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-
-            let textm = m > 0 ? `+${m}` : `${m}`;
-            let textn = n > 0 ? `+${n}` : `${n}`;
-
-            let p = m + n;
-            let t = m * n;
-
-            let textp = p === 0 ? "" : (p === 1 ? "+x" : (p === -1 ? "-x" : (p > 1 ? `+${p}x` : `${p}x`)));
-            let textt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
-            correctAnswer = [`(x${textm})(x${textn})`, `(x${textn})(x${textm})`];
-            if (m === n) {
-                correctAnswer.push(`(x${textm})^2`);
-            }
+            if (m === n) correctAnswer.push(`(x${textm})^2`);
             return `\\(\\begin{gather}因式分解:x^2${textp}${textt} \\\\ \\begin{array}{|c|c|c|} \\hline b&bx& ${textt}\\\\ \\hline x & x^2 &ax \\\\ \\hline  &x&a \\\\ \\hline  \\end{array} \\end{gather}\\)`;
         }
 
         function generateLevel4Question() {
-            const levelFunctions = [
-                generateLevel4aQuestion,
-                generateLevel4bQuestion,
-            ];
-
-            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
-            const selectedFunction = levelFunctions[randomIndex];
-
-            return selectedFunction();
+            return generateLevel4aQuestion();
         }
 
-
-
-
-
-function generateLevel5cQuestion() {
-    let a, b, m, n;
-
-    // 保证 a 和 b 互质，m 和 n 互质
-    do {
-        a = (Math.floor(Math.random() * 6) + 2);
-        b = (Math.floor(Math.random() * 6) + 2) * (Math.random() < 0.5 ? 1 : -1); // b 可能为负
-    } while (gcd(a, Math.abs(b)) !== 1); // a 和 |b| 必须互质
-
-    do {
-        m = (Math.floor(Math.random() * 6) + 2);
-        n = (Math.floor(Math.random() * 6) + 2) * (Math.random() < 0.5 ? 1 : -1); // n 可能为负
-    } while (gcd(m, Math.abs(n)) !== 1); // m 和 |n| 必须互质
-
-    // 保证 a * n ≠ b * m
-    while (a * n === b * m) {
-        m = (Math.floor(Math.random() * 8) + 2);
-        n = (Math.floor(Math.random() * 8) + 2) * (Math.random() < 0.5 ? 1 : -1);
-    }
-
-    // 计算各项系数
-    const coeffA = a * m;
-    const coeffB = a * n + b * m;
-    const coeffC = b * n;
-
-    // 准备正确答案
-    correctAnswer = [`(${a}x${b >= 0 ? '+' : ''}${b})(${m}x${n >= 0 ? '+' : ''}${n})`, `(${m}x${n >= 0 ? '+' : ''}${n})(${a}x${b >= 0 ? '+' : ''}${b})`];
-
-    // 构建因式分解的表达式
-    let expression = `${coeffA}x^2`;
-    if (coeffB !== 0) {
-        expression += `${coeffB > 0 ? '+' : ''}${coeffB}x`;
-    }
-    expression += `${coeffC > 0 ? '+' : ''}${coeffC}`;
-
-    // 构建表格
-    let table = `\\begin{array}{|c|c|c|}  
+        function generateLevel5cQuestion() {
+            let a, b, m, n;
+            do {
+                a = (Math.floor(Math.random() * 6) + 2);
+                b = (Math.floor(Math.random() * 6) + 2) * (Math.random() < 0.5 ? 1 : -1);
+            } while (gcd(a, Math.abs(b)) !== 1);
+            do {
+                m = (Math.floor(Math.random() * 6) + 2);
+                n = (Math.floor(Math.random() * 6) + 2) * (Math.random() < 0.5 ? 1 : -1);
+            } while (gcd(m, Math.abs(n)) !== 1);
+            while (a * n === b * m) {
+                m = (Math.floor(Math.random() * 8) + 2);
+                n = (Math.floor(Math.random() * 8) + 2) * (Math.random() < 0.5 ? 1 : -1);
+            }
+            const coeffA = a * m;
+            const coeffB = a * n + b * m;
+            const coeffC = b * n;
+            correctAnswer = [`(${a}x${b >= 0 ? '+' : ''}${b})(${m}x${n >= 0 ? '+' : ''}${n})`, `(${m}x${n >= 0 ? '+' : ''}${n})(${a}x${b >= 0 ? '+' : ''}${b})`];
+            let expression = `${coeffA}x^2`;
+            if (coeffB !== 0) expression += `${coeffB > 0 ? '+' : ''}${coeffB}x`;
+            expression += `${coeffC > 0 ? '+' : ''}${coeffC}`;
+            let table = `\\begin{array}{|c|c|c|}  
 \\hline 
 b & bmx & ${coeffC} \\\\ \\hline 
 ax & ${coeffA}x^2 & ${a}n x \\\\ \\hline 
 & mx & n \\\\ \\hline 
 \\end{array}`;
-
-    return `\\begin{gather}
+            return `\\begin{gather}
 因式分解: ${expression} \\\\ 
 ${table} 
 \\end{gather}`;
-}
-
-
-
-
-
-
+        }
 
         function generateLevel5Question() {
-            const levelFunctions = [
-
-
-                generateLevel5cQuestion,
-            ];
-
-            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
-            const selectedFunction = levelFunctions[randomIndex];
-
-            return selectedFunction();
+            return generateLevel5cQuestion();
         }
 
-
-
-function generateLevel6aQuestion() {
-
+        function generateLevel6aQuestion() {
             let a = (Math.floor(Math.random() * 3) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            let b = (Math.floor(Math.random() * 3) + 4) ;
-            let c = (Math.floor(Math.random() * 3) - 4) ;
-            let ta   = a === 0 ? "" : (a > 0 ? `+${a}` : `${a}`);
-            let tb   = b === 0 ? "" : (b > 0 ? `+${b}` : `${b}`);
-            let tc   = c === 0 ? "" : (c > 0 ? `+${c}` : `${c}`);
-
-            let x1=a+b+c;
-            let x2=a*b+b*c+c*a;
-            let x3=a*b*c;
-
-            let textx1   = x1 === 0 ? "" : (x1 === 1 ? "+x^2" : (x1 === -1 ? "-x^2" :(x1 > 0 ? `+${x1}x^2` : `${x1}x^2`)));
-            let textx2   = x2 === 0 ? "" : (x2 === 1 ? "+x" : (x2 === -1 ? "-x" :(x2 > 0 ? `+${x2}x` : `${x2}x`)));
-            let textx3   = x3 === 0 ? "" : (x3 > 0 ? `+${x3}` : `${x3}`);
-
-
-            correctAnswer = [`(x${ta})(x${tb})(x${tc})`, `(x${ta})(x${tc})(x${tb})`, `(x${tb})(x${ta})(x${tc})`,`(x${tb})(x${tc})(x${ta})`,`(x${tc})(x${ta})(x${tb})`,`(x${tc})(x${tb})(x${ta})`, ];
-           
+            let b = (Math.floor(Math.random() * 3) + 4);
+            let c = (Math.floor(Math.random() * 3) - 4);
+            let ta = a === 0 ? "" : (a > 0 ? `+${a}` : `${a}`);
+            let tb = b === 0 ? "" : (b > 0 ? `+${b}` : `${b}`);
+            let tc = c === 0 ? "" : (c > 0 ? `+${c}` : `${c}`);
+            let x1 = a + b + c;
+            let x2 = a * b + b * c + c * a;
+            let x3 = a * b * c;
+            let textx1 = x1 === 0 ? "" : (x1 === 1 ? "+x^2" : (x1 === -1 ? "-x^2" : (x1 > 0 ? `+${x1}x^2` : `${x1}x^2`)));
+            let textx2 = x2 === 0 ? "" : (x2 === 1 ? "+x" : (x2 === -1 ? "-x" : (x2 > 0 ? `+${x2}x` : `${x2}x`)));
+            let textx3 = x3 === 0 ? "" : (x3 > 0 ? `+${x3}` : `${x3}`);
+            correctAnswer = [
+                `(x${ta})(x${tb})(x${tc})`,
+                `(x${ta})(x${tc})(x${tb})`,
+                `(x${tb})(x${ta})(x${tc})`,
+                `(x${tb})(x${tc})(x${ta})`,
+                `(x${tc})(x${ta})(x${tb})`,
+                `(x${tc})(x${tb})(x${ta})`
+            ];
             return `\\(\\begin{gather}因式分解:x^3${textx1}${textx2}${textx3} \\\\ \\begin{array}{|c|c|c|c|} \\hline x^3&x^2&x&1\\\\ \\hline 1 &${x1} &${x2}&${x3} \\\\ \\hline1& a+b+c & ab+bc+ac&abc\\\\ \\hline \\end{array}\\\\
-
-\\\\
-\\begin{cases}
-a+b+c=${x1}\\\\
-ab+bc+ac=${x2}\\\\
-abc=${x3}\\\\
-
-\\end{cases}\\\\
+\\begin{cases}a+b+c=${x1}\\\\ab+bc+ac=${x2}\\\\abc=${x3}\\\\ \\end{cases}\\\\
 分组分解，拆添项，试根法......
+\\end{gather}\\)`;
+        }
 
- \\end{gather}\\)`;
-}
-
-
-
-function generateLevel6bQuestion() {
-
+        function generateLevel6bQuestion() {
             let a = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            let b = a ;
-            let c = a ;
-            let ta   = a === 0 ? "" : (a > 0 ? `+${a}` : `${a}`);
-            let tb   = b === 0 ? "" : (b > 0 ? `+${b}` : `${b}`);
-            let tc   = c === 0 ? "" : (c > 0 ? `+${c}` : `${c}`);
-
-            let x1=a+b+c;
-            let x2=a*b+b*c+c*a;
-            let x3=a*b*c;
-
-            let textx1   = x1 === 0 ? "" : (x1 === 1 ? "+x^2" : (x1 === -1 ? "-x^2" :(x1 > 0 ? `+${x1}x^2` : `${x1}x^2`)));
-            let textx2   = x2 === 0 ? "" : (x2 === 1 ? "+x" : (x2 === -1 ? "-x" :(x2 > 0 ? `+${x2}x` : `${x2}x`)));
-            let textx3   = x3 === 0 ? "" : (x3 > 0 ? `+${x3}` : `${x3}`);
-
-
-            correctAnswer = [`(x${ta})^3` ];
-           
-            return `\\(\\begin{gather}因式分解:x^3${textx1}${textx2}${textx3} \\\\ \\begin{array}{|c|c|c|c|} \\hline x^3&x^2&x&1\\\\ \\hline 1 &${x1} &${x2}&${x3} \\\\ \\hline1&  a+b+c&ab+bc+ac &abc\\\\ \\hline \\end{array}\\\\
-
-\\\\
-\\begin{cases}
-a+b+c=${x1}\\\\
-ab+bc+ac=${x2}\\\\
-abc=${x3}\\\\
-
-\\end{cases}\\\\
+            let b = a;
+            let c = a;
+            let ta = a === 0 ? "" : (a > 0 ? `+${a}` : `${a}`);
+            let x1 = a + b + c;
+            let x2 = a * b + b * c + c * a;
+            let x3 = a * b * c;
+            let textx1 = x1 === 0 ? "" : (x1 === 1 ? "+x^2" : (x1 === -1 ? "-x^2" : (x1 > 0 ? `+${x1}x^2` : `${x1}x^2`)));
+            let textx2 = x2 === 0 ? "" : (x2 === 1 ? "+x" : (x2 === -1 ? "-x" : (x2 > 0 ? `+${x2}x` : `${x2}x`)));
+            let textx3 = x3 === 0 ? "" : (x3 > 0 ? `+${x3}` : `${x3}`);
+            correctAnswer = [`(x${ta})^3`];
+            return `\\(\\begin{gather}因式分解:x^3${textx1}${textx2}${textx3} \\\\ \\begin{array}{|c|c|c|c|} \\hline x^3&x^2&x&1\\\\ \\hline 1 &${x1} &${x2}&${x3} \\\\ \\hline1& a+b+c & ab+bc+ac&abc\\\\ \\hline \\end{array}\\\\
+\\begin{cases}a+b+c=${x1}\\\\ab+bc+ac=${x2}\\\\abc=${x3}\\\\ \\end{cases}\\\\
 分组分解，拆添项，试根法......
-
- \\end{gather}\\)`;
-}
-
-
-
-
+\\end{gather}\\)`;
+        }
 
         function generateLevel6Question() {
-            const levelFunctions = [
-                generateLevel6aQuestion,
-                generateLevel6bQuestion,
-            ];
-
+            const levelFunctions = [generateLevel6aQuestion, generateLevel6bQuestion];
             const randomIndex = Math.floor(Math.random() * levelFunctions.length);
-            const selectedFunction = levelFunctions[randomIndex];
-
-            return selectedFunction();
+            return levelFunctions[randomIndex]();
         }
 
-
-
-
-
-function generateLevel7aQuestion() {
-    let km = (Math.floor(Math.random() * 10) + 0); // 生成0到9之间的随机整数
-    let kn = (Math.floor(Math.random() * 8) + 1); // 生成1到8之间的随机整数
-
-    let n = (km + kn) % 10 + 1; // 对(km + kn)取模10再加1
-    let m = km + 1;
-
-    let p = -(m + n);
-    let t = m * n;
-    
-    let tp = p === 0 ? "" : (p === 1 ? "+x" : (p === -1 ? "-x" : (p > 0 ? `+${p}x` : `${p}x`)));
-    let tt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
-
-    correctAnswer = [`${m},${n}`, `${n},${m}`, `${m};${n}`, `${n};${m}`];
-
-    return `\\(\\begin{gather}解方程: x^2 ${tp} ${tt} = 0 \\\\
-
+        function generateLevel7aQuestion() {
+            let km = (Math.floor(Math.random() * 10) + 0);
+            let kn = (Math.floor(Math.random() * 8) + 1);
+            let n = (km + kn) % 10 + 1;
+            let m = km + 1;
+            let p = -(m + n);
+            let t = m * n;
+            let tp = p === 0 ? "" : (p === 1 ? "+x" : (p === -1 ? "-x" : (p > 0 ? `+${p}x` : `${p}x`)));
+            let tt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
+            correctAnswer = [`${m},${n}`, `${n},${m}`, `${m};${n}`, `${n};${m}`];
+            return `\\(\\begin{gather}解方程: x^2 ${tp} ${tt} = 0 \\\\
 \\begin{array}{|c|c|c|}
-\\hline 
-b & bx & ab \\\\
-\\hline 
-x & x^2 & ax \\\\
-\\hline 
-  & x & a \\\\
-\\hline 
+\\hline b & bx & ab \\\\ \\hline x & x^2 & ax \\\\ \\hline & x & a \\\\ \\hline 
 \\end{array}\\\\
-输入格式：a,b或a;b\\\\
-因式分解是解方程的一种常用方法，试试吧，\\\\当然你还可以用求根公式、配方法等......
+输入格式：a,b或a;b\\\\因式分解是解方程的一种常用方法，试试吧，\\\\当然你还可以用求根公式、配方法等......
 \\end{gather}\\)`;
-}
+        }
 
-
-
-
-
-function generateLevel7bQuestion() {
-    let km = (Math.floor(Math.random() * 10) + 0); // 生成0到9之间的随机整数
-    let kn = (Math.floor(Math.random() * 8) + 1); // 生成1到8之间的随机整数
-
-    let n = (km + kn) % 10 - 5; // 对(km + kn)取模10再加1
-    let m = km -5 ;
-
-    let p = -(m + n);
-    let t = m * n;
-    
-    let tp = p === 0 ? "" : (p === 1 ? "+x" : (p === -1 ? "-x" : (p > 0 ? `+${p}x` : `${p}x`)));
-    let tt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
-
-    correctAnswer = [`${m},${n}`, `${n},${m}`, `${m};${n}`, `${n};${m}`];
-
-    return `\\(\\begin{gather}解方程: x^2 ${tp} ${tt} = 0 \\\\
-
+        function generateLevel7bQuestion() {
+            let km = (Math.floor(Math.random() * 10) + 0);
+            let kn = (Math.floor(Math.random() * 8) + 1);
+            let n = (km + kn) % 10 - 5;
+            let m = km - 5;
+            let p = -(m + n);
+            let t = m * n;
+            let tp = p === 0 ? "" : (p === 1 ? "+x" : (p === -1 ? "-x" : (p > 0 ? `+${p}x` : `${p}x`)));
+            let tt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
+            correctAnswer = [`${m},${n}`, `${n},${m}`, `${m};${n}`, `${n};${m}`];
+            return `\\(\\begin{gather}解方程: x^2 ${tp} ${tt} = 0 \\\\
 \\begin{array}{|c|c|c|}
-\\hline 
-b & bx & ab \\\\
-\\hline 
-x & x^2 & ax \\\\
-\\hline 
-  & x & a \\\\
-\\hline 
+\\hline b & bx & ab \\\\ \\hline x & x^2 & ax \\\\ \\hline & x & a \\\\ \\hline 
 \\end{array}\\\\
-输入格式：x_1,x_2或x_1;x_2\\\\
-因式分解是解方程的一种常用方法，试试吧，\\\\当然你还可以用求根公式、配方法等......
+输入格式：x_1,x_2或x_1;x_2\\\\因式分解是解方程的一种常用方法，试试吧，\\\\当然你还可以用求根公式、配方法等......
 \\end{gather}\\)`;
-}
-
+        }
 
         function generateLevel7Question() {
-            const levelFunctions = [
-
-                generateLevel7aQuestion,
-                generateLevel7bQuestion,
-
-            ];
-
+            const levelFunctions = [generateLevel7aQuestion, generateLevel7bQuestion];
             const randomIndex = Math.floor(Math.random() * levelFunctions.length);
-            const selectedFunction = levelFunctions[randomIndex];
-
-            return selectedFunction();
+            return levelFunctions[randomIndex]();
         }
 
-
-
-
-
-
-
         function generateLevel8Question() {
+            const a = Math.floor(Math.random() * 3) + 1;
+            const c = Math.floor(Math.random() * 3) + 1;
+            const options = [-3, -2, -1, 1, 2, 3];
+            const b = options[Math.floor(Math.random() * options.length)];
+            const d = options[Math.floor(Math.random() * options.length)];
+            const e = options[Math.floor(Math.random() * options.length)];
+            const f = options[Math.floor(Math.random() * options.length)];
+
+            const coeffX2 = a * c;
+            const coeffXY = a * d + b * c;
+            const coeffY2 = b * d;
+            const coeffX = a * f + e * c;
+            const coeffY = b * f + e * d;
+            const constant = e * f;
+
+            let expression = '';
+            if (coeffX2 !== 0) expression += (coeffX2 === 1 ? '' : (coeffX2 === -1 ? '-' : coeffX2)) + 'x^2';
+            if (coeffXY !== 0) expression += (coeffXY > 0 ? '+' : '') + (coeffXY === 1 ? '' : (coeffXY === -1 ? '-' : coeffXY)) + 'xy';
+            if (coeffY2 !== 0) expression += (coeffY2 > 0 ? '+' : '') + (coeffY2 === 1 ? '' : (coeffY2 === -1 ? '-' : coeffY2)) + 'y^2';
+            if (coeffX !== 0) expression += (coeffX > 0 ? '+' : '') + (coeffX === 1 ? '' : (coeffX === -1 ? '-' : coeffX)) + 'x';
+            if (coeffY !== 0) expression += (coeffY > 0 ? '+' : '') + (coeffY === 1 ? '' : (coeffY === -1 ? '-' : coeffY)) + 'y';
+            if (constant !== 0) expression += (constant > 0 ? '+' : '') + constant;
+            if (expression === '') expression = '0';
+
+            const part1 = `${a === 1 ? '' : a}x${b >= 0 ? '+' : ''}${b}y${e >= 0 ? '+' : ''}${e}`;
+            const part2 = `${c === 1 ? '' : c}x${d >= 0 ? '+' : ''}${d}y${f >= 0 ? '+' : ''}${f}`;
+            correctAnswer = [`(${part1})(${part2})`, `(${part2})(${part1})`];
+
+            return `\\(\\begin{array}因式分解: ${expression} \\\\ \\text{提示：将表达式分解为两个线性因子的乘积，} \\\\例如 (ax+by+c)(dx+ey+f)\\end{array}\\)`;
+        }
+
+        function generateLevel9Question() {
             const levelFunctions = [
                 generateLevel1Question,
                 generateLevel2Question,
@@ -795,16 +581,11 @@ x & x^2 & ax \\\\
                 generateLevel5Question,
                 generateLevel6Question,
                 generateLevel7Question,
-
+                generateLevel8Question,
             ];
-
             const randomIndex = Math.floor(Math.random() * levelFunctions.length);
-            const selectedFunction = levelFunctions[randomIndex];
-
-            return selectedFunction();
+            return levelFunctions[randomIndex]();
         }
-  
-
 
         function newQuestion() {
             const question = generateQuestion();
@@ -835,7 +616,7 @@ x & x^2 & ax \\\\
             if (userAnswer === '') {
                 document.getElementById('result').innerHTML = '请输入答案！';
                 document.getElementById('result').className = 'incorrect';
-                return; // 直接返回，不更新历史记录或生成新题目
+                return;
             }
 
             const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
@@ -856,16 +637,14 @@ x & x^2 & ax \\\\
 
             MathJax.typesetPromise().catch((err) => console.log(err));
 
-            if (userAnswer !== '') {
-                newQuestion();
-            }
+            if (userAnswer !== '') newQuestion();
         }
 
         function updateScore() {
             document.getElementById('score').innerHTML = `正确: ${correctCount} | 错误: ${incorrectCount}`;
         }
 
-function updateHistory(isCorrect) {
+        function updateHistory(isCorrect) {
             const historyTable = document.getElementById('history');
             const newRow = historyTable.insertRow(0);
             newRow.insertCell(0).innerHTML = document.getElementById('question').innerHTML;
@@ -879,13 +658,10 @@ function updateHistory(isCorrect) {
         }
 
         document.getElementById('answer').addEventListener('keyup', function (event) {
-            if (event.key === 'Enter') {
-                checkAnswer();
-            }
+            if (event.key === 'Enter') checkAnswer();
         });
 
         newQuestion();
-
     </script>
 </body>
 
