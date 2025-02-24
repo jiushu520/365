@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+    <link rel="icon" href="ico/杠.ico" type="image/x-icon">
     <!-- MathJax for rendering mathematical expressions -->
     <script>
     window.MathJax = {
@@ -41,12 +42,11 @@
             padding: 20px;
             display: flex;
             flex-direction: column;
-            min-height: 720px;
-            height: auto;
+            height: 90vh; /* 固定高度为视口高度 */
         }
         #messages {
-            flex: 1;
-            overflow-y: auto;
+            flex: 1; /* 占据剩余空间 */
+            overflow-y: auto; /* 内容过多时显示滚动条 */
             margin-bottom: 20px;
         }
         .message {
@@ -72,6 +72,7 @@
         #input-container {
             display: flex;
             align-items: center;
+            flex-shrink: 0; /* 防止被压缩 */
         }
         #user-input {
             flex: 1;
@@ -80,11 +81,11 @@
             border: 2px solid #ccc;
             resize: vertical;
             font-size: 1em;
-            margin-right: 10px; /* 添加右边距 */
+            margin-right: 10px;
             overflow: hidden;
             min-height: 40px;
         }
-        #send-btn, #refresh-btn {
+        #send-btn {
             padding: 10px 10px;
             border: none;
             background-color: #007bff;
@@ -93,20 +94,43 @@
             cursor: pointer;
             margin-left: 2px;
             font-size: 1em;
-        }
-        #refresh-btn {
-            background-color: #28a745;
-            margin-top: 10px;   /* 增加上间距 */
+            flex-shrink: 0;
         }
         #send-btn:disabled {
             background-color: grey;
             cursor: not-allowed;
+        }
+        /* 统一控制区域样式 */
+        #action-controls, #history-controls {
+            text-align: center;
+            margin-top: 10px;
+            flex-shrink: 0;
+        }
+        /* 统一按钮样式 */
+        #refresh-btn, #new-conversation-btn, #save-history-btn, #load-history-btn {
+            padding: 10px 10px;
+            border: none;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 5px; /* 统一间距 */
+            font-size: 1em;
+        }
+        #refresh-btn {
+            background-color: #28a745; /* 绿色 */
+        }
+        #new-conversation-btn {
+            background-color: #17a2b8; /* 青色 */
+        }
+        #save-history-btn, #load-history-btn {
+            background-color: #007bff; /* 蓝色 */
         }
         #loading {
             display: none;
             text-align: center;
             margin-top: 10px;
             margin-bottom: 10px;
+            flex-shrink: 0; /* 防止被压缩 */
         }
         .code-container {
             background-color: #272822;
@@ -120,7 +144,6 @@
             margin: 0;
             padding: 0;
         }
-        /* 可选：自动调整文本框高度 */
         textarea:focus {
             outline: none;
             border-color: #007bff;
@@ -130,21 +153,47 @@
             color: #555;
             margin-left: 10px;
         }
+        #history-list {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            flex-shrink: 0; /* 防止被压缩 */
+        }
+        #history-items li {
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        #history-items li:hover {
+            background-color: #e0e0e0;
+        }
+        #history-items li button {
+            margin-left: 10px;
+            padding: 2px 5px;
+            background-color: #ff9800;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <div id="chat-container">
         <h3 id="title">玖数有点杠</h3>
         
-        <div id="model-selector-container" style="text-align: center; margin-bottom: 10px;">
+        <div id="model-selector-container" style="text-align: center; margin-bottom: 10px; flex-shrink: 0;">
             <label for="model-selector">选择模型：</label>
             <select id="model-selector">
                 <!-- 下拉菜单选项将由JavaScript动态生成 -->
             </select>
         </div>
         
-        <!-- 添加语气选择器 -->
-        <div id="tone-selector-container" style="text-align: center; margin-bottom: 10px;">
+        <div id="tone-selector-container" style="text-align: center; margin-bottom: 10px; flex-shrink: 0;">
             <label for="tone-selector">选择语气：</label>
             <select id="tone-selector">
                 <option value="诗意">诗意</option>
@@ -152,8 +201,12 @@
                 <option value="严肃">严肃</option>
                 <option value="幽默">幽默</option>
                 <option value="讽刺">讽刺</option>
-                <!-- 可以添加更多选项 -->
             </select>
+        </div>
+
+        <div id="history-list">
+            <h4>历史记录列表</h4>
+            <ul id="history-items"></ul>
         </div>
 
         <div id="messages"></div>
@@ -164,74 +217,41 @@
             <textarea id="user-input" placeholder="输入你的消息..." rows="1"></textarea>
             <button id="send-btn" disabled>发送</button>
         </div>
-        <button id="refresh-btn">清除对话</button>
+        
+        <div id="action-controls">
+            <button id="refresh-btn">清除对话</button>
+            <button id="new-conversation-btn">新建对话</button>
+     
+            <button id="save-history-btn">保存记录</button>
+            <button id="load-history-btn">加载记录</button>
+        </div>
     </div>
 
     <script>
     class ChatApp {
         constructor() {
             this.CONFIG = [
-
-
-
-
                 {
-                    name: "glm-4-flash",
-                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
-                    model: "glm-4-flash",
-                    temperature: 0
-                },
-
-
-     {
-                    name: "moonshot-v1-128k",
-                    apiUrl: "https://api.moonshot.cn/v1/chat/completions",
-                    apiKey: "sk-f7s6H8XxvgXBGNbQ9HkRztr2IyUCmeFMyi6fqApGVM1GQK1g",
-                    model: "moonshot-v1-128k",
-                    temperature: 0
-                },
-
-
-
-
-
-
-     {
                     name: "deepseek-r1-distill-qwen-1.5b",
                     apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
                     apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
                     model: "deepseek-r1-distill-qwen-1.5b",
                     temperature: 0
                 },
-
-
-     {
-                    name: "ali-deepseek-r1",
+                {
+                    name: "aili-deepseek-r1",
                     apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
                     apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
                     model: "deepseek-r1",
                     temperature: 0
                 },
-
-
-
-
-
-
-
-
-      {
+                {
                     name: "qwen-max-0125",
                     apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
                     apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
                     model: "qwen-max-0125",
                     temperature: 0
                 },
-
-
-
-
                 {
                     name: "qwen-plus",
                     apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
@@ -239,7 +259,6 @@
                     model: "qwen-plus",
                     temperature: 0
                 },
- 
                 {
                     name: "glm-4-flashX",
                     apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
@@ -247,10 +266,13 @@
                     model: "glm-4-flashX",
                     temperature: 0
                 },
-
-
-
-           
+                {
+                    name: "glm-4-flash",
+                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
+                    model: "glm-4-flash",
+                    temperature: 0
+                },
                 {
                     name: "glm-zero-preview",
                     apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
@@ -258,64 +280,37 @@
                     model: "glm-zero-preview",
                     temperature: 0
                 },
-
-              {
+                {
                     name: "deepseek-reasoner",
                     apiUrl: "https://api.deepseek.com/v1/chat/completions",
                     apiKey: "sk-eafb6da8cb3948ebbbd239f3bc40f2e2",
                     model: "deepseek-reasoner",
                     temperature: 0,
                 },
-
-
-              {
+                {
                     name: "deepseek-chat",
                     apiUrl: "https://api.deepseek.com/v1/chat/completions",
                     apiKey: "sk-eafb6da8cb3948ebbbd239f3bc40f2e2",
                     model: "deepseek-chat",
                     temperature: 0,
                 },
-
-
-       
-
-
-
-                  {
+                {
                     name: "deepseek-r1xiaojiangai",
                     apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
                     apiKey: "sk-PQUi1mRSyz3OtEadQ6X7PNGjVdP1sO3jDOz4cLjhhwZewjZK",
                     model: "deepseek-r1",
                     temperature: 0
                 },
-         
-
                 {
                     name: "gpt-4o-mini",
                     apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
                     apiKey: "sk-PQUi1mRSyz3OtEadQ6X7PNGjVdP1sO3jDOz4cLjhhwZewjZK",
                     model: "gpt-4o-mini",
                     temperature: 0
-                },
-
-           
-
-                {
-                    name: "deepseek-ai/DeepSeek-R1",
-                    apiUrl: "https://api.siliconflow.cn/v1/chat/completions",
-                    apiKey: "sk-nqwhbtuzjbhtluuegjfvyylkooyspduotvodnddmhouppzkz",
-                    model: "deepseek-ai/DeepSeek-R1",
-                    temperature: 0
-                },
-
-
-
-
-                // 添加更多模型配置
+                }
             ];
-            this.currentConfigIndex = 0; // 默认使用第一个配置
+            this.currentConfigIndex = 0;
 
-            // SYSTEM_MESSAGE 改为函数，以便动态生成
             this.getSystemMessage = (tone) => ({
                 "role": "system",
                 "content": `你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型。并会给出题涉及的相关知识点，以${tone}的语气回复。如果提问题和学习数理化学科或是编程无关则以${tone}的语气进行回怼！`
@@ -323,8 +318,11 @@
 
             this.initElements();
             this.populateModelSelector();
-            this.loadToneSetting(); // 加载语气设置
+            this.loadToneSetting();
             this.addEventListeners();
+            this.renderHistoryList();
+            this.addHistoryEventListeners();
+            this.setupAutoSave();
         }
 
         initElements() {
@@ -332,9 +330,14 @@
             this.userInput = document.getElementById('user-input');
             this.sendBtn = document.getElementById('send-btn');
             this.refreshBtn = document.getElementById('refresh-btn');
+            this.newConversationBtn = document.getElementById('new-conversation-btn');
             this.loadingIndicator = document.getElementById('loading');
             this.modelSelector = document.getElementById('model-selector');
             this.toneSelector = document.getElementById('tone-selector');
+            this.historyList = document.getElementById('history-list');
+            this.historyItems = document.getElementById('history-items');
+            this.saveHistoryBtn = document.getElementById('save-history-btn');
+            this.loadHistoryBtn = document.getElementById('load-history-btn');
         }
 
         populateModelSelector() {
@@ -351,7 +354,6 @@
             if (storedTone) {
                 this.selectedTone = storedTone;
             } else {
-                // 如果没有存储的语气，选择语气选择器的第一个选项作为默认值
                 this.selectedTone = this.toneSelector.options[0].value;
                 localStorage.setItem('selectedTone', this.selectedTone);
             }
@@ -367,6 +369,7 @@
             });
             this.sendBtn.addEventListener('click', () => this.sendMessage());
             this.refreshBtn.addEventListener('click', () => this.clearMessages());
+            this.newConversationBtn.addEventListener('click', () => this.newConversation());
             this.userInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -377,10 +380,30 @@
             this.toneSelector.addEventListener('change', (e) => this.changeTone(e.target.value));
         }
 
+        addHistoryEventListeners() {
+            this.saveHistoryBtn.addEventListener('click', () => this.saveHistory());
+            this.loadHistoryBtn.addEventListener('click', () => this.toggleHistoryList());
+        }
+
+        setupAutoSave() {
+            window.addEventListener('beforeunload', () => {
+                if (this.messages.length > 1) {
+                    const timestamp = new Date().toLocaleString('zh-CN', { hour12: false }).replace(/[/:]/g, '-');
+                    const name = `AutoSave-${timestamp}`;
+                    const historyData = {
+                        name: name,
+                        messages: this.messages
+                    };
+                    localStorage.setItem(name, JSON.stringify(historyData));
+                    this.updateHistoryList(name);
+                }
+            });
+        }
+
         changeTone(tone) {
             this.selectedTone = tone;
             localStorage.setItem('selectedTone', tone);
-            this.SYSTEM_MESSAGE = this.getSystemMessage(tone); // 更新系统消息
+            this.SYSTEM_MESSAGE = this.getSystemMessage(tone);
             this.clearMessages();
             this.messages = [this.SYSTEM_MESSAGE];
         }
@@ -463,9 +486,8 @@
             messageElement.appendChild(contentElement);
             messageElement.appendChild(timestamp);
             this.messagesContainer.appendChild(messageElement);
-            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight; // 滚动到底部
 
-            // 调用 MathJax 渲染
             MathJax.typesetPromise([messageElement]);
         }
 
@@ -477,8 +499,6 @@
                 this.displayTextStepByStep(message, className);
             }
         }
-
-
 
         displayTextStepByStep(message, className) {
             const messageElement = document.createElement('div');
@@ -510,12 +530,11 @@
                         }
                     }, 1);
                 } else {
-                    MathJax.typesetPromise([contentElement]);
+                    MathJax.typesetPromise([contentElement]).then(() => {
+                        this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight; // 渲染后滚动
+                    });
                 }
             };
-
-
-
 
             displayNextPart();
         }
@@ -543,15 +562,111 @@
             messageElement.appendChild(codeContainer);
 
             this.messagesContainer.appendChild(messageElement);
-            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight; // 滚动到底部
 
             Prism.highlightElement(codeInner);
-            MathJax.typesetPromise([messageElement]);
+            MathJax.typesetPromise([messageElement]).then(() => {
+                this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight; // 渲染后滚动
+            });
         }
 
         clearMessages() {
             this.messagesContainer.innerHTML = '';
             this.messages = [this.SYSTEM_MESSAGE];
+        }
+
+        saveHistory() {
+            const name = prompt('请输入历史记录的名称：');
+            if (name) {
+                const historyData = {
+                    name: name,
+                    messages: this.messages
+                };
+                localStorage.setItem(name, JSON.stringify(historyData));
+                this.updateHistoryList(name);
+            }
+        }
+
+        loadHistory(key) {
+            const historyData = JSON.parse(localStorage.getItem(key));
+            if (historyData) {
+                this.clearMessages();
+                this.messages = historyData.messages;
+                this.messages.forEach(msg => {
+                    const className = msg.role === 'user' ? 'user-message' : 'assistant-message';
+                    this.displayMessage(`${msg.role === 'user' ? '我' : '玖数'}：${msg.content}`, className);
+                });
+                this.historyList.style.display = 'none';
+            }
+        }
+
+        renameHistory(oldKey) {
+            const newKey = prompt('请输入新的历史记录名称：', oldKey);
+            if (newKey && newKey !== oldKey) {
+                const historyData = JSON.parse(localStorage.getItem(oldKey));
+                if (historyData) {
+                    localStorage.setItem(newKey, JSON.stringify(historyData));
+                    localStorage.removeItem(oldKey);
+                    const historyKeys = JSON.parse(localStorage.getItem('historyKeys')) || [];
+                    const index = historyKeys.indexOf(oldKey);
+                    if (index !== -1) {
+                        historyKeys[index] = newKey;
+                        localStorage.setItem('historyKeys', JSON.stringify(historyKeys));
+                    }
+                    this.renderHistoryList();
+                }
+            }
+        }
+
+        updateHistoryList(key) {
+            const historyKeys = JSON.parse(localStorage.getItem('historyKeys')) || [];
+            if (!historyKeys.includes(key)) {
+                historyKeys.push(key);
+                localStorage.setItem('historyKeys', JSON.stringify(historyKeys));
+            }
+            this.renderHistoryList();
+        }
+
+        renderHistoryList() {
+            this.historyItems.innerHTML = '';
+            const historyKeys = JSON.parse(localStorage.getItem('historyKeys')) || [];
+            historyKeys.forEach(key => {
+                const item = document.createElement('li');
+                const span = document.createElement('span');
+                span.textContent = key;
+                const renameBtn = document.createElement('button');
+                renameBtn.textContent = '重命名';
+                renameBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.renameHistory(key);
+                });
+                item.appendChild(span);
+                item.appendChild(renameBtn);
+                item.addEventListener('click', () => this.loadHistory(key));
+                this.historyItems.appendChild(item);
+            });
+        }
+
+        toggleHistoryList() {
+            if (this.historyList.style.display === 'none') {
+                this.historyList.style.display = 'block';
+            } else {
+                this.historyList.style.display = 'none';
+            }
+        }
+
+        newConversation() {
+            if (this.messages.length > 1) {
+                const timestamp = new Date().toLocaleString('zh-CN', { hour12: false }).replace(/[/:]/g, '-');
+                const name = `AutoSave-${timestamp}`;
+                const historyData = {
+                    name: name,
+                    messages: this.messages
+                };
+                localStorage.setItem(name, JSON.stringify(historyData));
+                this.updateHistoryList(name);
+            }
+            this.clearMessages();
         }
     }
 
