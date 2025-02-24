@@ -138,7 +138,7 @@
             padding: 10px 0;
         }
 
-        #history-list {
+        #history-list, #prompt-manager {
             position: fixed;
             top: 50%;
             left: 50%;
@@ -146,27 +146,30 @@
             background: white;
             padding: 20px;
             border: 1px solid #ccc;
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
-        #history-list .history-item {
+        #history-list .history-item, #prompt-list li {
             display: flex;
             align-items: center;
             padding: 5px;
             border-bottom: 1px solid #eee;
         }
 
-        #history-list .history-item span {
+        #history-list .history-item span, #prompt-list li span {
             flex: 1;
             cursor: pointer;
         }
 
-        #history-list .history-item button {
+        #history-list .history-item button, #prompt-list li button {
             margin-left: 5px;
             padding: 3px 6px;
             font-size: 12px;
+        }
+
+        #history-list .history-item button {
             background-color: #007BFF;
         }
 
@@ -174,8 +177,59 @@
             background-color: #DC3545;
         }
 
-        #history-list .history-item button:hover {
+        #prompt-list li button.edit {
+            background-color: #28a745;
+        }
+
+        #prompt-list li button.delete {
+            background-color: #DC3545;
+        }
+
+        #history-list .history-item button:hover, #prompt-list li button:hover {
             opacity: 0.8;
+        }
+
+        #prompt-editor {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-height: 600px;
+            overflow-y: auto;
+            width: 80%;
+            max-width: 800px;
+        }
+
+        #prompt-editor label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        #prompt-editor input[type="text"] {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+
+        #prompt-editor textarea {
+            width: 100%;
+            height: 400px;
+            resize: both;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        #prompt-editor button {
+            margin-top: 10px;
+            padding: 5px 10px;
         }
 
         @media (max-width: 600px) {
@@ -192,6 +246,9 @@
             }
             .conversation-controls button {
                 margin-bottom: 5px;
+            }
+            #prompt-editor {
+                width: 90%;
             }
         }
 
@@ -240,11 +297,10 @@
     </style>
 </head>
 <body>
-    <select id="prompt-select">
-        <option value="1">数学专家</option>
-        <option value="2">文本和公式识别</option>
-        <option value="3">作业点评</option>
-    </select>
+    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+        <select id="prompt-select"></select>
+        <button id="manage-prompts" style="margin-left: 10px;">管理提示词</button>
+    </div>
     <div id="chat-history"></div>
     <div id="input-section">
         <div id="input-area" contenteditable="true"></div>
@@ -259,11 +315,31 @@
         <button id="view-history">查看历史记录</button>
     </div>
 
+    <div id="prompt-manager" style="display:none;">
+        <h3>管理提示词</h3>
+        <ul id="prompt-list"></ul>
+        <button id="add-prompt">添加新提示词</button>
+        <button id="close-manager">关闭</button>
+    </div>
+
+    <div id="history-list" style="display:none;"></div>
+
+    <div id="prompt-editor" style="display:none;">
+        <h3>编辑提示词</h3>
+        <label for="prompt-name">提示词名称:</label>
+        <input type="text" id="prompt-name" placeholder="请输入提示词名称">
+        <label for="prompt-content">提示词内容:</label>
+        <textarea id="prompt-content" placeholder="请输入提示词内容"></textarea>
+        <button id="save-prompt">保存</button>
+        <button id="cancel-prompt">取消</button>
+    </div>
+
     <script>
-        const systemPrompts = {
-            "1": "你是 玖数 人工智能助手，一个有20年经验的高级学者，精通数学问题。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型，并会给出题涉及的相关知识点。以杠精的语气回复，但请确保在提供帮助时保持专业和友好。如果问题与学习数理化学科或编程无关，请以同样风格进行回怼。",
-            "2": "请完整识别图片中的所有文本内容，包括中文文字和数学公式。识别结果为纯文本格式：1. 对于中文文字，直接输出原始文本；2. 对于数学公式，转换为 LaTeX 代码；3. 每识别一个独立的文本块（文字或公式）后换行；4. 不要添加任何解释性文字、解题步骤或其他无关内容，只返回识别结果。",
-            "3": "你是 玖数 人工智能助手，一个有20年经验的高级教师，精通点评学生的作业。请对学生的作业进行详细的点评，包括以下几个方面：\n\n1. **正确性**：检查作业中的答案是否正确，指出错误的地方并解释原因。\n\n2. **完整性**：评估作业是否完整，是否遗漏了某些部分。\n\n3. **清晰度**：评价学生的表达是否清晰，是否易于理解。\n\n4. **创新性**：如果作业中有创新的思路或方法，请给予肯定。\n\n5. **建议**：提供改进建议，帮助学生提高。\n\n请以鼓励和指导的语气进行点评，确保在提供反馈时保持专业和友好。"
+        let prompts = JSON.parse(localStorage.getItem('prompts')) || {
+            "1": {name: "数学专家", content: "你是 玖数 人工智能助手，一个有20年经验的高级学者，精通数学问题。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型，并会给出题涉及的相关知识点。以杠精的语气回复，但请确保在提供帮助时保持专业和友好。如果问题与学习数理化学科或编程无关，请以同样风格进行回怼。"},
+            "2": {name: "文本和公式识别", content: "请完整识别图片中的所有文本内容，包括中文文字和数学公式。识别结果为纯文本格式：1. 对于中文文字，直接输出原始文本；2. 对于数学公式，转换为 LaTeX 代码；3. 每识别一个独立的文本块（文字或公式）后换行；4. 不要添加任何解释性文字、解题步骤或其他无关内容，只返回识别结果。"},
+            "3": {name: "作业点评", content: "你是 玖数 人工智能助手，一个有20年经验的高级教师，精通点评学生的作业。请对学生的作业进行详细的点评，包括以下几个方面：\n\n1. **正确性**：检查作业中的答案是否正确，指出错误的地方并解释原因。\n\n2. **完整性**：评估作业是否完整，是否遗漏了某些部分。\n\n3. **清晰度**：评价学生的表达是否清晰，是否易于理解。\n\n4. **创新性**：如果作业中有创新的思路或方法，请给予肯定。\n\n5. **建议**：提供改进建议，帮助学生提高。\n\n请以鼓励和指导的语气进行点评，确保在提供反馈时保持专业和友好。"},
+            "4": {name: "数学动画生成", content: "你是 玖数 人工智能助手，擅长生成数学原理的动画表示。请根据用户提供的数学问题或原理，使用 HTML、CSS、JavaScript（包括 Canvas 或 SVG）生成动态动画，展示数学概念或过程。返回完整的 HTML 代码片段，包括必要的脚本和样式，确保动画清晰、直观且互动性强。如果用户未提供具体数学内容，请请求更多细节。"}
         };
 
         const chatHistory = document.getElementById('chat-history');
@@ -274,11 +350,25 @@
         const newConversationButton = document.getElementById('new-conversation');
         const viewHistoryButton = document.getElementById('view-history');
         const promptSelect = document.getElementById('prompt-select');
+        const promptManager = document.getElementById('prompt-manager');
+        const promptEditor = document.getElementById('prompt-editor');
+        const promptName = document.getElementById('prompt-name');
+        const promptContent = document.getElementById('prompt-content');
 
         let currentConversationId = Date.now().toString();
         let conversations = JSON.parse(localStorage.getItem('conversations')) || {};
         let conversation;
-        let currentPromptId = "1";
+        let currentPromptId = "1"; // 默认使用数学专家提示词
+
+        if (!Object.keys(prompts).length) {
+            prompts = {
+                "1": {name: "数学专家", content: "你是 玖数 人工智能助手，一个有20年经验的高级学者，精通数学问题。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型，并会给出题涉及的相关知识点。以杠精的语气回复，但请确保在提供帮助时保持专业和友好。如果问题与学习数理化学科或编程无关，请以同样风格进行回怼。"},
+                "2": {name: "文本和公式识别", content: "请完整识别图片中的所有文本内容，包括中文文字和数学公式。识别结果为纯文本格式：1. 对于中文文字，直接输出原始文本；2. 对于数学公式，转换为 LaTeX 代码；3. 每识别一个独立的文本块（文字或公式）后换行；4. 不要添加任何解释性文字、解题步骤或其他无关内容，只返回识别结果。"},
+                "3": {name: "作业点评", content: "你是 玖数 人工智能助手，一个有20年经验的高级教师，精通点评学生的作业。请对学生的作业进行详细的点评，包括以下几个方面：\n\n1. **正确性**：检查作业中的答案是否正确，指出错误的地方并解释原因。\n\n2. **完整性**：评估作业是否完整，是否遗漏了某些部分。\n\n3. **清晰度**：评价学生的表达是否清晰，是否易于理解。\n\n4. **创新性**：如果作业中有创新的思路或方法，请给予肯定。\n\n5. **建议**：提供改进建议，帮助学生提高。\n\n请以鼓励和指导的语气进行点评，确保在提供反馈时保持专业和友好。"},
+                "4": {name: "数学动画生成", content: "你是 玖数 人工智能助手，擅长生成数学原理的动画表示。请根据用户提供的数学问题或原理，使用 HTML、CSS、JavaScript（包括 Canvas 或 SVG）生成动态动画，展示数学概念或过程。返回完整的 HTML 代码片段，包括必要的脚本和样式，确保动画清晰、直观且互动性强。如果用户未提供具体数学内容，请请求更多细节。"}
+            };
+            savePrompts();
+        }
 
         if (!conversations[currentConversationId]) {
             conversation = {
@@ -286,12 +376,16 @@
                 name: `对话于 ${new Date(parseInt(currentConversationId)).toLocaleString()}`,
                 messages: [{
                     role: "system",
-                    content: systemPrompts[currentPromptId]
+                    content: prompts[currentPromptId].content
                 }]
             };
             conversations[currentConversationId] = conversation;
         } else {
             conversation = conversations[currentConversationId];
+            if (!prompts[currentPromptId]) {
+                currentPromptId = "1";
+                conversation.messages[0].content = prompts[currentPromptId].content;
+            }
             conversation.messages.forEach(msg => displayMessage(msg));
         }
 
@@ -300,11 +394,100 @@
             localStorage.setItem('conversations', JSON.stringify(conversations));
         }
 
+        function savePrompts() {
+            localStorage.setItem('prompts', JSON.stringify(prompts));
+        }
+
+        function updatePromptSelect() {
+            promptSelect.innerHTML = '';
+            Object.entries(prompts).forEach(([id, {name}]) => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = name;
+                promptSelect.appendChild(option);
+            });
+            promptSelect.value = currentPromptId;
+        }
+        updatePromptSelect();
+
         promptSelect.addEventListener('change', function() {
             currentPromptId = this.value;
-            conversation.messages[0].content = systemPrompts[currentPromptId];
+            conversation.messages[0].content = prompts[currentPromptId].content;
             saveConversation();
         });
+
+        document.getElementById('manage-prompts').addEventListener('click', () => {
+            promptManager.style.display = 'block';
+            renderPromptList();
+        });
+
+        document.getElementById('close-manager').addEventListener('click', () => {
+            promptManager.style.display = 'none';
+        });
+
+        document.getElementById('add-prompt').addEventListener('click', () => {
+            promptName.value = '';
+            promptContent.value = '';
+            promptEditor.dataset.editingId = '';
+            promptEditor.style.display = 'block';
+        });
+
+        function renderPromptList() {
+            const list = document.getElementById('prompt-list');
+            list.innerHTML = '';
+            Object.entries(prompts).forEach(([id, {name, content}]) => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${name} - ${content.substring(0, 30)}...</span>
+                    <button class="edit">编辑</button>
+                    <button class="delete">删除</button>`;
+                li.querySelector('.edit').addEventListener('click', () => {
+                    promptName.value = name;
+                    promptContent.value = content;
+                    promptEditor.dataset.editingId = id;
+                    promptEditor.style.display = 'block';
+                });
+                li.querySelector('.delete').addEventListener('click', () => deletePrompt(id));
+                list.appendChild(li);
+            });
+        }
+
+        document.getElementById('save-prompt').addEventListener('click', () => {
+            const id = promptEditor.dataset.editingId || Date.now().toString();
+            const name = promptName.value.trim();
+            const content = promptContent.value.trim();
+            if (!name || !content) {
+                alert('提示词名称和内容不能为空！');
+                return;
+            }
+            prompts[id] = {name, content};
+            savePrompts();
+            updatePromptSelect();
+            renderPromptList();
+            promptEditor.style.display = 'none';
+            if (!promptEditor.dataset.editingId) {
+                currentPromptId = id; // 新添加的提示词成为默认
+                conversation.messages[0].content = prompts[currentPromptId].content;
+                saveConversation();
+            }
+        });
+
+        document.getElementById('cancel-prompt').addEventListener('click', () => {
+            promptEditor.style.display = 'none';
+        });
+
+        function deletePrompt(id) {
+            if (confirm('确定删除此提示词吗？')) {
+                delete prompts[id];
+                savePrompts();
+                updatePromptSelect();
+                renderPromptList();
+                if (currentPromptId === id) {
+                    currentPromptId = Object.keys(prompts)[0] || "1";
+                    conversation.messages[0].content = prompts[currentPromptId].content;
+                    saveConversation();
+                }
+            }
+        }
 
         inputArea.addEventListener('paste', function(event) {
             event.preventDefault();
@@ -420,23 +603,25 @@
                 name: `对话于 ${new Date(parseInt(currentConversationId)).toLocaleString()}`,
                 messages: [{
                     role: "system",
-                    content: systemPrompts[currentPromptId]
+                    content: prompts[currentPromptId].content
                 }]
             };
             conversations[currentConversationId] = conversation;
             chatHistory.innerHTML = '';
             renderChatHistory();
+            updatePromptSelect();
         }
         newConversationButton.addEventListener('click', newConversation);
 
         viewHistoryButton.addEventListener('click', function() {
             saveConversation();
-            const historyList = document.createElement('div');
-            historyList.id = 'history-list';
+            const historyList = document.getElementById('history-list');
+            historyList.style.display = 'block';
+            historyList.innerHTML = '';
 
             const closeButton = document.createElement('button');
             closeButton.textContent = '关闭';
-            closeButton.addEventListener('click', () => historyList.remove());
+            closeButton.addEventListener('click', () => historyList.style.display = 'none');
             historyList.appendChild(closeButton);
 
             Object.keys(conversations).forEach(id => {
@@ -451,7 +636,7 @@
                     conversation = conversations[id];
                     chatHistory.innerHTML = '';
                     renderChatHistory();
-                    historyList.remove();
+                    historyList.style.display = 'none';
                 });
 
                 const renameButton = document.createElement('button');
@@ -484,8 +669,6 @@
                 item.appendChild(deleteButton);
                 historyList.appendChild(item);
             });
-
-            document.body.appendChild(historyList);
         });
 
         latexToggle.addEventListener('change', function() {
@@ -546,7 +729,7 @@
                     parts.forEach(part => {
                         if (part.match(/```(\w+)?\n([\s\S]*?)```/)) {
                             const codeBlockMatch = part.match(/```(\w+)?\n([\s\S]*?)```/);
-                            const language = codeBlockMatch[1] || 'html'; // 默认HTML
+                            const language = codeBlockMatch[1] || 'html';
                             const code = codeBlockMatch[2];
                             const pre = document.createElement('pre');
                             const codeElement = document.createElement('code');
@@ -572,7 +755,6 @@
                             contentDiv.appendChild(textP);
                         }
                     });
-                    // 延迟高亮，确保DOM更新
                     setTimeout(() => {
                         hljs.highlightAll();
                     }, 0);
