@@ -6,8 +6,8 @@
     <script>
     window.MathJax = {
       tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']],
-        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+        inlineMath: [['$', '$'], ['\$$ ', '\ $$']],
+        displayMath: [['$$  ', '  $$'], ['\$$ ', '\ $$']]
       }
     };
     </script>
@@ -42,11 +42,11 @@
             padding: 20px;
             display: flex;
             flex-direction: column;
-            height: 90vh; /* 固定高度为视口高度 */
+            height: 90vh;
         }
         #messages {
-            flex: 1; /* 占据剩余空间 */
-            overflow-y: auto; /* 内容过多时显示滚动条 */
+            flex: 1;
+            overflow-y: auto;
             margin-bottom: 20px;
         }
         .message {
@@ -72,7 +72,7 @@
         #input-container {
             display: flex;
             align-items: center;
-            flex-shrink: 0; /* 防止被压缩 */
+            flex-shrink: 0;
         }
         #user-input {
             flex: 1;
@@ -82,8 +82,9 @@
             resize: vertical;
             font-size: 1em;
             margin-right: 10px;
-            overflow: hidden;
             min-height: 40px;
+            max-height: 33%;
+            overflow-y: auto;
         }
         #send-btn {
             padding: 10px 10px;
@@ -100,37 +101,35 @@
             background-color: grey;
             cursor: not-allowed;
         }
-        /* 统一控制区域样式 */
         #action-controls, #history-controls {
             text-align: center;
             margin-top: 10px;
             flex-shrink: 0;
         }
-        /* 统一按钮样式 */
         #refresh-btn, #new-conversation-btn, #save-history-btn, #load-history-btn {
             padding: 10px 10px;
             border: none;
             color: #fff;
             border-radius: 5px;
             cursor: pointer;
-            margin: 0 5px; /* 统一间距 */
+            margin: 0 5px;
             font-size: 1em;
         }
         #refresh-btn {
-            background-color: #28a745; /* 绿色 */
+            background-color: #28a745;
         }
         #new-conversation-btn {
-            background-color: #17a2b8; /* 青色 */
+            background-color: #17a2b8;
         }
         #save-history-btn, #load-history-btn {
-            background-color: #007bff; /* 蓝色 */
+            background-color: #007bff;
         }
         #loading {
             display: none;
             text-align: center;
             margin-top: 10px;
             margin-bottom: 10px;
-            flex-shrink: 0; /* 防止被压缩 */
+            flex-shrink: 0;
         }
         .code-container {
             background-color: #272822;
@@ -139,10 +138,26 @@
             margin: 10px 0;
             font-family: 'Courier New', Courier, monospace;
             overflow: auto;
+            position: relative; /* 为复制按钮提供定位参考 */
         }
         .code-content {
             margin: 0;
             padding: 0;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            padding: 2px 8px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+        .copy-btn:hover {
+            background-color: #45a049;
         }
         textarea:focus {
             outline: none;
@@ -160,25 +175,34 @@
             max-height: 200px;
             overflow-y: auto;
             display: none;
-            flex-shrink: 0; /* 防止被压缩 */
+            flex-shrink: 0;
         }
         #history-items li {
-            cursor: pointer;
-            padding: 5px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            padding: 5px;
+            cursor: pointer;
         }
         #history-items li:hover {
             background-color: #e0e0e0;
         }
+        #history-items li span {
+            flex: 1;
+        }
         #history-items li button {
             margin-left: 10px;
             padding: 2px 5px;
-            background-color: #ff9800;
-            color: #fff;
             border: none;
             border-radius: 3px;
             cursor: pointer;
+            color: #fff;
+        }
+        #history-items li button.rename {
+            background-color: #ff9800;
+        }
+        #history-items li button.delete {
+            background-color: #dc3545;
         }
     </style>
 </head>
@@ -221,9 +245,10 @@
         <div id="action-controls">
             <button id="refresh-btn">清除对话</button>
             <button id="new-conversation-btn">新建对话</button>
-     
             <button id="save-history-btn">保存记录</button>
             <button id="load-history-btn">加载记录</button>
+            <label for="latex-toggle">启用LaTeX渲染：</label>
+            <input type="checkbox" id="latex-toggle" checked>
         </div>
     </div>
 
@@ -231,34 +256,8 @@
     class ChatApp {
         constructor() {
             this.CONFIG = [
-                {
-                    name: "deepseek-r1-distill-qwen-1.5b",
-                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
-                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
-                    model: "deepseek-r1-distill-qwen-1.5b",
-                    temperature: 0
-                },
-                {
-                    name: "aili-deepseek-r1",
-                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
-                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
-                    model: "deepseek-r1",
-                    temperature: 0
-                },
-                {
-                    name: "qwen-max-0125",
-                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
-                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
-                    model: "qwen-max-0125",
-                    temperature: 0
-                },
-                {
-                    name: "qwen-plus",
-                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
-                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
-                    model: "qwen-plus",
-                    temperature: 0
-                },
+
+
                 {
                     name: "glm-4-flashX",
                     apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
@@ -266,18 +265,44 @@
                     model: "glm-4-flashX",
                     temperature: 0
                 },
+
+
                 {
+                    name: "qwen-max",
+                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
+                    model: "qwen-max",
+                    temperature: 0
+                },
+
+               {
                     name: "glm-4-flash",
                     apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
                     apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
                     model: "glm-4-flash",
                     temperature: 0
                 },
+           
+                {
+                    name: "qwen-plus",
+                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
+                    model: "qwen-plus",
+                    temperature: 0
+                },
+
                 {
                     name: "glm-zero-preview",
                     apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
                     apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
                     model: "glm-zero-preview",
+                    temperature: 0
+                },
+               {
+                    name: "aili-deepseek-r1",
+                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
+                    model: "deepseek-r1",
                     temperature: 0
                 },
                 {
@@ -301,13 +326,7 @@
                     model: "deepseek-r1",
                     temperature: 0
                 },
-                {
-                    name: "gpt-4o-mini",
-                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
-                    apiKey: "sk-PQUi1mRSyz3OtEadQ6X7PNGjVdP1sO3jDOz4cLjhhwZewjZK",
-                    model: "gpt-4o-mini",
-                    temperature: 0
-                }
+ 
             ];
             this.currentConfigIndex = 0;
 
@@ -338,6 +357,7 @@
             this.historyItems = document.getElementById('history-items');
             this.saveHistoryBtn = document.getElementById('save-history-btn');
             this.loadHistoryBtn = document.getElementById('load-history-btn');
+            this.latexToggle = document.getElementById('latex-toggle');
         }
 
         populateModelSelector() {
@@ -378,6 +398,7 @@
             });
             this.modelSelector.addEventListener('change', (e) => this.changeModel(e.target.value));
             this.toneSelector.addEventListener('change', (e) => this.changeTone(e.target.value));
+            this.latexToggle.addEventListener('change', () => this.toggleLatexRendering());
         }
 
         addHistoryEventListeners() {
@@ -422,7 +443,13 @@
 
         autoResizeTextarea() {
             this.userInput.style.height = 'auto';
-            this.userInput.style.height = `${this.userInput.scrollHeight}px`;
+            const maxHeight = this.userInput.offsetHeight;
+            const scrollHeight = this.userInput.scrollHeight;
+            if (scrollHeight <= maxHeight) {
+                this.userInput.style.height = `${scrollHeight}px`;
+            } else {
+                this.userInput.style.height = `${maxHeight}px`;
+            }
         }
 
         async sendMessage() {
@@ -474,6 +501,7 @@
         displayMessage(message, className) {
             const messageElement = document.createElement('div');
             messageElement.className = `message ${className}`;
+            messageElement.dataset.originalContent = message;
 
             const contentElement = document.createElement('div');
             contentElement.className = 'message-content';
@@ -486,9 +514,11 @@
             messageElement.appendChild(contentElement);
             messageElement.appendChild(timestamp);
             this.messagesContainer.appendChild(messageElement);
-            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight; // 滚动到底部
+            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
 
-            MathJax.typesetPromise([messageElement]);
+            if (this.latexToggle.checked) {
+                MathJax.typesetPromise([messageElement]);
+            }
         }
 
         displayMessageStepByStep(message, className) {
@@ -503,6 +533,8 @@
         displayTextStepByStep(message, className) {
             const messageElement = document.createElement('div');
             messageElement.className = `message ${className}`;
+            messageElement.dataset.originalContent = message;
+
             const contentElement = document.createElement('div');
             contentElement.className = 'message-content';
             messageElement.appendChild(contentElement);
@@ -530,9 +562,11 @@
                         }
                     }, 1);
                 } else {
-                    MathJax.typesetPromise([contentElement]).then(() => {
-                        this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight; // 渲染后滚动
-                    });
+                    if (this.latexToggle.checked) {
+                        MathJax.typesetPromise([contentElement]).then(() => {
+                            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+                        });
+                    }
                 }
             };
 
@@ -546,27 +580,58 @@
 
             const messageElement = document.createElement('div');
             messageElement.className = `message ${className}`;
-            
+            messageElement.dataset.originalContent = message;
+
             const codeContainer = document.createElement('div');
             codeContainer.className = 'code-container';
-            
+
             const codeElement = document.createElement('pre');
             codeElement.className = `code-content language-${language}`;
-            
+
             const codeInner = document.createElement('code');
             codeInner.className = `language-${language}`;
             codeInner.textContent = codeContent;
 
+            const copyBtn = document.createElement('button');
+            copyBtn.textContent = '复制';
+            copyBtn.className = 'copy-btn';
+            copyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(codeContent).then(() => {
+                    copyBtn.textContent = '已复制';
+                    setTimeout(() => {
+                        copyBtn.textContent = '复制';
+                    }, 2000);
+                }).catch(err => {
+                    console.error('复制失败:', err);
+                    copyBtn.textContent = '复制失败';
+                    setTimeout(() => {
+                        copyBtn.textContent = '复制';
+                    }, 2000);
+                });
+            });
+
             codeElement.appendChild(codeInner);
             codeContainer.appendChild(codeElement);
+            codeContainer.appendChild(copyBtn);
             messageElement.appendChild(codeContainer);
 
             this.messagesContainer.appendChild(messageElement);
-            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight; // 滚动到底部
+            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
 
             Prism.highlightElement(codeInner);
-            MathJax.typesetPromise([messageElement]).then(() => {
-                this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight; // 渲染后滚动
+        }
+
+        toggleLatexRendering() {
+            const messages = this.messagesContainer.querySelectorAll('.message');
+            messages.forEach(messageElement => {
+                const contentElement = messageElement.querySelector('.message-content');
+                const originalContent = messageElement.dataset.originalContent;
+                if (contentElement) {
+                    contentElement.textContent = originalContent;
+                    if (this.latexToggle.checked) {
+                        MathJax.typesetPromise([contentElement]);
+                    }
+                }
             });
         }
 
@@ -618,6 +683,14 @@
             }
         }
 
+        deleteHistory(key) {
+            localStorage.removeItem(key);
+            let historyKeys = JSON.parse(localStorage.getItem('historyKeys')) || [];
+            historyKeys = historyKeys.filter(k => k !== key);
+            localStorage.setItem('historyKeys', JSON.stringify(historyKeys));
+            this.renderHistoryList();
+        }
+
         updateHistoryList(key) {
             const historyKeys = JSON.parse(localStorage.getItem('historyKeys')) || [];
             if (!historyKeys.includes(key)) {
@@ -634,14 +707,26 @@
                 const item = document.createElement('li');
                 const span = document.createElement('span');
                 span.textContent = key;
+
                 const renameBtn = document.createElement('button');
                 renameBtn.textContent = '重命名';
+                renameBtn.className = 'rename';
                 renameBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     this.renameHistory(key);
                 });
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = '删除';
+                deleteBtn.className = 'delete';
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.deleteHistory(key);
+                });
+
                 item.appendChild(span);
                 item.appendChild(renameBtn);
+                item.appendChild(deleteBtn);
                 item.addEventListener('click', () => this.loadHistory(key));
                 this.historyItems.appendChild(item);
             });

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
- <link rel="icon" href="ico/chat.ico" type="image/x-icon">
+    <link rel="icon" href="ico/chat.ico" type="image/x-icon">
     <!-- 数学公式渲染 -->
     <script>
     window.MathJax = {
@@ -72,7 +72,8 @@
         #session-list li.active {
             background-color: #a5d6a7;
         }
-        #create-session-btn, #delete-session-btn, #rename-session-btn {
+        /* 通用按钮样式 */
+        .session-btn {
             width: 100%;
             padding: 8px;
             margin: 5px 0;
@@ -80,15 +81,19 @@
             border-radius: 5px;
             color: #fff;
             cursor: pointer;
+            font-size: 0.9em;
         }
         #create-session-btn {
             background-color: #007bff;
         }
+        #rename-session-btn {
+            background-color: #7952b3;
+        }
         #delete-session-btn {
             background-color: #eb4d4b;
         }
-        #rename-session-btn {
-            background-color: #7952b3;
+        #refresh-btn {
+            background-color: #28a745;
         }
 
         /* 右侧：主聊天区 */
@@ -137,7 +142,6 @@
             max-height: 50vh; /* 最大高度不超过视口一半 */
             overflow-y: auto;
         }
-
         /* 修改后的输入框样式 */
         #user-input {
             flex: 1;
@@ -167,16 +171,6 @@
         #send-btn:disabled {
             background-color: grey;
             cursor: not-allowed;
-        }
-        #refresh-btn {
-            margin-left: 10px;
-            padding: 10px 10px;
-            border: none;
-            background-color: #28a745;
-            color: #fff;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
         }
         #loading {
             display: none;
@@ -290,15 +284,15 @@
 </head>
 <body>
     <div id="chat-container">
-
         <!-- 左侧：会话列表 -->
         <div id="session-list-container">
+
+            <button id="create-session-btn" class="session-btn">新建</button>
+            <button id="rename-session-btn" class="session-btn">命名</button>
+            <button id="delete-session-btn" class="session-btn">删除</button>
+            <button id="refresh-btn" class="session-btn">清除</button>
             <h3>会话列表</h3>
             <ul id="session-list"></ul>
-
-            <button id="create-session-btn">新建</button>
-            <button id="rename-session-btn">命名</button>
-            <button id="delete-session-btn">删除</button>
         </div>
 
         <!-- 右侧：聊天主区 -->
@@ -323,8 +317,7 @@
             <!-- 输入框，固定在底部 -->
             <div id="input-container">
                 <textarea id="user-input" placeholder="输入你的消息..." rows="1"></textarea>
-                <button id="send-btn" disabled>发送</button>
-                <button id="refresh-btn">清除对话</button>
+                <button id="send-btn" disabled>发送消息</button>
             </div>
         </div>
     </div>
@@ -481,7 +474,6 @@
             this.switchSession(this.currentSessionIndex);
         }
 
-        // 新增：重命名会话
         renameCurrentSession() {
             if (!this.currentSession) {
                 alert("未选中任何会话");
@@ -496,23 +488,23 @@
             }
         }
 
-        renderSessionList() {
-            // 使用 DocumentFragment 避免频繁重排
-            const fragment = document.createDocumentFragment();
-            this.sessions.forEach((s, idx) => {
-                const li = document.createElement('li');
-                li.textContent = s.name;
-                if (idx === this.currentSessionIndex) {
-                    li.classList.add('active');
-                }
-                li.addEventListener('click', () => {
-                    this.switchSession(idx);
-                });
-                fragment.appendChild(li);
-            });
-            this.sessionListEl.innerHTML = '';
-            this.sessionListEl.appendChild(fragment);
+renderSessionList() {
+    const fragment = document.createDocumentFragment();
+    for (let i = this.sessions.length - 1; i >= 0; i--) {
+        const s = this.sessions[i];
+        const li = document.createElement('li');
+        li.textContent = s.name;
+        if (i === this.currentSessionIndex) {
+            li.classList.add('active');
         }
+        li.addEventListener('click', () => {
+            this.switchSession(i);
+        });
+        fragment.appendChild(li);
+    }
+    this.sessionListEl.innerHTML = '';
+    this.sessionListEl.appendChild(fragment);
+}
 
         switchSession(index) {
             if (index < 0 || index >= this.sessions.length) return;
@@ -569,12 +561,12 @@
             this.createSessionBtn = document.getElementById('create-session-btn');
             this.deleteSessionBtn = document.getElementById('delete-session-btn');
             this.renameSessionBtn = document.getElementById('rename-session-btn');
+            this.refreshBtn = document.getElementById('refresh-btn');
 
             // 右侧聊天
             this.messagesContainer = document.getElementById('messages');
             this.userInput = document.getElementById('user-input');
             this.sendBtn = document.getElementById('send-btn');
-            this.refreshBtn = document.getElementById('refresh-btn');
             this.loadingIndicator = document.getElementById('loading');
 
             // 模型
@@ -614,6 +606,11 @@
             this.createSessionBtn.addEventListener('click', () => this.createNewSession());
             this.deleteSessionBtn.addEventListener('click', () => this.deleteCurrentSession());
             this.renameSessionBtn.addEventListener('click', () => this.renameCurrentSession());
+            this.refreshBtn.addEventListener('click', () => {
+                if (confirm("确定清除当前会话内容？")) {
+                    this.clearCurrentSessionMessages();
+                }
+            });
 
             // 输入框事件
             this.userInput.addEventListener('input', () => {
@@ -627,11 +624,6 @@
                 }
             });
             this.sendBtn.addEventListener('click', () => this.sendMessage());
-            this.refreshBtn.addEventListener('click', () => {
-                if (confirm("确定清除当前会话内容？")) {
-                    this.clearCurrentSessionMessages();
-                }
-            });
 
             // 模型切换
             this.modelSelector.addEventListener('change', (e) => {
@@ -639,11 +631,7 @@
                 this.initSystemPromptPreview();
             });
             this.toggleModelBtn.addEventListener('click', () => {
-                if (this.modelOptionsWrapper.style.display === '' || this.modelOptionsWrapper.style.display === 'none') {
-                    this.modelOptionsWrapper.style.display = 'block';
-                } else {
-                    this.modelOptionsWrapper.style.display = 'none';
-                }
+                this.modelOptionsWrapper.style.display = this.modelOptionsWrapper.style.display === 'none' ? 'block' : 'none';
             });
 
             // 模型 CRUD 操作
@@ -700,7 +688,6 @@
                 return;
             }
 
-            // systemPrompt
             const systemPrompt = config.presetPrompt || "你是 玖数 AI，默认system prompt...";
             const allMessages = [
                 { role: 'system', content: systemPrompt },
@@ -934,7 +921,6 @@
             this.CONFIG = [...this.defaultConfigs, ...this.customConfigs];
             this.populateModelSelector();
             alert("模型删除成功！");
-            // 切回第0个
             this.modelSelector.value = 0;
             this.currentConfigIndex = 0;
             this.initSystemPromptPreview();
