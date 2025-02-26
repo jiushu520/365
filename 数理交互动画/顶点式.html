@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二次函数配方法与顶点式</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', 'Arial', sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .formula-container {
+            width: 100%;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .controls {
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .slider-container {
+            margin-bottom: 15px;
+        }
+        .slider-container label {
+            display: inline-block;
+            width: 80px;
+            font-weight: bold;
+        }
+        input[type="range"] {
+            width: 300px;
+            vertical-align: middle;
+        }
+        .value-display {
+            display: inline-block;
+            width: 50px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .explanation {
+            margin-top: 30px;
+            padding: 15px;
+            background: #f0f7ff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .formula {
+            font-size: 1.2em;
+            text-align: center;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .problem-display {
+            font-size: 1.3em;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .step-by-step {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+        .step {
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+        .solution {
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #2c3e50;
+            text-align: center;
+        }
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .btn {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+        .hidden {
+            display: none;
+        }
+        .svg-container {
+            width: 100%;
+            height: 400px;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>二次函数配方法与顶点式</h1>
+    
+    <div class="explanation">
+        <h2>配方法介绍</h2>
+        <p>配方法是将二次函数 f(x) = ax² + bx + c 转换为顶点式 f(x) = a(x-h)² + k 的代数方法。这种形式直接显示了抛物线的顶点坐标 (h, k)，便于分析函数性质。</p>
+    </div>
+
+    <div class="controls">
+        <h3>调整参数</h3>
+        <div class="slider-container">
+            <label for="value-a">a 的值:</label>
+            <input type="range" id="value-a" min="-5" max="5" value="1" step="0.1">
+            <span class="value-display" id="a-display">1</span>
+        </div>
+        <div class="slider-container">
+            <label for="value-b">b 的值:</label>
+            <input type="range" id="value-b" min="-10" max="10" value="6" step="0.1">
+            <span class="value-display" id="b-display">6</span>
+        </div>
+        <div class="slider-container">
+            <label for="value-c">c 的值:</label>
+            <input type="range" id="value-c" min="-10" max="10" value="8" step="0.1">
+            <span class="value-display" id="c-display">8</span>
+        </div>
+    </div>
+
+    <div class="formula-container">
+        <div class="problem-display" id="problem-display">
+            <!-- The formula will be dynamically updated -->
+        </div>
+    </div>
+
+    <div class="svg-container">
+        <svg id="parabola-svg" viewBox="0 0 600 400"></svg>
+    </div>
+
+    <div class="btn-container">
+        <button class="btn" id="show-steps-btn">显示解题步骤</button>
+        <button class="btn" id="show-solution-btn">显示最终答案</button>
+    </div>
+
+    <div class="step-by-step hidden" id="steps-container">
+        <h3>解题步骤</h3>
+        <div class="step" id="step1"></div>
+        <div class="step" id="step2"></div>
+        <div class="step" id="step3"></div>
+        <div class="step" id="step4"></div>
+        <div class="step" id="step5"></div>
+    </div>
+
+    <div class="solution hidden" id="solution-container">
+        <p id="final-solution"></p>
+        <p id="vertex-coordinates"></p>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const valueA = document.getElementById('value-a');
+        const valueB = document.getElementById('value-b');
+        const valueC = document.getElementById('value-c');
+        const aDisplay = document.getElementById('a-display');
+        const bDisplay = document.getElementById('b-display');
+        const cDisplay = document.getElementById('c-display');
+        const problemDisplay = document.getElementById('problem-display');
+        const stepsContainer = document.getElementById('steps-container');
+        const solutionContainer = document.getElementById('solution-container');
+        const finalSolution = document.getElementById('final-solution');
+        const vertexCoordinates = document.getElementById('vertex-coordinates');
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        const step4 = document.getElementById('step4');
+        const step5 = document.getElementById('step5');
+        const parabolaSvg = document.getElementById('parabola-svg');
+
+        // 更新公式和步骤
+        function updateFormulaAndSteps() {
+            const a = parseFloat(valueA.value);
+            const b = parseFloat(valueB.value);
+            const c = parseFloat(valueC.value);
+
+            // 更新显示的值
+            aDisplay.textContent = a;
+            bDisplay.textContent = b;
+            cDisplay.textContent = c;
+
+            // 计算顶点形式
+            const m = b / (2 * a);
+            const n = c - a * m * m;
+            const vertexX = -m;
+            const vertexY = n;
+
+            // 更新公式显示
+            problemDisplay.innerHTML = `配方法: 把 ${a}x² + ${b}x + ${c} 配成顶点式。<br>f(x) = ${a}(x + ${m.toFixed(2)})² + ${n.toFixed(2)}`;
+
+            // 更新步骤
+            step1.innerHTML = `<strong>步骤1:</strong> 确定原式 ${a}x² + ${b}x + ${c}`;
+            step2.innerHTML = `<strong>步骤2:</strong> 对于形如 ax² + bx + c 的表达式，我们需要将其变形为 a(x + m)² + n 的形式`;
+            step3.innerHTML = `<strong>步骤3:</strong> 计算 m = b/(2a) = ${b}/(2*${a}) = ${m.toFixed(2)}`;
+            step4.innerHTML = `<strong>步骤4:</strong> 计算 m² = (${m.toFixed(2)})² = ${(m * m).toFixed(2)}`;
+            step5.innerHTML = `<strong>步骤5:</strong> 原式可以重写为：${a}x² + ${b}x + ${c} = ${a}(x + ${m.toFixed(2)})² + ${n.toFixed(2)}`;
+
+            // 更新最终答案
+            finalSolution.innerHTML = `最终答案：${a}x² + ${b}x + ${c} = ${a}(x + ${m.toFixed(2)})² + ${n.toFixed(2)}`;
+            vertexCoordinates.innerHTML = `顶点坐标为 (${vertexX.toFixed(2)}, ${vertexY.toFixed(2)})`;
+
+            // 更新图像
+            drawParabola(a, b, c);
+        }
+
+        // 绘制抛物线
+        function drawParabola(a, b, c) {
+            const svgWidth = 600;
+            const svgHeight = 400;
+            const scaleX = 20; // x轴缩放
+            const scaleY = 20; // y轴缩放
+            const originX = svgWidth / 2;
+            const originY = svgHeight / 2;
+
+            parabolaSvg.innerHTML = ''; // 清空SVG内容
+
+            // 添加坐标系
+            addCoordinateSystem(parabolaSvg, originX, originY, svgWidth, svgHeight);
+
+            // 计算抛物线路径
+            const points = [];
+            for (let x = -15; x <= 15; x += 0.1) {
+                const y = a * x * x + b * x + c;
+                points.push(`${originX + x * scaleX},${originY - y * scaleY}`);
+            }
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+            path.setAttribute('points', points.join(' '));
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke', '#3498db');
+            path.setAttribute('stroke-width', '2');
+            parabolaSvg.appendChild(path);
+
+            // 计算并绘制顶点
+            const vertexX = -b / (2 * a);
+            const vertexY = a * vertexX * vertexX + b * vertexX + c;
+            addPoint(parabolaSvg, vertexX, vertexY, '#e74c3c', originX, originY, scaleX, scaleY, '顶点');
+        }
+
+        // 添加坐标系
+        function addCoordinateSystem(svg, originX, originY, svgWidth, svgHeight) {
+            // X轴
+            const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            xAxis.setAttribute('x1', 0);
+            xAxis.setAttribute('y1', originY);
+            xAxis.setAttribute('x2', svgWidth);
+            xAxis.setAttribute('y2', originY);
+            xAxis.setAttribute('stroke', '#aaa');
+            xAxis.setAttribute('stroke-width', '1');
+            svg.appendChild(xAxis);
+
+            // Y轴
+            const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            yAxis.setAttribute('x1', originX);
+            yAxis.setAttribute('y1', 0);
+            yAxis.setAttribute('x2', originX);
+            yAxis.setAttribute('y2', svgHeight);
+            yAxis.setAttribute('stroke', '#aaa');
+            yAxis.setAttribute('stroke-width', '1');
+            svg.appendChild(yAxis);
+        }
+
+        // 添加点
+        function addPoint(svg, x, y, color, originX, originY, scaleX, scaleY, label) {
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', originX + x * scaleX);
+            circle.setAttribute('cy', originY - y * scaleY);
+            circle.setAttribute('r', '5');
+            circle.setAttribute('fill', color);
+            svg.appendChild(circle);
+
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', originX + x * scaleX + 10);
+            text.setAttribute('y', originY - y * scaleY - 5);
+            text.setAttribute('fill', '#2c3e50');
+            text.textContent = `${label}: (${x.toFixed(2)}, ${y.toFixed(2)})`;
+            svg.appendChild(text);
+        }
+
+        // 初始化页面
+        updateFormulaAndSteps();
+
+        // 添加事件监听器
+        valueA.addEventListener('input', updateFormulaAndSteps);
+        valueB.addEventListener('input', updateFormulaAndSteps);
+        valueC.addEventListener('input', updateFormulaAndSteps);
+
+        // 添加按钮事件监听器
+        document.getElementById('show-steps-btn').addEventListener('click', function() {
+            stepsContainer.classList.toggle('hidden');
+            this.textContent = stepsContainer.classList.contains('hidden') ? '显示解题步骤' : '隐藏解题步骤';
+        });
+
+        document.getElementById('show-solution-btn').addEventListener('click', function() {
+            solutionContainer.classList.toggle('hidden');
+            this.textContent = solutionContainer.classList.contains('hidden') ? '显示最终答案' : '隐藏最终答案';
+        });
+
+        // 使用MathJax渲染数学公式
+        window.onload = function() {
+            if (typeof MathJax !== 'undefined') {
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+            } else {
+                // 如果页面中没有加载MathJax，则添加MathJax脚本
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML';
+                script.async = true;
+                document.head.appendChild(script);
+                
+                script.onload = function() {
+                    MathJax.Hub.Config({
+                        tex2jax: {
+                            inlineMath: [['$', '$'], ['\\(', '\\)']],
+                            displayMath: [['$$', '$$'], ['\\[', '\\]']]
+                        }
+                    });
+                    MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+                };
+            }
+        };
+    </script>
+</body>
+</html>

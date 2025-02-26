@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>数理交互动画</title>
+    <style>
+        body, html {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #f5f5f5;
+            padding: 15px;
+            overflow-y: auto;
+            border-right: 1px solid #ddd;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            position: relative;
+        }
+        .file-list {
+            list-style: none;
+            padding: 0;
+        }
+        .file-list li {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+        }
+        .file-list a {
+            text-decoration: none;
+            color: #333;
+            display: block;
+        }
+        .file-list a:hover {
+            color: #0066cc;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        h1 {
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .toggle-button {
+            display: block;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #0066cc;
+            color: white;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 4px;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+        .toggle-button:hover {
+            opacity: 1;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>数理交互动画</h1>
+            <ul class="file-list">
+                <li><a href="B0304首项系数为1的十字相交叉.html" target="contentFrame">B0304首项系数为1的十字相交叉</a></li>
+                <li><a href="单位圆上的三角函数.html" target="contentFrame">单位圆上的三角函数</a></li>
+                <li><a href="顶点式.html" target="contentFrame">顶点式</a></li>
+                <li><a href="二次函数.html" target="contentFrame">二次函数</a></li>
+                <li><a href="复数乘法.html" target="contentFrame">复数乘法</a></li>
+                <li><a href="函数图像.html" target="contentFrame">函数图像</a></li>
+                <li><a href="两点.html" target="contentFrame">两点</a></li>
+                <li><a href="两点法向量.html" target="contentFrame">两点法向量</a></li>
+                <li><a href="两点解析式.html" target="contentFrame">两点解析式</a></li>
+                <li><a href="两点向量.html" target="contentFrame">两点向量</a></li>
+                <li><a href="两点直线解析式.html" target="contentFrame">两点直线解析式</a></li>
+                <li><a href="数轴距离.html" target="contentFrame">数轴距离</a></li>
+                <li><a href="向量加法.html" target="contentFrame">向量加法</a></li>
+                <li><a href="行列式.html" target="contentFrame">行列式</a></li>
+                <li><a href="雪花曲线.html" target="contentFrame">雪花曲线</a></li>
+                <li><a href="一次直线拟合.html" target="contentFrame">一次直线拟合</a></li>
+                <li><a href="直角坐标系 - 副本.html" target="contentFrame">直角坐标系 - 副本</a></li>
+                <li><a href="直角坐标系.html" target="contentFrame">直角坐标系</a></li>
+                <li><a href="直角坐标系含工具栏.html" target="contentFrame">直角坐标系含工具栏</a></li>
+            </ul>
+        </div>
+        <div class="content">
+            <div class="toggle-button" onclick="toggleSidebar()">关闭目录</div>
+            <iframe name="contentFrame" id="contentFrame" src="about:blank"></iframe>
+        </div>
+    </div>
+    <script>
+        // 页面加载时默认显示第一个文件
+        window.onload = function() {
+            const firstLink = document.querySelector('.file-list a');
+            if (firstLink) {
+                document.getElementById('contentFrame').src = firstLink.getAttribute('href');
+            }
+        };
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const toggleButton = document.querySelector('.toggle-button');
+            sidebar.classList.toggle('hidden');
+            if (sidebar.classList.contains('hidden')) {
+                toggleButton.textContent = '打开目录';
+            } else {
+                toggleButton.textContent = '关闭目录';
+            }
+        }
+    </script>
+</body>
+</html>
