@@ -1,0 +1,1 @@
+先识别图片内容，用HTML写一个页面，可使用MathJax进行LaTeX公式渲染。页面样式模仿了原始文档的布局，包括标题居中和适当的间距。填空区域用下划线表示，和原文档样式一致。不要加载<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>

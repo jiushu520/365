@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>复数与数学归纳法 - 复数的应用</title>
+
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: SimSun, serif;
+            margin: 2em;
+            line-height: 1.6;
+        }
+        .header {
+            text-align: right;
+            margin-bottom: 20px;
+            color: #555;
+        }
+        .title {
+            text-align: center;
+            font-size: 1.5em;
+            margin: 30px 0;
+        }
+        .section-title {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .problem {
+            margin: 15px 0;
+            text-indent: 2em;
+        }
+        .blank {
+            display: inline-block;
+            border-bottom: 1px solid black;
+            width: 120px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        11. 复数与数学归纳法
+    </div>
+
+    <div class="title">
+        第 75 套 &nbsp;&nbsp; 复数的应用
+    </div>
+
+    <div class="section-title">一、填空题</div>
+
+    <div class="problem">
+        1. 设 \( \{z_n\} \) 是一个复数数列，定义 \( z_n = (1 + \mathrm{i})(1 + \frac{\mathrm{i}}{\sqrt{2}}) \cdots (1 + \frac{\mathrm{i}}{\sqrt{n}}) \)，则 \( \sum_{n=1}^{2018} |z_n - z_{n+1}| = \) <span class="blank"></span>。
+    </div>
+
+    <div class="problem">
+        2. 设 \( a,b,c,d \) 是实数，假定方程 \( z^4 + az^3 + bz^2 + cz + d = 0 \) 的所有根都在复平面上以原点为圆心，半径为 1 的圆上，则这些根的倒数和是 <span class="blank"></span>。
+    </div>
+
+    <div class="problem">
+        3. 设 \( (\frac{\sqrt{3}}{2} + \frac{\pi}{2}\mathrm{i})^{2016} = f(x) + \mathrm{i}g(x) \)（\( f(x),g(x) \) 均为实系数多项式），则 \( f(x) \) 的系数之和为 <span class="blank"></span>。
+    </div>
+
+    <div class="problem">
+        4. 设复数 \( z = 3\cos\theta + 2\mathrm{i}\sin\theta \)，则 \( y = \theta - \mathrm{argz}(0 < \theta < \frac{\pi}{2}) \) 的最大值为 <span class="blank"></span>。
+    </div>
+
+    <div class="problem">
+        5. 已知复数 \( z_1, z_2 \) 满足 \( z_1^2 + z_1 z_2 + z_2^2 = 0 \)，若以 \( R = |z_1 + z_2| \) 为半径，原点为圆心作圆 \( C \)，则复数 \( z_1, z_2 \) 的对应点 \( Z_1, Z_2 \) 与圆 \( C \) 的关系为 <span class="blank"></span>。
+    </div>
+
+    <div class="problem">
+        6. 在平面直角坐标系中，格点凸五边形的周长的最小值为 <span class="blank"></span>。
+    </div>
+
+    <div class="problem">
+        7. 若复数 \( z_1, z_2 \) 满足 \( |z_1| = 2, |z_2| = 3, 3z_1 - 2z_2 = \frac{3}{2} - \mathrm{i} \)，则 \( z_1 \cdot z_2 = \) <span class="blank"></span>。
+    </div>
+
+    <div class="problem">
+        8. 对任意三个模长不大于 1 的复数 \( z_1,z_2,z_3 \)，则 \( |z_1z_2 + z_2z_3 + z_3z_1|^2 + |z_1z_2z_3|^2 \) 的最大值是 <span class="blank"></span>。
+    </div>
+
+    <div class="section-title">二、解答题</div>
+
+    <div class="problem">
+        9. 已知方程 \( x^{10} + (13x - 1)^{10} = 0 \) 有 10 个复数根 \( r_i,\overline{r_i}(i = 1,2,3,4,5) \)，求 \( \sum_{i=1}^{5} \frac{1}{r_i \cdot \overline{r_i}} \) 的值。
+    </div>
+
+    <div class="problem">
+        10. 在关于 \( x \) 的二次方程 \( x^2 + z_1 x + z_2 + m = 0 \) 中，\( z_1, z_2, m \) 均为复数，且 \( z_1^2 - 4z_2 = 16 + 20\mathrm{i} \)，设这个方程的两个根为 \( \alpha, \beta \)，且 \( |\alpha - \beta| = 2\sqrt{7} \)，求 \( |m| \) 的最大值和最小值。
+    </div>
+
+    <div class="problem">
+        11. 设 \( x_1,x_2,\cdots,x_n,y_1,y_2,\cdots,y_n \) 均为模等于 1 的复数，设 \( z_i = xy_i + x_i - x_iy_i(i = 1,2,\cdots,n) \)，其中 \( x = \frac{1}{n}\sum_{i=1}^{n}x_i, y = \frac{1}{n}\sum_{i=1}^{n}y_i \)，证明：\( \sum_{i=1}^{n} |z_i| \leqslant n \)。
+    </div>
+
+</body>
+</html>

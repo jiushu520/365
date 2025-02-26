@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>复数与数学归纳法</title>
+
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: "SimSun", "STSong", serif;
+            margin: 2em;
+            line-height: 1.5;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        h1 {
+            font-size: 1.5em;
+            border-bottom: 1px solid #000;
+            padding-bottom: 0.5em;
+            margin-bottom: 1em;
+        }
+        h2 {
+            margin-top: 2em;
+            font-size: 1.3em;
+        }
+        .question {
+            margin-bottom: 1em;
+        }
+        .blank {
+            display: inline-block;
+            border-bottom: 1px solid #000;
+            min-width: 120px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>11. 复数与数学归纳法</h1>
+    
+    <h2>第 74 套　　复数的概念与基本运算</h2>
+    
+    <h3>一、填空题</h3>
+    
+    <div class="question">
+        <p>1. 设复数 \(z_1,z_2\) 满足 \(|z_1|=|z_1+z_2|,z_1 \cdot z_2 = a(1+\sqrt{3}i)\), 其中 \(i\) 是虚数单位, \(a\) 是负实数, 则 \(\frac{z_2}{z_1}=\) <span class="blank"></span>.</p>
+    </div>
+    
+    <div class="question">
+        <p>2. 已知复数 \(z_1,z_2\) 满足 \(|z_1|=2\), \(|z_2|=3\), 若它们所对应向量的夹角为 \(60^\circ\), 则 \(\left|\frac{z_1+z_2}{z_1-z_2}\right|=\) <span class="blank"></span>.</p>
+    </div>
+    
+    <div class="question">
+        <p>3. 设复数 \(z_1,z_2\) 满足 \(|z_1|=|z_1+z_2|=3, |z_1-z_2|=3\sqrt{3}\), 则 \(\log_3|(z_1 z_2)^{2000}+(z_1 z_2)^{-2000}|=\) <span class="blank"></span>.</p>
+    </div>
+    
+    <div class="question">
+        <p>4. 设 \(z\) 为复数, \(i\) 为虚数单位, 若 \(|z|=1, |z+i|=1\), 则当 \((z+i)^n (n \in \mathbb{N}_+)\) 为实数时, \(|z+i|^n\) 的最小值为 <span class="blank"></span>.</p>
+    </div>
+    
+    <div class="question">
+        <p>5. 若 \(x = \frac{1+\sqrt{5}i}{2}\), 则 \(2x^3+(x+1)^2=\) <span class="blank"></span>.</p>
+    </div>
+    
+    <div class="question">
+        <p>6. 若 \(a,b,c \in \mathbb{Z}_+, a=(b+ci)^3-47i\), 则 \(a=\) <span class="blank"></span>.</p>
+    </div>
+    
+    <div class="question">
+        <p>7. 设 \(z\) 为复数, \(\omega = z+\frac{1}{z}\), 且 \(-1 < \omega < 2\), 则 \(z\) 的实部的取值范围是 <span class="blank"></span>.</p>
+    </div>
+    
+    <div class="question">
+        <p>8. 复数 \(z\) 满足 \(|z|(3z+2i)=2(iz-6)\), 则 \(|z|=\) <span class="blank"></span>.</p>
+    </div>
+    
+    <h3>二、解答题</h3>
+    
+    <div class="question">
+        <p>9. 设有 2018 个互不相同的复数, 其中任意 2 个数的乘积(包括自乘)是这 2018 个数之一, 求这 2018 个数的和.</p>
+    </div>
+    
+    <div class="question">
+        <p>10. 若方程 \(z^{2018}+z^{2017}+1=0\) 有模为 1 的根, 则所有模为 1 的根的和为多少?</p>
+    </div>
+    
+    <div class="question">
+        <p>11. 给定实数 \(a,b,c\), 已知复数 \(z_1,z_2,z_3\) 满足
+            \[\begin{cases}
+            |z_1|=|z_2|=|z_3|=1 & ①, \\
+            \frac{z_1}{z_2}+\frac{z_2}{z_3}+\frac{z_3}{z_1}=1 & ②,
+            \end{cases}\]
+            求 \(|az_1+bz_2+cz_3|\) 的值.</p>
+    </div>
+</body>
+</html>

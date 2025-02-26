@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第76套 数学归纳法</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: SimSun, "宋体", serif;
+            line-height: 1.5;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+        h2 {
+            margin-top: 30px;
+            font-weight: bold;
+        }
+        .problem {
+            margin-bottom: 20px;
+        }
+        .blank {
+            display: inline-block;
+            min-width: 100px;
+            border-bottom: 1px solid #000;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>第 76 套　数学归纳法</h1>
+
+    <h2>一、填空题</h2>
+
+    <div class="problem">
+        1. 若数列\( \{a_n\} \)满足 \(a_1 = 1\), \(a_n = \frac{1}{4a_{n-1}} + \frac{1}{n}\) \((n \geqslant 2)\), 则 \(a_{100}\) 的值为 <span class="blank"></span>.
+    </div>
+
+    <div class="problem">
+        2. 已知平面上有 \(n\) 条直线, 其中任意两条不平行, 任意三条不共点, 若该 \(n\) 条直线互相分割成 \(f(n)\) 条线段(或射线), 则 \(f(n+1) = f(n) + \) <span class="blank"></span>.
+    </div>
+
+    <div class="problem">
+        3. 在数列\( \{a_n\} \)中, 已知 \(a_1 = 1\), \(S_n\) 为前 \(n\) 项的和, 且满足 \(S_n = n^2a_n(n = 1,2,\cdots)\), 则\(a_n = \) <span class="blank"></span>.
+    </div>
+
+    <div class="problem">
+        4. 整数数列 \(\{a_n\}\) 的定义如下: \(a_1 = 2\), \(a_2 = 7\), \(-\frac{1}{2} < a_{n+1} - \frac{a_n^2}{a_{n-1}} \leqslant \frac{1}{2}\), \(n = 2,3,\cdots\), 则数列 \(a_n = \) <span class="blank"></span>.
+    </div>
+
+    <div class="problem">
+        5. 对任意的正整数 \(n(n \in \mathbb{N}_+)\), 若等式 \(1 \times 2^2 + 2 \times 3^2 + \cdots + n(n+1)^2 = \frac{n(n+1)(an^2+bn+c)}{12}\) 恒成立, 则 \(a = \) <span class="blank"></span>, \(b = \) <span class="blank"></span>, \(c = \) <span class="blank"></span>.
+    </div>
+
+    <div class="problem">
+        6. 设 \(f_1(x) = \frac{2}{x+1}\), 而 \(f_{n+1}(x) = f_1(f_n(x))\), \(n \in \mathbb{N}_+\), 记 \(a_n = \frac{f_n(2)-1}{f_n(2)+2}\), 则 \(a_{99} = \) <span class="blank"></span>.
+    </div>
+
+    <div class="problem">
+        7. 某一物体从高度为 \(h\) 的某处下落, 不计空气阻力, 该物体每碰一次地面能量减少为原来的 \(\frac{1}{k}\) \((k > 1)\), 则该物体运动的总路程为 <span class="blank"></span>, 该物体运动的总时间为 <span class="blank"></span>.
+    </div>
+
+    <div class="problem">
+        8. 由以下条件分别给出数列 \(\{a_n\}\): ①\(\{2^n\}\) 是等比数列; ②前 \(n\) 项的和 \(S_n = n^2 + 1\); ③\(a_1 > 0\), 且 \(a_k = \frac{2}{k-1}(a_1 + a_2 + \cdots + a_{k-1})\), \(k \geqslant 2\). 以上使 \(\{a_n\}\) 是等差数列的是 <span class="blank"></span>. (填序号)
+    </div>
+
+    <h2>二、解答题</h2>
+
+    <div class="problem">
+        9. 设 \(a_1, a_2, \cdots, a_{1999}\) 是一组非负整数, 对于任意的整数 \(i, j\), 且 \(i+j \leqslant 1999\), 有 \(a_i + a_j \leqslant a_{i+j} \leqslant a_i + a_j + 1\). 证明: 存在实数 \(x\), 使得对于 \(n = 1, 2, \cdots, 1999\), 有 \(a_n = [nx]\).
+    </div>
+
+    <div class="problem">
+        10. 在黑板上依次写出数 \(a_1 = 1, a_2, a_3, \cdots\), 法则如下: 如果 \(a_n - 2\) 为正整数且未写出过, 则写 \(a_{n+1} = a_n - 2\), 否则就写 \(a_{n+1} = a_n + 3\). 证明: 所有出现在该序列中的完全平方数都是由写在它前面的那个数加 3 得到的.
+    </div>
+
+    <div class="problem">
+        11. 设复数 \(x, y, z\) 的模长相等, 且满足 \(x + y + z = -\frac{\sqrt{3}}{2} - \sqrt{5}i\), \(xyz = \sqrt{3} + \sqrt{5}i\). 设 \(x = x_1 + x_2i\), \(y = y_1 + y_2i\), \(z = z_1 + z_2i\), 其中 \(x_1, x_2, y_1, y_2, z_1, z_2\) 是实数. 求 \(x_1x_2 + y_1y_2 + z_1z_2\).
+    </div>
+</body>
+</html>
