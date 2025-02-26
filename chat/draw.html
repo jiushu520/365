@@ -200,6 +200,19 @@
         resizeCanvas();
 
         canvas.addEventListener('pointerdown', (event) => {
+            // Check if eraser button is being used (Surface pen eraser)
+            if (event.pointerType === 'pen' && event.buttons === 32) {
+                mode = 'eraser';
+                updateToolButtons();
+            } 
+            // Check if pen tip is being used after eraser
+            else if (event.pointerType === 'pen' && event.buttons === 1 && mode === 'eraser') {
+                // Only switch back to pen mode if we got into eraser mode via the pen eraser
+                // and not via the eraser button click
+                mode = 'pen';
+                updateToolButtons();
+            }
+            
             drawing = true;
             ctx.beginPath();
             ctx.moveTo(event.offsetX, event.offsetY);
@@ -209,11 +222,12 @@
         canvas.addEventListener('pointermove', (event) => {
             if (drawing) {
                 ctx.lineTo(event.offsetX, event.offsetY);
-                ctx.lineWidth = currentThickness * (event.pressure || 1); // 结合压力的粗细
                 if (mode === 'pen') {
+                    ctx.lineWidth = currentThickness * (event.pressure || 1); // 结合压力的粗细
                     ctx.globalCompositeOperation = 'source-over';
                     ctx.strokeStyle = currentColor;
                 } else if (mode === 'eraser') {
+                    ctx.lineWidth = 50; // 橡皮擦使用固定较大的宽度
                     ctx.globalCompositeOperation = 'destination-out';
                     ctx.strokeStyle = 'rgba(0,0,0,1)';
                 }
@@ -263,8 +277,12 @@ document.getElementById('clear').addEventListener('click', () => {
 
         function setMode(newMode) {
             mode = newMode;
+            updateToolButtons();
+        }
+        
+        function updateToolButtons() {
             [document.getElementById('pen'), document.getElementById('eraser')].forEach(button => button.classList.remove('active'));
-            document.getElementById(newMode).classList.add('active');
+            document.getElementById(mode).classList.add('active');
         }
 
         const thicknessSlider = document.getElementById('thicknessSlider');

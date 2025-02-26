@@ -181,15 +181,17 @@
         <div id="question"></div>
         <input type="text" id="answer" placeholder="输入你的答案" oninput="updatePreview()">
         <div id="rendered-answer"></div><br>
-        <button onclick="checkAnswer()">提交答案</button>
+        <button onclick="checkAnswer()">提交答案</button><br>
 
-        <div class="switch-container">
-
+    <div class="switch-container">
+        <label for="videoToggle">视频开关</label>
             <label class="switch">
                 <input type="checkbox" id="videoToggle">
-
+                <span class="slider"></span>
             </label>
-        </div>
+        </div><br>
+  
+
         <div id="videoContainer" style="display: none;">
             <video id="instructionalVideo" width="640" height="360" controls>
                 <source src="" type="video/mp4">
@@ -235,10 +237,10 @@
             generateDifficultyButtons();
             setDifficulty(1);
 
-            // 确保开关事件监听器在 DOM 加载完成后绑定
+            // 视频开关的事件监听器
             const videoToggle = document.getElementById('videoToggle');
-            const videoContainer = document.getElementById('videoContainer');
-            videoToggle.addEventListener('change', function () {
+            videoToggle.addEventListener('change', function() {
+                const videoContainer = document.getElementById('videoContainer');
                 if (this.checked) {
                     videoContainer.style.display = 'block';
                 } else {
@@ -258,16 +260,25 @@
             });
         }
 
-        const videoConfig = {
-            1: "<video src='http://vs.leleketang.com/dat/ms/ma/k/video/18656.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
-            2: "<video src='http://vs.leleketang.com/dat/ms/ma/k/video/18656.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
-            3: "<video src='http://vs.leleketang.com/dat/ms/ma/k/video/18658.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
-            4: "<video src='http://v.leleketang.com/dat/ms/ma/k/video/18657.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
-            5: "<video src='http://v.leleketang.com/dat/ms/ma/k/video/18659.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
-            6: "<video src='https://v.leleketang.com/dat/hs/ma/k/video/21034.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
-            7: "<video src='http://vs.leleketang.com/dat/ms/ma/k/video/18660.mp4' width='640' height='360' controls>Your browser does not support the video tag.</video>",
-            9: "" // 暂不添加视频
-        };
+        function getVideoSrcForLevel(level) {
+            switch(level) {
+                case 1:
+                case 2: 
+                    return 'http://vs.leleketang.com/dat/ms/ma/k/video/18656.mp4';
+                case 3: 
+                    return 'http://vs.leleketang.com/dat/ms/ma/k/video/18658.mp4';
+                case 4: 
+                    return 'http://v.leleketang.com/dat/ms/ma/k/video/18657.mp4';
+                case 5: 
+                    return 'http://v.leleketang.com/dat/ms/ma/k/video/18659.mp4';
+                case 6: 
+                    return 'https://v.leleketang.com/dat/hs/ma/k/video/21034.mp4';
+                case 7: 
+                    return 'http://vs.leleketang.com/dat/ms/ma/k/video/18660.mp4';
+                default:
+                    return '';
+            }
+        }
 
         function setDifficulty(level) {
             currentDifficulty = level;
@@ -277,17 +288,23 @@
             const videoContainer = document.getElementById('videoContainer');
             const videoToggleContainer = document.querySelector('.switch-container');
             const videoToggle = document.getElementById('videoToggle');
-
-            if (videoConfig[level]) {
-                videoContainer.innerHTML = videoConfig[level];
+            
+            // 重置切换状态
+            videoToggle.checked = false;
+            videoContainer.style.display = 'none';
+            
+            const videoSrc = getVideoSrcForLevel(level);
+            if (videoSrc) {
+                // 更新视频源
+                const instructionalVideo = document.getElementById('instructionalVideo');
+                instructionalVideo.querySelector('source').src = videoSrc;
+                instructionalVideo.load(); // 重新加载视频以应用新源
+                
+                // 显示切换控件
                 videoToggleContainer.style.display = 'inline-flex';
-                videoToggle.checked = false; // 默认关闭
-                videoContainer.style.display = 'none'; // 默认隐藏
             } else {
-                videoContainer.innerHTML = "";
+                // 此级别没有视频
                 videoToggleContainer.style.display = 'none';
-                videoToggle.checked = false;
-                videoContainer.style.display = 'none';
             }
 
             newQuestion();
@@ -538,38 +555,37 @@ ${table}
             return levelFunctions[randomIndex]();
         }
 
-        function generateLevel8Question() {
-            const a = Math.floor(Math.random() * 3) + 1;
-            const c = Math.floor(Math.random() * 3) + 1;
-            const options = [-3, -2, -1, 1, 2, 3];
-            const b = options[Math.floor(Math.random() * options.length)];
-            const d = options[Math.floor(Math.random() * options.length)];
-            const e = options[Math.floor(Math.random() * options.length)];
-            const f = options[Math.floor(Math.random() * options.length)];
+function generateLevel8Question() {
+    const a = Math.floor(Math.random() * 3) + 1;
+    const c = Math.floor(Math.random() * 3) + 1;
+    const options = [-3, -2, -1, 1, 2, 3];
+    const b = options[Math.floor(Math.random() * options.length)];
+    const d = options[Math.floor(Math.random() * options.length)];
+    const e = options[Math.floor(Math.random() * options.length)];
+    const f = options[Math.floor(Math.random() * options.length)];
 
-            const coeffX2 = a * c;
-            const coeffXY = a * d + b * c;
-            const coeffY2 = b * d;
-            const coeffX = a * f + e * c;
-            const coeffY = b * f + e * d;
-            const constant = e * f;
+    const coeffX2 = a * c;
+    const coeffXY = a * d + b * c;
+    const coeffY2 = b * d;
+    const coeffX = a * f + e * c;
+    const coeffY = b * f + e * d;
+    const constant = e * f;
 
-            let expression = '';
-            if (coeffX2 !== 0) expression += (coeffX2 === 1 ? '' : (coeffX2 === -1 ? '-' : coeffX2)) + 'x^2';
-            if (coeffXY !== 0) expression += (coeffXY > 0 ? '+' : '') + (coeffXY === 1 ? '' : (coeffXY === -1 ? '-' : coeffXY)) + 'xy';
-            if (coeffY2 !== 0) expression += (coeffY2 > 0 ? '+' : '') + (coeffY2 === 1 ? '' : (coeffY2 === -1 ? '-' : coeffY2)) + 'y^2';
-            if (coeffX !== 0) expression += (coeffX > 0 ? '+' : '') + (coeffX === 1 ? '' : (coeffX === -1 ? '-' : coeffX)) + 'x';
-            if (coeffY !== 0) expression += (coeffY > 0 ? '+' : '') + (coeffY === 1 ? '' : (coeffY === -1 ? '-' : coeffY)) + 'y';
-            if (constant !== 0) expression += (constant > 0 ? '+' : '') + constant;
-            if (expression === '') expression = '0';
+    let expression = '';
+    if (coeffX2 !== 0) expression += (coeffX2 === 1 ? '' : (coeffX2 === -1 ? '-' : coeffX2)) + 'x^2';
+    if (coeffXY !== 0) expression += (coeffXY > 0 ? '+' : '') + (coeffXY === 1 ? '' : (coeffXY === -1 ? '-' : coeffXY)) + 'xy';
+    if (coeffY2 !== 0) expression += (coeffY2 > 0 ? '+' : '') + (coeffY2 === 1 ? '' : (coeffY2 === -1 ? '-' : coeffY2)) + 'y^2';
+    if (coeffX !== 0) expression += (coeffX > 0 ? '+' : '') + (coeffX === 1 ? '' : (coeffX === -1 ? '-' : coeffX)) + 'x';
+    if (coeffY !== 0) expression += (coeffY > 0 ? '+' : '') + (coeffY === 1 ? '' : (coeffY === -1 ? '-' : coeffY)) + 'y';
+    if (constant !== 0) expression += (constant > 0 ? '+' : '') + constant;
+    if (expression === '') expression = '0';
 
-            const part1 = `${a === 1 ? '' : a}x${b >= 0 ? '+' : ''}${b}y${e >= 0 ? '+' : ''}${e}`;
-            const part2 = `${c === 1 ? '' : c}x${d >= 0 ? '+' : ''}${d}y${f >= 0 ? '+' : ''}${f}`;
-            correctAnswer = [`(${part1})(${part2})`, `(${part2})(${part1})`];
+    const part1 = `${a === 1 ? '' : a}x${b > 0 ? '+' : ''}${b === 1 ? '' : (b === -1 ? '-' : b)}y${e >= 0 ? '+' : ''}${e}`;
+    const part2 = `${c === 1 ? '' : c}x${d > 0 ? '+' : ''}${d === 1 ? '' : (d === -1 ? '-' : d)}y${f >= 0 ? '+' : ''}${f}`;
+    correctAnswer = [`(${part1})(${part2})`, `(${part2})(${part1})`];
 
-            return `\\(\\begin{array}因式分解: ${expression} \\\\ \\text{提示：将表达式分解为两个线性因子的乘积，} \\\\例如 (ax+by+c)(dx+ey+f)\\end{array}\\)`;
-        }
-
+    return `\\(\\begin{array}因式分解: ${expression} \\\\ \\text{提示：将表达式分解为两个线性因子的乘积，} \\\\例如 (ax+by+c)(dx+ey+f)\\end{array}\\)`;
+}
         function generateLevel9Question() {
             const levelFunctions = [
                 generateLevel1Question,
