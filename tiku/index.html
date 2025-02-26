@@ -12,8 +12,9 @@
             background-color: #e0f7fa;
         }
         .top, .left, .center {
-            border: 1px solid #000;
+            border: 1px solid #ccc;
             box-sizing: border-box;
+            border-radius: 5px;
         }
         .top {
             padding: 5px;
@@ -29,9 +30,10 @@
             transition: margin-left 0.3s;
         }
         .left {
-            flex: 0.3;
+            flex: 0.4;
             overflow-y: auto;
             transition: transform 0.3s ease-in-out;
+            min-width: 250px;
         }
         .left.hidden {
             transform: translateX(-100%);
@@ -49,10 +51,15 @@
             overflow: hidden;
         }
         .canvas-switch {
-            padding: 10px;
+            padding: 15px;
             background-color: #e0f7fa;
             text-align: center;
-            border-top: 1px solid #000;
+            border-top: 1px solid #b2dfdb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         .bottom-content {
             height: 0;
@@ -66,11 +73,17 @@
         }
         .menu-item {
             cursor: pointer;
-            margin: 10px 0;
-            padding: 5px;
+            margin: 5px 0;
+            padding: 8px 10px 8px 20px;
             text-decoration: none;
-            color: black;
+            color: #333;
             display: block;
+            transition: all 0.2s;
+            border-radius: 4px;
+        }
+        .menu-item:hover {
+            background-color: #e0f2f1;
+            color: #00695c;
         }
         iframe {
             width: 100%;
@@ -79,25 +92,37 @@
         }
         #search {
             width: 90%;
-            padding: 5px;
-            margin: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            padding: 8px 12px;
+            margin: 15px auto;
+            border: 1px solid #b2dfdb;
+            border-radius: 20px;
+            display: block;
+            font-size: 14px;
+            transition: all 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        #search:focus {
+            outline: none;
+            border-color: #009688;
+            box-shadow: 0 1px 5px rgba(0,150,136,0.2);
         }
         .collapsible {
             background-color: #e0f7fa;
-            color: blue;
+            color: #00796b;
             cursor: pointer;
-            padding: 10px;
+            padding: 12px 15px;
             width: 100%;
             border: none;
+            border-bottom: 1px solid #b2dfdb;
             text-align: left;
             outline: none;
-            font-size: 15px;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
         }
         .active, .collapsible:hover {
-            background-color: #b3e5fc;
-            color: blue;
+            background-color: #b2dfdb;
+            color: #004d40;
         }
         .content {
             padding: 0 18px;
@@ -107,18 +132,21 @@
         }
         .toggle-menu-btn {
             position: absolute;
-            top: 0px;
-            left: 0px;
-            background-color: rgba(255, 255, 255, 0.5);
-            border: 1px solid #e0f7fa;
-            border-radius: 0px;
-            padding: 0px 0px;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 150, 136, 0.8);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
             cursor: pointer;
             z-index: 1000;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         .toggle-menu-btn:hover {
-            background-color: rgba(255, 255, 255, 0.5);
+            background-color: rgba(0, 150, 136, 1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         .main.menu-hidden .left {
             flex: 0;
@@ -134,7 +162,7 @@
                 z-index: 1000;
                 background-color: #fff;
                 height: 100%;
-                width: 250px;
+                width: 300px;
                 box-shadow: 2px 0 5px rgba(0,0,0,0.3);
             }
             .left.hidden {
@@ -144,6 +172,26 @@
                 flex: 1;
             }
         }
+        input[type="range"] {
+            -webkit-appearance: none;
+            height: 8px;
+            background: #b2dfdb;
+            border-radius: 5px;
+            margin: 0 10px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #009688;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin: 0 10px;
+        }
     </style>
 </head>
 <body>
@@ -152,10 +200,12 @@
             <input type="text" id="search" placeholder="搜索目录..." onkeyup="filterMenu()">
             <!-- 菜单将通过JavaScript动态生成 -->
         </div>
-
+        
         <div class="center" id="content">
 
-            <div class="toggle-menu-btn" onclick="toggleMenu()">目录</div>
+            <div class="toggle-menu-btn" onclick="toggleMenu()">
+                <i class="menu-icon">☰</i> 目录
+            </div>
 
             <div class="top-content">
 
@@ -281,7 +331,6 @@
             {
                 title: '自招文库',
                 items: [
-                    { text: '一试考前100道', url: 'https://jiushu.cpolar.cn/课本资料/一试考前100套/一试考前100题.html' },
                     { text: '自主招生公式', url: 'https://shimo.im/docs/gO3odYvGvRfzMZqD' },
                     { text: '正方形性质pdf', url: 'https://jiushu.cpolar.cn/pdf/正方形性质.pdf' },
                     { text: '正方形性质', url: 'https://shimo.im/docs/dPkpdMn7p8fWnWkO' },
@@ -370,7 +419,30 @@
         }
 
         function showContent(url) {
-            document.querySelector('.top-content iframe').src = url;
+            const iframe = document.querySelector('.top-content iframe');
+            
+            iframe.style.opacity = '0.6';
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.style.position = 'absolute';
+            loadingIndicator.style.top = '50%';
+            loadingIndicator.style.left = '50%';
+            loadingIndicator.style.transform = 'translate(-50%, -50%)';
+            loadingIndicator.style.zIndex = '1000';
+            loadingIndicator.innerHTML = '加载中...';
+            document.querySelector('.top-content').appendChild(loadingIndicator);
+            
+            iframe.onload = function() {
+                iframe.style.opacity = '1';
+                if (loadingIndicator.parentNode) {
+                    loadingIndicator.parentNode.removeChild(loadingIndicator);
+                }
+            };
+            
+            iframe.src = url;
+            
+            if (window.innerWidth <= 768) {
+                toggleMenu();
+            }
         }
 
         function filterMenu() {
