@@ -79,12 +79,20 @@
         .hidden {
             display: none;
         }
+        .search-box {
+            margin-bottom: 10px;
+            padding: 10px;
+            width: calc(100% - 30px);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="sidebar">
             <h1>数理交互动画</h1>
+            <input type="text" class="search-box" placeholder="搜索..." oninput="filterList()">
             <ul class="file-list">
                 <li><a href="B0304首项系数为1的十字相交叉.html" target="contentFrame">B0304首项系数为1的十字相交叉</a></li>
                 <li><a href="单位圆上的三角函数.html" target="contentFrame">单位圆上的三角函数</a></li>
@@ -130,6 +138,17 @@
             } else {
                 toggleButton.textContent = '关闭目录';
             }
+        }
+
+        function filterList() {
+            const query = document.querySelector('.search-box').value.toLowerCase();
+            const items = document.querySelectorAll('.file-list li');
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                const terms = query.split(' ').filter(term => term);
+                const matches = terms.every(term => text.includes(term));
+                item.style.display = matches ? '' : 'none';
+            });
         }
     </script>
 </body>
