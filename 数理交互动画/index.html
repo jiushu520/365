@@ -14,13 +14,14 @@
         .container {
             display: flex;
             height: 100vh;
+            flex-direction: row;
         }
         .sidebar {
             width: 250px;
             background-color: #f5f5f5;
             padding: 15px;
             overflow-y: auto;
-            border-right: 1px solid #ddd;
+            border-left: 1px solid #ddd;
         }
         .content {
             flex: 1;
@@ -68,7 +69,7 @@
             border-radius: 4px;
             position: absolute;
             top: 10px;
-            left: 10px;
+            right: 10px;
             z-index: 1000;
             opacity: 0.5;
             transition: opacity 0.3s;
@@ -90,6 +91,10 @@
 </head>
 <body>
     <div class="container">
+        <div class="content">
+            <div class="toggle-button" onclick="toggleSidebar()">关闭目录</div>
+            <iframe name="contentFrame" id="contentFrame" src="about:blank"></iframe>
+        </div>
         <div class="sidebar">
             <h1>数理交互动画</h1>
             <input type="text" class="search-box" placeholder="搜索..." oninput="filterList()">
@@ -114,10 +119,6 @@
                 <li><a href="直角坐标系.html" target="contentFrame">直角坐标系</a></li>
                 <li><a href="直角坐标系含工具栏.html" target="contentFrame">直角坐标系含工具栏</a></li>
             </ul>
-        </div>
-        <div class="content">
-            <div class="toggle-button" onclick="toggleSidebar()">关闭目录</div>
-            <iframe name="contentFrame" id="contentFrame" src="about:blank"></iframe>
         </div>
     </div>
     <script>
