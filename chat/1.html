@@ -43,6 +43,7 @@
       box-shadow: 0 0 3px rgba(0,0,0,0.3);
       z-index: 100; /* 确保手柄在最上层 */
       transition: background-color 0.2s, width 0.2s, margin-left 0.2s; /* 添加平滑过渡效果 */
+      touch-action: none; /* 防止默认的触摸行为如滚动 */
     }
     .handle:hover {
       background: #3498db; /* 悬停状态 - 亮蓝色 */
@@ -54,6 +55,16 @@
       width: 12px;
       margin-left: -1px;
       box-shadow: 0 0 8px rgba(231, 76, 60, 0.6); /* 拖动时增强阴影效果 */
+    }
+    
+    /* 为触摸设备添加媒体查询 */
+    @media (max-width: 768px) {
+      .handle {
+        width: 20px; /* 在触摸设备上增加手柄宽度 */
+      }
+      .handle:hover, .handle.dragging {
+        width: 20px;
+      }
     }
     
     .menu {
@@ -279,15 +290,16 @@
 
   function initHandles() {
     const totalWidth = mainContainer.offsetWidth;
+    const handleWidth = handle1.offsetWidth;
     
-    // 设置容器初始宽度
-    container1.style.width = (totalWidth * defaultRatio1) + 'px';
-    container2.style.width = (totalWidth * (defaultRatio2 - defaultRatio1)) + 'px';
-    container3.style.width = (totalWidth * (1 - defaultRatio2)) + 'px';
+    // Adjust container widths to account for handle widths
+    container1.style.width = (totalWidth * defaultRatio1 - handleWidth/2) + 'px';
+    container2.style.width = (totalWidth * (defaultRatio2 - defaultRatio1) - handleWidth) + 'px';
+    container3.style.width = (totalWidth * (1 - defaultRatio2) - handleWidth/2) + 'px';
     
-    // 设置手柄位置
-    handle1.style.left = (totalWidth * defaultRatio1 - handle1.offsetWidth / 2) + 'px';
-    handle2.style.left = (totalWidth * defaultRatio2 - handle2.offsetWidth / 2) + 'px';
+    // Set handle positions
+    handle1.style.left = (totalWidth * defaultRatio1 - handleWidth / 2) + 'px';
+    handle2.style.left = (totalWidth * defaultRatio2 - handleWidth / 2) + 'px';
   }
 
   // 手柄拖动事件
@@ -295,32 +307,52 @@
     e.preventDefault();
     dragging = e.target;
     dragging.classList.add('dragging'); // 添加拖动状态类
-    mainContainer.setPointerCapture(e.pointerId);
+    
+    // 使用 setPointerCapture 来确保即使触摸移动到元素外部也能继续接收事件
+    if (e.pointerId) {
+      dragging.setPointerCapture(e.pointerId);
+    } else {
+      // 兼容老设备
+      mainContainer.setPointerCapture(e.pointerId);
+    }
+    
+    // 禁止触摸时页面滚动
+    document.body.style.overflow = 'hidden';
   }
 
   function onPointerMove(e) {
     if (dragging) {
+      // 防止事件冒泡和默认行为
+      e.preventDefault();
+      e.stopPropagation();
+      
       const rect = mainContainer.getBoundingClientRect();
-      let offsetX = e.clientX - rect.left;
+      // 使用 clientX 或 touches[0].clientX 获取触摸位置
+      let clientX = e.clientX;
+      if (e.touches && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+      }
+      
+      let offsetX = clientX - rect.left;
       const totalWidth = mainContainer.offsetWidth;
       
       offsetX = Math.max(0, Math.min(offsetX, totalWidth));
 
       if (dragging === handle1) {
         const handle2Pos = parseFloat(handle2.style.left) + handle2.offsetWidth / 2;
-        offsetX = Math.min(offsetX, handle2Pos - 10); // 确保两个手柄之间有最小距离
+        offsetX = Math.min(offsetX, handle2Pos - 10); // Ensure minimum distance between handles
         
-        // 更新第一个和第二个容器宽度
-        container1.style.width = offsetX + 'px';
-        container2.style.width = (handle2Pos - offsetX) + 'px';
+        // Adjust for handle width when updating container widths
+        container1.style.width = (offsetX - handle1.offsetWidth/2) + 'px';
+        container2.style.width = (handle2Pos - offsetX - handle1.offsetWidth/2) + 'px';
         
       } else if (dragging === handle2) {
         const handle1Pos = parseFloat(handle1.style.left) + handle1.offsetWidth / 2;
-        offsetX = Math.max(offsetX, handle1Pos + 10); // 确保两个手柄之间有最小距离
+        offsetX = Math.max(offsetX, handle1Pos + 10); // Ensure minimum distance between handles
         
-        // 更新第二个和第三个容器宽度
-        container2.style.width = (offsetX - handle1Pos) + 'px';
-        container3.style.width = (totalWidth - offsetX) + 'px';
+        // Adjust for handle width when updating container widths
+        container2.style.width = (offsetX - handle1Pos - handle2.offsetWidth/2) + 'px';
+        container3.style.width = (totalWidth - offsetX - handle2.offsetWidth/2) + 'px';
       }
 
       dragging.style.left = (offsetX - dragging.offsetWidth / 2) + 'px';
@@ -330,16 +362,48 @@
   function onPointerUp(e) {
     if (dragging) {
       dragging.classList.remove('dragging'); // 移除拖动状态类
+      
+      // 释放指针捕获
+      if (e.pointerId && dragging.releasePointerCapture) {
+        dragging.releasePointerCapture(e.pointerId);
+      } else {
+        mainContainer.releasePointerCapture(e.pointerId);
+      }
+      
       dragging = null;
+      
+      // 恢复正常滚动
+      document.body.style.overflow = '';
     }
-    mainContainer.releasePointerCapture(e.pointerId);
   }
 
-  // 设置事件监听器
+  // 设置事件监听器 - 同时支持鼠标和触摸
   handle1.addEventListener('pointerdown', onPointerDown);
   handle2.addEventListener('pointerdown', onPointerDown);
   mainContainer.addEventListener('pointermove', onPointerMove);
   mainContainer.addEventListener('pointerup', onPointerUp);
+  mainContainer.addEventListener('pointercancel', onPointerUp);
+
+  // 备用触摸事件监听器用于不支持 Pointer 事件的旧设备
+  handle1.addEventListener('touchstart', function(e) {
+    onPointerDown({target: handle1, preventDefault: function(){}, pointerId: null});
+  }, {passive: false});
+  handle2.addEventListener('touchstart', function(e) {
+    onPointerDown({target: handle2, preventDefault: function(){}, pointerId: null});
+  }, {passive: false});
+  mainContainer.addEventListener('touchmove', function(e) {
+    if (dragging) {
+      e.preventDefault();
+      onPointerMove({
+        preventDefault: function(){}, 
+        stopPropagation: function(){}, 
+        touches: e.touches,
+        clientX: e.touches[0].clientX
+      });
+    }
+  }, {passive: false});
+  mainContainer.addEventListener('touchend', onPointerUp);
+  mainContainer.addEventListener('touchcancel', onPointerUp);
 
   // 初始化
   initHandles();
