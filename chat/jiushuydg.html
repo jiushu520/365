@@ -6,8 +6,8 @@
     <script>
     window.MathJax = {
       tex: {
-        inlineMath: [['$', '$'], ['\$$ ', '\ $$']],
-        displayMath: [['$$  ', '  $$'], ['\$$ ', '\ $$']]
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
       }
     };
     </script>
@@ -257,7 +257,13 @@
         constructor() {
             this.CONFIG = [
 
-
+                 {
+                    name: "claude-3-7-sonnet-20250219",
+                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
+                    apiKey: "sk-PQUi1mRSyz3OtEadQ6X7PNGjVdP1sO3jDOz4cLjhhwZewjZK",
+                    model: "claude-3-7-sonnet-20250219",
+                    temperature: 0
+                },
                 {
                     name: "glm-4-flashX",
                     apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
@@ -319,6 +325,9 @@
                     model: "deepseek-chat",
                     temperature: 0,
                 },
+
+
+
                 {
                     name: "deepseek-r1xiaojiangai",
                     apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
@@ -467,7 +476,27 @@
         async getAssistantReply() {
             this.loadingIndicator.style.display = 'block';
             const config = this.CONFIG[this.currentConfigIndex];
-
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = `message assistant-message`;
+            
+            const contentElement = document.createElement('div');
+            contentElement.className = 'message-content';
+            contentElement.textContent = '玖数：';
+            
+            const timestamp = document.createElement('span');
+            timestamp.className = 'timestamp';
+            timestamp.textContent = new Date().toLocaleTimeString();
+            
+            messageElement.appendChild(contentElement);
+            messageElement.appendChild(timestamp);
+            this.messagesContainer.appendChild(messageElement);
+            
+            // Always scroll to bottom when starting a new reply
+            this.scrollToBottom();
+            
+            let fullResponse = '';
+            
             try {
                 const response = await fetch(config.apiUrl, {
                     method: 'POST',
@@ -478,7 +507,8 @@
                     body: JSON.stringify({
                         model: config.model,
                         messages: this.messages,
-                        temperature: config.temperature
+                        temperature: config.temperature,
+                        stream: true
                     })
                 });
 
@@ -486,13 +516,134 @@
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
 
-                const data = await response.json();
-                const assistantMessage = data.choices[0].message.content;
-                this.displayMessageStepByStep(`玖数：${assistantMessage}`, 'assistant-message');
-                this.messages.push({ "role": "assistant", "content": assistantMessage });
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+                
+                // Track LaTeX delimiters for more efficient rendering
+                let latexDelimiters = {
+                    '$': 0,
+                    '\\(': 0,
+                    '\\)': 0,
+                    '\\[': 0,
+                    '\\]': 0
+                };
+                
+                let lastRenderTime = 0;
+                const renderCooldown = 150; // ms between renders
+                
+                // Function to check if we should render LaTeX now
+                const shouldRenderLatex = (token) => {
+                    if (!this.latexToggle.checked) return false;
+                    
+                    // Check for LaTeX delimiters in the token
+                    const hasDelimiter = token.includes('$') || 
+                                       token.includes('\\(') || 
+                                       token.includes('\\)') || 
+                                       token.includes('\\[') || 
+                                       token.includes('\\]');
+                    
+                    if (!hasDelimiter) return false;
+                    
+                    // Update delimiter counts
+                    if (token.includes('$')) latexDelimiters['$']++;
+                    if (token.includes('\\(')) latexDelimiters['\\(']++;
+                    if (token.includes('\\)')) latexDelimiters['\\)']++;
+                    if (token.includes('\\[')) latexDelimiters['\\[']++;
+                    if (token.includes('\\]')) latexDelimiters['\\]']++;
+                    
+                    // Check if we have complete LaTeX expressions
+                    const hasPotentialCompleteExpression = 
+                        (latexDelimiters['$'] >= 2) || 
+                        (latexDelimiters['\\('] > 0 && latexDelimiters['\\)'] > 0) ||
+                        (latexDelimiters['\\['] > 0 && latexDelimiters['\\]'] > 0);
+                    
+                    // Check if enough time has passed since last render
+                    const now = Date.now();
+                    const enoughTimePassed = (now - lastRenderTime) > renderCooldown;
+                    
+                    return hasPotentialCompleteExpression && enoughTimePassed;
+                };
+                
+                // Perform LaTeX rendering
+                const renderLatex = async () => {
+                    if (!this.latexToggle.checked) return;
+                    
+                    const isAtBottom = this.isScrolledToBottom();
+                    
+                    try {
+                        lastRenderTime = Date.now();
+                        await MathJax.typesetPromise([contentElement]);
+                    } catch (err) {
+                        console.error("LaTeX rendering error:", err);
+                    }
+                    
+                    if (isAtBottom) {
+                        this.scrollToBottom();
+                    }
+                };
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                            try {
+                                const data = JSON.parse(line.substring(6));
+                                if (data.choices && data.choices[0].delta && data.choices[0].delta.content) {
+                                    const token = data.choices[0].delta.content;
+                                    fullResponse += token;
+                                    contentElement.textContent = '玖数：' + fullResponse;
+                                    
+                                    // Auto-scroll if already at bottom
+                                    if (this.isScrolledToBottom()) {
+                                        this.scrollToBottom();
+                                    }
+                                    
+                                    // Progressive LaTeX rendering
+                                    if (shouldRenderLatex(token)) {
+                                        await renderLatex();
+                                    }
+                                }
+                            } catch (e) {
+                                console.error("Error parsing stream:", e);
+                            }
+                        }
+                    }
+                }
+                
+                messageElement.dataset.originalContent = '玖数：' + fullResponse;
+                this.messages.push({ "role": "assistant", "content": fullResponse });
+                
+                // Final complete rendering of LaTeX after streaming completes
+                if (this.latexToggle.checked) {
+                    // Reset the delimiter counts to make sure final rendering happens
+                    latexDelimiters = {
+                        '$': 0,
+                        '\\(': 0,
+                        '\\)': 0,
+                        '\\[': 0,
+                        '\\]': 0
+                    };
+                    
+                    const isAtBottom = this.isScrolledToBottom();
+                    try {
+                        await MathJax.typesetPromise([contentElement]);
+                    } catch (err) {
+                        console.error("Final LaTeX rendering error:", err);
+                    }
+                    if (isAtBottom) {
+                        setTimeout(() => this.scrollToBottom(), 10);
+                    }
+                }
+                
             } catch (error) {
                 console.error("请求出错:", error);
-                this.displayMessage("玖数：对不起，发生了错误，请稍后再试。", 'assistant-message');
+                contentElement.textContent = "玖数：对不起，发生了错误，请稍后再试。";
+                this.messages.push({ "role": "assistant", "content": "对不起，发生了错误，请稍后再试。" });
             }
 
             this.loadingIndicator.style.display = 'none';
@@ -752,6 +903,15 @@
                 this.updateHistoryList(name);
             }
             this.clearMessages();
+        }
+
+        isScrolledToBottom() {
+            const tolerance = 20; // pixels of tolerance
+            return this.messagesContainer.scrollHeight - this.messagesContainer.clientHeight - this.messagesContainer.scrollTop <= tolerance;
+        }
+
+        scrollToBottom() {
+            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
         }
     }
 
