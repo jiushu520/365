@@ -584,7 +584,7 @@ function generateLevel8Question() {
     const part2 = `${c === 1 ? '' : c}x${d > 0 ? '+' : ''}${d === 1 ? '' : (d === -1 ? '-' : d)}y${f >= 0 ? '+' : ''}${f}`;
     correctAnswer = [`(${part1})(${part2})`, `(${part2})(${part1})`];
 
-    return `\\(\\begin{array}因式分解: ${expression} \\\\ \\text{提示：将表达式分解为两个线性因子的乘积，} \\\\例如 (ax+by+c)(dx+ey+f)\\end{array}\\)`;
+    return `\\(\\begin{array} 请因式分解: ${expression} \\\\ \\text{提示：将表达式分解为两个线性因子的乘积，} \\\\例如 (ax+by+c)(dx+ey+f)\\end{array}\\)`;
 }
         function generateLevel9Question() {
             const levelFunctions = [
