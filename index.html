@@ -299,6 +299,7 @@
         const userInput = document.getElementById("userInput");
         const passwordInput = document.getElementById("passwordInput");
         const openButton = document.getElementById("openButton");
+        const guestButton = document.getElementById("guestButton");
         const iframe = document.getElementById("contentFrame");
         const messageDiv = document.getElementById("message");
         const loader = document.getElementById("loader");
@@ -586,6 +587,36 @@ document.getElementById("expirationDate").textContent = `截止日期: ${formatt
 
         // 加载保存的用户
         loadSavedUsers();
+
+        // 添加游客登录功能
+        const guestLogin = () => {
+            displayMessage("正在以游客身份加载页面...", "success");
+            isAuthenticated = true;
+            
+            // 直接设置iframe的src为完整URL，而不是使用showIframe函数
+            loader.style.display = "block";
+            iframe.style.display = "block";
+            iframe.src = "https://jiushu.cpolar.cn/chat/2.html"; // 使用完整URL
+            
+            // 设置眉栏显示
+            welcomeText.textContent = "游客模式";
+            proverbText.innerHTML = `\\(${getRandomProverb()}\\)`;
+            MathJax.typesetPromise([proverbText]).catch(err => console.error("MathJax 渲染失败:", err));
+            
+            document.getElementById("expirationDate").textContent = ""; // 游客模式不显示到期日期
+            userHeader.style.display = "flex";
+            logoutButton.style.display = "block";
+            
+            // 设置默认头像
+            userAvatar.src = generateAvatar("游客");
+            userAvatar.style.display = "block";
+            
+            // 隐藏登录界面
+            container.style.display = "none";
+        };
+        
+        // 绑定游客按钮点击事件
+        guestButton.addEventListener("click", guestLogin);
     });
     </script>
 
@@ -614,7 +645,11 @@ document.getElementById("expirationDate").textContent = `截止日期: ${formatt
             <label for="passwordInput">密码</label>
             <input type="password" id="passwordInput" placeholder="请输入密码" autocomplete="off">
             
-            <button id="openButton">打开页面</button>
+ 
+            
+            <!-- 添加游客登录按钮 -->
+            <button id="guestButton" style="margin-top: 10px; background-color: #6c757d;">以游客身份访问</button><br>
+           <button id="openButton">打开页面</button>
 
             <!-- 加载指示器 -->
             <div id="loader">
