@@ -79,6 +79,7 @@
             flex-direction: column;
             padding: var(--spacing-md);
             border-right: 1px solid var(--border-color);
+            transition: transform var(--transition-normal);
         }
         
         .chat-container {
@@ -86,6 +87,7 @@
             display: flex;
             flex-direction: column;
             height: 100%;
+            transition: all var(--transition-normal);
         }
         
         .card {
@@ -131,6 +133,8 @@
             padding: var(--spacing-md);
             display: flex;
             flex-direction: column;
+            min-height: 200px;
+            max-height: 60vh;
         }
         
         .chat-history {
@@ -200,6 +204,10 @@
             padding: var(--spacing-md);
             box-shadow: var(--shadow-light);
             margin: var(--spacing-md);
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
         
         .media-input {
@@ -279,6 +287,7 @@
             flex-wrap: wrap;
             gap: var(--spacing-sm);
             margin-bottom: var(--spacing-md);
+            min-height: 30px;
         }
         
         .preview-item {
@@ -322,6 +331,7 @@
             font-size: 15px;
             outline: none;
             transition: border-color var(--transition-fast);
+            min-height: 80px;
         }
         
         .text-input:focus {
@@ -573,6 +583,14 @@
                 height: calc(100vh - 360px);
             }
             
+            .sidebar-hidden .chat-container {
+                height: calc(100vh - 60px);
+            }
+            
+            .input-area {
+                min-height: 200px;
+            }
+            
             .media-input {
                 flex-wrap: wrap;
             }
@@ -582,10 +600,55 @@
                 font-size: 13px;
             }
         }
+        
+        /* 添加侧边栏切换按钮和相关样式 */
+        .sidebar-toggle {
+            position: fixed;
+            left: 10px;
+            top: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: var(--shadow-medium);
+            transition: var(--transition-normal);
+        }
+        
+        .sidebar-toggle:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .sidebar-toggle .toggle-icon {
+            transition: transform var(--transition-normal);
+        }
+        
+        .sidebar-hidden .sidebar {
+            transform: translateX(-100%);
+            position: absolute;
+            z-index: -1;
+        }
+        
+        .sidebar-hidden .chat-container {
+            margin-left: 0;
+            width: 100%;
+            flex-basis: 100%;
+        }
     </style>
 </head>
 <body>
- 
+    <!-- 添加侧边栏切换按钮 -->
+    <button class="sidebar-toggle" id="sidebarToggle">
+        <svg class="toggle-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 18H21V16H3V18ZM3 13H21V11H3V13ZM3 6V8H21V6H3Z" fill="currentColor"/>
+        </svg>
+    </button>
     
     <div class="main-container">
         <!-- 左侧栏 -->
@@ -698,6 +761,7 @@
         const historyList = document.getElementById('historyList');
         const newChatBtn = document.getElementById('newChatBtn');
         const deleteHistoryBtn = document.getElementById('deleteHistoryBtn');
+        const sidebarToggle = document.getElementById('sidebarToggle');
         
         // API 配置
         const API_KEY = "sk-56f75127a91347509775ef3f3a7573d6";
@@ -722,6 +786,35 @@
         
         // 初始化提示词选择器
         initPromptSelector();
+        
+        // 添加侧边栏切换功能
+        sidebarToggle.addEventListener('click', toggleSidebar);
+        
+        // 切换侧边栏显示/隐藏
+        function toggleSidebar() {
+            document.body.classList.toggle('sidebar-hidden');
+            
+            // 更改图标
+            const icon = sidebarToggle.querySelector('.toggle-icon');
+            if (document.body.classList.contains('sidebar-hidden')) {
+                icon.innerHTML = '<path d="M3 18H21V16H3V18ZM3 13H21V11H3V13ZM3 6V8H21V6H3Z" fill="currentColor"/>';
+            } else {
+                icon.innerHTML = '<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" fill="currentColor"/>';
+            }
+            
+            // 保存状态到本地存储
+            localStorage.setItem('sidebarHidden', document.body.classList.contains('sidebar-hidden'));
+        }
+        
+        // 从本地存储恢复侧边栏状态
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarHidden = localStorage.getItem('sidebarHidden') === 'true';
+            if (sidebarHidden) {
+                document.body.classList.add('sidebar-hidden');
+                const icon = sidebarToggle.querySelector('.toggle-icon');
+                icon.innerHTML = '<path d="M3 18H21V16H3V18ZM3 13H21V11H3V13ZM3 6V8H21V6H3Z" fill="currentColor"/>';
+            }
+        });
         
         // 确保添加系统提示词头部点击事件
         systemPromptHeader.addEventListener('click', toggleSystemPromptEditor);
