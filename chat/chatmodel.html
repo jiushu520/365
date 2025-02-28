@@ -488,23 +488,23 @@
             }
         }
 
-renderSessionList() {
-    const fragment = document.createDocumentFragment();
-    for (let i = this.sessions.length - 1; i >= 0; i--) {
-        const s = this.sessions[i];
-        const li = document.createElement('li');
-        li.textContent = s.name;
-        if (i === this.currentSessionIndex) {
-            li.classList.add('active');
+        renderSessionList() {
+            const fragment = document.createDocumentFragment();
+            for (let i = this.sessions.length - 1; i >= 0; i--) {
+                const s = this.sessions[i];
+                const li = document.createElement('li');
+                li.textContent = s.name;
+                if (i === this.currentSessionIndex) {
+                    li.classList.add('active');
+                }
+                li.addEventListener('click', () => {
+                    this.switchSession(i);
+                });
+                fragment.appendChild(li);
+            }
+            this.sessionListEl.innerHTML = '';
+            this.sessionListEl.appendChild(fragment);
         }
-        li.addEventListener('click', () => {
-            this.switchSession(i);
-        });
-        fragment.appendChild(li);
-    }
-    this.sessionListEl.innerHTML = '';
-    this.sessionListEl.appendChild(fragment);
-}
 
         switchSession(index) {
             if (index < 0 || index >= this.sessions.length) return;
@@ -695,7 +695,18 @@ renderSessionList() {
             ];
 
             try {
-                const res = await fetch(config.apiUrl, {
+                // Create message elements for streaming
+                const msgEl = document.createElement('div');
+                msgEl.className = `message assistant-message`;
+                const contentEl = document.createElement('div');
+                contentEl.className = 'message-content';
+                contentEl.innerHTML = '玖数：';
+                msgEl.appendChild(contentEl);
+                this.messagesContainer.appendChild(msgEl);
+                this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+
+                // Use fetch with streaming
+                const response = await fetch(config.apiUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -704,18 +715,156 @@ renderSessionList() {
                     body: JSON.stringify({
                         model: config.model,
                         messages: allMessages,
-                        temperature: config.temperature
+                        temperature: config.temperature,
+                        stream: true
                     })
                 });
-                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-                const data = await res.json();
-                if (!data.choices || !data.choices[0].message) {
-                    throw new Error("接口返回格式不符预期");
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+                let assistantMsg = '';
+                let mathBuffer = '';
+                let inMath = false;
+                let mathDelimiter = '';
+                let lastRenderTime = 0;
+
+                // Process the stream
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    // Decode the chunk
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n').filter(line => line.trim() !== '');
+                    
+                    for (const line of lines) {
+                        if (line.includes('[DONE]')) continue;
+                        if (!line.startsWith('data:')) continue;
+                        
+                        try {
+                            const data = JSON.parse(line.slice(5));
+                            if (!data.choices || !data.choices[0].delta) continue;
+                            
+                            const delta = data.choices[0].delta.content || '';
+                            if (!delta) continue;
+                            
+                            assistantMsg += delta;
+                            
+                            // Process each character for math detection
+                            for (let i = 0; i < delta.length; i++) {
+                                const char = delta[i];
+                                
+                                if (!inMath) {
+                                    // Check for math delimiters
+                                    if (char === '$' && (i+1 < delta.length && delta[i+1] === '$')) {
+                                        // Display math: $$
+                                        inMath = true;
+                                        mathBuffer = '$$';
+                                        mathDelimiter = '$$';
+                                        i++; // Skip next $
+                                    } else if (char === '$') {
+                                        // Inline math: $
+                                        inMath = true;
+                                        mathBuffer = '$';
+                                        mathDelimiter = '$';
+                                    } else if (char === '\\' && i+1 < delta.length && delta[i+1] === '[') {
+                                        // Display math: \[ \]
+                                        inMath = true;
+                                        mathBuffer = '\\[';
+                                        mathDelimiter = '\\[';
+                                        i++; // Skip [
+                                    } else if (char === '\\' && i+1 < delta.length && delta[i+1] === '(') {
+                                        // Inline math: \( \)
+                                        inMath = true;
+                                        mathBuffer = '\\(';
+                                        mathDelimiter = '\\(';
+                                        i++; // Skip (
+                                    } else {
+                                        contentEl.innerHTML += char;
+                                    }
+                                } else {
+                                    // Inside math expression
+                                    mathBuffer += char;
+                                    
+                                    // Check for closing delimiter
+                                    let closingFound = false;
+                                    if (mathDelimiter === '$' && char === '$') {
+                                        closingFound = true;
+                                    } else if (mathDelimiter === '$$' && char === '$' && mathBuffer.endsWith('$$')) {
+                                        closingFound = true;
+                                    } else if (mathDelimiter === '\\[' && char === ']' && mathBuffer.endsWith('\\]')) {
+                                        closingFound = true;
+                                    } else if (mathDelimiter === '\\(' && char === ')' && mathBuffer.endsWith('\\)')) {
+                                        closingFound = true;
+                                    }
+                                    
+                                    if (closingFound) {
+                                        // Add complete math expression
+                                        contentEl.innerHTML += mathBuffer;
+                                        // Render immediately
+                                        try {
+                                            MathJax.typesetPromise([contentEl]);
+                                        } catch (e) {
+                                            console.error('MathJax error:', e);
+                                        }
+                                        mathBuffer = '';
+                                        inMath = false;
+                                    }
+                                }
+                            }
+                            
+                            // Periodically try to render incomplete math expressions
+                            const now = Date.now();
+                            if (inMath && mathBuffer && now - lastRenderTime > 1000) {
+                                const tempContent = contentEl.innerHTML;
+                                try {
+                                    // Temporarily add the math with closing delimiter for rendering
+                                    let tempMath = mathBuffer;
+                                    if (mathDelimiter === '$') tempMath += '$';
+                                    else if (mathDelimiter === '$$') tempMath += '$$';
+                                    else if (mathDelimiter === '\\[' || mathDelimiter === '\\(') tempMath += mathDelimiter === '\\[' ? ']' : ')';
+                                    
+                                    contentEl.innerHTML = tempContent + tempMath;
+                                    MathJax.typesetPromise([contentEl]);
+                                    lastRenderTime = now;
+                                } catch (e) {
+                                    console.error('MathJax preview error:', e);
+                                } finally {
+                                    // Restore original content
+                                    contentEl.innerHTML = tempContent;
+                                }
+                            }
+                            
+                            // Scroll to bottom as new content arrives
+                            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+                        } catch (e) {
+                            console.error('Error parsing stream:', e, line);
+                        }
+                    }
                 }
-                const assistantMsg = data.choices[0].message.content;
-                this.displayMessageStepByStep(`玖数：${assistantMsg}`, 'assistant-message');
+                
+                // Handle any remaining math expressions
+                if (mathBuffer) {
+                    if (mathDelimiter === '$') mathBuffer += '$';
+                    else if (mathDelimiter === '$$') mathBuffer += '$$';
+                    else if (mathDelimiter === '\\[' || mathDelimiter === '\\(') mathBuffer += mathDelimiter === '\\[' ? ']' : ')';
+                    
+                    contentEl.innerHTML += mathBuffer;
+                }
+                
+                // Final render and add timestamp
+                MathJax.typesetPromise([contentEl]).catch(e => console.error('Final MathJax error:', e));
+                const timeEl = document.createElement('span');
+                timeEl.className = 'timestamp';
+                timeEl.textContent = new Date().toLocaleTimeString();
+                msgEl.appendChild(timeEl);
+                
+                // Save to session
                 this.currentSession.messages.push({ role: 'assistant', content: assistantMsg });
                 this.saveSessions();
+                
             } catch (err) {
                 console.error(err);
                 this.displayMessage("玖数：对不起，接口调用失败。", 'assistant-message');
@@ -757,24 +906,68 @@ renderSessionList() {
             this.messagesContainer.appendChild(msgEl);
             this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
 
+            // Split message into parts
             const parts = message.split('###');
             let partIndex = 0;
+            let mathBuffer = '';
+            let inMath = false;
+            let mathDelimiter = '';
+            
             const showNextPart = () => {
                 if (partIndex < parts.length) {
                     const p = parts[partIndex++];
                     let charIndex = 0;
                     const timer = setInterval(() => {
                         if (charIndex < p.length) {
-                            contentEl.innerHTML += p[charIndex++];
+                            const char = p[charIndex++];
+                            
+                            // Track LaTeX expressions
+                            if (!inMath) {
+                                // Check for math start delimiters
+                                if (char === '$' || (char === '\\' && charIndex < p.length && p[charIndex] === '(')) {
+                                    inMath = true;
+                                    mathBuffer = char;
+                                    mathDelimiter = char === '$' ? '$' : '\\(';
+                                    if (mathDelimiter === '\\(') charIndex++; // Skip the next char
+                                } else {
+                                    contentEl.innerHTML += char;
+                                }
+                            } else {
+                                // Inside math expression
+                                mathBuffer += char;
+                                
+                                // Check for closing delimiter
+                                const closingFound = 
+                                    (mathDelimiter === '$' && char === '$') ||
+                                    (mathDelimiter === '\\(' && char === ')' && mathBuffer.endsWith('\\)'));
+                                
+                                if (closingFound) {
+                                    // Add the complete math expression
+                                    contentEl.innerHTML += mathBuffer;
+                                    // Render it immediately
+                                    MathJax.typesetPromise([contentEl]);
+                                    mathBuffer = '';
+                                    inMath = false;
+                                }
+                            }
+                            
                             this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
                         } else {
                             clearInterval(timer);
+                            // Handle any remaining math buffer
+                            if (mathBuffer) {
+                                contentEl.innerHTML += mathBuffer;
+                                mathBuffer = '';
+                                inMath = false;
+                            }
+                            
                             if (partIndex < parts.length) contentEl.innerHTML += '<br><br>';
-                            showNextPart();
+                            // Ensure LaTeX is rendered before continuing
+                            MathJax.typesetPromise([contentEl]).then(() => {
+                                showNextPart();
+                            });
                         }
                     }, 1);
-                } else {
-                    MathJax.typesetPromise([contentEl]);
                 }
             };
             showNextPart();
