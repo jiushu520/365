@@ -36,25 +36,25 @@
       top: 0;
       width: 12px;
       height: 100%;
-      background: #2c3e50; /* 静止状态 - 深蓝色 */
+      background: #040608; /* 静止状态 -  */
       cursor: col-resize;
       border-radius: 3px;
       border: 1px solid #3498db;
-      box-shadow: 0 0 3px rgba(0,0,0,0.3);
+      box-shadow: 0 0 3px rgba(59, 210, 221, 0.228);
       z-index: 100; /* 确保手柄在最上层 */
       transition: background-color 0.2s, width 0.2s, margin-left 0.2s; /* 添加平滑过渡效果 */
       touch-action: none; /* 防止默认的触摸行为如滚动 */
     }
     .handle:hover {
-      background: #3498db; /* 悬停状态 - 亮蓝色 */
+      background: #153d58; /* 悬停状态 -  */
       width: 12px;
       margin-left: -1px;
     }
     .handle.dragging {
-      background: #e74c3c; /* 拖动状态 - 红色 */
+      background: #0f6478; /* 拖动状态 - */
       width: 12px;
       margin-left: -1px;
-      box-shadow: 0 0 8px rgba(231, 76, 60, 0.6); /* 拖动时增强阴影效果 */
+      box-shadow: 0 0 8px rgba(91, 235, 172, 0.6); /* 拖动时增强阴影效果 */
     }
     
     /* 为触摸设备添加媒体查询 */
