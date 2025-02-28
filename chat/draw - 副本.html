@@ -184,7 +184,6 @@
         let lastPinchDistance = 0;
         let isPanning = false;
         let lastPanPoint = { x: 0, y: 0 };
-        let isRightClickPanning = false; // 添加右键平移状态跟踪变量
 
         // 添加触摸延迟变量
         let touchDelayTimer = null;
@@ -223,7 +222,7 @@
         
         // 添加坐标转换函数
         function getTransformedPoint(x, y) {
-            // 从屏幕坐标转换为画布坐标，确保在多次平移后仍然准确
+            // 从屏幕坐标转换为画布坐标
             return {
                 x: (x - offsetX) / scale,
                 y: (y - offsetY) / scale
@@ -233,21 +232,7 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        // 阻止默认的右键菜单
-        canvas.addEventListener('contextmenu', (event) => {
-            event.preventDefault();
-            return false;
-        });
-
         canvas.addEventListener('pointerdown', (event) => {
-            // 右键按下，开始平移
-            if (event.button === 2) {
-                event.preventDefault();
-                isRightClickPanning = true;
-                lastPanPoint = { x: event.clientX, y: event.clientY };
-                return;
-            }
-            
             // 如果是触摸事件且有多个触摸点，不开始绘画而是准备平移
             if (event.pointerType === 'touch' && touchCount > 1) {
                 return;
@@ -286,18 +271,6 @@
         });
 
         canvas.addEventListener('pointermove', (event) => {
-            // 处理右键平移
-            if (isRightClickPanning) {
-                const dx = event.clientX - lastPanPoint.x;
-                const dy = event.clientY - lastPanPoint.y;
-                offsetX += dx;
-                offsetY += dy;
-                lastPanPoint = { x: event.clientX, y: event.clientY };
-                applyTransform();
-                redrawCanvas();
-                return;
-            }
-            
             // 处理平移逻辑
             if (isPanning && event.pointerType === 'touch' && touchCount > 1 && !touchDelayActive) {
                 // 使用1:1比例，不再降低敏感度
@@ -344,12 +317,6 @@
         });
 
         canvas.addEventListener('pointerup', (event) => {
-            // 如果是右键释放，结束平移
-            if (event.button === 2) {
-                isRightClickPanning = false;
-                return;
-            }
-            
             drawing = false;
             isPanning = false;
         });
@@ -357,7 +324,6 @@
         canvas.addEventListener('pointerout', () => {
             drawing = false;
             isPanning = false;
-            isRightClickPanning = false; // 鼠标移出画布时，也结束右键平移
         });
 
         function saveState() {
@@ -610,10 +576,11 @@
                         touch2.clientY - touch1.clientY
                     );
                     
-                    // 直接使用触摸点的坐标计算中心点，不添加画布的偏移
+                    // 明确获取新的触摸中心点，不受之前操作的影响
+                    const rect = canvas.getBoundingClientRect();
                     lastPanPoint = {
-                        x: (touch1.clientX + touch2.clientX) / 2,
-                        y: (touch1.clientY + touch2.clientY) / 2
+                        x: (touch1.clientX - rect.left) + rect.left,
+                        y: (touch1.clientY - rect.top) + rect.top
                     };
                     
                     // 设置延迟计时器
@@ -627,10 +594,11 @@
                             const t1 = event.touches[0];
                             const t2 = event.touches[1];
                             
-                            // 直接使用触摸点的坐标计算中心点
+                            // 获取画布位置，确保坐标系一致
+                            const canvasRect = canvas.getBoundingClientRect();
                             lastPanPoint = {
-                                x: (t1.clientX + t2.clientX) / 2,
-                                y: (t1.clientY + t2.clientY) / 2
+                                x: (t1.clientX - canvasRect.left + t2.clientX - canvasRect.left) / 2 + canvasRect.left,
+                                y: (t1.clientY - canvasRect.top + t2.clientY - canvasRect.top) / 2 + canvasRect.top
                             };
                             
                             lastPinchDistance = Math.hypot(
@@ -658,8 +626,8 @@
                 // 确保使用相同的坐标系计算当前中心点
                 const rect = canvas.getBoundingClientRect();
                 const currentCenter = {
-                    x: (touch1.clientX + touch2.clientX) / 2,
-                    y: (touch1.clientY + touch2.clientY) / 2
+                    x: (touch1.clientX - rect.left + touch2.clientX - rect.left) / 2 + rect.left,
+                    y: (touch1.clientY - rect.top + touch2.clientY - rect.top) / 2 + rect.top
                 };
                 
                 // 计算新的距离
