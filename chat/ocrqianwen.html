@@ -132,6 +132,23 @@
             background-color: #0056b3;
         }
 
+        /* 添加专门的识别内容按钮样式 */
+        #send-button {
+            background-color: #2ecc71;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 10px 18px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        #send-button:hover {
+            background-color: #27ae60;
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
         .conversation-controls {
             display: flex;
             justify-content: space-between;
@@ -312,7 +329,7 @@
         <div id="input-area" contenteditable="true"></div>
         <div class="controls">
             <input type="file" id="file-input" accept="image/*">
-            <button id="send-button">识别内容</button>
+            <button id="send-button">📸 识别内容</button>
             <label><input type="checkbox" id="latex-toggle" checked> 渲染LaTeX</label>
         </div>
     </div>
