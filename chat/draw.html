@@ -387,7 +387,16 @@
         document.getElementById('pointer').addEventListener('click', () => setMode('pointer'));
         document.getElementById('clear').addEventListener('click', () => {
             saveState();
+            
+            // 重置变换，清除整个画布，然后恢复变换
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.restore();
+            
+            // 重新应用当前变换
+            applyTransform();
+            
             setMode('pen'); // 清除后自动切换到画笔模式
         });
 
