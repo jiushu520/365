@@ -346,8 +346,8 @@
         }
         
         .send-btn {
-            margin-top: var(--spacing-md);
-            width: 100%;
+            /* Removed width: 100% to work with new flex layout */
+            /* margin-top is now handled by the container */
         }
         
         .loading {
@@ -717,12 +717,14 @@
                 <div class="preview-container" id="previewContainer"></div>
                 
                 <textarea class="text-input" id="userInput" placeholder="输入您的问题...或直接粘贴图片" rows="3"></textarea>
-                <button class="btn btn-accent send-btn" id="sendBtn">发送</button>
-                <div class="input-hint">按 Enter 发送消息，Shift+Enter 换行</div>
                 
-                <!-- 新对话按钮 - 放在发送按钮上方 -->
-                <button class="btn btn-primary" id="newChatBtn" style="width: 100%; margin-bottom: var(--spacing-md);">新对话</button>
-
+                <!-- 修改按钮布局：新对话靠左，发送靠右，宽度减半 -->
+                <div class="button-row" style="display: flex; justify-content: space-between; margin-top: var(--spacing-md);">
+                    <button class="btn btn-primary" id="newChatBtn" style="width: 30%;">新对话</button>
+                    <button class="btn btn-accent" id="sendBtn" style="width: 30%;">发送</button>
+                </div>
+                
+                <div class="input-hint">按 Enter 发送消息，Shift+Enter 换行</div>
             </div>
         </div>
     </div>

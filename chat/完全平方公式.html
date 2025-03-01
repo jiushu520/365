@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>完全平方公式可视化</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .formula {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .formula h2 {
+            color: #3498db;
+            margin-top: 0;
+        }
+        .math {
+            font-size: 24px;
+            text-align: center;
+            margin: 15px 0;
+            font-style: italic;
+        }
+        .controls {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .control-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: inline-block;
+            width: 120px;
+            font-weight: bold;
+        }
+        input[type="range"] {
+            width: 300px;
+            vertical-align: middle;
+        }
+        .value-display {
+            display: inline-block;
+            width: 50px;
+            text-align: center;
+            margin-left: 10px;
+        }
+        .canvas-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .canvas-wrapper {
+            width: 48%;
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        canvas {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+        }
+        .canvas-title {
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .explanation {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .explanation h2 {
+            color: #3498db;
+            margin-top: 0;
+        }
+        .explanation p {
+            line-height: 1.6;
+        }
+        .calculation {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f1f8ff;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>完全平方公式的几何意义</h1>
+
+    <div class="formula">
+        <h2>完全平方公式</h2>
+        <div class="math">(a + b)² = a² + 2ab + b²</div>
+        <div class="math">(a - b)² = a² - 2ab + b²</div>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label for="param-a">参数 a:</label>
+            <input type="range" id="param-a" min="1" max="10" step="0.5" value="5">
+            <span id="a-value" class="value-display">5</span>
+        </div>
+        <div class="control-group">
+            <label for="param-b">参数 b:</label>
+            <input type="range" id="param-b" min="1" max="10" step="0.5" value="3">
+            <span id="b-value" class="value-display">3</span>
+        </div>
+    </div>
+
+    <div class="canvas-container">
+        <div class="canvas-wrapper">
+            <div class="canvas-title">(a + b)² = a² + 2ab + b²</div>
+            <canvas id="canvas-plus"></canvas>
+        </div>
+        <div class="canvas-wrapper">
+            <div class="canvas-title">(a - b)² = a² - 2ab + b²</div>
+            <canvas id="canvas-minus"></canvas>
+        </div>
+    </div>
+
+    <div class="calculation" id="calculation-plus"></div>
+    <div class="calculation" id="calculation-minus"></div>
+
+    <div class="explanation">
+        <h2>几何意义解释</h2>
+        <p>完全平方公式的几何意义可以通过面积来理解：</p>
+        <p><strong>(a + b)²</strong> 表示边长为 (a + b) 的正方形面积，等于 a² + 2ab + b²：</p>
+        <ul>
+            <li>蓝色区域：表示 a²，即边长为 a 的正方形面积</li>
+            <li>绿色区域：表示 2ab，即两个 a×b 的矩形面积</li>
+            <li>红色区域：表示 b²，即边长为 b 的正方形面积</li>
+        </ul>
+        <p><strong>(a - b)²</strong> 表示边长为 (a - b) 的正方形面积，等于 a² - 2ab + b²：</p>
+        <ul>
+            <li>蓝色区域：表示 a²，即边长为 a 的正方形面积</li>
+            <li>黄色区域：表示 -2ab，从 a² 中减去的两个 a×b 矩形面积</li>
+            <li>红色区域：表示 b²，加回来的边长为 b 的正方形面积</li>
+        </ul>
+        <p>通过调整滑块中的 a 和 b 值，可以直观地观察到公式中各个项的几何意义以及它们之间的关系。</p>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const paramA = document.getElementById('param-a');
+        const paramB = document.getElementById('param-b');
+        const aValue = document.getElementById('a-value');
+        const bValue = document.getElementById('b-value');
+        const canvasPlus = document.getElementById('canvas-plus');
+        const canvasMinus = document.getElementById('canvas-minus');
+        const calculationPlus = document.getElementById('calculation-plus');
+        const calculationMinus = document.getElementById('calculation-minus');
+
+        // 设置canvas上下文
+        const ctxPlus = canvasPlus.getContext('2d');
+        const ctxMinus = canvasMinus.getContext('2d');
+
+        // 设置canvas尺寸
+        function setCanvasSize() {
+            canvasPlus.width = canvasPlus.offsetWidth;
+            canvasPlus.height = canvasPlus.offsetHeight;
+            canvasMinus.width = canvasMinus.offsetWidth;
+            canvasMinus.height = canvasMinus.offsetHeight;
+        }
+        
+        window.addEventListener('resize', setCanvasSize);
+        setCanvasSize();
+
+        // 监听滑块变化
+        paramA.addEventListener('input', updateValues);
+        paramB.addEventListener('input', updateValues);
+
+        function updateValues() {
+            const a = parseFloat(paramA.value);
+            const b = parseFloat(paramB.value);
+            aValue.textContent = a;
+            bValue.textContent = b;
+            
+            drawPlusFormula(a, b);
+            drawMinusFormula(a, b);
+            updateCalculations(a, b);
+        }
+
+        function drawPlusFormula(a, b) {
+            ctxPlus.clearRect(0, 0, canvasPlus.width, canvasPlus.height);
+            
+            const maxSize = Math.max(a, b) * 1.5;
+            const scale = Math.min(canvasPlus.width, canvasPlus.height) / (2 * maxSize);
+            const offsetX = canvasPlus.width / 2 - (a + b) * scale / 2;
+            const offsetY = canvasPlus.height / 2 - (a + b) * scale / 2;
+            
+            // 绘制外部正方形轮廓
+            ctxPlus.strokeStyle = "#000";
+            ctxPlus.lineWidth = 2;
+            ctxPlus.strokeRect(offsetX, offsetY, (a + b) * scale, (a + b) * scale);
+            
+            // 绘制a²区域（蓝色）
+            ctxPlus.fillStyle = "rgba(52, 152, 219, 0.6)";
+            ctxPlus.fillRect(offsetX, offsetY, a * scale, a * scale);
+            
+            // 绘制第一个ab区域（绿色）
+            ctxPlus.fillStyle = "rgba(46, 204, 113, 0.6)";
+            ctxPlus.fillRect(offsetX + a * scale, offsetY, b * scale, a * scale);
+            
+            // 绘制第二个ab区域（绿色）
+            ctxPlus.fillStyle = "rgba(46, 204, 113, 0.6)";
+            ctxPlus.fillRect(offsetX, offsetY + a * scale, a * scale, b * scale);
+            
+            // 绘制b²区域（红色）
+            ctxPlus.fillStyle = "rgba(231, 76, 60, 0.6)";
+            ctxPlus.fillRect(offsetX + a * scale, offsetY + a * scale, b * scale, b * scale);
+            
+            // 添加标签
+            ctxPlus.font = "16px Arial";
+            ctxPlus.fillStyle = "#000";
+            
+            // a标签
+            ctxPlus.fillText("a", offsetX + a * scale / 2, offsetY - 10);
+            ctxPlus.fillText("a", offsetX - 20, offsetY + a * scale / 2);
+            
+            // b标签
+            ctxPlus.fillText("b", offsetX + a * scale + b * scale / 2, offsetY - 10);
+            ctxPlus.fillText("b", offsetX - 20, offsetY + a * scale + b * scale / 2);
+            
+            // 区域标签
+            ctxPlus.fillText("a²", offsetX + a * scale / 2 - 10, offsetY + a * scale / 2);
+            ctxPlus.fillText("ab", offsetX + a * scale + b * scale / 2 - 10, offsetY + a * scale / 2);
+            ctxPlus.fillText("ab", offsetX + a * scale / 2 - 10, offsetY + a * scale + b * scale / 2);
+            ctxPlus.fillText("b²", offsetX + a * scale + b * scale / 2 - 10, offsetY + a * scale + b * scale / 2);
+            
+            // (a+b)标签
+            ctxPlus.fillText("(a+b)", offsetX + (a + b) * scale / 2 - 20, offsetY + (a + b) * scale + 25);
+            ctxPlus.fillText("(a+b)", offsetX + (a + b) * scale + 10, offsetY + (a + b) * scale / 2);
+        }
+
+        function drawMinusFormula(a, b) {
+            ctxMinus.clearRect(0, 0, canvasMinus.width, canvasMinus.height);
+            
+            const maxSize = Math.max(a, b) * 1.5;
+            const scale = Math.min(canvasMinus.width, canvasMinus.height) / (2 * maxSize);
+            const offsetX = canvasMinus.width / 2 - a * scale / 2;
+            const offsetY = canvasMinus.height / 2 - a * scale / 2;
+            
+            // 首先绘制a²大正方形（蓝色）
+            ctxMinus.fillStyle = "rgba(52, 152, 219, 0.6)";
+            ctxMinus.fillRect(offsetX, offsetY, a * scale, a * scale);
+            
+            // 绘制-2ab区域（黄色，标记为需要减去的部分）
+            ctxMinus.fillStyle = "rgba(241, 196, 15, 0.6)";
+            ctxMinus.fillRect(offsetX + (a - b) * scale, offsetY, b * scale, (a - b) * scale);
+            ctxMinus.fillRect(offsetX, offsetY + (a - b) * scale, (a - b) * scale, b * scale);
+            
+            // 绘制+b²区域（红色，在重叠处需要加回来）
+            ctxMinus.fillStyle = "rgba(231, 76, 60, 0.6)";
+            ctxMinus.fillRect(offsetX + (a - b) * scale, offsetY + (a - b) * scale, b * scale, b * scale);
+            
+            // 绘制(a-b)²最终正方形轮廓
+            ctxMinus.strokeStyle = "#000";
+            ctxMinus.lineWidth = 2;
+            ctxMinus.strokeRect(offsetX, offsetY, (a - b) * scale, (a - b) * scale);
+            
+            // 添加标签
+            ctxMinus.font = "16px Arial";
+            ctxMinus.fillStyle = "#000";
+            
+            // a标签
+            ctxMinus.fillText("a", offsetX + a * scale / 2, offsetY - 10);
+            ctxMinus.fillText("a", offsetX - 20, offsetY + a * scale / 2);
+            
+            // 区域标签
+            ctxMinus.fillText("a²", offsetX + a * scale / 2 - 10, offsetY + a * scale / 2);
+            ctxMinus.fillText("-ab", offsetX + a * scale - b * scale / 2 - 15, offsetY + (a - b) * scale / 2);
+            ctxMinus.fillText("-ab", offsetX + (a - b) * scale / 2 - 15, offsetY + a * scale - b * scale / 2);
+            ctxMinus.fillText("+b²", offsetX + a * scale - b * scale / 2 - 15, offsetY + a * scale - b * scale / 2);
+            
+            // (a-b)标签
+            ctxMinus.fillText("(a-b)", offsetX + (a - b) * scale / 2 - 20, offsetY + (a - b) * scale + 25);
+            ctxMinus.fillText("(a-b)", offsetX + (a - b) * scale + 10, offsetY + (a - b) * scale / 2);
+        }
+
+        function updateCalculations(a, b) {
+            const aSquared = a * a;
+            const bSquared = b * b;
+            const twoAB = 2 * a * b;
+            const aPlusBSquared = aSquared + twoAB + bSquared;
+            const aMinusBSquared = aSquared - twoAB + bSquared;
+            
+            calculationPlus.innerHTML = `<strong>(a + b)² 的计算:</strong><br>
+                (${a} + ${b})² = ${a}² + 2·${a}·${b} + ${b}²<br>
+                = ${aSquared.toFixed(2)} + ${twoAB.toFixed(2)} + ${bSquared.toFixed(2)}<br>
+                = ${aPlusBSquared.toFixed(2)}`;
+                
+            calculationMinus.innerHTML = `<strong>(a - b)² 的计算:</strong><br>
+                (${a} - ${b})² = ${a}² - 2·${a}·${b} + ${b}²<br>
+                = ${aSquared.toFixed(2)} - ${twoAB.toFixed(2)} + ${bSquared.toFixed(2)}<br>
+                = ${aMinusBSquared.toFixed(2)}`;
+        }
+
+        // 初始化
+        updateValues();
+    </script>
+</body>
+</html> 
