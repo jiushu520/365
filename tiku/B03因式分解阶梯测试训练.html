@@ -320,16 +320,26 @@
     
     <div class="difficulty-buttons" id="difficultyButtons"></div>
     
-    <!-- 添加倒计时选择按钮 -->
-    <div class="timer-selection" style="margin: 10px 0;">
-        <span style="margin-right: 10px;">选择游戏时长:</span>
-        <button id="timer5min" class="timer-btn active" onclick="selectGameDuration(5)">5分钟</button>
-        <button id="timer10min" class="timer-btn" onclick="selectGameDuration(10)">10分钟</button>
+    <!-- 游戏选项布局修改为一行 -->
+    <div class="game-options" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin: 10px 0;">
+        <div style="display: flex; align-items: center; margin: 0 10px;">
+
+            <button id="timer5min" class="timer-btn active" onclick="selectGameDuration(5)">5分钟</button>
+            <button id="timer10min" class="timer-btn" onclick="selectGameDuration(10)">10分钟</button>
+        </div>
+        
+        <div style="display: flex; align-items: center; margin: 0 10px;">
+            <span style="margin-right: 10px;">计算机思考难度:</span>
+            <button id="thinkingEasy" class="timer-btn active" onclick="selectThinkingDifficulty('easy')">容易</button>
+            <button id="thinkingMedium" class="timer-btn" onclick="selectThinkingDifficulty('medium')">中等</button>
+            <button id="thinkingHard" class="timer-btn" onclick="selectThinkingDifficulty('hard')">困难</button>
+        </div>
     </div>
-    <div id="countdownDisplay" style="font-size: 20px; font-weight: bold; margin: 10px 0; color: #007bff;">剩余时间: 05:00</div>
-    
-    <button id="startGameBtn" onclick="startGame()">开始游戏</button>
-    <button id="resetGameBtn" onclick="resetGame()" disabled>重新开始</button>
+    <div style="display: flex; justify-content: center; align-items: center; margin: 10px 0; gap: 15px;">
+        <div id="countdownDisplay" style="font-size: 20px; font-weight: bold; color: #007bff;">剩余时间: 05:00</div>
+        <button id="startGameBtn" onclick="startGame()">开始游戏</button>
+        <button id="resetGameBtn" onclick="resetGame()" disabled>重新开始</button>
+    </div>
     
     <div class="pk-container">
         <div class="player-container" id="playerContainer">
@@ -412,6 +422,9 @@
         let countdownTime = 5 * 60; // 默认5分钟，单位为秒
         let countdownTimer;
         
+        // 新增思考时间难度变量
+        let computerThinkingDifficulty = 'easy'; // 默认为容易，可选值: 'easy'(容易)、'medium'(中等)、'hard'(困难)
+        
         // 新增游戏模式变量
         let gameMode = 'pk'; // 默认为PK模式，可选值: 'self'(自学练习) 或 'pk'(PK模式)
 
@@ -433,6 +446,7 @@
             setDifficulty(1);
             updateCountdownDisplay();
             switchMode('pk'); // 默认PK模式
+            selectThinkingDifficulty('easy'); // 默认为容易难度
         });
 
         // 切换游戏模式
@@ -452,6 +466,7 @@
             const computerContainer = document.getElementById('computerContainer');
             const countdownDisplay = document.getElementById('countdownDisplay');
             const timerSelection = document.querySelector('.timer-selection');
+            const thinkingDifficultySelection = document.querySelector('.thinking-difficulty-selection');
             
             if (mode === 'self') {
                 // 自学练习模式
@@ -459,6 +474,7 @@
                 playerContainer.classList.add('full-width');
                 countdownDisplay.style.display = 'none';
                 timerSelection.style.display = 'none';
+                thinkingDifficultySelection.style.display = 'none';
                 document.getElementById('startGameBtn').textContent = '开始练习';
                 document.getElementById('roundResult').style.display = 'none';
             } else {
@@ -467,6 +483,7 @@
                 playerContainer.classList.remove('full-width');
                 countdownDisplay.style.display = 'block';
                 timerSelection.style.display = 'block';
+                thinkingDifficultySelection.style.display = 'block';
                 document.getElementById('startGameBtn').textContent = '开始PK';
                 document.getElementById('roundResult').style.display = 'block';
             }
@@ -501,11 +518,33 @@
             gameDuration = minutes;
             countdownTime = minutes * 60;
             
-            // 更新UI
-            document.querySelectorAll('.timer-btn').forEach(btn => btn.classList.remove('active'));
+            // 更新UI - 先移除所有timer-btn的active类
+            document.querySelectorAll('.timer-btn').forEach(btn => {
+                // 只处理时间选择按钮，不影响思考难度按钮
+                if (btn.id.startsWith('timer')) {
+                    btn.classList.remove('active');
+                }
+            });
+            // 只给当前选择的按钮添加active类
             document.getElementById(`timer${minutes}min`).classList.add('active');
             
             updateCountdownDisplay();
+        }
+        
+        // 选择计算机思考难度
+        function selectThinkingDifficulty(difficulty) {
+            if (gameInProgress) return; // 游戏进行中不能更改难度
+            
+            computerThinkingDifficulty = difficulty;
+            
+            // 更新UI - 只操作思考难度按钮
+            document.querySelectorAll('.timer-btn').forEach(btn => {
+                // 只处理思考难度按钮，不影响时间选择按钮
+                if (btn.id.startsWith('thinking')) {
+                    btn.classList.remove('active');
+                }
+            });
+            document.getElementById(`thinking${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}`).classList.add('active');
         }
         
         // 更新倒计时显示
@@ -694,8 +733,27 @@
         function scheduleComputerAnswer() {
             if (!gameInProgress || gameMode !== 'pk') return;
             
-            // 计算机思考时间（10-20秒随机）
-            const thinkingTime = Math.floor(Math.random() * 11) + 10;
+            // 根据难度设置计算机思考时间
+            let minTime = 10;
+            let maxTime = 20;
+            
+            switch(computerThinkingDifficulty) {
+                case 'easy': // 容易：10-20秒
+                    minTime = 10;
+                    maxTime = 20;
+                    break;
+                case 'medium': // 中等：20-40秒
+                    minTime = 20;
+                    maxTime = 40;
+                    break;
+                case 'hard': // 困难：30-45秒
+                    minTime = 30;
+                    maxTime = 45;
+                    break;
+            }
+            
+            // 生成指定范围内的随机思考时间
+            const thinkingTime = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
             
             // 设置计算机自动答题定时器
             const timer = setTimeout(() => {
