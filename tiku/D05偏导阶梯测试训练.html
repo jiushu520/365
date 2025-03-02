@@ -3,39 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>偏导数运算</title>
-  
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <title>D05偏导阶梯测试训练</title>
+
+    <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
     <style>
         body {
             margin: 0;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
             font-family: Arial, sans-serif;
         }
 
-        .game-container {
+        .header {
+            text-align: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .pk-container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            justify-content: space-between;
+        }
+
+        .player-container, .computer-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             text-align: center;
+            width: 48%;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .player-container {
+            background-color: #f0f8ff; /* Light blue for player */
+        }
+
+        .computer-container {
+            background-color: #fff0f0; /* Light red for computer */
+        }
+
+        .vs-indicator {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            background-color: #ffcc00;
+            padding: 5px 15px;
+            border-radius: 20px;
         }
 
         .difficulty-buttons {
             margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         .difficulty-buttons button {
-            margin: 0 5px;
-            padding: 10px 20px;
-            font-size: 16px;
+            margin: 5px;
+            padding: 8px 15px;
+            font-size: 14px;
             cursor: pointer;
             border: none;
             border-radius: 5px;
-            background-color: #f0f0f0;
+            background-color: #668B8B;
         }
 
         .difficulty-buttons button.active {
@@ -43,13 +84,38 @@
             color: white;
         }
 
-        #answer {
+        .question-box {
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: white;
+            width: 90%;
+        }
+
+        .answer-input {
             padding: 10px;
             font-size: 16px;
-            width: 200px;
+            width: 80%;
             margin: 10px 0;
             border: 1px solid #ccc;
             border-radius: 5px;
+        }
+
+        .timer {
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .computer-status {
+            margin: 10px 0;
+            font-style: italic;
+            min-height: 20px;
         }
 
         button {
@@ -60,283 +126,1303 @@
             border-radius: 5px;
             background-color: #007bff;
             color: white;
+            margin: 5px;
         }
 
         button:hover {
             background-color: #0056b3;
         }
 
-        #result {
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .result {
+            min-height: 20px;
+            margin: 10px 0;
+        }
+
+        .score {
             margin-top: 10px;
             font-size: 18px;
+            font-weight: bold;
         }
 
-        #score {
-            margin-top: 20px;
-            font-size: 18px;
-        }
-
-        .history-item {
-            margin-top: 10px;
-            font-size: 16px;
-        }
-
-        .history-item.correct {
+        .correct {
             color: green;
         }
 
-        .history-item.incorrect {
+        .incorrect {
             color: red;
+        }
+
+        .rendered-answer {
+            margin-top: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 80%;
+            min-height: 30px;
+            background-color: white;
+        }
+
+        .history-container {
+            margin-top: 30px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .copy-button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+        }
+
+        .copy-button:hover {
+            background-color: #218838;
+        }
+
+        #copy-success {
+            display: none;
+            margin-top: 10px;
+            color: green;
+            font-size: 14px;
+        }
+        
+        .winner-indicator {
+            font-weight: bold;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        
+        .player-win {
+            color: blue;
+        }
+        
+        .computer-win {
+            color: red;
+        }
+        
+        .tie {
+            color: purple;
+        }
+        
+        .player-row {
+            background-color: rgba(240, 248, 255, 0.3);
+        }
+        
+        .computer-row {
+            background-color: rgba(255, 240, 240, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .pk-container {
+                flex-direction: column;
+            }
+            
+            .player-container, .computer-container {
+                width: 90%;
+                margin-bottom: 30px;
+            }
+        }
+
+        .timer-btn {
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+            color: white;
+            margin: 0 5px;
+        }
+        
+        .timer-btn.active {
+            background-color: #45a049;
+        }
+
+        /* 模式切换按钮样式 */
+        .mode-switch {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        
+        .mode-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+            color: white;
+            margin: 0 10px;
+        }
+        
+        .mode-btn.active {
+            background-color: #45a049;
+        }
+        
+        /* 自学模式下的全宽玩家容器 */
+        .player-container.full-width {
+            width: 100%;
+        }
+        
+        /* 历史记录上方按钮行 */
+        .history-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        
+        /* 响应式布局下的历史记录按钮 */
+        @media (max-width: 768px) {
+            .history-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .mode-switch {
+                margin-top: 10px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
+    <div class="header">
         <h1>玖数学测训系统</h1>
-        <h3>D04偏导阶梯测试训练</h3>
+            <h3>D05偏导阶梯测试训练</h3>
+    </div>
+    
+    <div class="difficulty-buttons" id="difficultyButtons"></div>
+    
+    <!-- 游戏选项布局修改为一行 -->
+    <div class="game-options" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin: 10px 0;">
+        <div style="display: flex; align-items: center; margin: 0 10px;">
 
-        <div class="difficulty-buttons">
-            <button onclick="setDifficulty(1)" id="level1">01</button>
-            <button onclick="setDifficulty(2)" id="level2">02</button>
-            <button onclick="setDifficulty(3)" id="level3">03</button>
-            <button onclick="setDifficulty(4)" id="level4">04</button>
-            <button onclick="setDifficulty(5)" id="level5">05</button>
+            <button id="timer5min" class="timer-btn active" onclick="selectGameDuration(5)">5分钟</button>
+            <button id="timer10min" class="timer-btn" onclick="selectGameDuration(10)">10分钟</button>
         </div>
-        <div id="question"></div><br>
-        <input type="text" id="answer" placeholder="输入你的答案"><br>
-        <button onclick="checkAnswer()">提交答案</button><br>
-
-        <div id="result"></div>
-        <div id="score">正确: 0 | 错误: 0</div>
-        <div id="history"></div>
+        
+        <div style="display: flex; align-items: center; margin: 0 10px;">
+            <span style="margin-right: 10px;">计算机思考难度:</span>
+            <button id="thinkingEasy" class="timer-btn active" onclick="selectThinkingDifficulty('easy')">容易</button>
+            <button id="thinkingMedium" class="timer-btn" onclick="selectThinkingDifficulty('medium')">中等</button>
+            <button id="thinkingHard" class="timer-btn" onclick="selectThinkingDifficulty('hard')">困难</button>
+        </div>
+    </div>
+    <div style="display: flex; justify-content: center; align-items: center; margin: 10px 0; gap: 15px;">
+        <div id="countdownDisplay" style="font-size: 20px; font-weight: bold; color: #007bff;">剩余时间: 05:00</div>
+        <button id="startGameBtn" onclick="startGame()">开始游戏</button>
+        <button id="resetGameBtn" onclick="resetGame()" disabled>重新开始</button>
+    </div>
+    
+    <div class="pk-container">
+        <div class="player-container" id="playerContainer">
+            <h3>玩家</h3>
+            <div class="timer" id="playerTimer">时间: 0秒</div>
+            <div class="question-box" id="playerQuestion"></div>
+            <input type="text" id="playerAnswer" class="answer-input" placeholder="输入你的答案" oninput="updatePreview('player')" disabled>
+            <div class="rendered-answer" id="playerRenderedAnswer"></div>
+            <button id="playerSubmitBtn" onclick="checkPlayerAnswer()" disabled>提交答案</button>
+            <div class="result" id="playerResult"></div>
+            <div class="score" id="playerScore">正确: 0 | 错误: 0 | 总题数: 0</div>
+        </div>
+        
+        <div class="computer-container" id="computerContainer">
+            <h3>计算机</h3>
+            <div class="timer" id="computerTimer">时间: 0秒</div>
+            <div class="question-box" id="computerQuestion"></div>
+            <div class="computer-status" id="computerStatus">等待开始...</div>
+            <input type="text" id="computerAnswer" class="answer-input" placeholder="计算机的答案" disabled>
+            <div class="rendered-answer" id="computerRenderedAnswer"></div>
+            <div class="result" id="computerResult"></div>
+            <div class="score" id="computerScore">正确: 0 | 错误: 0 | 总题数: 0</div>
+        </div>
+    </div>
+    
+    <div class="winner-indicator" id="roundResult"></div>
+    
+    <div class="history-container">
+        <div class="history-controls">
+            <button class="copy-button" onclick="copyHistory()">复制历史记录</button>
+            
+            <!-- 模式切换按钮移到这里 -->
+            <div class="mode-switch">
+                <button id="selfPracticeBtn" class="mode-btn" onclick="switchMode('self')">自学练习</button>
+                <button id="pkModeBtn" class="mode-btn active" onclick="switchMode('pk')">PK模式</button>
+            </div>
+        </div>
+        
+        <div id="copy-success">历史记录已复制到剪贴板！</div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>参与者</th>
+                    <th>级别</th>
+                    <th>题目</th>
+                    <th>答案</th>
+                    <th>正确答案</th>
+                    <th>结果</th>
+                    <th>用时(秒)</th>
+                </tr>
+            </thead>
+            <tbody id="history"></tbody>
+        </table>
     </div>
 
     <script>
-        let correctAnswer;
-        let currentQuestion;
-        let correctCount = 0;
-        let incorrectCount = 0;
+        // 全局变量
+        let playerCorrectAnswer; // 玩家题目的正确答案
+        let computerCorrectAnswer; // 计算机题目的正确答案
+        let correctAnswer; // 保留此变量用于兼容原有函数
+        let playerCorrectCount = 0;
+        let playerIncorrectCount = 0;
+        let computerCorrectCount = 0;
+        let computerIncorrectCount = 0;
+        let playerTotalCount = 0;
+        let computerTotalCount = 0;
         let currentDifficulty = 1;
+        let gameInProgress = false;
+        let playerTime = 0;
+        let computerTime = 0;
+        let playerQuestionStartTime = 0;
+        let computerQuestionStartTime = 0;
+        let playerTimer;
+        let computerTimer;
+        let computerThinkingTimers = [];
+        
+        // 新增倒计时变量
+        let gameDuration = 5; // 默认5分钟
+        let countdownTime = 5 * 60; // 默认5分钟，单位为秒
+        let countdownTimer;
+        
+        // 新增思考时间难度变量
+        let computerThinkingDifficulty = 'easy'; // 默认为容易，可选值: 'easy'(容易)、'medium'(中等)、'hard'(困难)
+        
+        // 新增游戏模式变量
+        let gameMode = 'pk'; // 默认为PK模式，可选值: 'self'(自学练习) 或 'pk'(PK模式)
+
+                const difficultyNames = ["01一阶偏导", "02二元函数偏导", "03全微分", "04条件极值", "05多元复合函数", "06高阶偏导", "07综合"];
+
+        // 初始化
+        document.addEventListener("DOMContentLoaded", () => {
+            generateDifficultyButtons();
+            setDifficulty(1);
+            updateCountdownDisplay();
+            switchMode('pk'); // 默认PK模式
+            selectThinkingDifficulty('easy'); // 默认为容易难度
+        });
+
+        // 切换游戏模式
+        function switchMode(mode) {
+            if (gameInProgress) {
+                alert('游戏进行中无法切换模式，请先重置游戏');
+                return;
+            }
+            
+            gameMode = mode;
+            
+            // 更新UI按钮状态
+            document.getElementById('selfPracticeBtn').classList.toggle('active', mode === 'self');
+            document.getElementById('pkModeBtn').classList.toggle('active', mode === 'pk');
+            
+            const playerContainer = document.getElementById('playerContainer');
+            const computerContainer = document.getElementById('computerContainer');
+            const countdownDisplay = document.getElementById('countdownDisplay');
+            const timerSelection = document.querySelector('.timer-selection');
+            const thinkingDifficultySelection = document.querySelector('.thinking-difficulty-selection');
+            
+            if (mode === 'self') {
+                // 自学练习模式
+                computerContainer.style.display = 'none';
+                playerContainer.classList.add('full-width');
+                countdownDisplay.style.display = 'none';
+                timerSelection.style.display = 'none';
+                thinkingDifficultySelection.style.display = 'none';
+                document.getElementById('startGameBtn').textContent = '开始练习';
+                document.getElementById('roundResult').style.display = 'none';
+            } else {
+                // PK模式
+                computerContainer.style.display = 'flex';
+                playerContainer.classList.remove('full-width');
+                countdownDisplay.style.display = 'block';
+                timerSelection.style.display = 'block';
+                thinkingDifficultySelection.style.display = 'block';
+                document.getElementById('startGameBtn').textContent = '开始PK';
+                document.getElementById('roundResult').style.display = 'block';
+            }
+            
+            // 更新界面按钮状态
+            updateButtonStates();
+        }
+
+        function generateDifficultyButtons() {
+            const difficultyButtonsContainer = document.getElementById('difficultyButtons');
+            difficultyNames.forEach((name, index) => {
+                const button = document.createElement('button');
+                button.textContent = name;
+                button.id = `level${index + 1}`;
+                button.onclick = () => setDifficulty(index + 1);
+                difficultyButtonsContainer.appendChild(button);
+            });
+        }
 
         function setDifficulty(level) {
+            if (gameInProgress) return; // 游戏进行中不能更改难度
+            
             currentDifficulty = level;
             document.querySelectorAll('.difficulty-buttons button').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`level${level}`).classList.add('active');
-            newQuestion();
         }
 
-        function generateLevel1Question() {
-            const questions = [
-                { question: `\\( \\frac{\\partial}{\\partial x} (3x^2 + 2y) \\)`, answer: '6x' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (4x + 5y^2) \\)`, answer: '4' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (2x^2 + 3xy) \\)`, answer: '4x + 3y' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (x^3 + 2y) \\)`, answer: '3x^2' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (5x^2 + 4y^3) \\)`, answer: '10x' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (2x + y^2) \\)`, answer: '2' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (3x^2 + y) \\)`, answer: '6x' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (x + 2y^2) \\)`, answer: '1' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (4x^2 + 3y) \\)`, answer: '8x' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (5x + y) \\)`, answer: '5' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (6x^2 + 4y) \\)`, answer: '12x' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (2x^3 + y) \\)`, answer: '6x^2' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (x^2 + 3y^2) \\)`, answer: '2x' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (3x + 2y^3) \\)`, answer: '3' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (4x^3 + y^2) \\)`, answer: '12x^2' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (5x^2 + 3y^2) \\)`, answer: '10x' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (2x^2 + 4y^3) \\)`, answer: '4x' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (3x^3 + y^2) \\)`, answer: '9x^2' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (x^2 + 2y^3) \\)`, answer: '2x' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (4x + y) \\)`, answer: '4' }
-            ];
-            const selected = questions[Math.floor(Math.random() * questions.length)];
-            correctAnswer = selected.answer;
-            return selected.question;
+        // 选择游戏时长
+        function selectGameDuration(minutes) {
+            if (gameInProgress) return; // 游戏进行中不能更改时长
+            
+            gameDuration = minutes;
+            countdownTime = minutes * 60;
+            
+            // 更新UI - 先移除所有timer-btn的active类
+            document.querySelectorAll('.timer-btn').forEach(btn => {
+                // 只处理时间选择按钮，不影响思考难度按钮
+                if (btn.id.startsWith('timer')) {
+                    btn.classList.remove('active');
+                }
+            });
+            // 只给当前选择的按钮添加active类
+            document.getElementById(`timer${minutes}min`).classList.add('active');
+            
+            updateCountdownDisplay();
+        }
+        
+        // 选择计算机思考难度
+        function selectThinkingDifficulty(difficulty) {
+            if (gameInProgress) return; // 游戏进行中不能更改难度
+            
+            computerThinkingDifficulty = difficulty;
+            
+            // 更新UI - 只操作思考难度按钮
+            document.querySelectorAll('.timer-btn').forEach(btn => {
+                // 只处理思考难度按钮，不影响时间选择按钮
+                if (btn.id.startsWith('thinking')) {
+                    btn.classList.remove('active');
+                }
+            });
+            document.getElementById(`thinking${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}`).classList.add('active');
+        }
+        
+        // 更新倒计时显示
+        function updateCountdownDisplay() {
+            const minutes = Math.floor(countdownTime / 60);
+            const seconds = countdownTime % 60;
+            document.getElementById('countdownDisplay').textContent = 
+                `剩余时间: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        // 开始倒计时
+        function startCountdown() {
+            countdownTime = gameDuration * 60;
+            updateCountdownDisplay();
+            
+            countdownTimer = setInterval(() => {
+                countdownTime--;
+                updateCountdownDisplay();
+                
+                if (countdownTime <= 0) {
+                    endGame();
+                }
+            }, 1000);
         }
 
-        function generateLevel2Question() {
-            const questions = [
-                { question: `\\( \\frac{\\partial}{\\partial y} (4xy^2 + 3x^2y) \\)`, answer: '8xy + 3x^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (x^2y + y^3) \\)`, answer: 'x^2 + 3y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (5xy + y^2) \\)`, answer: '5x + 2y' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (6xy + y^2) \\)`, answer: '6x + 2y' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (3xy^2 + x^2y) \\)`, answer: '6xy + x^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (2xy + y^3) \\)`, answer: '2x + 3y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (4xy + y^2) \\)`, answer: '4x + 2y' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (x^3y + y^2) \\)`, answer: 'x^3 + 2y' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (2x^2y + 3y^2) \\)`, answer: '2x^2 + 6y' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (x^2y^2 + y^3) \\)`, answer: '2x^2y + 3y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (3x^2y + y^2) \\)`, answer: '3x^2 + 2y' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (4x^2y + y^2) \\)`, answer: '4x^2 + 2y' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (5x^2y + y^2) \\)`, answer: '5x^2 + 2y' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (6x^2y + y^2) \\)`, answer: '6x^2 + 2y' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (x^2y + y^3) \\)`, answer: 'x^2 + 3y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (2xy + y^3) \\)`, answer: '2x + 3y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (3xy + y^3) \\)`, answer: '3x + 3y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (4xy + y^3) \\)`, answer: '4x + 3y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (5xy + y^3) \\)`, answer: '5x + 3y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (6xy + y^3) \\)`, answer: '6x + 3y^2' }
-            ];
-            const selected = questions[Math.floor(Math.random() * questions.length)];
-            correctAnswer = selected.answer;
-            return selected.question;
-        }
-
-        function generateLevel3Question() {
-            const questions = [
-                { question: `\\( \\frac{\\partial}{\\partial x} (5x^3 + 6xy + y^2) \\)`, answer: '15x^2 + 6y' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (2x^3 + 4x^2y) \\)`, answer: '6x^2 + 8xy' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (3x^2y + y^3) \\)`, answer: '6xy' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (4x^3 + 5xy) \\)`, answer: '12x^2 + 5y' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (5x^2y + 6xy^2) \\)`, answer: '10xy + 6y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (6x^2y + 7xy^2) \\)`, answer: '12xy + 7y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (7x^3 + 8xy) \\)`, answer: '21x^2 + 8y' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (8x^2y + 9xy^2) \\)`, answer: '16xy + 9y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (9x^2 + 10xy) \\)`, answer: '18x + 10y' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (10x^3 + 11xy) \\)`, answer: '30x^2 + 11y' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (11x^2 + 12xy) \\)`, answer: '22x + 12y' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (12x^2y + 13xy^2) \\)`, answer: '24xy + 13y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (13x^3 + 14xy) \\)`, answer: '39x^2 + 14y' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (14x^2 + 15xy) \\)`, answer: '28x + 15y' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (15x^2 + 16xy) \\)`, answer: '30x + 16y' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (16x^3 + 17xy) \\)`, answer: '48x^2 + 17y' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (17x^2 + 18xy) \\)`, answer: '34x + 18y' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (18x^2 + 19xy) \\)`, answer: '36x + 19y' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (19x^3 + 20xy) \\)`, answer: '57x^2 + 20y' },
-                { question: `\\( \\frac{\\partial}{\\partial x} (20x^2 + 21xy) \\)`, answer: '40x + 21y' }
-            ];
-            const selected = questions[Math.floor(Math.random() * questions.length)];
-            correctAnswer = selected.answer;
-            return selected.question;
-        }
-
-        function generateLevel4Question() {
-            const questions = [
-                { question: `\\( \\frac{\\partial}{\\partial y} (2x^2y + 3xy^2 + 4y^3) \\)`, answer: '2x^2 + 6xy + 12y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (x^2y^2 + 2y^3) \\)`, answer: '2x^2y + 6y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (3x^2y + 4y^3) \\)`, answer: '3x^2 + 12y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (4x^2y + 5y^3) \\)`, answer: '4x^2 + 15y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (5x^2y + 6y^3) \\)`, answer: '5x^2 + 18y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (6x^2y + 7y^3) \\)`, answer: '6x^2 + 21y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (7x^2y + 8y^3) \\)`, answer: '7x^2 + 24y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (8x^2y + 9y^3) \\)`, answer: '8x^2 + 27y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (9x^2y + 10y^3) \\)`, answer: '9x^2 + 30y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (10x^2y + 11y^3) \\)`, answer: '10x^2 + 33y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (11x^2y + 12y^3) \\)`, answer: '11x^2 + 36y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (12x^2y + 13y^3) \\)`, answer: '12x^2 + 39y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (13x^2y + 14y^3) \\)`, answer: '13x^2 + 42y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (14x^2y + 15y^3) \\)`, answer: '14x^2 + 45y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (15x^2y + 16y^3) \\)`, answer: '15x^2 + 48y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (16x^2y + 17y^3) \\)`, answer: '16x^2 + 51y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (17x^2y + 18y^3) \\)`, answer: '17x^2 + 54y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (18x^2y + 19y^3) \\)`, answer: '18x^2 + 57y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (19x^2y + 20y^3) \\)`, answer: '19x^2 + 60y^2' },
-                { question: `\\( \\frac{\\partial}{\\partial y} (20x^2y + 21y^3) \\)`, answer: '20x^2 + 63y^2' }
-            ];
-            const selected = questions[Math.floor(Math.random() * questions.length)];
-            correctAnswer = selected.answer;
-            return selected.question;
-        }
-
-        function generateLevel5Question() {
-            const questions = [
-                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^2y + xy^2 + 3x^2) \\)`, answer: '2x + 2y' },
-                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (xy^2 + yx^3) \\)`, answer: '3x^2 + 2y' },
-                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^2y^2 + y^3x) \\)`, answer: '4xy + 3y^2' },
-                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^3y + y^2x) \\)`, answer: '3x^2 + 2y' },
-                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (xy^2 + y^2x^2) \\)`, answer: '4xy + 2y' },
-                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^4y + y^3x) \\)`, answer: '4x^3 + 3y^2' },
-                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^2y^3 + y^2x^2) \\)`, answer: '6xy^2 + 4xy' },
-                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^3y^2 + yx^3) \\)`, answer: '6x^2y + 3x^2' },
-                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (xy^3 + y^2x) \\)`, answer: '3y^2 + 2y' },
-                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^2y + yx^2) \\)`, answer: '4x' },
-                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^2y^2 + y^2x) \\)`, answer: '4xy + 2y' },
-                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^2y^2 + yx^4) \\)`, answer: '4x^3+4xy ' },
-                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^3y + yx^3) \\)`, answer: '6x^2' },
-                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (xy^3 + yx^4) \\)`, answer: '3y^2 + 4x^3' },
-                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^2y + y^2x) \\)`, answer: '2x + 2y' },
-                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (xy + yx^2) \\)`, answer: '2x+1' },
-                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^2y^2 + y^3x) \\)`, answer: '4xy + 3y^2' },
-                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^4y + yx^2) \\)`, answer: '4x^3 + 2x' },
-                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^3y + y^2x) \\)`, answer: '3x^2 + 2y' },
-                { question: `\\( \\frac{\\partial^2}{\\partial x \\partial y} (x^3y + yx) \\)`, answer: '3x^2 + 1' }
-            ];
-            const selected = questions[Math.floor(Math.random() * questions.length)];
-            correctAnswer = selected.answer;
-            return selected.question;
-        }
-
-        function generateQuestion() {
-            switch(currentDifficulty) {
-                case 1:
-                    return generateLevel1Question();
-                case 2:
-                    return generateLevel2Question();
-                case 3:
-                    return generateLevel3Question();
-                case 4:
-                    return generateLevel4Question();
-                case 5:
-                    return generateLevel5Question();
+        function startGame() {
+            // 重置状态
+            playerCorrectCount = 0;
+            playerIncorrectCount = 0;
+            computerCorrectCount = 0;
+            computerIncorrectCount = 0;
+            playerTotalCount = 0;
+            computerTotalCount = 0;
+            playerTime = 0;
+            computerTime = 0;
+            
+            // 更新UI
+            document.getElementById('playerScore').innerHTML = `正确: 0 | 错误: 0 | 总题数: 0`;
+            if (gameMode === 'pk') {
+                document.getElementById('computerScore').innerHTML = `正确: 0 | 错误: 0 | 总题数: 0`;
+                document.getElementById('computerTimer').innerHTML = `时间: 0秒`;
+                document.getElementById('roundResult').innerHTML = '';
+            }
+            document.getElementById('playerTimer').innerHTML = `时间: 0秒`;
+            document.getElementById('history').innerHTML = '';
+            
+            // 启用/禁用相关按钮
+            document.getElementById('startGameBtn').disabled = true;
+            document.getElementById('resetGameBtn').disabled = false;
+            document.getElementById('playerAnswer').disabled = false;
+            document.getElementById('playerSubmitBtn').disabled = false;
+            
+            // 更改游戏状态
+            gameInProgress = true;
+            
+            // 为玩家生成题目
+            generatePlayerQuestion();
+            
+            // 开始计时器
+            startTimers();
+            
+            // 仅在PK模式下才生成计算机题目和启动倒计时
+            if (gameMode === 'pk') {
+                generateComputerQuestion();
+                startCountdown();
             }
         }
-
-        function newQuestion() {
-            const questionElement = document.getElementById('question');
-            currentQuestion = generateQuestion();
-            questionElement.innerHTML = currentQuestion;
-            MathJax.typeset();
-            document.getElementById('answer').value = '';
-            document.getElementById('result').innerHTML = '';
+        
+        function resetGame() {
+            // 停止计时器
+            clearInterval(playerTimer);
+            clearInterval(computerTimer);
+            clearInterval(countdownTimer);
+            computerThinkingTimers.forEach(timer => clearTimeout(timer));
+            computerThinkingTimers = [];
+            
+            // 重置状态
+            gameInProgress = false;
+            countdownTime = gameDuration * 60;
+            updateCountdownDisplay();
+            
+            // 更新UI
+            document.getElementById('playerQuestion').innerHTML = '';
+            document.getElementById('playerAnswer').value = '';
+            document.getElementById('playerRenderedAnswer').innerHTML = '';
+            document.getElementById('playerResult').innerHTML = '';
+            
+            if (gameMode === 'pk') {
+                document.getElementById('computerQuestion').innerHTML = '';
+                document.getElementById('computerAnswer').value = '';
+                document.getElementById('computerRenderedAnswer').innerHTML = '';
+                document.getElementById('computerResult').innerHTML = '';
+                document.getElementById('computerStatus').innerHTML = '等待开始...';
+                document.getElementById('roundResult').innerHTML = '';
+            }
+            
+            // 启用/禁用相关按钮
+            updateButtonStates();
         }
-
-        function checkAnswer() {
-            const userAnswer = document.getElementById('answer').value.replace(/\s+/g, '').toLowerCase();
-            const resultElement = document.getElementById('result');
-            let resultText;
-
-            const expectedAnswer = correctAnswer.replace(/\s+/g, '').toLowerCase();
-
-            if (userAnswer === expectedAnswer) {
-                resultText = '正确！';
-                resultElement.style.color = 'green';
-                correctCount++;
+        
+        // 更新按钮状态
+        function updateButtonStates() {
+            document.getElementById('startGameBtn').disabled = gameInProgress;
+            document.getElementById('resetGameBtn').disabled = !gameInProgress;
+            document.getElementById('playerAnswer').disabled = !gameInProgress;
+            document.getElementById('playerSubmitBtn').disabled = !gameInProgress;
+        }
+        
+        function startTimers() {
+            // 玩家计时器
+            playerTimer = setInterval(() => {
+                playerTime++;
+                document.getElementById('playerTimer').innerHTML = `时间: ${playerTime}秒`;
+            }, 1000);
+            
+            // 仅在PK模式下启动计算机计时器
+            if (gameMode === 'pk') {
+                computerTimer = setInterval(() => {
+                    computerTime++;
+                    document.getElementById('computerTimer').innerHTML = `时间: ${computerTime}秒`;
+                }, 1000);
+                
+                // 设置计算机自动答题
+                scheduleComputerAnswer();
+            }
+            
+            // 记录开始时间
+            playerQuestionStartTime = playerTime;
+            if (gameMode === 'pk') {
+                computerQuestionStartTime = computerTime;
+            }
+        }
+        
+        function generatePlayerQuestion() {
+            // 清空答案框和结果
+            document.getElementById('playerAnswer').value = '';
+            document.getElementById('playerRenderedAnswer').innerHTML = '';
+            document.getElementById('playerResult').innerHTML = '';
+            
+            // 生成新题目
+            const playerQuestion = generateQuestion();
+            // 保存玩家题目的正确答案
+            playerCorrectAnswer = [...correctAnswer];
+            
+            // 更新界面上的题目
+            document.getElementById('playerQuestion').innerHTML = playerQuestion;
+            
+            // 记录题目开始时间
+            playerQuestionStartTime = playerTime;
+            
+            // 重新渲染数学公式
+            MathJax.typesetPromise([document.getElementById('playerQuestion')])
+                .catch((err) => console.log(err));
+        }
+        
+        function generateComputerQuestion() {
+            if (gameMode !== 'pk') return;
+            
+            // 清空答案框和结果
+            document.getElementById('computerAnswer').value = '';
+            document.getElementById('computerRenderedAnswer').innerHTML = '';
+            document.getElementById('computerResult').innerHTML = '';
+            
+            // 生成新题目
+            const computerQuestion = generateQuestion();
+            // 保存计算机题目的正确答案
+            computerCorrectAnswer = [...correctAnswer];
+            
+            // 更新界面上的题目
+            document.getElementById('computerQuestion').innerHTML = computerQuestion;
+            
+            // 更新计算机状态
+            document.getElementById('computerStatus').innerHTML = `正在思考...`;
+            
+            // 记录题目开始时间
+            computerQuestionStartTime = computerTime;
+            
+            // 重新渲染数学公式
+            MathJax.typesetPromise([document.getElementById('computerQuestion')])
+                .catch((err) => console.log(err));
+            
+            // 设置计算机自动答题
+            scheduleComputerAnswer();
+        }
+        
+        function scheduleComputerAnswer() {
+            if (!gameInProgress || gameMode !== 'pk') return;
+            
+            // 根据难度设置计算机思考时间
+            let minTime = 10;
+            let maxTime = 20;
+            
+            switch(computerThinkingDifficulty) {
+                case 'easy': // 容易：10-20秒
+                    minTime = 10;
+                    maxTime = 20;
+                    break;
+                case 'medium': // 中等：20-40秒
+                    minTime = 20;
+                    maxTime = 40;
+                    break;
+                case 'hard': // 困难：30-45秒
+                    minTime = 30;
+                    maxTime = 45;
+                    break;
+            }
+            
+            // 生成指定范围内的随机思考时间
+            const thinkingTime = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
+            
+            // 设置计算机自动答题定时器
+            const timer = setTimeout(() => {
+                if (gameInProgress && gameMode === 'pk') {
+                    submitComputerAnswer();
+                }
+            }, thinkingTime * 1000);
+            
+            // 添加到定时器列表以便重置游戏时清除
+            computerThinkingTimers.push(timer);
+        }
+        
+        function checkPlayerAnswer() {
+            if (!gameInProgress) return;
+            
+            const userAnswer = document.getElementById('playerAnswer').value.trim();
+            
+            if (userAnswer === '') {
+                document.getElementById('playerResult').innerHTML = '请输入答案！';
+                document.getElementById('playerResult').className = 'result incorrect';
+                return;
+            }
+            
+            // 计算答题用时
+            const questionTime = playerTime - playerQuestionStartTime;
+            
+            // 使用 toHalfWidth 函数将用户输入转换为半角字符
+            const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
+            // 使用玩家题目的正确答案进行校验
+            const isCorrect = playerCorrectAnswer.some(answer => 
+                normalizedUserAnswer === toHalfWidth(answer.replace(/\s/g, '').toLowerCase()));
+            
+            if (isCorrect) {
+                document.getElementById('playerResult').innerHTML = '正确!';
+                document.getElementById('playerResult').className = 'result correct';
+                playerCorrectCount++;
             } else {
-                resultText = `错误。正确答案是 ${correctAnswer}。`;
-                resultElement.style.color = 'red';
-                incorrectCount++;
+                document.getElementById('playerResult').innerHTML = '错误';
+                document.getElementById('playerResult').className = 'result incorrect';
+                playerIncorrectCount++;
             }
-            resultElement.innerHTML = resultText;
-
-            updateScore();
-            addToHistory(currentQuestion, userAnswer, correctAnswer, userAnswer === expectedAnswer);
-            setTimeout(newQuestion, 1500);
+            
+            // 更新总题数
+            playerTotalCount++;
+            
+            // 更新分数
+            updatePlayerScore();
+            
+            // 添加到历史记录
+            addToHistory('玩家', difficultyNames[currentDifficulty - 1], 
+                          document.getElementById('playerQuestion').innerHTML, 
+                          userAnswer, playerCorrectAnswer.join(' 或 '), 
+                          isCorrect ? '正确' : '错误', questionTime);
+            
+            // 立即生成新题目
+            generatePlayerQuestion();
         }
-
-        function addToHistory(question, userAnswer, correctAnswer, isCorrect) {
-            const historyElement = document.getElementById('history');
-            const historyItem = document.createElement('div');
-            historyItem.className = 'history-item';
-            historyItem.innerHTML = `
-                ${question} 你的答案: ${userAnswer}, 正确答案: ${correctAnswer}
-            `;
-            historyItem.classList.add(isCorrect ? 'correct' : 'incorrect');
-            historyElement.insertBefore(historyItem, historyElement.firstChild);
-            MathJax.typeset([historyItem]);
+        
+        function submitComputerAnswer() {
+            if (!gameInProgress || gameMode !== 'pk') return;
+            
+            // 计算答题用时
+            const questionTime = computerTime - computerQuestionStartTime;
+            
+            // 使用计算机题目的正确答案
+            const computerAnswer = computerCorrectAnswer[0];
+            
+            // 随机决定计算机是否答对（90%的概率答对）
+            const isCorrect = Math.random() < 0.9;
+            
+            let displayAnswer;
+            if (isCorrect) {
+                displayAnswer = computerAnswer;
+                document.getElementById('computerResult').innerHTML = '正确!';
+                document.getElementById('computerResult').className = 'result correct';
+                computerCorrectCount++;
+            } else {
+                // 如果要错，则显示一个稍微不同的答案
+                displayAnswer = parseInt(computerAnswer) + (Math.random() > 0.5 ? 1 : -1);
+                document.getElementById('computerResult').innerHTML = '错误';
+                document.getElementById('computerResult').className = 'result incorrect';
+                computerIncorrectCount++;
+            }
+            
+            // 更新显示
+            document.getElementById('computerStatus').innerHTML = '已作答';
+            document.getElementById('computerAnswer').value = displayAnswer;
+            document.getElementById('computerRenderedAnswer').innerHTML = '\\(' + displayAnswer + '\\)';
+            
+            // 更新总题数
+            computerTotalCount++;
+            
+            // 更新分数
+            updateComputerScore();
+            
+            // 重新渲染数学公式
+            MathJax.typesetPromise([document.getElementById('computerRenderedAnswer')])
+                .catch((err) => console.log(err));
+            
+            // 添加到历史记录
+            addToHistory('计算机', difficultyNames[currentDifficulty - 1], 
+                          document.getElementById('computerQuestion').innerHTML, 
+                          displayAnswer, computerCorrectAnswer.join(' 或 '), 
+                          isCorrect ? '正确' : '错误', questionTime);
+            
+            // 短暂延迟后生成新题目
+            setTimeout(() => {
+                if (gameInProgress && gameMode === 'pk') {
+                    generateComputerQuestion();
+                }
+            }, 1000);
         }
-
-        function updateScore() {
-            const scoreElement = document.getElementById('score');
-            scoreElement.innerHTML = `正确: ${correctCount} | 错误: ${incorrectCount}`;
+        
+        function updatePlayerScore() {
+            document.getElementById('playerScore').innerHTML = `正确: ${playerCorrectCount} | 错误: ${playerIncorrectCount} | 总题数: ${playerTotalCount}`;
         }
+        
+        function updateComputerScore() {
+            document.getElementById('computerScore').innerHTML = `正确: ${computerCorrectCount} | 错误: ${computerIncorrectCount} | 总题数: ${computerTotalCount}`;
+        }
+        
+        function addToHistory(participant, level, question, answer, correctAnswer, result, time) {
+            const historyTable = document.getElementById('history');
+            const newRow = historyTable.insertRow(0);
+            
+            // 设置行的类
+            if (participant === '玩家') {
+                newRow.classList.add("player-row");
+            } else {
+                newRow.classList.add("computer-row");
+            }
+            
+            // 添加结果类
+            if (result === '正确') {
+                newRow.classList.add(participant === '玩家' ? "player-win" : "computer-win");
+            }
+            
+            // 填充单元格内容
+            newRow.insertCell(0).innerHTML = participant;
+            newRow.insertCell(1).innerHTML = level;
+            newRow.insertCell(2).innerHTML = question;
+            newRow.insertCell(3).innerHTML = '\\(' + answer + '\\)';
+            newRow.insertCell(4).innerHTML = '\\(' + correctAnswer + '\\)';
+            newRow.insertCell(5).innerHTML = result;
+            newRow.insertCell(6).innerHTML = time + '秒';
+            
+            // 重新渲染新添加的行中的数学公式
+            MathJax.typesetPromise([newRow]).catch((err) => console.log(err));
+        }
+        
+        function updatePreview(player) {
+            const input = document.getElementById('playerAnswer').value;
+            const renderedAnswer = document.getElementById('playerRenderedAnswer');
+            renderedAnswer.style.display = 'block';
+            renderedAnswer.innerHTML = '\\(' + input + '\\)';
+            MathJax.typesetPromise([renderedAnswer]).catch((err) => console.log(err));
+        }
+        
+        function toHalfWidth(str) {
+            return str.replace(/[\uFF01-\uFF5E]/g, function(char) {
+                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            }).replace(/\u3000/g, ' ');
+        }
+        
+        function copyHistory() {
+            const historyTable = document.querySelector('table');
+            let tableText = '';
 
-        document.getElementById('answer').addEventListener('keypress', function(event) {
+            // 获取表头
+            const headers = historyTable.querySelectorAll('thead th');
+            headers.forEach(header => {
+                tableText += header.innerText + '\t';
+            });
+            tableText = tableText.trim() + '\n';
+
+            // 获取表格内容
+            const rows = historyTable.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                cells.forEach(cell => {
+                    // 移除MathJax的数学公式标记
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = cell.innerHTML;
+                    tableText += tempDiv.innerText + '\t';
+                });
+                tableText = tableText.trim() + '\n';
+            });
+
+            // 复制到剪贴板
+            navigator.clipboard.writeText(tableText).then(() => {
+                // 显示复制成功的提示
+                const copySuccess = document.getElementById('copy-success');
+                copySuccess.style.display = 'block';
+                setTimeout(() => {
+                    copySuccess.style.display = 'none';
+                }, 2000); // 2秒后隐藏提示
+            }).catch(err => {
+                console.error('复制失败: ', err);
+            });
+        }
+        
+        document.getElementById('playerAnswer').addEventListener('keyup', function(event) {
             if (event.key === 'Enter') {
-                checkAnswer();
+                checkPlayerAnswer();
             }
         });
 
-        // 初始化游戏
-        setDifficulty(1);
+        // 游戏结束函数
+        function endGame() {
+            // 停止所有计时器
+            clearInterval(playerTimer);
+            clearInterval(computerTimer);
+            clearInterval(countdownTimer);
+            computerThinkingTimers.forEach(timer => clearTimeout(timer));
+            computerThinkingTimers = [];
+            
+            // 更改游戏状态
+            gameInProgress = false;
+            
+            // 禁用玩家输入
+            document.getElementById('playerAnswer').disabled = true;
+            document.getElementById('playerSubmitBtn').disabled = true;
+            
+            // 仅在PK模式下显示游戏结果
+            if (gameMode === 'pk') {
+                let resultMessage = '';
+                if (playerCorrectCount > computerCorrectCount) {
+                    resultMessage = `游戏结束! 玩家获胜! (${playerCorrectCount} : ${computerCorrectCount})`;
+                    document.getElementById('roundResult').className = 'winner-indicator player-win';
+                } else if (playerCorrectCount < computerCorrectCount) {
+                    resultMessage = `游戏结束! 计算机获胜! (${playerCorrectCount} : ${computerCorrectCount})`;
+                    document.getElementById('roundResult').className = 'winner-indicator computer-win';
+                } else {
+                    resultMessage = `游戏结束! 平局! (${playerCorrectCount} : ${computerCorrectCount})`;
+                    document.getElementById('roundResult').className = 'winner-indicator tie';
+                }
+                document.getElementById('roundResult').innerHTML = resultMessage;
+            } else {
+                // 自学练习模式
+                document.getElementById('roundResult').innerHTML = `练习结束! 共完成${playerTotalCount}题，正确${playerCorrectCount}题`;
+                document.getElementById('roundResult').style.display = 'block';
+                document.getElementById('roundResult').className = 'winner-indicator';
+            }
+            
+            // 启用重置按钮
+            document.getElementById('resetGameBtn').disabled = false;
+        }
+
+        // 以下是生成题目的函数，与原有代码相同
+
+        function generateQuestion() {
+            switch(currentDifficulty) {
+                case 1: return generateLevel1Question();
+                case 2: return generateLevel2Question();
+                case 3: return generateLevel3Question();
+                case 4: return generateLevel4Question();
+                case 5: return generateLevel5Question();
+                case 6: return generateLevel6Question();
+                case 7: return generateLevel7Question();
+                default: return "";
+            }
+        }
+
+        function gcd(x, y) {
+            while (y != 0) {
+                let temp = y;
+                y = x % y;
+                x = temp;
+            }
+            return x;
+        }
+
+        function generateLevel1Question() {
+            // 生成系数，范围为 ±1, ±2, ..., ±5
+            let a = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let b = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let c = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            
+            // 构造表达式 f(x,y) = ax^2 + bxy + cy^2
+            let x2Term = a === 1 ? "x^2" : (a === -1 ? "-x^2" : a + "x^2");
+            
+            // 处理xy项显示格式
+            let xyTerm;
+            if (b === 1) {
+                xyTerm = "+xy";
+            } else if (b === -1) {
+                xyTerm = "-xy";
+    } else {
+                xyTerm = (b > 0 ? "+" : "") + b + "xy";
+            }
+            
+            // 处理y^2项显示格式
+            let y2Term;
+            if (c === 1) {
+                y2Term = "+y^2";
+            } else if (c === -1) {
+                y2Term = "-y^2";
+            } else {
+                y2Term = (c > 0 ? "+" : "") + c + "y^2";
+            }
+            
+            // 随机选择求对x的偏导数或对y的偏导数
+            let isPartialX = Math.random() < 0.5;
+            
+            let answer;
+            if (isPartialX) {
+                // 对x求偏导: f_x = 2ax + by
+                let firstTerm = 2*a === 1 ? "x" : (2*a === -1 ? "-x" : 2*a + "x");
+                let secondTerm = b === 0 ? "" : (b === 1 ? "+y" : (b === -1 ? "-y" : (b > 0 ? "+" + b + "y" : b + "y")));
+                answer = [`${firstTerm}${secondTerm}`];
+            } else {
+                // 对y求偏导: f_y = bx + 2cy
+                let firstTerm = b === 0 ? "" : (b === 1 ? "x" : (b === -1 ? "-x" : b + "x"));
+                let secondTerm = 2*c === 0 ? "" : (2*c === 1 ? "+y" : (2*c === -1 ? "-y" : ((2*c > 0 && firstTerm !== "") ? "+" + 2*c + "y" : 2*c + "y")));
+                // 处理特殊情况: 如果第一项为空且第二项开头为+
+                if (firstTerm === "" && secondTerm.startsWith("+")) {
+                    secondTerm = secondTerm.substring(1);
+                }
+                answer = [`${firstTerm}${secondTerm}`];
+            }
+            
+            // 保存正确答案
+            correctAnswer = answer;
+            
+            // 构造 LaTeX 表达式
+            return `\\begin{gather}求偏导: f(x,y) = ${x2Term}${xyTerm}${y2Term}\\\\ ${isPartialX ? "f_x(x,y)" : "f_y(x,y)"} = ? \\end{gather}`;
+        }
+
+function generateLevel2Question() {
+            // 生成系数，范围为 ±1, ±2, ..., ±5
+            let a = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let b = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let c = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let d = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            
+            // 构造表达式 f(x,y,z) = ax^2 + by^2 + cz^2 + dxyz
+            let x2Term = a === 1 ? "x^2" : (a === -1 ? "-x^2" : a + "x^2");
+            
+            // 处理y^2项显示格式
+            let y2Term;
+            if (b === 1) {
+                y2Term = "+y^2";
+            } else if (b === -1) {
+                y2Term = "-y^2";
+            } else {
+                y2Term = (b > 0 ? "+" : "") + b + "y^2";
+            }
+            
+            // 处理z^2项显示格式
+            let z2Term;
+            if (c === 1) {
+                z2Term = "+z^2";
+            } else if (c === -1) {
+                z2Term = "-z^2";
+    } else {
+                z2Term = (c > 0 ? "+" : "") + c + "z^2";
+            }
+            
+            // 处理xyz项显示格式
+            let xyzTerm;
+            if (d === 1) {
+                xyzTerm = "+xyz";
+            } else if (d === -1) {
+                xyzTerm = "-xyz";
+            } else {
+                xyzTerm = (d > 0 ? "+" : "") + d + "xyz";
+            }
+            
+            // 随机选择对哪个变量求偏导数
+            const variables = ['x', 'y', 'z'];
+            const selectedVar = variables[Math.floor(Math.random() * 3)];
+            
+            let answer;
+            if (selectedVar === 'x') {
+                // 对x求偏导: f_x = 2ax + dyz
+                let firstTerm = 2*a === 1 ? "x" : (2*a === -1 ? "-x" : 2*a + "x");
+                let secondTerm = d === 0 ? "" : (d === 1 ? "+yz" : (d === -1 ? "-yz" : (d > 0 ? "+" + d + "yz" : d + "yz")));
+                answer = [`${firstTerm}${secondTerm}`];
+            } else if (selectedVar === 'y') {
+                // 对y求偏导: f_y = 2by + dxz
+                let firstTerm = 2*b === 1 ? "y" : (2*b === -1 ? "-y" : 2*b + "y");
+                let secondTerm = d === 0 ? "" : (d === 1 ? "+xz" : (d === -1 ? "-xz" : (d > 0 ? "+" + d + "xz" : d + "xz")));
+                answer = [`${firstTerm}${secondTerm}`];
+            } else {
+                // 对z求偏导: f_z = 2cz + dxy
+                let firstTerm = 2*c === 1 ? "z" : (2*c === -1 ? "-z" : 2*c + "z");
+                let secondTerm = d === 0 ? "" : (d === 1 ? "+xy" : (d === -1 ? "-xy" : (d > 0 ? "+" + d + "xy" : d + "xy")));
+                answer = [`${firstTerm}${secondTerm}`];
+            }
+            
+            // 保存正确答案
+            correctAnswer = answer;
+
+    // 构造 LaTeX 表达式
+            return `\\begin{gather}求偏导: f(x,y,z) = ${x2Term}${y2Term}${z2Term}${xyzTerm}\\\\ \\frac{\\partial f}{\\partial ${selectedVar}} = ? \\end{gather}`;
+        }
+
+function generateLevel3Question() {
+            // 生成系数，范围为 ±1, ±2, ..., ±5
+            let a = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+    let b = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+
+            // 构造表达式 f(x,y) = ax^2 + bxy + constant
+            const constant = Math.floor(Math.random() * 11) - 5; // -5 到 5 之间的常数
+            
+            let x2Term = a === 1 ? "x^2" : (a === -1 ? "-x^2" : a + "x^2");
+            
+            // 处理xy项显示格式
+            let xyTerm;
+    if (b === 1) {
+                xyTerm = "+xy";
+    } else if (b === -1) {
+                xyTerm = "-xy";
+    } else {
+                xyTerm = (b > 0 ? "+" : "") + b + "xy";
+    }
+
+    // 处理常数项显示格式
+            let constantTerm = constant === 0 ? "" : (constant > 0 ? "+" + constant : constant.toString());
+            
+            // 计算全微分 df = (2ax + by)dx + (bx)dy
+            let dxCoefficient = [];
+            let dyCoefficient = [];
+            
+            // 对x的偏导系数
+            let dxFirstTerm = 2*a === 1 ? "x" : (2*a === -1 ? "-x" : 2*a + "x");
+            let dxSecondTerm = b === 0 ? "" : (b === 1 ? "+y" : (b === -1 ? "-y" : (b > 0 ? "+" + b + "y" : b + "y")));
+            dxCoefficient.push(`${dxFirstTerm}${dxSecondTerm}`);
+            
+            // 对y的偏导系数
+            let dyFirstTerm = b === 0 ? "0" : (b === 1 ? "x" : (b === -1 ? "-x" : b + "x"));
+            dyCoefficient.push(dyFirstTerm);
+            
+            // 全微分答案
+            const partialX = `(${dxCoefficient[0]})dx`;
+            const partialY = `(${dyCoefficient[0]})dy`;
+            
+            // 保存正确答案 (格式：全微分表达式)
+            if (dyCoefficient[0] === "0") {
+                correctAnswer = [`${partialX}`];
+            } else {
+                correctAnswer = [`${partialX}+${partialY}`, `${partialX} + ${partialY}`];
+            }
+            
+            // 构造 LaTeX 表达式
+            return `\\begin{gather}求全微分: f(x,y) = ${x2Term}${xyTerm}${constantTerm}\\\\ df = ? \\end{gather}`;
+        }
+
+        function generateLevel4Question() {
+            // 生成系数，范围为 ±1, ±2, ..., ±5
+            let a = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let b = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let c = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            
+            // 确保至少有两个系数不为零，以保证约束有意义
+            if (a === 0 && b === 0) a = 1;
+            if (a === 0 && c === 0) a = 1;
+            if (b === 0 && c === 0) b = 1;
+            
+            // 生成一个正的常数，作为约束等式的右边
+            const k = Math.floor(Math.random() * 5) + 1;
+            
+            // 构造拉格朗日函数：L(x,y,z,λ) = f(x,y,z) - λ(ax+by+cz-k)
+            // 其中 f(x,y,z) 为目标函数，我们使用 x^2+y^2+z^2 作为标准目标函数（求最小值）
+            
+            // 处理约束条件中的系数显示
+            let xTerm = a === 0 ? "" : (a === 1 ? "x" : (a === -1 ? "-x" : a + "x"));
+            let yTerm = b === 0 ? "" : (b === 1 ? (xTerm === "" ? "y" : "+y") : (b === -1 ? "-y" : (b > 0 ? "+" + b + "y" : b + "y")));
+            let zTerm = c === 0 ? "" : (c === 1 ? (xTerm === "" && yTerm === "" ? "z" : "+z") : (c === -1 ? "-z" : (c > 0 ? "+" + c + "z" : c + "z")));
+            
+            // 构造约束条件
+            let constraint = `${xTerm}${yTerm}${zTerm} = ${k}`;
+            
+            // 计算条件极值
+            // 为了简化答案，我们假设所有变量的值相同（这不是通用解，但对于题目来说是合理的）
+            // 拉格朗日方程: ∇f = λ∇g
+            // 即: 2x = λa, 2y = λb, 2z = λc
+            // 解得: x = λa/2, y = λb/2, z = λc/2
+            // 代入约束: a(λa/2) + b(λb/2) + c(λc/2) = k
+            // λ(a^2 + b^2 + c^2)/2 = k
+            // λ = 2k/(a^2 + b^2 + c^2)
+            
+            const denominator = a*a + b*b + c*c;
+            const lambda = 2 * k / denominator;
+            
+            // 计算 x, y, z 的值
+            const xVal = lambda * a / 2;
+            const yVal = lambda * b / 2;
+            const zVal = lambda * c / 2;
+            
+            // 选择需要计算的变量
+            const variables = ['x', 'y', 'z'];
+            const selectedVar = variables[Math.floor(Math.random() * 3)];
+            
+            let answer;
+            if (selectedVar === 'x') {
+                answer = [`${xVal}`, `${xVal.toFixed(2)}`];
+            } else if (selectedVar === 'y') {
+                answer = [`${yVal}`, `${yVal.toFixed(2)}`];
+            } else {
+                answer = [`${zVal}`, `${zVal.toFixed(2)}`];
+            }
+            
+            // 保存正确答案
+            correctAnswer = answer;
+            
+            // 构造 LaTeX 表达式
+            return `\\begin{gather}求条件极值问题: \\min f(x,y,z) = x^2+y^2+z^2 \\\\
+            约束条件: ${constraint} \\\\
+            求极值点的 ${selectedVar} = ? \\end{gather}`;
+        }
+
+        function generateLevel5Question() {
+            // 创建复合函数 f(x, y) = g(u, v) 其中 u = ax + by, v = cx + dy
+            // 为简化，我们使用 g(u, v) = u^2 + v^2
+            
+            // 生成系数，范围为 ±1, ±2, ..., ±5
+            let a = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let b = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let c = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let d = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            
+            // 确保系数不全为0，以使函数有意义
+            if (a === 0 && c === 0) a = 1;
+            if (b === 0 && d === 0) b = 1;
+            
+            // 构造中间函数 u 和 v
+            let uFunction = formatTerm(a, 'x') + formatAdditiveTerm(b, 'y');
+            let vFunction = formatTerm(c, 'x') + formatAdditiveTerm(d, 'y');
+            
+            // 构造复合函数 f(x, y)
+            const fFunction = `(${uFunction})^2 + (${vFunction})^2`;
+            
+            // 随机选择对x或对y求偏导
+            const isPartialX = Math.random() < 0.5;
+            
+            let answer;
+            if (isPartialX) {
+                // 对x求偏导：∂f/∂x = ∂g/∂u * ∂u/∂x + ∂g/∂v * ∂v/∂x
+                // = 2u * a + 2v * c
+                // = 2(ax + by) * a + 2(cx + dy) * c
+                // = 2a^2x + 2aby + 2c^2x + 2cdy
+                // = 2(a^2 + c^2)x + 2(ab + cd)y
+                
+                const xCoeff = 2 * (a*a + c*c);
+                const yCoeff = 2 * (a*b + c*d);
+                
+                // 处理x项
+                let xTerm = xCoeff === 0 ? "" : (xCoeff === 1 ? "x" : (xCoeff === -1 ? "-x" : xCoeff + "x"));
+                
+                // 处理y项
+                let yTerm = yCoeff === 0 ? "" : (yCoeff === 1 ? (xTerm === "" ? "y" : "+y") : 
+                                                (yCoeff === -1 ? "-y" : ((yCoeff > 0 && xTerm !== "") ? "+" + yCoeff + "y" : yCoeff + "y")));
+                
+                // 如果两个项都为空，答案为0
+                answer = [xTerm === "" && yTerm === "" ? "0" : `${xTerm}${yTerm}`];
+            } else {
+                // 对y求偏导：∂f/∂y = ∂g/∂u * ∂u/∂y + ∂g/∂v * ∂v/∂y
+                // = 2u * b + 2v * d
+                // = 2(ax + by) * b + 2(cx + dy) * d
+                // = 2abx + 2b^2y + 2cdx + 2d^2y
+                // = 2(ab + cd)x + 2(b^2 + d^2)y
+                
+                const xCoeff = 2 * (a*b + c*d);
+                const yCoeff = 2 * (b*b + d*d);
+                
+                // 处理x项
+                let xTerm = xCoeff === 0 ? "" : (xCoeff === 1 ? "x" : (xCoeff === -1 ? "-x" : xCoeff + "x"));
+                
+                // 处理y项
+                let yTerm = yCoeff === 0 ? "" : (yCoeff === 1 ? (xTerm === "" ? "y" : "+y") : 
+                                                (yCoeff === -1 ? "-y" : ((yCoeff > 0 && xTerm !== "") ? "+" + yCoeff + "y" : yCoeff + "y")));
+                
+                // 如果两个项都为空，答案为0
+                answer = [xTerm === "" && yTerm === "" ? "0" : `${xTerm}${yTerm}`];
+            }
+            
+            // 保存正确答案
+            correctAnswer = answer;
+            
+            // 构造 LaTeX 表达式
+            return `\\begin{gather}求复合函数的偏导: \\\\
+            f(x,y) = ${fFunction} \\\\
+            \\frac{\\partial f}{\\partial ${isPartialX ? 'x' : 'y'}} = ? \\end{gather}`;
+        }
+
+        // 辅助函数：格式化项
+        function formatTerm(coefficient, variable) {
+            if (coefficient === 0) {
+                return "0";
+            } else if (coefficient === 1) {
+                return variable;
+            } else if (coefficient === -1) {
+                return "-" + variable;
+            } else {
+                return coefficient + variable;
+            }
+        }
+
+        // 辅助函数：格式化加法项
+        function formatAdditiveTerm(coefficient, variable) {
+            if (coefficient === 0) {
+                return "";
+            } else if (coefficient === 1) {
+                return "+" + variable;
+            } else if (coefficient === -1) {
+                return "-" + variable;
+            } else if (coefficient > 0) {
+                return "+" + coefficient + variable;
+            } else {
+                return coefficient + variable;
+            }
+        }
+
+function generateLevel6Question() {
+            // 创建二元二阶函数，然后求高阶偏导数
+            
+            // 生成系数，范围为 ±1, ±2, ..., ±5
+            let a = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let b = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let c = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            
+            // 构造函数 f(x,y) = ax^2 + bxy + cy^2
+            // 处理x^2项
+            let x2Term = a === 1 ? "x^2" : (a === -1 ? "-x^2" : a + "x^2");
+            
+            // 处理xy项
+            let xyTerm;
+            if (b === 1) {
+                xyTerm = "+xy";
+            } else if (b === -1) {
+                xyTerm = "-xy";
+            } else {
+                xyTerm = (b > 0 ? "+" : "") + b + "xy";
+            }
+            
+            // 处理y^2项
+            let y2Term;
+            if (c === 1) {
+                y2Term = "+y^2";
+            } else if (c === -1) {
+                y2Term = "-y^2";
+            } else {
+                y2Term = (c > 0 ? "+" : "") + c + "y^2";
+            }
+            
+            // 随机选择要计算的高阶偏导类型
+            const derivTypes = [
+                { name: "f_{xx}", value: 2*a },
+                { name: "f_{yy}", value: 2*c },
+                { name: "f_{xy}", value: b }
+            ];
+            
+            const selectedDeriv = derivTypes[Math.floor(Math.random() * derivTypes.length)];
+            
+            // 保存正确答案
+            correctAnswer = [`${selectedDeriv.value}`];
+            
+            // 构造 LaTeX 表达式
+            return `\\begin{gather}求高阶偏导数: f(x,y) = ${x2Term}${xyTerm}${y2Term} \\\\
+            ${selectedDeriv.name} = ? \\end{gather}`;
+        }
+
+        function generateLevel7Question() {
+            const levelFunctions = [
+                generateLevel1Question,
+                generateLevel2Question,
+                generateLevel3Question,
+                generateLevel4Question,
+                generateLevel5Question,
+                generateLevel6Question
+            ];
+
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+
+            return selectedFunction();
+        }
     </script>
 </body>
 </html>
+

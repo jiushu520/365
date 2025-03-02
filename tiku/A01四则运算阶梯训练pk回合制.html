@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A01四则运算阶梯训练PK版</title>
+
+    <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .header {
+            text-align: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .pk-container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            justify-content: space-between;
+        }
+
+        .player-container, .computer-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 48%;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .player-container {
+            background-color: #f0f8ff; /* Light blue for player */
+        }
+
+        .computer-container {
+            background-color: #fff0f0; /* Light red for computer */
+        }
+
+        .vs-indicator {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            background-color: #ffcc00;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        .difficulty-buttons {
+            margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .difficulty-buttons button {
+            margin: 5px;
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+        }
+
+        .difficulty-buttons button.active {
+            background-color: #45a049;
+            color: white;
+        }
+
+        .question-box {
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: white;
+            width: 90%;
+        }
+
+        .answer-input {
+            padding: 10px;
+            font-size: 16px;
+            width: 80%;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .timer {
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .computer-status {
+            margin: 10px 0;
+            font-style: italic;
+            min-height: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .result {
+            min-height: 20px;
+            margin: 10px 0;
+        }
+
+        .score {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        .rendered-answer {
+            margin-top: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 80%;
+            min-height: 30px;
+            background-color: white;
+        }
+
+        .history-container {
+            margin-top: 30px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .copy-button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+        }
+
+        .copy-button:hover {
+            background-color: #218838;
+        }
+
+        #copy-success {
+            display: none;
+            margin-top: 10px;
+            color: green;
+            font-size: 14px;
+        }
+        
+        .winner-indicator {
+            font-weight: bold;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        
+        .player-win {
+            color: blue;
+        }
+        
+        .computer-win {
+            color: red;
+        }
+        
+        .tie {
+            color: purple;
+        }
+        
+        .player-row {
+            background-color: rgba(240, 248, 255, 0.3);
+        }
+        
+        .computer-row {
+            background-color: rgba(255, 240, 240, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .pk-container {
+                flex-direction: column;
+            }
+            
+            .player-container, .computer-container {
+                width: 90%;
+                margin-bottom: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>玖数学测训系统</h1>
+        <h3>A01四则运算阶梯训练PK版</h3>
+    </div>
+    
+    <div class="difficulty-buttons" id="difficultyButtons"></div>
+    
+    <button id="startGameBtn" onclick="startGame()">开始PK</button>
+    <button id="resetGameBtn" onclick="resetGame()" disabled>重新开始</button>
+    
+    <div class="pk-container">
+        <div class="player-container">
+            <h3>玩家</h3>
+            <div class="timer" id="playerTimer">时间: 0秒</div>
+            <div class="question-box" id="playerQuestion"></div>
+            <input type="text" id="playerAnswer" class="answer-input" placeholder="输入你的答案" oninput="updatePreview('player')" disabled>
+            <div class="rendered-answer" id="playerRenderedAnswer"></div>
+            <button id="playerSubmitBtn" onclick="checkPlayerAnswer()" disabled>提交答案</button>
+            <div class="result" id="playerResult"></div>
+            <div class="score" id="playerScore">正确: 0 | 错误: 0</div>
+        </div>
+        
+        <div class="computer-container">
+            <h3>计算机</h3>
+            <div class="timer" id="computerTimer">时间: 0秒</div>
+            <div class="question-box" id="computerQuestion"></div>
+            <div class="computer-status" id="computerStatus">等待开始...</div>
+            <input type="text" id="computerAnswer" class="answer-input" placeholder="计算机的答案" disabled>
+            <div class="rendered-answer" id="computerRenderedAnswer"></div>
+            <div class="result" id="computerResult"></div>
+            <div class="score" id="computerScore">正确: 0 | 错误: 0</div>
+        </div>
+    </div>
+    
+    <div class="winner-indicator" id="roundResult"></div>
+    
+    <div class="history-container">
+        <button class="copy-button" onclick="copyHistory()">复制历史记录</button>
+        <div id="copy-success">历史记录已复制到剪贴板！</div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th rowspan="2">级别</th>
+                    <th colspan="4">题目信息</th>
+                    <th rowspan="2">胜负</th>
+                </tr>
+                <tr>
+                    <th>题目</th>
+                    <th>答案</th>
+                    <th>正确答案</th>
+                    <th>结果</th>
+                </tr>
+            </thead>
+            <tbody id="history"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // 全局变量
+        let playerCorrectAnswer; // 新增：玩家题目的正确答案
+        let computerCorrectAnswer; // 新增：计算机题目的正确答案
+        let correctAnswer; // 保留此变量用于兼容原有函数
+        let playerCorrectCount = 0;
+        let playerIncorrectCount = 0;
+        let computerCorrectCount = 0;
+        let computerIncorrectCount = 0;
+        let currentDifficulty = 1;
+        let gameInProgress = false;
+        let playerAnswered = false;
+        let computerAnswered = false;
+        let playerTimer;
+        let computerTimer;
+        let playerTime = 0;
+        let computerTime = 0;
+        let computerThinkingTime = 0;
+        let computerThinkingTimer;
+
+        const difficultyNames = ["01加减法", "02表内乘法", "03除法", "04十几乘几", "05十几乘十几", "06多位数除法","07混合运算", "08综合"];
+
+        // 初始化
+        document.addEventListener("DOMContentLoaded", () => {
+            generateDifficultyButtons();
+            setDifficulty(1);
+        });
+
+        function generateDifficultyButtons() {
+            const difficultyButtonsContainer = document.getElementById('difficultyButtons');
+            difficultyNames.forEach((name, index) => {
+                const button = document.createElement('button');
+                button.textContent = name;
+                button.id = `level${index + 1}`;
+                button.onclick = () => setDifficulty(index + 1);
+                difficultyButtonsContainer.appendChild(button);
+            });
+        }
+
+        function setDifficulty(level) {
+            if (gameInProgress) return; // 游戏进行中不能更改难度
+            
+            currentDifficulty = level;
+            document.querySelectorAll('.difficulty-buttons button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`level${level}`).classList.add('active');
+        }
+
+        function startGame() {
+            // 重置状态
+            playerCorrectCount = 0;
+            playerIncorrectCount = 0;
+            computerCorrectCount = 0;
+            computerIncorrectCount = 0;
+            playerTime = 0;
+            computerTime = 0;
+            
+            // 更新UI
+            document.getElementById('playerScore').innerHTML = `正确: 0 | 错误: 0`;
+            document.getElementById('computerScore').innerHTML = `正确: 0 | 错误: 0`;
+            document.getElementById('playerTimer').innerHTML = `时间: 0秒`;
+            document.getElementById('computerTimer').innerHTML = `时间: 0秒`;
+            document.getElementById('history').innerHTML = '';
+            document.getElementById('roundResult').innerHTML = '';
+            
+            // 启用/禁用相关按钮
+            document.getElementById('startGameBtn').disabled = true;
+            document.getElementById('resetGameBtn').disabled = false;
+            document.getElementById('playerAnswer').disabled = false;
+            document.getElementById('playerSubmitBtn').disabled = false;
+            
+            // 更改游戏状态
+            gameInProgress = true;
+            
+            // 生成新题目
+            newRound();
+            
+            // 开始计时器
+            startTimers();
+        }
+        
+        function resetGame() {
+            // 停止计时器
+            clearInterval(playerTimer);
+            clearInterval(computerTimer);
+            clearInterval(computerThinkingTimer);
+            
+            // 重置状态
+            gameInProgress = false;
+            playerAnswered = false;
+            computerAnswered = false;
+            
+            // 更新UI
+            document.getElementById('playerQuestion').innerHTML = '';
+            document.getElementById('computerQuestion').innerHTML = '';
+            document.getElementById('playerAnswer').value = '';
+            document.getElementById('computerAnswer').value = '';
+            document.getElementById('playerRenderedAnswer').innerHTML = '';
+            document.getElementById('computerRenderedAnswer').innerHTML = '';
+            document.getElementById('playerResult').innerHTML = '';
+            document.getElementById('computerResult').innerHTML = '';
+            document.getElementById('computerStatus').innerHTML = '等待开始...';
+            
+            // 启用/禁用相关按钮
+            document.getElementById('startGameBtn').disabled = false;
+            document.getElementById('resetGameBtn').disabled = true;
+            document.getElementById('playerAnswer').disabled = true;
+            document.getElementById('playerSubmitBtn').disabled = true;
+        }
+        
+        function startTimers() {
+            // 玩家计时器
+            playerTimer = setInterval(() => {
+                if (!playerAnswered) {
+                    playerTime++;
+                    document.getElementById('playerTimer').innerHTML = `时间: ${playerTime}秒`;
+                }
+            }, 1000);
+            
+            // 计算机计时器
+            computerTimer = setInterval(() => {
+                if (!computerAnswered) {
+                    computerTime++;
+                    document.getElementById('computerTimer').innerHTML = `时间: ${computerTime}秒`;
+                }
+            }, 1000);
+            
+            // 设置计算机思考时间
+            computerThinkingTime = Math.floor(Math.random() * 11) + 10; // 10-20秒随机
+            document.getElementById('computerStatus').innerHTML = `正在思考...`;
+            
+            // 计算机思考计时器
+            computerThinkingTimer = setTimeout(() => {
+                if (gameInProgress) {
+                    submitComputerAnswer();
+                }
+            }, computerThinkingTime * 1000);
+        }
+        
+        function newRound() {
+            // 重置回合状态
+            playerAnswered = false;
+            computerAnswered = false;
+            playerTime = 0;
+            computerTime = 0;
+            
+            // 为玩家和计算机分别生成新题目
+            const playerQuestion = generateQuestion();
+            // 保存玩家题目的正确答案
+            playerCorrectAnswer = [...correctAnswer]; 
+            
+            const computerQuestion = generateQuestion();
+            // 保存计算机题目的正确答案
+            computerCorrectAnswer = [...correctAnswer];
+            
+            // 更新界面上的题目
+            document.getElementById('playerQuestion').innerHTML = playerQuestion;
+            document.getElementById('computerQuestion').innerHTML = computerQuestion;
+            
+            // 清空答案框和结果
+            document.getElementById('playerAnswer').value = '';
+            document.getElementById('computerAnswer').value = '';
+            document.getElementById('playerRenderedAnswer').innerHTML = '';
+            document.getElementById('computerRenderedAnswer').innerHTML = '';
+            document.getElementById('playerResult').innerHTML = '';
+            document.getElementById('computerResult').innerHTML = '';
+            document.getElementById('roundResult').innerHTML = '';
+            
+            // 重置计算机状态
+            computerThinkingTime = Math.floor(Math.random() * 11) + 10; // 10-20秒随机
+            document.getElementById('computerStatus').innerHTML = `正在思考...`;
+            
+            // 重新渲染数学公式
+            MathJax.typesetPromise([
+                document.getElementById('playerQuestion'),
+                document.getElementById('computerQuestion')
+            ]).catch((err) => console.log(err));
+            
+            // 设置计算机自动答题定时器
+            clearTimeout(computerThinkingTimer);
+            computerThinkingTimer = setTimeout(() => {
+                if (gameInProgress && !computerAnswered) {
+                    submitComputerAnswer();
+                }
+            }, computerThinkingTime * 1000);
+        }
+        
+        function checkPlayerAnswer() {
+            if (!gameInProgress || playerAnswered) return;
+            
+            const userAnswer = document.getElementById('playerAnswer').value.trim();
+            
+            if (userAnswer === '') {
+                document.getElementById('playerResult').innerHTML = '请输入答案！';
+                document.getElementById('playerResult').className = 'result incorrect';
+                return;
+            }
+            
+            playerAnswered = true;
+            
+            // 使用 toHalfWidth 函数将用户输入转换为半角字符
+            const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
+            // 使用玩家题目的正确答案进行校验
+            const isCorrect = playerCorrectAnswer.some(answer => 
+                normalizedUserAnswer === toHalfWidth(answer.replace(/\s/g, '').toLowerCase()));
+            
+            if (isCorrect) {
+                document.getElementById('playerResult').innerHTML = '正确!';
+                document.getElementById('playerResult').className = 'result correct';
+                playerCorrectCount++;
+            } else {
+                document.getElementById('playerResult').innerHTML = '错误';
+                document.getElementById('playerResult').className = 'result incorrect';
+                playerIncorrectCount++;
+            }
+            
+            // 更新分数
+            updatePlayerScore();
+            
+            // 如果双方都已回答，进入下一轮
+            checkRoundCompletion();
+        }
+        
+        function submitComputerAnswer() {
+            if (!gameInProgress || computerAnswered) return;
+            
+            computerAnswered = true;
+            document.getElementById('computerStatus').innerHTML = '已作答';
+            
+            // 使用计算机题目的正确答案
+            const computerAnswer = computerCorrectAnswer[0];
+            document.getElementById('computerAnswer').value = computerAnswer;
+            document.getElementById('computerRenderedAnswer').innerHTML = '\\(' + computerAnswer + '\\)';
+            
+            // 随机决定计算机是否答对（90%的概率答对）
+            const isCorrect = Math.random() < 0.9;
+            
+            if (isCorrect) {
+                document.getElementById('computerResult').innerHTML = '正确!';
+                document.getElementById('computerResult').className = 'result correct';
+                computerCorrectCount++;
+            } else {
+                // 如果要错，则显示一个稍微不同的答案
+                const wrongAnswer = parseInt(computerAnswer) + (Math.random() > 0.5 ? 1 : -1);
+                document.getElementById('computerAnswer').value = wrongAnswer;
+                document.getElementById('computerRenderedAnswer').innerHTML = '\\(' + wrongAnswer + '\\)';
+                
+                document.getElementById('computerResult').innerHTML = '错误';
+                document.getElementById('computerResult').className = 'result incorrect';
+                computerIncorrectCount++;
+            }
+            
+            // 更新分数
+            updateComputerScore();
+            
+            // 重新渲染数学公式
+            MathJax.typesetPromise([document.getElementById('computerRenderedAnswer')])
+                .catch((err) => console.log(err));
+            
+            // 如果双方都已回答，进入下一轮
+            checkRoundCompletion();
+        }
+        
+        function checkRoundCompletion() {
+            if (playerAnswered && computerAnswered) {
+                // 更新历史记录
+                updateHistory();
+                
+                // 如果玩家还没答题，也给一个结果
+                if (!playerAnswered) {
+                    document.getElementById('playerResult').innerHTML = '超时未答';
+                    document.getElementById('playerResult').className = 'result incorrect';
+                    playerIncorrectCount++;
+                    updatePlayerScore();
+                }
+                
+                // 显示本轮胜负
+                determineRoundWinner();
+                
+                // 短暂延迟后进入下一轮
+                setTimeout(() => {
+                    if (gameInProgress) {
+                        newRound();
+                    }
+                }, 2000);
+            }
+        }
+        
+        function determineRoundWinner() {
+            const playerResult = document.getElementById('playerResult').className.includes('correct');
+            const computerResult = document.getElementById('computerResult').className.includes('correct');
+            const roundResultElement = document.getElementById('roundResult');
+            
+            if (playerResult && !computerResult) {
+                roundResultElement.innerHTML = "本轮玩家胜利！";
+                roundResultElement.className = "winner-indicator player-win";
+            } else if (!playerResult && computerResult) {
+                roundResultElement.innerHTML = "本轮计算机胜利！";
+                roundResultElement.className = "winner-indicator computer-win";
+            } else if (playerResult && computerResult) {
+                // 谁先答对谁赢
+                if (playerTime < computerTime) {
+                    roundResultElement.innerHTML = "两者都对，玩家速度更快，玩家胜利！";
+                    roundResultElement.className = "winner-indicator player-win";
+                } else {
+                    roundResultElement.innerHTML = "两者都对，计算机速度更快，计算机胜利！";
+                    roundResultElement.className = "winner-indicator computer-win";
+                }
+            } else {
+                roundResultElement.innerHTML = "平局，双方都答错了！";
+                roundResultElement.className = "winner-indicator tie";
+            }
+        }
+        
+        function updatePlayerScore() {
+            document.getElementById('playerScore').innerHTML = `正确: ${playerCorrectCount} | 错误: ${playerIncorrectCount}`;
+        }
+        
+        function updateComputerScore() {
+            document.getElementById('computerScore').innerHTML = `正确: ${computerCorrectCount} | 错误: ${computerIncorrectCount}`;
+        }
+        
+        function updateHistory() {
+            const historyTable = document.getElementById('history');
+            const newRow = historyTable.insertRow(0);
+            
+            const playerQuestion = document.getElementById('playerQuestion').innerHTML;
+            const computerQuestion = document.getElementById('computerQuestion').innerHTML;
+            const playerAnswer = document.getElementById('playerAnswer').value;
+            const computerAnswer = document.getElementById('computerAnswer').value;
+            const playerIsCorrect = document.getElementById('playerResult').className.includes('correct');
+            const computerIsCorrect = document.getElementById('computerResult').className.includes('correct');
+            
+            // 创建一个合并单元格显示难度级别
+            const levelCell = newRow.insertCell(0);
+            levelCell.innerHTML = difficultyNames[currentDifficulty - 1];
+            levelCell.setAttribute("rowspan", "2");
+            levelCell.style.verticalAlign = "middle";
+            
+            // 第一行显示玩家题目信息
+            const playerRow = newRow;
+            playerRow.classList.add("player-row");
+            playerRow.insertCell(1).innerHTML = '<strong>玩家:</strong> ' + playerQuestion;
+            playerRow.insertCell(2).innerHTML = '\\(' + playerAnswer + '\\)';
+            playerRow.insertCell(3).innerHTML = '\\(' + playerCorrectAnswer.join('\\) 或 \\(') + '\\)';
+            playerRow.insertCell(4).innerHTML = playerIsCorrect ? '正确' : '错误';
+            
+            // 创建第二行显示计算机题目信息
+            const computerRow = historyTable.insertRow(1);
+            computerRow.classList.add("computer-row");
+            computerRow.insertCell(0).innerHTML = '<strong>计算机:</strong> ' + computerQuestion;
+            computerRow.insertCell(1).innerHTML = '\\(' + computerAnswer + '\\)';
+            computerRow.insertCell(2).innerHTML = '\\(' + computerCorrectAnswer.join('\\) 或 \\(') + '\\)';
+            computerRow.insertCell(3).innerHTML = computerIsCorrect ? '正确' : '错误';
+            
+            // 创建一个合并单元格显示胜负结果
+            const resultCell = playerRow.insertCell(5);
+            resultCell.setAttribute("rowspan", "2");
+            resultCell.style.verticalAlign = "middle";
+            
+            // 确定胜负
+            let result = "";
+            if (playerIsCorrect && !computerIsCorrect) {
+                result = "玩家胜";
+                playerRow.classList.add("player-win");
+                computerRow.classList.add("player-win");
+            } else if (!playerIsCorrect && computerIsCorrect) {
+                result = "计算机胜";
+                playerRow.classList.add("computer-win");
+                computerRow.classList.add("computer-win");
+            } else if (playerIsCorrect && computerIsCorrect) {
+                if (playerTime < computerTime) {
+                    result = "玩家速度胜";
+                    playerRow.classList.add("player-win");
+                    computerRow.classList.add("player-win");
+                } else {
+                    result = "计算机速度胜";
+                    playerRow.classList.add("computer-win");
+                    computerRow.classList.add("computer-win");
+                }
+            } else {
+                result = "平局";
+                playerRow.classList.add("tie");
+                computerRow.classList.add("tie");
+            }
+            resultCell.innerHTML = result;
+            
+            // 重新渲染新添加的行中的数学公式
+            MathJax.typesetPromise([playerRow, computerRow]).catch((err) => console.log(err));
+        }
+        
+        function updatePreview(player) {
+            const input = document.getElementById('playerAnswer').value;
+            const renderedAnswer = document.getElementById('playerRenderedAnswer');
+            renderedAnswer.style.display = 'block';
+            renderedAnswer.innerHTML = '\\(' + input + '\\)';
+            MathJax.typesetPromise([renderedAnswer]).catch((err) => console.log(err));
+        }
+        
+        function toHalfWidth(str) {
+            return str.replace(/[\uFF01-\uFF5E]/g, function(char) {
+                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            }).replace(/\u3000/g, ' ');
+        }
+        
+        function copyHistory() {
+            const historyTable = document.querySelector('table');
+            let tableText = '';
+
+            // 获取表头
+            const headers = historyTable.querySelectorAll('thead th');
+            headers.forEach(header => {
+                tableText += header.innerText + '\t';
+            });
+            tableText = tableText.trim() + '\n';
+
+            // 获取表格内容
+            const rows = historyTable.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                cells.forEach(cell => {
+                    // 移除MathJax的数学公式标记
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = cell.innerHTML;
+                    tableText += tempDiv.innerText + '\t';
+                });
+                tableText = tableText.trim() + '\n';
+            });
+
+            // 复制到剪贴板
+            navigator.clipboard.writeText(tableText).then(() => {
+                // 显示复制成功的提示
+                const copySuccess = document.getElementById('copy-success');
+                copySuccess.style.display = 'block';
+                setTimeout(() => {
+                    copySuccess.style.display = 'none';
+                }, 2000); // 2秒后隐藏提示
+            }).catch(err => {
+                console.error('复制失败: ', err);
+            });
+        }
+        
+        document.getElementById('playerAnswer').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                checkPlayerAnswer();
+            }
+        });
+
+        // 以下是生成题目的函数，与原有代码相同
+
+        function generateQuestion() {
+            switch(currentDifficulty) {
+                case 1: return generateLevel1Question();
+                case 2: return generateLevel2Question();
+                case 3: return generateLevel3Question();
+                case 4: return generateLevel4Question();
+                case 5: return generateLevel5Question();
+                case 6: return generateLevel6Question();
+                case 7: return generateLevel7Question();
+                case 8: return generateLevel8Question();
+                default: return "";
+            }
+        }
+
+        function generateLevel1aQuestion() {
+            let m = (Math.floor(Math.random() * 9) + 1) ;
+            let n = (Math.floor(Math.random() * 9) + 1) ;
+            let question =  `${m}+ ${n}`;
+            correctAnswer = [`${m+n}`];
+            return `\\(${question}\\)`;
+        }
+
+        function generateLevel1bQuestion() {
+            let m = (Math.floor(Math.random() * 9) + 1) ;
+            let n = (Math.floor(Math.random() * 9) + 1) ;
+            let question =  `${m+n}- ${n}`;
+            correctAnswer = [`${m}`];
+            return `\\(${question}\\)`;
+        }
+
+        function generateLevel1Question() {
+            const levelFunctions = [
+                generateLevel1aQuestion,
+                generateLevel1bQuestion,
+            ];
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+            return selectedFunction();
+        }
+
+        function generateLevel2Question() {
+            let m = (Math.floor(Math.random() * 9) + 1) ;
+            let n = (Math.floor(Math.random() * 9) + 1) ;
+            let question =  `${m}\\times ${n}`;
+            correctAnswer = [`${m*n}`];
+            return `\\(${question}\\)`;
+        }
+
+        function generateLevel3Question() {
+            let m = (Math.floor(Math.random() * 9) + 1) ;
+            let n = (Math.floor(Math.random() * 9) + 1) ;
+            let question =  `${m*n}\\div ${n}`;
+            correctAnswer = [`${m}`];
+            return `\\(${question}\\)`;
+        }
+
+        function generateLevel4Question() {
+            let m = (Math.floor(Math.random() * 9) + 10) ;
+            let n = (Math.floor(Math.random() * 9) + 1) ;
+            let question =  `${m}\\times ${n}`;
+            correctAnswer = [`${m*n}`];
+            return `\\(${question}\\)`;
+        }
+
+        function generateLevel5Question() {
+            let m = (Math.floor(Math.random() * 9) + 10) ;
+            let n = (Math.floor(Math.random() * 9) + 10) ;
+            let question =  `${m}\\times ${n}`;
+            correctAnswer = [`${m*n}`];
+            return `\\(${question}\\)`;
+        }
+
+        function generateLevel6Question() {
+            let m = (Math.floor(Math.random() * 90) + 10) ;
+            let n = (Math.floor(Math.random() * 9) + 1) ;
+            let question =  `${m*n}\\div ${n}`;
+            correctAnswer = [`${m}`];
+            return `\\(${question}\\)`;
+        }
+
+        function generateLevel7Question() {
+            let m = (Math.floor(Math.random() * 90) + 10) ;
+            let n = (Math.floor(Math.random() * 9) + 1) ;
+            let a = (Math.floor(Math.random() * 9) + 1) ;
+            let question =  `${m*n}\\div ${n}+${a}`;
+            correctAnswer = [`${m+a}`];
+            return `\\(${question}\\)`;
+        }
+
+        function generateLevel8Question() {
+            const levelFunctions = [
+                generateLevel1Question,
+                generateLevel2Question,
+                generateLevel3Question,
+                generateLevel4Question,
+                generateLevel5Question,
+                generateLevel6Question,
+                generateLevel7Question,
+            ];
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+            return selectedFunction();
+        }
+    </script>
+</body>
+</html>
+
