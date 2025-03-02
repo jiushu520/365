@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>A03分数运算阶梯测试训练</title>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         body {
             margin: 0;
@@ -14,22 +15,64 @@
             font-family: Arial, sans-serif;
         }
 
-        .game-container {
+        .header {
+            text-align: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .pk-container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            justify-content: space-between;
+        }
+
+        .player-container, .computer-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            margin-top: 20px;
+            width: 48%;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .player-container {
+            background-color: #f0f8ff; /* Light blue for player */
+        }
+
+        .computer-container {
+            background-color: #fff0f0; /* Light red for computer */
+        }
+
+        .vs-indicator {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            background-color: #ffcc00;
+            padding: 5px 15px;
+            border-radius: 20px;
         }
 
         .difficulty-buttons {
             margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         .difficulty-buttons button {
-            margin: 10px 5px;
-            padding: 10px 20px;
-            font-size: 16px;
+            margin: 5px;
+            padding: 8px 15px;
+            font-size: 14px;
             cursor: pointer;
             border: none;
             border-radius: 5px;
@@ -41,13 +84,38 @@
             color: white;
         }
 
-        #answer {
+        .question-box {
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: white;
+            width: 90%;
+        }
+
+        .answer-input {
             padding: 10px;
             font-size: 16px;
-            width: 200px;
+            width: 80%;
             margin: 10px 0;
             border: 1px solid #ccc;
             border-radius: 5px;
+        }
+
+        .timer {
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .computer-status {
+            margin: 10px 0;
+            font-style: italic;
+            min-height: 20px;
         }
 
         button {
@@ -58,27 +126,55 @@
             border-radius: 5px;
             background-color: #007bff;
             color: white;
+            margin: 5px;
         }
 
         button:hover {
             background-color: #0056b3;
         }
 
-        #result {
-            display: inline;
-            color: inherit;
-            font-size: inherit;
-            margin: 0;
-            padding: 0;
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
         }
 
-        #score {
-            margin-top: 20px;
+        .result {
+            min-height: 20px;
+            margin: 10px 0;
+        }
+
+        .score {
+            margin-top: 10px;
             font-size: 18px;
+            font-weight: bold;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        .rendered-answer {
+            margin-top: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 80%;
+            min-height: 30px;
+            background-color: white;
+        }
+
+        .history-container {
+            margin-top: 30px;
+            width: 100%;
+            max-width: 1200px;
         }
 
         table {
-            margin-top: 20px;
+            width: 100%;
             border-collapse: collapse;
             table-layout: auto;
         }
@@ -93,48 +189,207 @@
             background-color: #f4f4f4;
         }
 
-        .correct {
-            color: green;
+        .copy-button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
         }
 
-        .incorrect {
+        .copy-button:hover {
+            background-color: #218838;
+        }
+
+        #copy-success {
+            display: none;
+            margin-top: 10px;
+            color: green;
+            font-size: 14px;
+        }
+        
+        .winner-indicator {
+            font-weight: bold;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        
+        .player-win {
+            color: blue;
+        }
+        
+        .computer-win {
             color: red;
         }
-
-        #rendered-answer {
-            margin-top: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            width: 200px;
+        
+        .tie {
+            color: purple;
+        }
+        
+        .player-row {
+            background-color: rgba(240, 248, 255, 0.3);
+        }
+        
+        .computer-row {
+            background-color: rgba(255, 240, 240, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .pk-container {
+                flex-direction: column;
+            }
+            
+            .player-container, .computer-container {
+                width: 90%;
+                margin-bottom: 30px;
+            }
         }
 
-        .mathjax-answer {
+        .timer-btn {
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+            color: white;
+            margin: 0 5px;
+        }
+        
+        .timer-btn.active {
+            background-color: #45a049;
+        }
+
+        /* 模式切换按钮样式 */
+        .mode-switch {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        
+        .mode-btn {
+            padding: 10px 20px;
             font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+            color: white;
+            margin: 0 10px;
+        }
+        
+        .mode-btn.active {
+            background-color: #45a049;
+        }
+        
+        /* 自学模式下的全宽玩家容器 */
+        .player-container.full-width {
+            width: 100%;
+        }
+        
+        /* 历史记录上方按钮行 */
+        .history-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        
+        /* 响应式布局下的历史记录按钮 */
+        @media (max-width: 768px) {
+            .history-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .mode-switch {
+                margin-top: 10px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
+    <div class="header">
         <h1>玖数学测训系统</h1>
-        <h3>A03分数运算式阶梯测试训练</h3>
-        <div class="difficulty-buttons" id="difficultyButtons"></div>
-        <div id="question"></div><br>
-        <input type="text" id="answer" placeholder="输入你的答案" oninput="updatePreview()"><br>
+        <h3>A03分数运算阶梯测试训练</h3>
+    </div>
     
-        <br>
-        <div id="rendered-answer"></div><br>
-        <button onclick="checkAnswer()">提交答案</button><br>
-        <div id="result"></div>
-        <div id="score">正确: 0 | 错误: 0</div>
+    <div class="difficulty-buttons" id="difficultyButtons"></div>
+    
+    <!-- 游戏选项布局修改为一行 -->
+    <div class="game-options" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin: 10px 0;">
+        <div style="display: flex; align-items: center; margin: 0 10px;">
+
+            <button id="timer5min" class="timer-btn active" onclick="selectGameDuration(5)">5分钟</button>
+            <button id="timer10min" class="timer-btn" onclick="selectGameDuration(10)">10分钟</button>
+        </div>
+        
+        <div style="display: flex; align-items: center; margin: 0 10px;">
+            <span style="margin-right: 10px;">计算机思考难度:</span>
+            <button id="thinkingEasy" class="timer-btn active" onclick="selectThinkingDifficulty('easy')">容易</button>
+            <button id="thinkingMedium" class="timer-btn" onclick="selectThinkingDifficulty('medium')">中等</button>
+            <button id="thinkingHard" class="timer-btn" onclick="selectThinkingDifficulty('hard')">困难</button>
+        </div>
+    </div>
+    <div style="display: flex; justify-content: center; align-items: center; margin: 10px 0; gap: 15px;">
+        <div id="countdownDisplay" style="font-size: 20px; font-weight: bold; color: #007bff;">剩余时间: 05:00</div>
+        <button id="startGameBtn" onclick="startGame()">开始游戏</button>
+        <button id="resetGameBtn" onclick="resetGame()" disabled>重新开始</button>
+    </div>
+    
+    <div class="pk-container">
+        <div class="player-container" id="playerContainer">
+            <h3>玩家</h3>
+            <div class="timer" id="playerTimer">时间: 0秒</div>
+            <div class="question-box" id="playerQuestion"></div>
+            <input type="text" id="playerAnswer" class="answer-input" placeholder="输入你的答案" oninput="updatePreview('player')" disabled>
+            <div class="rendered-answer" id="playerRenderedAnswer"></div>
+            <button id="playerSubmitBtn" onclick="checkPlayerAnswer()" disabled>提交答案</button>
+            <div class="result" id="playerResult"></div>
+            <div class="score" id="playerScore">正确: 0 | 错误: 0 | 总题数: 0</div>
+        </div>
+        
+        <div class="computer-container" id="computerContainer">
+            <h3>计算机</h3>
+            <div class="timer" id="computerTimer">时间: 0秒</div>
+            <div class="question-box" id="computerQuestion"></div>
+            <div class="computer-status" id="computerStatus">等待开始...</div>
+            <input type="text" id="computerAnswer" class="answer-input" placeholder="计算机的答案" disabled>
+            <div class="rendered-answer" id="computerRenderedAnswer"></div>
+            <div class="result" id="computerResult"></div>
+            <div class="score" id="computerScore">正确: 0 | 错误: 0 | 总题数: 0</div>
+        </div>
+    </div>
+    
+    <div class="winner-indicator" id="roundResult"></div>
+    
+    <div class="history-container">
+        <div class="history-controls">
+            <button class="copy-button" onclick="copyHistory()">复制历史记录</button>
+            
+            <!-- 模式切换按钮移到这里 -->
+            <div class="mode-switch">
+                <button id="selfPracticeBtn" class="mode-btn" onclick="switchMode('self')">自学练习</button>
+                <button id="pkModeBtn" class="mode-btn active" onclick="switchMode('pk')">PK模式</button>
+            </div>
+        </div>
+        
+        <div id="copy-success">历史记录已复制到剪贴板！</div>
+        
         <table>
             <thead>
                 <tr>
-                    <th>题目</th>
+                    <th>参与者</th>
                     <th>级别</th>
-                    <th>你的答案</th>
+                    <th>题目</th>
+                    <th>答案</th>
                     <th>正确答案</th>
                     <th>结果</th>
+                    <th>用时(秒)</th>
                 </tr>
             </thead>
             <tbody id="history"></tbody>
@@ -142,25 +397,96 @@
     </div>
 
     <script>
-        let correctAnswer;
-        let correctCount = 0;
-        let incorrectCount = 0;
+        // 全局变量
+        let playerCorrectAnswer; // 玩家题目的正确答案
+        let computerCorrectAnswer; // 计算机题目的正确答案
+        let correctAnswer; // 保留此变量用于兼容原有函数
+        let playerCorrectCount = 0;
+        let playerIncorrectCount = 0;
+        let computerCorrectCount = 0;
+        let computerIncorrectCount = 0;
+        let playerTotalCount = 0;
+        let computerTotalCount = 0;
         let currentDifficulty = 1;
+        let gameInProgress = false;
+        let playerTime = 0;
+        let computerTime = 0;
+        let playerQuestionStartTime = 0;
+        let computerQuestionStartTime = 0;
+        let playerTimer;
+        let computerTimer;
+        let computerThinkingTimers = [];
+        
+        // 新增倒计时变量
+        let gameDuration = 5; // 默认5分钟
+        let countdownTime = 5 * 60; // 默认5分钟，单位为秒
+        let countdownTimer;
+        
+        // 新增思考时间难度变量
+        let computerThinkingDifficulty = 'easy'; // 默认为容易，可选值: 'easy'(容易)、'medium'(中等)、'hard'(困难)
+        
+        // 新增游戏模式变量
+        let gameMode = 'pk'; // 默认为PK模式，可选值: 'self'(自学练习) 或 'pk'(PK模式)
 
         const difficultyNames = [
-            "01同分母加法", "02同分母减法",  "03单位分数的加法","04乘法", "05除法", 
-            "06整数分数乘法", "07整数分数除法", "08整数加分数化假分数", "09综合",
-           
+            "01同分母加法", "02同分母减法", "03单位分数的加法", "04乘法", "05除法", 
+            "06整数分数乘法", "07整数分数除法", "08整数加分数化假分数", "09综合"
         ];
 
+        // 初始化
         document.addEventListener("DOMContentLoaded", () => {
             generateDifficultyButtons();
             setDifficulty(1);
+            updateCountdownDisplay();
+            switchMode('pk'); // 默认PK模式
+            selectThinkingDifficulty('easy'); // 默认为容易难度
         });
+
+        // 切换游戏模式
+        function switchMode(mode) {
+            if (gameInProgress) {
+                alert('游戏进行中无法切换模式，请先重置游戏');
+                return;
+            }
+            
+            gameMode = mode;
+            
+            // 更新UI按钮状态
+            document.getElementById('selfPracticeBtn').classList.toggle('active', mode === 'self');
+            document.getElementById('pkModeBtn').classList.toggle('active', mode === 'pk');
+            
+            const playerContainer = document.getElementById('playerContainer');
+            const computerContainer = document.getElementById('computerContainer');
+            const countdownDisplay = document.getElementById('countdownDisplay');
+            const timerSelection = document.querySelector('.timer-selection');
+            const thinkingDifficultySelection = document.querySelector('.thinking-difficulty-selection');
+            
+            if (mode === 'self') {
+                // 自学练习模式
+                computerContainer.style.display = 'none';
+                playerContainer.classList.add('full-width');
+                countdownDisplay.style.display = 'none';
+                timerSelection.style.display = 'none';
+                thinkingDifficultySelection.style.display = 'none';
+                document.getElementById('startGameBtn').textContent = '开始练习';
+                document.getElementById('roundResult').style.display = 'none';
+            } else {
+                // PK模式
+                computerContainer.style.display = 'flex';
+                playerContainer.classList.remove('full-width');
+                countdownDisplay.style.display = 'block';
+                timerSelection.style.display = 'block';
+                thinkingDifficultySelection.style.display = 'block';
+                document.getElementById('startGameBtn').textContent = '开始PK';
+                document.getElementById('roundResult').style.display = 'block';
+            }
+            
+            // 更新界面按钮状态
+            updateButtonStates();
+        }
 
         function generateDifficultyButtons() {
             const difficultyButtonsContainer = document.getElementById('difficultyButtons');
-            difficultyButtonsContainer.innerHTML = ''; // 清空现有按钮
             difficultyNames.forEach((name, index) => {
                 const button = document.createElement('button');
                 button.textContent = name;
@@ -171,11 +497,505 @@
         }
 
         function setDifficulty(level) {
+            if (gameInProgress) return; // 游戏进行中不能更改难度
+            
             currentDifficulty = level;
             document.querySelectorAll('.difficulty-buttons button').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`level${level}`).classList.add('active');
-            newQuestion();
         }
+
+        // 选择游戏时长
+        function selectGameDuration(minutes) {
+            if (gameInProgress) return; // 游戏进行中不能更改时长
+            
+            gameDuration = minutes;
+            countdownTime = minutes * 60;
+            
+            // 更新UI - 先移除所有timer-btn的active类
+            document.querySelectorAll('.timer-btn').forEach(btn => {
+                // 只处理时间选择按钮，不影响思考难度按钮
+                if (btn.id.startsWith('timer')) {
+                    btn.classList.remove('active');
+                }
+            });
+            // 只给当前选择的按钮添加active类
+            document.getElementById(`timer${minutes}min`).classList.add('active');
+            
+            updateCountdownDisplay();
+        }
+        
+        // 选择计算机思考难度
+        function selectThinkingDifficulty(difficulty) {
+            if (gameInProgress) return; // 游戏进行中不能更改难度
+            
+            computerThinkingDifficulty = difficulty;
+            
+            // 更新UI - 只操作思考难度按钮
+            document.querySelectorAll('.timer-btn').forEach(btn => {
+                // 只处理思考难度按钮，不影响时间选择按钮
+                if (btn.id.startsWith('thinking')) {
+                    btn.classList.remove('active');
+                }
+            });
+            document.getElementById(`thinking${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}`).classList.add('active');
+        }
+        
+        // 更新倒计时显示
+        function updateCountdownDisplay() {
+            const minutes = Math.floor(countdownTime / 60);
+            const seconds = countdownTime % 60;
+            document.getElementById('countdownDisplay').textContent = 
+                `剩余时间: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        // 开始倒计时
+        function startCountdown() {
+            countdownTime = gameDuration * 60;
+            updateCountdownDisplay();
+            
+            countdownTimer = setInterval(() => {
+                countdownTime--;
+                updateCountdownDisplay();
+                
+                if (countdownTime <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function startGame() {
+            // 重置状态
+            playerCorrectCount = 0;
+            playerIncorrectCount = 0;
+            computerCorrectCount = 0;
+            computerIncorrectCount = 0;
+            playerTotalCount = 0;
+            computerTotalCount = 0;
+            playerTime = 0;
+            computerTime = 0;
+            
+            // 更新UI
+            document.getElementById('playerScore').innerHTML = `正确: 0 | 错误: 0 | 总题数: 0`;
+            if (gameMode === 'pk') {
+                document.getElementById('computerScore').innerHTML = `正确: 0 | 错误: 0 | 总题数: 0`;
+                document.getElementById('computerTimer').innerHTML = `时间: 0秒`;
+                document.getElementById('roundResult').innerHTML = '';
+            }
+            document.getElementById('playerTimer').innerHTML = `时间: 0秒`;
+            document.getElementById('history').innerHTML = '';
+            
+            // 启用/禁用相关按钮
+            document.getElementById('startGameBtn').disabled = true;
+            document.getElementById('resetGameBtn').disabled = false;
+            document.getElementById('playerAnswer').disabled = false;
+            document.getElementById('playerSubmitBtn').disabled = false;
+            
+            // 更改游戏状态
+            gameInProgress = true;
+            
+            // 为玩家生成题目
+            generatePlayerQuestion();
+            
+            // 开始计时器
+            startTimers();
+            
+            // 仅在PK模式下才生成计算机题目和启动倒计时
+            if (gameMode === 'pk') {
+                generateComputerQuestion();
+                startCountdown();
+            }
+        }
+        
+        function resetGame() {
+            // 停止计时器
+            clearInterval(playerTimer);
+            clearInterval(computerTimer);
+            clearInterval(countdownTimer);
+            computerThinkingTimers.forEach(timer => clearTimeout(timer));
+            computerThinkingTimers = [];
+            
+            // 重置状态
+            gameInProgress = false;
+            countdownTime = gameDuration * 60;
+            updateCountdownDisplay();
+            
+            // 更新UI
+            document.getElementById('playerQuestion').innerHTML = '';
+            document.getElementById('playerAnswer').value = '';
+            document.getElementById('playerRenderedAnswer').innerHTML = '';
+            document.getElementById('playerResult').innerHTML = '';
+            
+            if (gameMode === 'pk') {
+                document.getElementById('computerQuestion').innerHTML = '';
+                document.getElementById('computerAnswer').value = '';
+                document.getElementById('computerRenderedAnswer').innerHTML = '';
+                document.getElementById('computerResult').innerHTML = '';
+                document.getElementById('computerStatus').innerHTML = '等待开始...';
+                document.getElementById('roundResult').innerHTML = '';
+            }
+            
+            // 启用/禁用相关按钮
+            updateButtonStates();
+        }
+        
+        // 更新按钮状态
+        function updateButtonStates() {
+            document.getElementById('startGameBtn').disabled = gameInProgress;
+            document.getElementById('resetGameBtn').disabled = !gameInProgress;
+            document.getElementById('playerAnswer').disabled = !gameInProgress;
+            document.getElementById('playerSubmitBtn').disabled = !gameInProgress;
+        }
+        
+        function startTimers() {
+            // 玩家计时器
+            playerTimer = setInterval(() => {
+                playerTime++;
+                document.getElementById('playerTimer').innerHTML = `时间: ${playerTime}秒`;
+            }, 1000);
+            
+            // 仅在PK模式下启动计算机计时器
+            if (gameMode === 'pk') {
+                computerTimer = setInterval(() => {
+                    computerTime++;
+                    document.getElementById('computerTimer').innerHTML = `时间: ${computerTime}秒`;
+                }, 1000);
+                
+                // 设置计算机自动答题
+                scheduleComputerAnswer();
+            }
+            
+            // 记录开始时间
+            playerQuestionStartTime = playerTime;
+            if (gameMode === 'pk') {
+                computerQuestionStartTime = computerTime;
+            }
+        }
+        
+        function generatePlayerQuestion() {
+            // 清空答案框和结果
+            document.getElementById('playerAnswer').value = '';
+            document.getElementById('playerRenderedAnswer').innerHTML = '';
+            document.getElementById('playerResult').innerHTML = '';
+            
+            // 生成新题目
+            const playerQuestion = generateQuestion();
+            // 保存玩家题目的正确答案
+            playerCorrectAnswer = [...correctAnswer];
+            
+            // 更新界面上的题目
+            document.getElementById('playerQuestion').innerHTML = playerQuestion;
+            
+            // 记录题目开始时间
+            playerQuestionStartTime = playerTime;
+            
+            // 重新渲染数学公式
+            MathJax.typesetPromise([document.getElementById('playerQuestion')])
+                .catch((err) => console.log(err));
+        }
+        
+        function generateComputerQuestion() {
+            if (gameMode !== 'pk') return;
+            
+            // 清空答案框和结果
+            document.getElementById('computerAnswer').value = '';
+            document.getElementById('computerRenderedAnswer').innerHTML = '';
+            document.getElementById('computerResult').innerHTML = '';
+            
+            // 生成新题目
+            const computerQuestion = generateQuestion();
+            // 保存计算机题目的正确答案
+            computerCorrectAnswer = [...correctAnswer];
+            
+            // 更新界面上的题目
+            document.getElementById('computerQuestion').innerHTML = computerQuestion;
+            
+            // 更新计算机状态
+            document.getElementById('computerStatus').innerHTML = `正在思考...`;
+            
+            // 记录题目开始时间
+            computerQuestionStartTime = computerTime;
+            
+            // 重新渲染数学公式
+            MathJax.typesetPromise([document.getElementById('computerQuestion')])
+                .catch((err) => console.log(err));
+            
+            // 设置计算机自动答题
+            scheduleComputerAnswer();
+        }
+        
+        function scheduleComputerAnswer() {
+            if (!gameInProgress || gameMode !== 'pk') return;
+            
+            // 根据难度设置计算机思考时间
+            let minTime = 10;
+            let maxTime = 20;
+            
+            switch(computerThinkingDifficulty) {
+                case 'easy': // 容易：10-20秒
+                    minTime = 10;
+                    maxTime = 20;
+                    break;
+                case 'medium': // 中等：20-40秒
+                    minTime = 20;
+                    maxTime = 40;
+                    break;
+                case 'hard': // 困难：30-45秒
+                    minTime = 30;
+                    maxTime = 45;
+                    break;
+            }
+            
+            // 生成指定范围内的随机思考时间
+            const thinkingTime = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
+            
+            // 设置计算机自动答题定时器
+            const timer = setTimeout(() => {
+                if (gameInProgress && gameMode === 'pk') {
+                    submitComputerAnswer();
+                }
+            }, thinkingTime * 1000);
+            
+            // 添加到定时器列表以便重置游戏时清除
+            computerThinkingTimers.push(timer);
+        }
+        
+        function checkPlayerAnswer() {
+            if (!gameInProgress) return;
+            
+            const userAnswer = document.getElementById('playerAnswer').value.trim();
+            
+            if (userAnswer === '') {
+                document.getElementById('playerResult').innerHTML = '请输入答案！';
+                document.getElementById('playerResult').className = 'result incorrect';
+                return;
+            }
+            
+            // 计算答题用时
+            const questionTime = playerTime - playerQuestionStartTime;
+            
+            // 使用 toHalfWidth 函数将用户输入转换为半角字符
+            const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
+            // 使用玩家题目的正确答案进行校验
+            const isCorrect = playerCorrectAnswer.some(answer => 
+                normalizedUserAnswer === toHalfWidth(answer.replace(/\s/g, '').toLowerCase()));
+            
+            if (isCorrect) {
+                document.getElementById('playerResult').innerHTML = '正确!';
+                document.getElementById('playerResult').className = 'result correct';
+                playerCorrectCount++;
+            } else {
+                document.getElementById('playerResult').innerHTML = '错误';
+                document.getElementById('playerResult').className = 'result incorrect';
+                playerIncorrectCount++;
+            }
+            
+            // 更新总题数
+            playerTotalCount++;
+            
+            // 更新分数
+            updatePlayerScore();
+            
+            // 添加到历史记录
+            addToHistory('玩家', difficultyNames[currentDifficulty - 1], 
+                          document.getElementById('playerQuestion').innerHTML, 
+                          userAnswer, playerCorrectAnswer.join(' 或 '), 
+                          isCorrect ? '正确' : '错误', questionTime);
+            
+            // 立即生成新题目
+            generatePlayerQuestion();
+        }
+        
+        function submitComputerAnswer() {
+            if (!gameInProgress || gameMode !== 'pk') return;
+            
+            // 计算答题用时
+            const questionTime = computerTime - computerQuestionStartTime;
+            
+            // 使用计算机题目的正确答案
+            const computerAnswer = computerCorrectAnswer[0];
+            
+            // 随机决定计算机是否答对（90%的概率答对）
+            const isCorrect = Math.random() < 0.9;
+            
+            let displayAnswer;
+            if (isCorrect) {
+                displayAnswer = computerAnswer;
+                document.getElementById('computerResult').innerHTML = '正确!';
+                document.getElementById('computerResult').className = 'result correct';
+                computerCorrectCount++;
+            } else {
+                // 如果要错，则显示一个稍微不同的答案
+                displayAnswer = parseInt(computerAnswer) + (Math.random() > 0.5 ? 1 : -1);
+                document.getElementById('computerResult').innerHTML = '错误';
+                document.getElementById('computerResult').className = 'result incorrect';
+                computerIncorrectCount++;
+            }
+            
+            // 更新显示
+            document.getElementById('computerStatus').innerHTML = '已作答';
+            document.getElementById('computerAnswer').value = displayAnswer;
+            document.getElementById('computerRenderedAnswer').innerHTML = '\\(' + displayAnswer + '\\)';
+            
+            // 更新总题数
+            computerTotalCount++;
+            
+            // 更新分数
+            updateComputerScore();
+            
+            // 重新渲染数学公式
+            MathJax.typesetPromise([document.getElementById('computerRenderedAnswer')])
+                .catch((err) => console.log(err));
+            
+            // 添加到历史记录
+            addToHistory('计算机', difficultyNames[currentDifficulty - 1], 
+                          document.getElementById('computerQuestion').innerHTML, 
+                          displayAnswer, computerCorrectAnswer.join(' 或 '), 
+                          isCorrect ? '正确' : '错误', questionTime);
+            
+            // 短暂延迟后生成新题目
+            setTimeout(() => {
+                if (gameInProgress && gameMode === 'pk') {
+                    generateComputerQuestion();
+                }
+            }, 1000);
+        }
+        
+        function updatePlayerScore() {
+            document.getElementById('playerScore').innerHTML = `正确: ${playerCorrectCount} | 错误: ${playerIncorrectCount} | 总题数: ${playerTotalCount}`;
+        }
+        
+        function updateComputerScore() {
+            document.getElementById('computerScore').innerHTML = `正确: ${computerCorrectCount} | 错误: ${computerIncorrectCount} | 总题数: ${computerTotalCount}`;
+        }
+        
+        function addToHistory(participant, level, question, answer, correctAnswer, result, time) {
+            const historyTable = document.getElementById('history');
+            const newRow = historyTable.insertRow(0);
+            
+            // 设置行的类
+            if (participant === '玩家') {
+                newRow.classList.add("player-row");
+            } else {
+                newRow.classList.add("computer-row");
+            }
+            
+            // 添加结果类
+            if (result === '正确') {
+                newRow.classList.add(participant === '玩家' ? "player-win" : "computer-win");
+            }
+            
+            // 填充单元格内容
+            newRow.insertCell(0).innerHTML = participant;
+            newRow.insertCell(1).innerHTML = level;
+            newRow.insertCell(2).innerHTML = question;
+            newRow.insertCell(3).innerHTML = '\\(' + answer + '\\)';
+            newRow.insertCell(4).innerHTML = '\\(' + correctAnswer + '\\)';
+            newRow.insertCell(5).innerHTML = result;
+            newRow.insertCell(6).innerHTML = time + '秒';
+            
+            // 重新渲染新添加的行中的数学公式
+            MathJax.typesetPromise([newRow]).catch((err) => console.log(err));
+        }
+        
+        function updatePreview(player) {
+            const input = document.getElementById('playerAnswer').value;
+            const renderedAnswer = document.getElementById('playerRenderedAnswer');
+            renderedAnswer.style.display = 'block';
+            renderedAnswer.innerHTML = '\\(' + input + '\\)';
+            MathJax.typesetPromise([renderedAnswer]).catch((err) => console.log(err));
+        }
+        
+        function toHalfWidth(str) {
+            return str.replace(/[\uFF01-\uFF5E]/g, function(char) {
+                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            }).replace(/\u3000/g, ' ');
+        }
+        
+        function copyHistory() {
+            const historyTable = document.querySelector('table');
+            let tableText = '';
+
+            // 获取表头
+            const headers = historyTable.querySelectorAll('thead th');
+            headers.forEach(header => {
+                tableText += header.innerText + '\t';
+            });
+            tableText = tableText.trim() + '\n';
+
+            // 获取表格内容
+            const rows = historyTable.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                cells.forEach(cell => {
+                    // 移除MathJax的数学公式标记
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = cell.innerHTML;
+                    tableText += tempDiv.innerText + '\t';
+                });
+                tableText = tableText.trim() + '\n';
+            });
+
+            // 复制到剪贴板
+            navigator.clipboard.writeText(tableText).then(() => {
+                // 显示复制成功的提示
+                const copySuccess = document.getElementById('copy-success');
+                copySuccess.style.display = 'block';
+                setTimeout(() => {
+                    copySuccess.style.display = 'none';
+                }, 2000); // 2秒后隐藏提示
+            }).catch(err => {
+                console.error('复制失败: ', err);
+            });
+        }
+        
+        document.getElementById('playerAnswer').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                checkPlayerAnswer();
+            }
+        });
+
+        // 游戏结束函数
+        function endGame() {
+            // 停止所有计时器
+            clearInterval(playerTimer);
+            clearInterval(computerTimer);
+            clearInterval(countdownTimer);
+            computerThinkingTimers.forEach(timer => clearTimeout(timer));
+            computerThinkingTimers = [];
+            
+            // 更改游戏状态
+            gameInProgress = false;
+            
+            // 禁用玩家输入
+            document.getElementById('playerAnswer').disabled = true;
+            document.getElementById('playerSubmitBtn').disabled = true;
+            
+            // 仅在PK模式下显示游戏结果
+            if (gameMode === 'pk') {
+                let resultMessage = '';
+                if (playerCorrectCount > computerCorrectCount) {
+                    resultMessage = `游戏结束! 玩家获胜! (${playerCorrectCount} : ${computerCorrectCount})`;
+                    document.getElementById('roundResult').className = 'winner-indicator player-win';
+                } else if (playerCorrectCount < computerCorrectCount) {
+                    resultMessage = `游戏结束! 计算机获胜! (${playerCorrectCount} : ${computerCorrectCount})`;
+                    document.getElementById('roundResult').className = 'winner-indicator computer-win';
+                } else {
+                    resultMessage = `游戏结束! 平局! (${playerCorrectCount} : ${computerCorrectCount})`;
+                    document.getElementById('roundResult').className = 'winner-indicator tie';
+                }
+                document.getElementById('roundResult').innerHTML = resultMessage;
+            } else {
+                // 自学练习模式
+                document.getElementById('roundResult').innerHTML = `练习结束! 共完成${playerTotalCount}题，正确${playerCorrectCount}题`;
+                document.getElementById('roundResult').style.display = 'block';
+                document.getElementById('roundResult').className = 'winner-indicator';
+            }
+            
+            // 启用重置按钮
+            document.getElementById('resetGameBtn').disabled = false;
+        }
+
+        // 以下是生成题目的函数，与原有代码相同
 
         function generateQuestion() {
             switch(currentDifficulty) {
@@ -243,140 +1063,93 @@
             return `\\(${qtext}\\)`;
         }
 
-
-        function generateLevel2Question() {
+        function generateLevel3Question() {
             let m = (Math.floor(Math.random() * 8) + 2);
+            let n = (Math.floor(Math.random() * 8) + 2);
             let a = (Math.floor(Math.random() * (m - 1)) + 1);
-            let b = (Math.floor(Math.random() * (m - 1)) + 1);
-            let c = Math.abs(a - b);
-            let d = gcd(c, m); // gcd函数用于求两个数的最大公约数
+            let b = (Math.floor(Math.random() * (n - 1)) + 1);
+            let c = a*b;
+            let d = gcd(c, m*n); // gcd函数用于求两个数的最大公约数
 
             // 简化后的分子和分母
             let numerator = c / d;
-            let denominator = m / d;
-            let k = c / m;
+            let denominator = (m*n) / d;
+            let k = c / (m*n);
             
             // 使用正确的模板字符串
-            let qtext = `\\Huge \\frac{${Math.max(a,b)}}{${m}} - \\frac{${Math.min(a,b)}}{${m}} = ?`;
+            let qtext = `\\Huge \\frac{${a}}{${m}} \\times \\frac{${b}}{${n}} = ?`;
 
             // 检查是否可以简化为整数
             correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
-    
-    return `\\(${qtext}\\)`;
-}
-
-
-
-
-        function generateLevel3Question() {
-    let m = (Math.floor(Math.random() * 8) + 2);
-    let n = (Math.floor(Math.random() * 8) + 2);
-    let a = (Math.floor(Math.random() * (m - 1)) + 1);
-    let b = (Math.floor(Math.random() * (n - 1)) + 1);
-    let c = a*b;
-    let d = gcd(c, m*n); // gcd函数用于求两个数的最大公约数
-
-    // 简化后的分子和分母
-    let numerator = c / d;
-    let denominator = (m*n) / d;
-    let k = c / (m*n);
-    
-    // 使用正确的模板字符串
-    let qtext = `\\Huge \\frac{${a}}{${m}} \\times \\frac{${b}}{${n}} = ?`;
-
-    // 检查是否可以简化为整数
-    correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
-    
-    return `\\(${qtext}\\)`;
+            
+            return `\\(${qtext}\\)`;
         }
-
-
-
-
-
-
-
         
         function generateLevel4Question() {
-    let m = (Math.floor(Math.random() * 8) + 2);
-    let n = (Math.floor(Math.random() * 8) + 2);
-    let a = (Math.floor(Math.random() * (m - 1)) + 1);
-    let b = (Math.floor(Math.random() * (n - 1)) + 1);
-    let c = a*n;
-    let d = gcd(c, m*b); // gcd函数用于求两个数的最大公约数
+            let m = (Math.floor(Math.random() * 8) + 2);
+            let n = (Math.floor(Math.random() * 8) + 2);
+            let a = (Math.floor(Math.random() * (m - 1)) + 1);
+            let b = (Math.floor(Math.random() * (n - 1)) + 1);
+            let c = a*n;
+            let d = gcd(c, m*b); // gcd函数用于求两个数的最大公约数
 
-    // 简化后的分子和分母
-    let numerator = c / d;
-    let denominator = (m*b) / d;
-    let k = c / (m*b);
-    
-    // 使用正确的模板字符串
-    let qtext = `\\Huge \\frac{${a}}{${m}} \\div \\frac{${b}}{${n}} = ?`;
+            // 简化后的分子和分母
+            let numerator = c / d;
+            let denominator = (m*b) / d;
+            let k = c / (m*b);
+            
+            // 使用正确的模板字符串
+            let qtext = `\\Huge \\frac{${a}}{${m}} \\div \\frac{${b}}{${n}} = ?`;
 
-    // 检查是否可以简化为整数
-    correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
-    
-    return `\\(\\begin{array}{l}${qtext}\\\\如果是假分数则写成假分数不写带分数\\end{array}\\)`;
+            // 检查是否可以简化为整数
+            correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
+            
+            return `\\(\\begin{array}{l}${qtext}\\\\如果是假分数则写成假分数不写带分数\\end{array}\\)`;
         }
-
-
-
-
-
 
         function generateLevel5aQuestion() {
-    let m = (Math.floor(Math.random() * 8) + 2);
-    let n = (Math.floor(Math.random() * 8) + 2);
+            let m = (Math.floor(Math.random() * 8) + 2);
+            let n = (Math.floor(Math.random() * 8) + 2);
 
-    let b = (Math.floor(Math.random() * (n - 1)) + 1);
-    let c = m*b;
-    let d = gcd(c,n); // gcd函数用于求两个数的最大公约数
+            let b = (Math.floor(Math.random() * (n - 1)) + 1);
+            let c = m*b;
+            let d = gcd(c,n); // gcd函数用于求两个数的最大公约数
 
-    // 简化后的分子和分母
-    let numerator = c / d;
-    let denominator = n / d;
-    let k = c/n;
-    
-    // 使用正确的模板字符串
-    let qtext = `\\Huge {${m}}\\times \\frac{${b}}{${n}} = ?`;
+            // 简化后的分子和分母
+            let numerator = c / d;
+            let denominator = n / d;
+            let k = c/n;
+            
+            // 使用正确的模板字符串
+            let qtext = `\\Huge {${m}}\\times \\frac{${b}}{${n}} = ?`;
 
-    // 检查是否可以简化为整数
-    correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
-    
-    return `\\(${qtext}\\)`;
+            // 检查是否可以简化为整数
+            correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
+            
+            return `\\(${qtext}\\)`;
         }
 
-
-
         function generateLevel5bQuestion() {
-    let m = (Math.floor(Math.random() * 8) + 2);
-    let n = (Math.floor(Math.random() * 8) + 2);
+            let m = (Math.floor(Math.random() * 8) + 2);
+            let n = (Math.floor(Math.random() * 8) + 2);
 
-    let b = (Math.floor(Math.random() * (n - 1)) + 1);
-    let c = m*b;
-    let d = gcd(c,n); // gcd函数用于求两个数的最大公约数
+            let b = (Math.floor(Math.random() * (n - 1)) + 1);
+            let c = m*b;
+            let d = gcd(c,n); // gcd函数用于求两个数的最大公约数
 
-    // 简化后的分子和分母
-    let numerator = c / d;
-    let denominator = n / d;
-    let k = c/n;
-    
-    // 使用正确的模板字符串
-    let qtext = `\\Huge  \\frac{${b}}{${n}} \\times {${m}} = ?`;
+            // 简化后的分子和分母
+            let numerator = c / d;
+            let denominator = n / d;
+            let k = c/n;
+            
+            // 使用正确的模板字符串
+            let qtext = `\\Huge  \\frac{${b}}{${n}} \\times {${m}} = ?`;
 
-    // 检查是否可以简化为整数
-    correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
-    
-    return `\\(${qtext}\\)`; }
-
-
-
-
-
-
-
-
-
+            // 检查是否可以简化为整数
+            correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
+            
+            return `\\(${qtext}\\)`; 
+        }
 
         function generateLevel5Question() {
             const levelFunctions = [
@@ -390,58 +1163,49 @@
             return selectedFunction();
         }
 
+        function generateLevel6aQuestion() {
+            let m = (Math.floor(Math.random() * 8) + 2);
+            let n = (Math.floor(Math.random() * 8) + 2);
 
+            let b = (Math.floor(Math.random() * (n - 1)) + 1);
+            let c = b;
+            let d = gcd(m*n, b); // gcd函数用于求两个数的最大公约数
 
-function generateLevel6aQuestion() {
-    let m = (Math.floor(Math.random() * 8) + 2);
-    let n = (Math.floor(Math.random() * 8) + 2);
+            // 简化后的分子和分母
+            let numerator = b / d;
+            let denominator = m*n / d;
+            let k = b / m*n;
+            
+            // 使用正确的模板字符串
+            let qtext = `\\Huge\\frac{${b}}{${n}}   \\div    {${m}} = ?`;
 
-    let b = (Math.floor(Math.random() * (n - 1)) + 1);
-    let c = b;
-    let d = gcd(m*n, b); // gcd函数用于求两个数的最大公约数
-
-    // 简化后的分子和分母
-    let numerator = b / d;
-    let denominator = m*n / d;
-    let k = b / m*n;
-    
-    // 使用正确的模板字符串
-    let qtext = `\\Huge\\frac{${b}}{${n}}   \\div    {${m}} = ?`;
-
-    // 检查是否可以简化为整数
-    correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
-    
-    return `\\(\\begin{array}{l}${qtext}\\\\如果是假分数则写成假分数不写带分数\\end{array}\\)`;
-
-}
-
-
-
-
-function generateLevel6bQuestion() {
-
-    let m = (Math.floor(Math.random() * 8) + 2);
-    let n = (Math.floor(Math.random() * 8) + 2);
-
-    let b = (Math.floor(Math.random() * (n - 1)) + 1);
-    let c = m*n;
-    let d = gcd(c, b); // gcd函数用于求两个数的最大公约数
-
-    // 简化后的分子和分母
-    let numerator = c / d;
-    let denominator = b / d;
-    let k = c / b;
-    
-    // 使用正确的模板字符串
-    let qtext = `\\Huge {${m}} \\div \\frac{${b}}{${n}} = ?`;
-
-    // 检查是否可以简化为整数
-    correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
-    
-    return `\\(\\begin{array}{l}${qtext}\\\\如果是假分数则写成假分数不写带分数\\end{array}\\)`;
+            // 检查是否可以简化为整数
+            correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
+            
+            return `\\(\\begin{array}{l}${qtext}\\\\如果是假分数则写成假分数不写带分数\\end{array}\\)`;
         }
 
+        function generateLevel6bQuestion() {
+            let m = (Math.floor(Math.random() * 8) + 2);
+            let n = (Math.floor(Math.random() * 8) + 2);
 
+            let b = (Math.floor(Math.random() * (n - 1)) + 1);
+            let c = m*n;
+            let d = gcd(c, b); // gcd函数用于求两个数的最大公约数
+
+            // 简化后的分子和分母
+            let numerator = c / d;
+            let denominator = b / d;
+            let k = c / b;
+            
+            // 使用正确的模板字符串
+            let qtext = `\\Huge {${m}} \\div \\frac{${b}}{${n}} = ?`;
+
+            // 检查是否可以简化为整数
+            correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
+            
+            return `\\(\\begin{array}{l}${qtext}\\\\如果是假分数则写成假分数不写带分数\\end{array}\\)`;
+        }
 
         function generateLevel6Question() {
             const levelFunctions = [
@@ -455,67 +1219,54 @@ function generateLevel6bQuestion() {
             return selectedFunction();
         }
 
+        function generateLevel7aQuestion() {
+            let m = (Math.floor(Math.random() * 8) + 2);
+            let n = (Math.floor(Math.random() * 8) + 2);
 
+            let b = (Math.floor(Math.random() * (n - 1)) + 1);
+            let c = m*n+b;
+            let d = gcd(c, n); // gcd函数用于求两个数的最大公约数
 
+            // 简化后的分子和分母
+            let numerator = c / d;
+            let denominator = n / d;
+            let k = c / n;
+            
+            // 使用正确的模板字符串
+            let qtext = `\\Huge {${m}} + \\frac{${b}}{${n}} = ?`;
 
+            // 检查是否可以简化为整数
+            correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
+            
+            return `\\(\\begin{array}{l}${qtext}\\\\  \\huge 结果写成最简假分数\\end{array}\\)`;
+        }
 
-function generateLevel7aQuestion() {
-    let m = (Math.floor(Math.random() * 8) + 2);
-    let n = (Math.floor(Math.random() * 8) + 2);
+        function generateLevel7bQuestion() {
+            let m = (Math.floor(Math.random() * 8) + 2);
+            let n = (Math.floor(Math.random() * 8) + 2);
 
-    let b = (Math.floor(Math.random() * (n - 1)) + 1);
-    let c = m*n+b;
-    let d = gcd(c, n); // gcd函数用于求两个数的最大公约数
+            let b = (Math.floor(Math.random() * (n - 1)) + 1);
+            let c = m*n+b;
+            let d = gcd(c, n); // gcd函数用于求两个数的最大公约数
 
-    // 简化后的分子和分母
-    let numerator = c / d;
-    let denominator = n / d;
-    let k = c / n;
-    
-    // 使用正确的模板字符串
-    let qtext = `\\Huge {${m}} + \\frac{${b}}{${n}} = ?`;
+            // 简化后的分子和分母
+            let numerator = c / d;
+            let denominator = n / d;
+            let k = c / n;
+            
+            // 使用正确的模板字符串
+            let qtext = `\\Huge  \\frac{${b}}{${n}}  +{${m}} = ?`;
 
-    // 检查是否可以简化为整数
-    correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
-    
-    return `\\(\\begin{array}{l}${qtext}\\\\  \\huge 结果写成最简假分数\\end{array}\\)`;
-}
-    
-
-
-
-
-function generateLevel7bQuestion() {
-    let m = (Math.floor(Math.random() * 8) + 2);
-    let n = (Math.floor(Math.random() * 8) + 2);
-
-    let b = (Math.floor(Math.random() * (n - 1)) + 1);
-    let c = m*n+b;
-    let d = gcd(c, n); // gcd函数用于求两个数的最大公约数
-
-    // 简化后的分子和分母
-    let numerator = c / d;
-    let denominator = n / d;
-    let k = c / n;
-    
-    // 使用正确的模板字符串
-    let qtext = `\\Huge  \\frac{${b}}{${n}}  +{${m}} = ?`;
-
-    // 检查是否可以简化为整数
-    correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
-    
-    return `\\(\\begin{array}{l}${qtext}\\\\  \\huge 结果写成最简假分数\\end{array}\\)`;
-}
-    
-
-
-
+            // 检查是否可以简化为整数
+            correctAnswer = k === Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
+            
+            return `\\(\\begin{array}{l}${qtext}\\\\  \\huge 结果写成最简假分数\\end{array}\\)`;
+        }
 
         function generateLevel7Question() {
             const levelFunctions = [
                 generateLevel7aQuestion,
                 generateLevel7bQuestion,
-
             ];
 
             const randomIndex = Math.floor(Math.random() * levelFunctions.length);
@@ -523,15 +1274,6 @@ function generateLevel7bQuestion() {
 
             return selectedFunction();
         }
-
-
-
-
-
-
-
-
-
 
         function generateLevel8Question() {
             const levelFunctions = [
@@ -542,7 +1284,6 @@ function generateLevel7bQuestion() {
                 generateLevel5Question,
                 generateLevel6Question,
                 generateLevel7Question,
-
             ];
 
             const randomIndex = Math.floor(Math.random() * levelFunctions.length);
@@ -552,7 +1293,6 @@ function generateLevel7bQuestion() {
         }
 
         function generateLevel9Question() {
-            console.log("生成单位分数的加法题目");
             let m = (Math.floor(Math.random() * 8) + 2);
             let n = (Math.floor(Math.random() * 8) + 2);
             while (n === m) { // 确保两个分母不同
@@ -572,130 +1312,7 @@ function generateLevel7bQuestion() {
             
             return `\\(${qtext}\\)`;
         }
-
-        function newQuestion() {
-            console.log("生成新题目");
-            const question = generateQuestion();
-            document.getElementById('question').innerHTML = question;
-            MathJax.typesetPromise([document.getElementById('question')]).catch((err) => console.log(err));
-            document.getElementById('answer').value = '';
-            document.getElementById('result').innerHTML = '';
-            document.getElementById('rendered-answer').style.display = 'none';
-        }
-
-        function toHalfWidth(str) {
-            return str.replace(/[\uFF01-\uFF5E]/g, function(char) {
-                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
-            }).replace(/\u3000/g, ' ');
-        }
-
-        function updatePreview() {
-            const input = document.getElementById('answer').value;
-            const renderedAnswer = Math.floor(k) ? [`${k}`] : [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
-    
-    return `\\(\\begin{array}{l}${qtext}\\\\  \\huge \\end{array}\\)`;
-}
-
-
-
-
-
-
-
-
-
-        function newQuestion() {
-            const question = generateQuestion();
-            document.getElementById('question').innerHTML = question;
-            MathJax.typesetPromise([document.getElementById('question')]).catch((err) => console.log(err));
-            document.getElementById('answer').value = '';
-            document.getElementById('result').innerHTML = '';
-            document.getElementById('rendered-answer').style.display = 'none';
-        }
-
-
-        function toHalfWidth(str) {
-            return str.replace(/[\uFF01-\uFF5E]/g, function(char) {
-                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
-            }).replace(/\u3000/g, ' ');
-        }
-
-
-
-        function updatePreview() {
-            const input = document.getElementById('answer').value;
-            const renderedAnswer = document.getElementById('rendered-answer');
-            renderedAnswer.style.display = 'block';
-            renderedAnswer.innerHTML = '\\(' + input + '\\)';
-            MathJax.typesetPromise([renderedAnswer]).catch((err) => console.log(err));
-        }
-
-
-
-      
-function checkAnswer() {
-    const userAnswer = document.getElementById('answer').value.trim();
-    
-    if (userAnswer === '') {
-        document.getElementById('result').innerHTML = '请输入答案！';
-        document.getElementById('result').className = 'incorrect';
-        return; // 直接返回，不更新历史记录或生成新题目
-    }
-
-    // 使用 toHalfWidth 函数将用户输入转换为半角字符
-    const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
-    const isCorrect = correctAnswer.some(answer => normalizedUserAnswer === toHalfWidth(answer.replace(/\s/g, '').toLowerCase()));
-
-    if (isCorrect) {
-        document.getElementById('result').innerHTML = '正确!';
-        document.getElementById('result').className = 'correct';
-        correctCount++;
-    } else {
-        document.getElementById('result').innerHTML = '错误。正确答案是: ' + correctAnswer.join(' 或 ');
-        document.getElementById('result').className = 'incorrect';
-        incorrectCount++;
-    }
-
-    updateScore();
-    updateHistory(isCorrect);
-
-    // 重新渲染整个页面的数学公式
-    MathJax.typesetPromise().catch((err) => console.log(err));
-
-    // 只有在答案不为空时才生成新问题
-    if (userAnswer !== '') {
-        newQuestion();
-    }
-}
-
-
-
-
-        function updateScore() {
-            document.getElementById('score').innerHTML = `正确: ${correctCount} | 错误: ${incorrectCount}`;
-        }
-
-        function updateHistory(isCorrect) {
-            const historyTable = document.getElementById('history');
-            const newRow = historyTable.insertRow(0);
-            newRow.insertCell(0).innerHTML = document.getElementById('question').innerHTML;
-            newRow.insertCell(1).innerHTML = difficultyNames[currentDifficulty - 1];
-            newRow.insertCell(2).innerHTML = '\\(' + document.getElementById('answer').value + '\\)';
-            newRow.insertCell(3).innerHTML = '\\(' + correctAnswer.join('\\) 或 \\(') + '\\)';
-            newRow.insertCell(4).innerHTML = isCorrect ? '正确' : '错误';
-            newRow.className = isCorrect ? 'correct' : 'incorrect';
-
-            // 重新渲染新添加的行中的数学公式
-            MathJax.typesetPromise([newRow]).catch((err) => console.log(err));
-        }
-
-        document.getElementById('answer').addEventListener('keyup', function(event) {
-            if (event.key === 'Enter') {
-                checkAnswer();
-            }
-        });
-
-        newQuestion();
     </script>
 </body>
 </html>
+
