@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>玖数学</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src=".\mathjax\MathJax-master\es5\tex-mml-chtml.js"></script>
+
+
     <style>
         body {
             display: flex;
@@ -150,11 +154,16 @@
         }
         .main.menu-hidden .left {
             flex: 0;
-            max-width: 0;
+            width: 0;
+            min-width: 0;
+            padding: 0;
+            margin: 0;
             overflow: hidden;
+            border: none;
         }
         .main.menu-hidden .center {
             flex: 1;
+            width: 100%;
         }
         @media (max-width: 768px) {
             .left {

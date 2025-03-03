@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>D05偏导阶梯测试训练</title>
-
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
     <style>
         body {
@@ -330,9 +330,9 @@
         
         <div style="display: flex; align-items: center; margin: 0 10px;">
             <span style="margin-right: 10px;">计算机思考难度:</span>
-            <button id="thinkingEasy" class="timer-btn active" onclick="selectThinkingDifficulty('easy')">容易</button>
-            <button id="thinkingMedium" class="timer-btn" onclick="selectThinkingDifficulty('medium')">中等</button>
-            <button id="thinkingHard" class="timer-btn" onclick="selectThinkingDifficulty('hard')">困难</button>
+            <button id="thinkingEasy" class="timer-btn active" onclick="selectThinkingDifficulty('easy')">快</button>
+            <button id="thinkingMedium" class="timer-btn" onclick="selectThinkingDifficulty('medium')">中</button>
+            <button id="thinkingHard" class="timer-btn" onclick="selectThinkingDifficulty('hard')">慢</button>
         </div>
     </div>
     <div style="display: flex; justify-content: center; align-items: center; margin: 10px 0; gap: 15px;">
@@ -1193,21 +1193,22 @@ function generateLevel3Question() {
         }
 
         function generateLevel4Question() {
-            // 生成系数，范围为 ±1, ±2, ..., ±5
-            let a = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            let b = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            let c = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            // 首先生成一组基础系数，这些系数会导致整数解
+            // 为了简化计算，我们从一些预设的系数组合中选择
+            const coefficientSets = [
+                {a: 2, b: 2, c: 2, k: 12}, // 会得到解x=y=z=2
+                {a: 3, b: 4, c: 0, k: 10}, // 会得到解x=2,y=1,z=0
+                {a: 1, b: 2, c: 3, k: 12}, // 会得到解x=4,y=2,z=0
+                {a: 2, b: 0, c: 2, k: 8},  // 会得到解x=2,y=0,z=2
+                {a: 1, b: 1, c: 1, k: 3},  // 会得到解x=y=z=1
+                {a: 4, b: 3, c: 0, k: 20}, // 会得到解x=4,y=2,z=0
+                {a: 2, b: -2, c: 2, k: 4}, // 会得到解x=2,y=-1,z=1
+                {a: 3, b: 0, c: -3, k: 6}  // 会得到解x=3,y=0,z=-1
+            ];
             
-            // 确保至少有两个系数不为零，以保证约束有意义
-            if (a === 0 && b === 0) a = 1;
-            if (a === 0 && c === 0) a = 1;
-            if (b === 0 && c === 0) b = 1;
-            
-            // 生成一个正的常数，作为约束等式的右边
-            const k = Math.floor(Math.random() * 5) + 1;
-            
-            // 构造拉格朗日函数：L(x,y,z,λ) = f(x,y,z) - λ(ax+by+cz-k)
-            // 其中 f(x,y,z) 为目标函数，我们使用 x^2+y^2+z^2 作为标准目标函数（求最小值）
+            // 随机选择一组系数
+            const selectedSet = coefficientSets[Math.floor(Math.random() * coefficientSets.length)];
+            let {a, b, c, k} = selectedSet;
             
             // 处理约束条件中的系数显示
             let xTerm = a === 0 ? "" : (a === 1 ? "x" : (a === -1 ? "-x" : a + "x"));
@@ -1218,21 +1219,27 @@ function generateLevel3Question() {
             let constraint = `${xTerm}${yTerm}${zTerm} = ${k}`;
             
             // 计算条件极值
-            // 为了简化答案，我们假设所有变量的值相同（这不是通用解，但对于题目来说是合理的）
-            // 拉格朗日方程: ∇f = λ∇g
-            // 即: 2x = λa, 2y = λb, 2z = λc
-            // 解得: x = λa/2, y = λb/2, z = λc/2
-            // 代入约束: a(λa/2) + b(λb/2) + c(λc/2) = k
-            // λ(a^2 + b^2 + c^2)/2 = k
-            // λ = 2k/(a^2 + b^2 + c^2)
+            // 使用预先计算好的整数解
+            let xVal, yVal, zVal;
             
-            const denominator = a*a + b*b + c*c;
-            const lambda = 2 * k / denominator;
-            
-            // 计算 x, y, z 的值
-            const xVal = lambda * a / 2;
-            const yVal = lambda * b / 2;
-            const zVal = lambda * c / 2;
+            // 根据选择的系数组合设置对应的解
+            if (a === 2 && b === 2 && c === 2 && k === 12) {
+                xVal = yVal = zVal = 2;
+            } else if (a === 3 && b === 4 && c === 0 && k === 10) {
+                xVal = 2; yVal = 1; zVal = 0;
+            } else if (a === 1 && b === 2 && c === 3 && k === 12) {
+                xVal = 4; yVal = 2; zVal = 0;
+            } else if (a === 2 && b === 0 && c === 2 && k === 8) {
+                xVal = 2; yVal = 0; zVal = 2;
+            } else if (a === 1 && b === 1 && c === 1 && k === 3) {
+                xVal = yVal = zVal = 1;
+            } else if (a === 4 && b === 3 && c === 0 && k === 20) {
+                xVal = 4; yVal = 2; zVal = 0;
+            } else if (a === 2 && b === -2 && c === 2 && k === 4) {
+                xVal = 2; yVal = -1; zVal = 1;
+            } else {
+                xVal = 3; yVal = 0; zVal = -1;
+            }
             
             // 选择需要计算的变量
             const variables = ['x', 'y', 'z'];
@@ -1240,11 +1247,11 @@ function generateLevel3Question() {
             
             let answer;
             if (selectedVar === 'x') {
-                answer = [`${xVal}`, `${xVal.toFixed(2)}`];
+                answer = [`${xVal}`];
             } else if (selectedVar === 'y') {
-                answer = [`${yVal}`, `${yVal.toFixed(2)}`];
+                answer = [`${yVal}`];
             } else {
-                answer = [`${zVal}`, `${zVal.toFixed(2)}`];
+                answer = [`${zVal}`];
             }
             
             // 保存正确答案

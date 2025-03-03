@@ -23,13 +23,13 @@
             --shadow-medium: 0 4px 8px rgba(0,0,0,0.1);
             --radius-small: 4px;
             --radius-medium: 8px;
-            --spacing-xs: 4px;
-            --spacing-sm: 8px;
-            --spacing-md: 16px;
-            --spacing-lg: 24px;
+            --spacing-xs: 2px;
+            --spacing-sm: 4px;
+            --spacing-md: 8px;
+            --spacing-lg: 12px;
             --transition-fast: 0.2s ease;
             --transition-normal: 0.3s ease;
-            --sidebar-width: 300px;
+            --sidebar-width: 250px;
         }
 
         * {
@@ -53,7 +53,7 @@
         .main-header {
             background-color: var(--primary-color);
             color: white;
-            padding: var(--spacing-md);
+            padding: var(--spacing-sm);
             text-align: center;
             width: 100%;
         }
@@ -61,7 +61,7 @@
         h1 {
             font-weight: 500;
             margin: 0;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
         }
         
         .main-container {
@@ -130,22 +130,23 @@
         .chat-history-container {
             flex: 1;
             overflow-y: auto;
-            padding: var(--spacing-md);
+            padding: var(--spacing-sm);
             display: flex;
             flex-direction: column;
-            min-height: 200px;
-            max-height: 60vh;
+            min-height: 400px;
+            max-height: calc(100vh - 200px);
         }
         
         .chat-history {
             flex: 1;
             overflow-y: auto;
             border-radius: var(--radius-medium);
-            padding: var(--spacing-md);
+            padding: var(--spacing-sm);
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
-            margin-bottom: var(--spacing-md);
-            max-height: 60vh;
+            margin-bottom: var(--spacing-sm);
+            max-height: calc(100vh - 200px);
+            min-height: 400px;
         }
         
         .chat-controls {
@@ -159,8 +160,8 @@
         }
         
         .message {
-            margin-bottom: var(--spacing-md);
-            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
+            padding: var(--spacing-sm);
             border-radius: var(--radius-medium);
             max-width: 85%;
             position: relative;
@@ -173,9 +174,9 @@
         }
         
         .message-timestamp {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-secondary);
-            margin-top: 5px;
+            margin-top: 2px;
             text-align: right;
         }
         
@@ -186,7 +187,7 @@
         }
         
         .assistant-message {
-            background-color: var(--bg-card);
+            background-color: #f5f5f5;
             border: 1px solid var(--border-color);
             margin-right: auto;
             border-bottom-left-radius: 4px;
@@ -201,10 +202,10 @@
         .input-area {
             background-color: var(--bg-card);
             border-radius: var(--radius-medium);
-            padding: var(--spacing-md);
+            padding: var(--spacing-sm);
             box-shadow: var(--shadow-light);
-            margin: var(--spacing-md);
-            min-height: 250px;
+            margin: var(--spacing-sm);
+            min-height: 180px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -212,12 +213,13 @@
         
         .media-input {
             display: flex;
-            gap: var(--spacing-sm);
-            margin-bottom: var(--spacing-md);
+            gap: var(--spacing-xs);
+            margin-bottom: var(--spacing-sm);
+            justify-content: flex-end;
         }
         
         .btn {
-            padding: var(--spacing-sm) var(--spacing-md);
+            padding: var(--spacing-xs) var(--spacing-sm);
             border-radius: var(--radius-small);
             border: none;
             cursor: pointer;
@@ -226,7 +228,7 @@
             align-items: center;
             justify-content: center;
             transition: all var(--transition-fast);
-            font-size: 14px;
+            font-size: 13px;
         }
         
         .btn-primary {
@@ -272,6 +274,18 @@
             border-color: var(--accent-color);
         }
         
+        .btn-light.recording {
+            background-color: var(--warning-color);
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
         .media-btn {
             display: flex;
             align-items: center;
@@ -285,9 +299,9 @@
         .preview-container {
             display: flex;
             flex-wrap: wrap;
-            gap: var(--spacing-sm);
-            margin-bottom: var(--spacing-md);
-            min-height: 30px;
+            gap: var(--spacing-xs);
+            margin-bottom: var(--spacing-sm);
+            min-height: 20px;
         }
         
         .preview-item {
@@ -299,8 +313,8 @@
         
         .preview-item img {
             display: block;
-            max-width: 100px;
-            max-height: 100px;
+            max-width: 80px;
+            max-height: 80px;
             object-fit: cover;
         }
         
@@ -323,15 +337,15 @@
         
         .text-input {
             width: 100%;
-            padding: var(--spacing-md);
+            padding: var(--spacing-sm);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-small);
             resize: none;
             font-family: inherit;
-            font-size: 15px;
+            font-size: 14px;
             outline: none;
             transition: border-color var(--transition-fast);
-            min-height: 80px;
+            min-height: 60px;
         }
         
         .text-input:focus {
@@ -342,12 +356,25 @@
         .input-hint {
             margin-top: var(--spacing-xs);
             color: var(--text-secondary);
-            font-size: 13px;
+            font-size: 11px;
         }
         
-        .send-btn {
-            /* Removed width: 100% to work with new flex layout */
-            /* margin-top is now handled by the container */
+        .button-row {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+            justify-content: space-between;
+        }
+        
+        .button-row .btn {
+            flex: 1;
+            height: 40px;
+            font-size: 14px;
+            padding: 0 var(--spacing-md);
+        }
+        
+        .button-row .btn-primary {
+            flex: 1;
         }
         
         .loading {
@@ -357,7 +384,7 @@
             color: var(--text-secondary);
             position: absolute;
             left: 50%;
-            top: 50%;
+            top: 60%;
             transform: translate(-50%, -50%);
             background-color: rgba(255, 255, 255, 0.9);
             border-radius: var(--radius-medium);
@@ -487,22 +514,23 @@
         }
         
         .history-list {
-            max-height: 300px;
+            max-height: 200px;
             overflow-y: auto;
             border: 1px solid var(--border-color);
             border-radius: var(--radius-small);
             background-color: white;
-            margin-bottom: var(--spacing-sm);
+            margin-bottom: var(--spacing-xs);
         }
         
         .history-item {
-            padding: var(--spacing-sm) var(--spacing-md);
+            padding: var(--spacing-xs) var(--spacing-sm);
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border-color);
             transition: background-color var(--transition-fast);
+            font-size: 12px;
         }
         
         .history-item:last-child {
@@ -549,17 +577,18 @@
         }
         
         .sidebar-section {
-            margin-bottom: var(--spacing-lg);
+            margin-bottom: var(--spacing-md);
         }
         
         .sidebar-header {
             font-weight: 500;
-            margin-bottom: var(--spacing-sm);
+            margin-bottom: var(--spacing-xs);
             color: var(--primary-dark);
             display: flex;
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
+            font-size: 13px;
         }
         
         @media (max-width: 768px) {
@@ -640,6 +669,31 @@
             width: 100%;
             flex-basis: 100%;
         }
+        
+        .voice-status {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            display: none;
+            z-index: 1000;
+        }
+        
+        .btn-light.media-btn {
+            height: 40px;
+            font-size: 14px;
+            padding: 0 var(--spacing-md);
+        }
+        
+        .btn-light.media-btn svg {
+            width: 20px;
+            height: 20px;
+        }
     </style>
 </head>
 <body>
@@ -711,19 +765,22 @@
                         </svg>
                         图片
                     </button>
+                    <button class="btn btn-light media-btn" id="voiceBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z" fill="currentColor"/>
+                        </svg>
+                        语音
+                    </button>
                     <input type="file" id="imageInput" class="file-input" accept="image/*" multiple>
                 </div>
                 
                 <div class="preview-container" id="previewContainer"></div>
                 
                 <textarea class="text-input" id="userInput" placeholder="输入您的问题...或直接粘贴图片" rows="3"></textarea>
-                
-                <!-- 修改按钮布局：新对话靠左，发送靠右，宽度减半 -->
-                <div class="button-row" style="display: flex; justify-content: space-between; margin-top: var(--spacing-md);">
-                    <button class="btn btn-primary" id="newChatBtn" style="width: 30%;">新对话</button>
-                    <button class="btn btn-accent" id="sendBtn" style="width: 30%;">发送</button>
+                <div class="button-row">
+                    <button class="btn btn-primary" id="newChatBtn">新对话</button>
+                    <button class="btn btn-accent" id="sendBtn">发送</button>
                 </div>
-                
                 <div class="input-hint">按 Enter 发送消息，Shift+Enter 换行</div>
             </div>
         </div>
@@ -733,6 +790,8 @@
         <div class="loading-spinner"></div>
         <span>正在思考...</span>
     </div>
+    
+    <div class="voice-status" id="voiceStatus">正在录音...</div>
     
     <script>
         // 当前选择的媒体类型和文件
@@ -764,11 +823,12 @@
         const newChatBtn = document.getElementById('newChatBtn');
         const deleteHistoryBtn = document.getElementById('deleteHistoryBtn');
         const sidebarToggle = document.getElementById('sidebarToggle');
+        const voiceStatus = document.getElementById('voiceStatus');
         
         // API 配置
         const API_KEY = "sk-56f75127a91347509775ef3f3a7573d6";
         const BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1";
-        const MODEL = "qwen-omni-turbo";
+        const MODEL = "qwen-omni-turbo-2025-01-19";
         
         // 对话历史
         let messages = [
@@ -1759,6 +1819,115 @@
             toggleHistory.textContent = isVisible ? '▼' : '▲';
             return 'History panel is now ' + (isVisible ? 'hidden' : 'visible');
         };
+
+        // 语音识别相关变量和初始化
+        let recognition = null;
+        const voiceBtn = document.getElementById('voiceBtn');
+        let isRecording = false;
+        let recordingTimeout = null;
+        let accumulatedText = ''; // 用于累积所有识别的文本
+        let interimText = ''; // 用于显示实时识别的文本
+
+        // 检查浏览器是否支持语音识别
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            recognition = new (window.webkitSpeechRecognition || window.SpeechRecognition)();
+            recognition.continuous = true; // 改为持续录音
+            recognition.interimResults = true;
+            recognition.lang = 'zh-CN';
+
+            // 语音识别结果处理
+            recognition.onresult = function(event) {
+                const results = event.results;
+                // 获取最后一个结果
+                const lastResult = results[results.length - 1];
+                // 获取当前识别的文本
+                const currentText = lastResult[0].transcript;
+                
+                if (lastResult.isFinal) {
+                    // 如果是最终结果，添加到累积文本中
+                    accumulatedText += currentText + ' ';
+                    interimText = ''; // 清空临时文本
+                } else {
+                    // 如果是中间结果，更新临时文本
+                    interimText = currentText;
+                }
+                
+                // 更新输入框显示：累积文本 + 临时文本
+                userInput.value = (accumulatedText + interimText).trim();
+            };
+
+            recognition.onend = function() {
+                if (isRecording) {
+                    // 如果还在录音状态，重新开始录音
+                    recognition.start();
+                }
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                stopRecording();
+                alert('语音识别出错: ' + event.error);
+            };
+        } else {
+            voiceBtn.style.display = 'none';
+            console.warn('Browser does not support speech recognition');
+        }
+
+        // 开始录音
+        function startRecording() {
+            if (!recognition) return;
+            
+            isRecording = true;
+            accumulatedText = ''; // 重置累积文本
+            interimText = ''; // 重置临时文本
+            userInput.value = ''; // 清空输入框
+            voiceBtn.classList.add('recording');
+            voiceStatus.style.display = 'block';
+            recognition.start();
+        }
+
+        // 停止录音
+        function stopRecording() {
+            if (!recognition) return;
+            
+            isRecording = false;
+            voiceBtn.classList.remove('recording');
+            voiceStatus.style.display = 'none';
+            recognition.stop();
+            
+            // 如果有累积的文本内容，发送消息
+            if (accumulatedText.trim()) {
+                sendMessage();
+            }
+        }
+
+        // 语音按钮事件处理
+        voiceBtn.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            startRecording();
+        });
+
+        voiceBtn.addEventListener('mouseup', function(e) {
+            e.preventDefault();
+            stopRecording();
+        });
+
+        voiceBtn.addEventListener('mouseleave', function(e) {
+            if (isRecording) {
+                stopRecording();
+            }
+        });
+
+        // 触摸设备支持
+        voiceBtn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            startRecording();
+        });
+
+        voiceBtn.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            stopRecording();
+        });
     </script>
 </body>
 </html>
