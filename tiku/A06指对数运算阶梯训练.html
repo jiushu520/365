@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>D03二次函数阶梯测试训练<</title>
+    <title>A06指对数运算阶梯训练</title>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
     <style>
@@ -439,7 +439,7 @@
 </head>
 <body>
     <div class="header">
-        <h3>D03二次函数阶梯测试训练<</h3>
+        <h3>A06指对数运算阶梯训练</h3>
     </div>
     
     <!-- 添加音效元素 -->
@@ -567,14 +567,14 @@
         let gameMode = 'pk'; // 默认为PK模式，可选值: 'self'(自学练习) 或 'pk'(PK模式)
 
         const difficultyNames = [
-        "01配方法顶点式",
-            "02求值",
-            "03对称轴",
-            "04交点",
-            "05两根距离",
-            "06切线方程", 
-            "07综合合",
-            "08挑战自招"
+        "01指数基础运算",
+            "02对数基础运算",
+            "03指数进阶运算", 
+            "04对数进阶运算", 
+            "05指对数混合", 
+            "06指对数性质应用",
+            "07换底公式应用", 
+            "08综合挑战"
         ];
 
         // 初始化
@@ -1188,9 +1188,9 @@
             document.getElementById('resetGameBtn').disabled = false;
         }
 
-         // 以下是生成题目的函数，与原有代码相同
+        // 以下是生成题目的函数，与原有代码相同
 
-         function generateQuestion() {
+        function generateQuestion() {
             switch(currentDifficulty) {
                 case 1: return generateLevel1Question();
                 case 2: return generateLevel2Question();
@@ -1213,262 +1213,360 @@
             return x;
         }
 
-        function separateSquareRoot(n) {
-            let a = 1;
-            let b = n;
-
-            for (let i = 2; i * i <= n; i++) {
-                while (b % (i * i) === 0) {
-                    a *= i;
-                    b /= i * i;
-                }
-            }
-
-            return { a: a, b: b };
-        }
-
-
-        
         function generateLevel1Question() {
-    let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? -1 : 1);
-    let n = (Math.floor(Math.random() * 9) ) * (Math.random() < 0.5 ? -1 : 1);
-    let textm = m === 0 ? `` : (m > 0 ? `+${m}` : `${m}`);
-    let text2m = 2*m === 0 ? `` : (2*m === 1 ? `+x` : (2*m === -1 ? `-x` : 2*m > 0 ? `+${2*m}x` : `${2*m}x`));
-    let textn = n === 0 ? `` : (n > 0 ? `+${n}` : `${n}`);
-    let textmmpn = m*m+n === 0 ? `` : (m*m+n > 0 ? `+${m*m+n}` : `${m*m+n}`);
-
-    let qtext = ` 把函数y=x^2${text2m}${textmmpn}配成顶点式。`;
-    correctAnswer = [`y=(x${textm})^2${textn}`];
-
-    return `\\(   \\begin{gather}${qtext} \\\\
-\\begin{array}{|c|c|c|} 
-\\hline ${textm}&${textm}x&${m*m}\\\\ 
-\\hline x&x^2&${textm}x \\\\
-\\hline  &x &${textm} \\\\
-\\hline
-\\end{array}  
-\\\\输入格式:y=(x+m)^2+n \\\\ 
-
-\\end{gather}\\)`;
-        }
-
-    function generateLevel2Question() {
-    let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? -1 : 1);
-    let n = (Math.floor(Math.random() * 9) ) * (Math.random() < 0.5 ? -1 : 1);
-    let x = (Math.floor(Math.random() * 6) ) * (Math.random() < 0.5 ? -1 : 1);
-
- 
-    let text2m = 2*m === 0 ? `` : (2*m === 1 ? `+x` : (2*m === -1 ? `-x` : (2*m > 0 ? `+${2*m}x` : `${2*m}x`)));
-    let textmmpn = m*m+n === 0 ? `` : (m*m+n > 0 ? `+${m*m+n}` : `${m*m+n}`);
-    
-    let k = x*x + 2*m*x + (m*m + n);
-
-    let qtext = `函数 f(x)=x^2${text2m}${textmmpn}， \\\\则f(${x})=?`;
-    correctAnswer =k>0 ? [`${k}`,`+${k}`] :[`${k}`];
-
-  return `\\( \\huge \\begin{gather} ${qtext} \\end{gather}\\)`;
-}
-
-
-
-
-        function generateLevel3Question() {
-    let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? -1 : 1);
-    let n = (Math.floor(Math.random() * 9) ) * (Math.random() < 0.5 ? -1 : 1);
-   
-
- 
-    let text2m = 2*m === 0 ? `` : (2*m === 1 ? `+x` : (2*m === -1 ? `-x` : (2*m > 0 ? `+${2*m}x` : `${2*m}x`)));
-    let textmmpn = m*m+n === 0 ? `` : (m*m+n > 0 ? `+${m*m+n}` : `${m*m+n}`);
-    
-    
-
-    let qtext = `函数 f(x)=x^2${text2m}${textmmpn}，  \\\\则f(x)的对称轴为？`;
-    correctAnswer =-m>0 ? [`x=${-m}`,`x=+${-m}`] :[`x=${-m}`];
-
-  return `\\( \\huge \\begin{gather} ${qtext} \\end{gather}\\)`;
-        }
-
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-        function generateLevel4aQuestion() {
-     let m = (Math.floor(Math.random() * 5) + 1) ;
-     let n = (Math.floor(Math.random() * 5) + 1) ;
-   
-
-
-
-    let qtext = `函数 f(x)=x^2${-m-n}x+${m*n}，\\\\ 写出f(x)与x轴的交点横坐标. \\\\`;
-    correctAnswer = m===n ? [`${m}`,`+${m}`]: [`${m},${n}`,`${n},${m}`,`+${m},+${n}`,`+${n},+${m}`];
-
-  return `\\( \\huge \\begin{gather} ${qtext} \\end{gather}\\)`;
-        }
-
-      function generateLevel4bQuestion() {
-     let m = (Math.floor(Math.random() * 5) + 1) ;
-     let n = (Math.floor(Math.random() * 5) + 1) ;
-  
-
-    let qtext = `函数 f(x)=x^2+${m+n}x+${m*n}，\\\\写出f(x)与x轴的交点横坐标. \\\\`;
-    correctAnswer = m===n ? [`${-m}`]: [`${-m},${-n}`,`${-n},${-m}`];
-
-  return `\\( \\huge \\begin{gather} ${qtext} \\end{gather}\\)`;
-        }
-
-
-      function generateLevel4cQuestion() {
-     let m = (Math.floor(Math.random() * 5) + 1) ;
-     let n = (Math.floor(Math.random() * 5) + 1)* ( -1 ) ;
- 
-      let textmpn = m+n === 0 ? `` :(m+n === 1 ? `+x` : (m+n === -1 ? `-x` :  (m+n > 0 ? `+${m+n}x` : `${m+n}x`)));
-
-    let qtext = `函数 f(x)=x^2${textmpn}${m*n}，\\\\ 写出f(x)与x轴的交点横坐标. \\\\`;
-    correctAnswer = m===n ? [`${-m}`]: [`${-m},${-n}`,`${-n},${-m}`,`${-m},+${-n}`,`+${-n},${-m}`];
-
-  return `\\( \\huge \\begin{gather} ${qtext} \\end{gather}\\)`;
-        }
-
-
-
-
-
-
-
-      function generateLevel4Question() {
-        const levelFunctions = [
-                generateLevel4aQuestion,
-                generateLevel4bQuestion,
-                generateLevel4cQuestion,
-
-            ];
-
-            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
-            const selectedFunction = levelFunctions[randomIndex];
-
-            return selectedFunction();
-        }
-
-
-
-
-
-
-        function generateLevel5Question() {
-     let m = (Math.floor(Math.random() * 5) + 1) ;
-     let n = (Math.floor(Math.random() * 5) + 1)* ( -1 ) ;
-     let textmpn = m+n === 0 ? `` :(m+n === 1 ? `+x` : (m+n === -1 ? `-x` :  (m+n > 0 ? `+${m+n}x` : `${m+n}x`)));
-
-    let qtext = `函数 f(x)=x^2${textmpn}${m*n}，\\\\f(x)与x轴的交于A、B两,\\\\则AB=? \\\\`;
-    correctAnswer = [`${m-n}`,`+${m-n}`];
-
-  return `\\( \\huge \\begin{gather} ${qtext} \\end{gather}\\)`;
-        }
-
-       
-
-function generateLevel6Question() {
-    let m = (Math.floor(Math.random() * 5) + 1);
-    let n = (Math.floor(Math.random() * 5) + 1) * (-1);
-    let x = (Math.floor(Math.random() * 3)) * (Math.random() < 0.5 ? -1 : 1);
-
-    let textmpn = m + n === 0 ? `` :
-        (m + n === 1 ? `+x` : 
-        (m + n === -1 ? `-x` : 
-        (m + n > 0 ? `+${m + n}x` : `${m + n}x`)));
-
-    let c = x * x + x * (m + n) + n * m;
-    let k = 2 * x + (m + n);
-    let b = c - k * x;
-
-    let textk = k === 0 ? `` :
-        (k === -1 ? `-x` : 
-        (k === 1 ? `x` : `${k}x`));
-        
-    let textb = b === 0 ? `` : `${b}`;
-
-    // 特殊情况处理: 如果 k=0，直接显示 y=b 而不是 y=+b
-    let answer = k === 0 ? `y=${b}` : `y=${textk}${textb}`;
-
-    let qtext = ` 函数 f(x)=x^2${textmpn}${m * n}，\\\\求过点(${x},${c})的切线方程。 \\\\输入格式:y=kx+b\\\\`;
-
-    correctAnswer = [answer];
-
-    return `\\( \\huge \\begin{gather} ${qtext} \\end{gather}\\)`;
-}
-
-
-
-
-     function generateLevel7Question() {
             const levelFunctions = [
-                generateLevel1Question,
-                generateLevel2Question,
-                generateLevel3Question,
-                generateLevel4Question,
-                generateLevel5Question,
-                generateLevel6Question,
- 
+                // 简单指数运算
+                () => {
+                    let base = Math.floor(Math.random() * 5) + 2; // 基数范围2-6
+                    let exp = Math.floor(Math.random() * 3) + 2;  // 指数范围2-4
+                    let question = `${base}^{${exp}}`;
+                    correctAnswer = [`${Math.pow(base, exp)}`];
+                    return `\\(${question}\\)`;
+                },
+                // 指数乘方
+                () => {
+                    let base = Math.floor(Math.random() * 3) + 2; // 基数范围2-4
+                    let exp1 = Math.floor(Math.random() * 2) + 1; // 指数范围1-2
+                    let exp2 = Math.floor(Math.random() * 2) + 1; // 指数范围1-2
+                    let question = `${base}^{${exp1}} \\cdot ${base}^{${exp2}}`;
+                    correctAnswer = [`${Math.pow(base, exp1 + exp2)}`];
+                    return `\\(${question}\\)`;
+                },
+                // 简单负指数
+                () => {
+                    let base = Math.floor(Math.random() * 3) + 2; // 基数范围2-4
+                    let exp = Math.floor(Math.random() * 2) + 1;  // 指数范围1-2
+                    let question = `${base}^{-${exp}}`;
+                    correctAnswer = [`${1/Math.pow(base, exp)}`, `\\frac{1}{${Math.pow(base, exp)}}`];
+                    return `\\(${question}\\)`;
+                }
             ];
-
-            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
-            const selectedFunction = levelFunctions[randomIndex];
-
-            return selectedFunction();
+            return levelFunctions[Math.floor(Math.random() * levelFunctions.length)]();
         }
-
-
-
-
-
-let currentIndex = 0;
-
-function generateLevel8Question() {
-    const questions = [
-        { m: '1.已知函数y=ax^2+bx+c的图像如图所示，则化简\\\\  \\sqrt{a^2 - 2ab + b^2} - |b + c| - |a - c| = \\underline{\\quad}\\\\ ',image: './images/zzD0201.png', n: '2c' }, 
-  
-    ];
-
-    // 获取当前索引的题目
-    let selectedQuestion = questions[currentIndex];
-
-    let m = selectedQuestion.m;
-    let n = selectedQuestion.n;
-
-    // 如果 n 是一个数组，表示有多个正确答案
-    correctAnswer;
-    if (Array.isArray(n)) {
-        correctAnswer = [...n];
-    } else {
-        correctAnswer = [`${n}`];
-    }
-
-    // 构建返回的 LaTeX 代码
-    let questionLatex = `\\(\\begin{gather}${m} \\end{gather}\\)`;
-
-    // 如果有图片路径，则插入图片
-    if (selectedQuestion.image) {
-        questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
-    }
-
-    // 更新索引值，确保按顺序出题
-    currentIndex = (currentIndex + 1) % questions.length;
-
-    return questionLatex;
-}
-
-
+        
+        function generateLevel2Question() {
+            const levelFunctions = [
+                // 简单对数
+                () => {
+                    let base = Math.floor(Math.random() * 3) + 2; // 基数范围2-4
+                    let exp = Math.floor(Math.random() * 3) + 2;  // 指数范围2-4
+                    let value = Math.pow(base, exp);
+                    let question = `\\log_{${base}}{${value}}`;
+                    correctAnswer = [`${exp}`];
+                    return `\\(${question}\\)`;
+                },
+                // 对数相加
+                () => {
+                    let base = Math.floor(Math.random() * 2) + 2; // 基数范围2-3
+                    let exp1 = Math.floor(Math.random() * 2) + 1; // 指数范围1-2
+                    let exp2 = Math.floor(Math.random() * 2) + 1; // 指数范围1-2
+                    let value1 = Math.pow(base, exp1);
+                    let value2 = Math.pow(base, exp2);
+                    let question = `\\log_{${base}}{${value1}} + \\log_{${base}}{${value2}}`;
+                    correctAnswer = [`${exp1 + exp2}`];
+                    return `\\(${question}\\)`;
+                },
+                // 对数减法
+                () => {
+                    let base = Math.floor(Math.random() * 2) + 2; // 基数范围2-3
+                    let exp1 = Math.floor(Math.random() * 2) + 3; // 指数范围3-4
+                    let exp2 = Math.floor(Math.random() * 2) + 1; // 指数范围1-2
+                    let value1 = Math.pow(base, exp1);
+                    let value2 = Math.pow(base, exp2);
+                    let question = `\\log_{${base}}{${value1}} - \\log_{${base}}{${value2}}`;
+                    correctAnswer = [`${exp1 - exp2}`];
+                    return `\\(${question}\\)`;
+                }
+            ];
+            return levelFunctions[Math.floor(Math.random() * levelFunctions.length)]();
+        }
+        
+        function generateLevel3Question() {
+            const levelFunctions = [
+                // 指数的指数
+                () => {
+                    let base = Math.floor(Math.random() * 3) + 2; // 基数范围2-4
+                    let exp1 = Math.floor(Math.random() * 2) + 2; // 指数范围2-3
+                    let exp2 = Math.floor(Math.random() * 2) + 2; // 指数范围2-3
+                    let question = `(${base}^{${exp1}})^{${exp2}}`;
+                    correctAnswer = [`${Math.pow(base, exp1 * exp2)}`];
+                    return `\\(${question}\\)`;
+                },
+                // 分数指数
+                () => {
+                    // 使用完全平方数作为底数
+                    const perfectSquares = [1, 4, 9, 16, 25, 36, 49, 64, 81, 100];
+                    let baseIndex = Math.floor(Math.random() * (perfectSquares.length - 1)) + 1; // 跳过1
+                    let base = perfectSquares[baseIndex];
+                    
+                    let denom = 2; // 分母为2
+                    let num = 1;   // 分子固定为1，这样就是求平方根
+                    
+                    let question = `${base}^{\\frac{${num}}{${denom}}}`;
+                    let result = Math.sqrt(base); // 完全平方数的平方根是整数
+                    
+                    correctAnswer = [`${result}`, `\\sqrt{${base}}`];
+                    return `\\(${question}\\)`;
+                },
+                // 不同底数指数相乘
+                () => {
+                    let base1 = Math.floor(Math.random() * 3) + 2; // 基数范围2-4
+                    let base2 = Math.floor(Math.random() * 3) + 2; // 基数范围2-4
+                    while (base2 === base1) {
+                        base2 = Math.floor(Math.random() * 3) + 2; // 确保两个底数不同
+                    }
+                    let exp1 = Math.floor(Math.random() * 2) + 1; // 指数范围1-2
+                    let exp2 = Math.floor(Math.random() * 2) + 1; // 指数范围1-2
+                    let question = `${base1}^{${exp1}} \\cdot ${base2}^{${exp2}}`;
+                    correctAnswer = [`${Math.pow(base1, exp1) * Math.pow(base2, exp2)}`];
+                    return `\\(${question}\\)`;
+                }
+            ];
+            return levelFunctions[Math.floor(Math.random() * levelFunctions.length)]();
+        }
+        
+        function generateLevel4Question() {
+            const levelFunctions = [
+                // 对数乘法法则 - 修改为特殊值，确保答案是整数或有限小数
+                () => {
+                    // 这里选择一些特殊的乘数，确保其对数在特定底数下是整数或有限小数
+                    const specialCases = [
+                        { base: 2, multiplier: 2, result: 1 },
+                        { base: 2, multiplier: 4, result: 2 },
+                        { base: 2, multiplier: 8, result: 3 },
+                        { base: 3, multiplier: 3, result: 1 },
+                        { base: 3, multiplier: 9, result: 2 },
+                        { base: 4, multiplier: 2, result: 0.5 },
+                        { base: 4, multiplier: 4, result: 1 },
+                        { base: 4, multiplier: 16, result: 2 }
+                    ];
+                    
+                    let caseIndex = Math.floor(Math.random() * specialCases.length);
+                    let selectedCase = specialCases[caseIndex];
+                    
+                    let base = selectedCase.base;
+                    let multiplier = selectedCase.multiplier;
+                    let logResult = selectedCase.result;
+                    
+                    // 生成一个整数指数
+                    let exp = Math.floor(Math.random() * 3) + 2;  // 指数范围2-4
+                    let value = Math.pow(base, exp);
+                    
+                    let question = `\\log_{${base}}{${value} \\cdot ${multiplier}}`;
+                    correctAnswer = [`${exp + logResult}`];
+                    return `\\(${question}\\)`;
+                },
+                // 对数除法法则 - 不变，因为答案是整数
+                () => {
+                    let base = Math.floor(Math.random() * 3) + 2; // 基数范围2-4
+                    let exp1 = Math.floor(Math.random() * 3) + 3; // 指数范围3-5
+                    let exp2 = Math.floor(Math.random() * 2) + 1; // 指数范围1-2
+                    let value1 = Math.pow(base, exp1);
+                    let value2 = Math.pow(base, exp2);
+                    let question = `\\log_{${base}}{\\frac{${value1}}{${value2}}}`;
+                    correctAnswer = [`${exp1 - exp2}`];
+                    return `\\(${question}\\)`;
+                },
+                // 对数幂法则 - 不变，因为答案是整数
+                () => {
+                    let base = Math.floor(Math.random() * 3) + 2; // 基数范围2-4
+                    let exp = Math.floor(Math.random() * 2) + 2;  // 指数范围2-3
+                    let power = Math.floor(Math.random() * 2) + 2; // 幂范围2-3
+                    let value = Math.pow(base, exp);
+                    let question = `\\log_{${base}}{${value}^{${power}}}`;
+                    correctAnswer = [`${exp * power}`];
+                    return `\\(${question}\\)`;
+                }
+            ];
+            return levelFunctions[Math.floor(Math.random() * levelFunctions.length)]();
+        }
+        
+        function generateLevel5Question() {
+            const levelFunctions = [
+                // 指数与对数互逆
+                () => {
+                    let base = Math.floor(Math.random() * 3) + 2; // 基数范围2-4
+                    let exp = Math.floor(Math.random() * 2) + 2;  // 指数范围2-3
+                    let value = Math.pow(base, exp);
+                    let question = `${base}^{\\log_{${base}}{${value}}}`;
+                    correctAnswer = [`${value}`];
+                    return `\\(${question}\\)`;
+                },
+                // 对数复合运算
+                () => {
+                    let base = Math.floor(Math.random() * 2) + 2; // 基数范围2-3
+                    let exp1 = Math.floor(Math.random() * 2) + 2; // 指数范围2-3
+                    let exp2 = Math.floor(Math.random() * 2) + 1; // 指数范围1-2
+                    let value1 = Math.pow(base, exp1);
+                    let value2 = Math.pow(base, exp2);
+                    let question = `\\log_{${base}}{${value1}} + 2\\log_{${base}}{${value2}}`;
+                    correctAnswer = [`${exp1 + 2*exp2}`];
+                    return `\\(${question}\\)`;
+                },
+                // 指数对数混合
+                () => {
+                    let base = Math.floor(Math.random() * 2) + 2; // 基数范围2-3
+                    let exp = Math.floor(Math.random() * 2) + 2;  // 指数范围2-3
+                    let value = Math.pow(base, exp);
+                    let question = `\\log_{${base}}{${value}} \\cdot ${base}`;
+                    correctAnswer = [`${exp * base}`];
+                    return `\\(${question}\\)`;
+                }
+            ];
+            return levelFunctions[Math.floor(Math.random() * levelFunctions.length)]();
+        }
+        
+        function generateLevel6Question() {
+            const levelFunctions = [
+                // 对数方程
+                () => {
+                    let base = Math.floor(Math.random() * 2) + 2; // 基数范围2-3
+                    let exp = Math.floor(Math.random() * 2) + 2;  // 指数范围2-3
+                    let constant = Math.floor(Math.random() * 2) + 1; // 常数范围1-2
+                    let value = Math.pow(base, exp);
+                    let question = `\\log_{${base}}{x} = ${exp + constant}`;
+                    correctAnswer = [`${value * Math.pow(base, constant)}`, `${Math.pow(base, exp + constant)}`];
+                    return `\\(${question}\\)`;
+                },
+                // 指数方程
+                () => {
+                    let base = Math.floor(Math.random() * 2) + 2; // 基数范围2-3
+                    let exp = Math.floor(Math.random() * 2) + 2;  // 指数范围2-3
+                    let value = Math.pow(base, exp);
+                    let question = `${base}^x = ${value}`;
+                    correctAnswer = [`${exp}`];
+                    return `\\(${question}\\)`;
+                },
+                // 对数性质
+                () => {
+                    let base = Math.floor(Math.random() * 2) + 2; // 基数范围2-3
+                    let value = base;
+                    let question = `\\log_{${base}}{${value}}`;
+                    correctAnswer = [`1`];
+                    return `\\(${question}\\)`;
+                }
+            ];
+            return levelFunctions[Math.floor(Math.random() * levelFunctions.length)]();
+        }
+        
+        function generateLevel7Question() {
+            const levelFunctions = [
+                // 常用对数计算
+                () => {
+                    // 使用10为底数的对数，结果为整数
+                    let exp = Math.floor(Math.random() * 3) + 1;  // 指数范围1-3
+                    let value = Math.pow(10, exp);
+                    let question = `\\lg{${value}}`;
+                    correctAnswer = [`${exp}`];
+                    return `\\(${question}\\)`;
+                },
+                // 自然对数基本性质
+                () => {
+                    // 使用e为底数的对数，简单情况
+                    let question = `\\ln{e^${Math.floor(Math.random() * 5) + 1}}`;
+                    let power = parseInt(question.match(/e\^(\d+)/)[1]);
+                    correctAnswer = [`${power}`];
+                    return `\\(${question}\\)`;
+                },
+                // 对数基本性质
+                () => {
+                    let base = Math.floor(Math.random() * 3) + 2; // 基数范围2-4
+                    let question = `\\log_{${base}}{1}`;
+                    correctAnswer = [`0`];
+                    return `\\(${question}\\)`;
+                },
+                // 对数幂运算
+                () => {
+                    let base = Math.floor(Math.random() * 2) + 2; // 基数范围2-3
+                    let power = Math.floor(Math.random() * 3) + 2; // 幂范围2-4
+                    let question = `\\lg{10^{${power}}}`;
+                    correctAnswer = [`${power}`];
+                    return `\\(${question}\\)`;
+                },
+                // 常用对数计算2
+                () => {
+                    // 结果为整数的特殊值
+                    const specialValues = [
+                        { value: 100, result: 2 },
+                        { value: 1000, result: 3 },
+                        { value: 0.1, result: -1 },
+                        { value: 0.01, result: -2 }
+                    ];
+                    const selected = specialValues[Math.floor(Math.random() * specialValues.length)];
+                    let question = `\\lg{${selected.value}}`;
+                    correctAnswer = [`${selected.result}`];
+                    return `\\(${question}\\)`;
+                }
+            ];
+            return levelFunctions[Math.floor(Math.random() * levelFunctions.length)]();
+        }
+        
+        function generateLevel8Question() {
+            const levelFunctions = [
+                // 复杂指数方程 - 不变，因为答案是整数
+                () => {
+                    let base = Math.floor(Math.random() * 2) + 2; // 基数范围2-3
+                    let exp1 = Math.floor(Math.random() * 2) + 1; // 指数范围1-2
+                    let exp2 = Math.floor(Math.random() * 2) + 3; // 指数范围3-4
+                    let question = `${base}^{x+${exp1}} = ${base}^{${exp2}}`;
+                    correctAnswer = [`${exp2 - exp1}`];
+                    return `\\(${question}\\)`;
+                },
+                // 复杂对数方程 - 修改为确保简单整数答案
+                () => {
+                    let base = Math.floor(Math.random() * 2) + 2; // 基数范围2-3
+                    
+                    // 选择简单的整数答案
+                    let answer = Math.floor(Math.random() * 4) + 1; // 答案范围1-4
+                    
+                    // 反向计算，确保题目合理
+                    let value2 = Math.pow(base, Math.floor(Math.random() * 2) + 1); // base^1或base^2
+                    let value1 = Math.sqrt(value2 * answer); // 保证value1^2/value2=answer
+                    
+                    let question = `\\log_{${base}}{(x^2)} = 2\\log_{${base}}{${value1}} - \\log_{${base}}{${value2}}`;
+                    correctAnswer = [`${answer}`];
+                    return `\\(${question}\\)`;
+                },
+                // 综合指数对数问题 - 修改为特殊情况，确保结果是简单分数
+                () => {
+                    // 选择固定exp值，确保1/exp是有限小数
+                    const specialExps = [1, 2, 4, 5]; // 这些数字的倒数是有限小数
+                    let expIndex = Math.floor(Math.random() * specialExps.length);
+                    let exp = specialExps[expIndex];
+                    
+                    let base = Math.floor(Math.random() * 2) + 2; // 基数范围2-3
+                    let value = Math.pow(base, exp);
+                    let question = `\\log_{${value}}{${base}}`;
+                    
+                    // 根据exp选择正确答案
+                    if (exp === 1) {
+                        correctAnswer = [`1`];
+                    } else if (exp === 2) {
+                        correctAnswer = [`0.5`, `\\frac{1}{2}`];
+                    } else if (exp === 4) {
+                        correctAnswer = [`0.25`, `\\frac{1}{4}`];
+                    } else if (exp === 5) {
+                        correctAnswer = [`0.2`, `\\frac{1}{5}`];
+                    }
+                    
+                    return `\\(${question}\\)`;
+                },
+                // 从前面的级别随机选择一个 - 不变
+                () => {
+                    const previousLevelFunctions = [
+                        generateLevel1Question,
+                        generateLevel2Question,
+                        generateLevel3Question,
+                        generateLevel4Question,
+                        generateLevel5Question,
+                        generateLevel6Question,
+                        generateLevel7Question
+                    ];
+                    return previousLevelFunctions[Math.floor(Math.random() * previousLevelFunctions.length)]();
+                }
+            ];
+            return levelFunctions[Math.floor(Math.random() * levelFunctions.length)]();
+        }
 
         // 创建冲击波效果
         function createShockwave(attacker) {

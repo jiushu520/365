@@ -237,6 +237,131 @@
             background-color: rgba(255, 240, 240, 0.3);
         }
         
+        /* 新增攻击效果相关样式 */
+        .shockwave {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(0.1);
+            box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.7);
+        }
+        
+        .player-attack {
+            animation: shockwave-player 1s ease-out forwards;
+        }
+        
+        .computer-attack {
+            animation: shockwave-computer 1s ease-out forwards;
+        }
+        
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shockwave-player {
+            0% {
+                opacity: 1;
+                transform: scale(0.1);
+                background: radial-gradient(circle, rgba(0,100,255,0.8) 0%, rgba(0,100,255,0) 70%);
+                box-shadow: 0 0 20px 10px rgba(0, 100, 255, 0.7);
+                left: 35%;
+                top: 50%;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(2);
+                background: radial-gradient(circle, rgba(0,100,255,0.2) 0%, rgba(0,100,255,0) 70%);
+                box-shadow: 0 0 40px 20px rgba(0, 100, 255, 0.3);
+                left: 80%;
+                top: 50%;
+            }
+        }
+        
+        @keyframes shockwave-computer {
+            0% {
+                opacity: 1;
+                transform: scale(0.1);
+                background: radial-gradient(circle, rgba(255,0,0,0.8) 0%, rgba(255,0,0,0) 70%);
+                box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.7);
+                left: 65%;
+                top: 50%;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(2);
+                background: radial-gradient(circle, rgba(255,0,0,0.2) 0%, rgba(255,0,0,0) 70%);
+                box-shadow: 0 0 40px 20px rgba(255, 0, 0, 0.3);
+                left: 20%;
+                top: 50%;
+            }
+        }
+        
+        @keyframes shake {
+            0%, 100% {transform: translateX(0);}
+            10%, 30%, 50%, 70%, 90% {transform: translateX(-5px);}
+            20%, 40%, 60%, 80% {transform: translateX(5px);}
+        }
+        
+        /* 显示对诮语句的样式 */
+        .taunt-bubble {
+            position: absolute;
+            background-color: white;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 101;
+            opacity: 0;
+            animation: show-taunt 2s ease-out forwards;
+            min-width: 120px;
+            text-align: center;
+        }
+        
+        .taunt-bubble::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border: 10px solid transparent;
+        }
+        
+        .player-taunt {
+            top: 20%;
+            left: 25%;
+        }
+        
+        .player-taunt::before {
+            border-left-color: #333;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .computer-taunt {
+            top: 20%;
+            right: 25%;
+        }
+        
+        .computer-taunt::before {
+            border-right-color: #333;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        @keyframes show-taunt {
+            0% {opacity: 0; transform: translateY(20px);}
+            20% {opacity: 1; transform: translateY(0);}
+            80% {opacity: 1; transform: translateY(0);}
+            100% {opacity: 0; transform: translateY(-20px);}
+        }
+        
         @media (max-width: 768px) {
             .pk-container {
                 flex-direction: column;
@@ -314,9 +439,22 @@
 </head>
 <body>
     <div class="header">
-        <h1>玖数学测训系统</h1>
         <h3>A01四则运算阶梯训练</h3>
     </div>
+    
+    <!-- 添加音效元素 -->
+    <audio id="playerAttackSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2073/2073-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="computerAttackSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/1293/1293-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="correctSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="wrongSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2691/2691-preview.mp3" type="audio/mpeg">
+    </audio>
     
     <div class="difficulty-buttons" id="difficultyButtons"></div>
     
@@ -429,7 +567,7 @@
         let gameMode = 'pk'; // 默认为PK模式，可选值: 'self'(自学练习) 或 'pk'(PK模式)
 
         const difficultyNames = [
-            "01加减法",
+        "01加减法",
             "02表内乘法",
             "03除法", 
             "04十几乘几", 
@@ -781,18 +919,49 @@
             
             // 使用 toHalfWidth 函数将用户输入转换为半角字符
             const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
-            // 使用玩家题目的正确答案进行校验
-            const isCorrect = playerCorrectAnswer.some(answer => 
+            
+            // 对于正数答案，同时接受带"+"号和不带"+"号的形式
+            const normalizedCorrectAnswers = playerCorrectAnswer.map(answer => {
+                const num = parseInt(answer);
+                if (num > 0) {
+                    return [answer, `+${answer}`]; // 正数同时接受带"+"号和不带"+"号的形式
+                }
+                return [answer]; // 负数只接受一种形式
+            }).flat();
+            
+            // 检查答案是否正确
+            const isCorrect = normalizedCorrectAnswers.some(answer => 
                 normalizedUserAnswer === toHalfWidth(answer.replace(/\s/g, '').toLowerCase()));
             
             if (isCorrect) {
                 document.getElementById('playerResult').innerHTML = '正确!';
                 document.getElementById('playerResult').className = 'result correct';
                 playerCorrectCount++;
+                
+                // 播放正确音效
+                document.getElementById('correctSound').play();
+                
+                // 仅在PK模式下显示攻击效果
+                if (gameMode === 'pk') {
+                    // 创建并添加冲击波元素
+                    createShockwave('player');
+                    
+                    // 让计算机容器抖动
+                    document.getElementById('computerContainer').classList.add('shake');
+                    setTimeout(() => {
+                        document.getElementById('computerContainer').classList.remove('shake');
+                    }, 500);
+                    
+                    // 显示对诮语句
+                    showTaunt('player');
+                }
             } else {
                 document.getElementById('playerResult').innerHTML = '错误';
                 document.getElementById('playerResult').className = 'result incorrect';
                 playerIncorrectCount++;
+                
+                // 播放错误音效
+                document.getElementById('wrongSound').play();
             }
             
             // 更新总题数
@@ -829,12 +998,30 @@
                 document.getElementById('computerResult').innerHTML = '正确!';
                 document.getElementById('computerResult').className = 'result correct';
                 computerCorrectCount++;
+                
+                // 播放正确音效
+                document.getElementById('correctSound').play();
+                
+                // 创建并添加冲击波元素
+                createShockwave('computer');
+                
+                // 让玩家容器抖动
+                document.getElementById('playerContainer').classList.add('shake');
+                setTimeout(() => {
+                    document.getElementById('playerContainer').classList.remove('shake');
+                }, 500);
+                
+                // 显示对诮语句
+                showTaunt('computer');
             } else {
                 // 如果要错，则显示一个稍微不同的答案
                 displayAnswer = parseInt(computerAnswer) + (Math.random() > 0.5 ? 1 : -1);
                 document.getElementById('computerResult').innerHTML = '错误';
                 document.getElementById('computerResult').className = 'result incorrect';
                 computerIncorrectCount++;
+                
+                // 播放错误音效
+                document.getElementById('wrongSound').play();
             }
             
             // 更新显示
@@ -1001,6 +1188,7 @@
             document.getElementById('resetGameBtn').disabled = false;
         }
 
+
         // 以下是生成题目的函数，与原有代码相同
 
         function generateQuestion() {
@@ -1114,6 +1302,58 @@
             const randomIndex = Math.floor(Math.random() * levelFunctions.length);
             const selectedFunction = levelFunctions[randomIndex];
             return selectedFunction();
+        }
+
+        // 创建冲击波效果
+        function createShockwave(attacker) {
+            const shockwave = document.createElement('div');
+            shockwave.className = `shockwave ${attacker}-attack`;
+            
+            document.body.appendChild(shockwave);
+            
+            // 播放攻击音效
+            document.getElementById(`${attacker}AttackSound`).play();
+            
+            // 攻击动画结束后移除元素
+            setTimeout(() => {
+                document.body.removeChild(shockwave);
+            }, 1000);
+        }
+        
+        // 玩家和计算机的对诮语句
+        const playerTaunts = [
+            "算得太慢了！",
+            "这题太简单了！",
+            "接招吧！",
+            "看我的厉害！",
+            "数学很简单吧！"
+        ];
+        
+        const computerTaunts = [
+            "人类的计算速度真慢！",
+            "再快一点试试？",
+            "这就是我的实力！",
+            "你跟不上我的速度！",
+            "机器智能胜过人类！"
+        ];
+        
+        // 显示对诮语句
+        function showTaunt(source) {
+            // 创建对诮气泡
+            const taunt = document.createElement('div');
+            taunt.className = `taunt-bubble ${source}-taunt`;
+            
+            // 随机选择一条对诮语句
+            const taunts = source === 'player' ? playerTaunts : computerTaunts;
+            const randomIndex = Math.floor(Math.random() * taunts.length);
+            taunt.textContent = taunts[randomIndex];
+            
+            document.body.appendChild(taunt);
+            
+            // 对诮动画结束后移除元素
+            setTimeout(() => {
+                document.body.removeChild(taunt);
+            }, 2000);
         }
     </script>
 </body>
