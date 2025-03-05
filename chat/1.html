@@ -36,25 +36,25 @@
       top: 0;
       width: 12px;
       height: 100%;
-      background: #040608; /* 静止状态 -  */
+      background: #2c3e50; /* 静止状态 - 深蓝色 */
       cursor: col-resize;
       border-radius: 3px;
       border: 1px solid #3498db;
-      box-shadow: 0 0 3px rgba(59, 210, 221, 0.228);
+      box-shadow: 0 0 3px rgba(0,0,0,0.3);
       z-index: 100; /* 确保手柄在最上层 */
       transition: background-color 0.2s, width 0.2s, margin-left 0.2s; /* 添加平滑过渡效果 */
       touch-action: none; /* 防止默认的触摸行为如滚动 */
     }
     .handle:hover {
-      background: #153d58; /* 悬停状态 -  */
+      background: #3498db; /* 悬停状态 - 亮蓝色 */
       width: 12px;
       margin-left: -1px;
     }
     .handle.dragging {
-      background: #0f6478; /* 拖动状态 - */
+      background: #e74c3c; /* 拖动状态 - 红色 */
       width: 12px;
       margin-left: -1px;
-      box-shadow: 0 0 8px rgba(91, 235, 172, 0.6); /* 拖动时增强阴影效果 */
+      box-shadow: 0 0 8px rgba(231, 76, 60, 0.6); /* 拖动时增强阴影效果 */
     }
     
     /* 为触摸设备添加媒体查询 */
@@ -111,7 +111,11 @@
       <select class="dropdown" id="dropdown1">
       <option value="../tiku/index.html">题库</option>
         <option value="https://jiushu.vip.cpolar.cn/课程规划/index.html">课程规划</option>
-        <option value="多模态.html">极速解答</option>
+        <option value="https://jiushu.cpolar.cn/chat/多模态.html">极速解答</option>
+        <option value="https://jiushu.cpolar.cn/chat/chatmodel.html">玖数智能</option>
+        <option value="https://jiushu.cpolar.cn/chat/ocrqianwen.html">千问</option>
+        <option value="https://jiushu.cpolar.cn/chat/jiushuwbt.html">玖数问不停</option>
+        <option value="https://jiushu.cpolar.cn/chat/jiushuydg.html">玖数有点杠</option>
         <option value="../video/index.html">学习视频</option>
         <option value="chatmodel.html">玖数智能</option>
         <option value="https://jiushu.cpolar.cn/数理交互动画/index.html">交互动画</option> 
@@ -132,8 +136,7 @@
         <option value="jiushugptcom.html">玖数求索</option>
         <option value="jiushugpto1.html">gpto1</option>
         <option value="玖数图文.html">玖数图文</option>
-        <option value="jiushuydg.html">玖数有点杠</option>
-        <option value="jiushuwbt.html">玖数问不停</option>
+
 
 
 
@@ -156,9 +159,10 @@
   <div class="container container2" id="container2">
     <div class="menu">
       <select class="dropdown" id="dropdown2">
-        <option value="jiushuydg.html">玖数有点杠</option>
+        <option value="https://jiushu.cpolar.cn/chat/jiushuydg.html">玖数有点杠</option>
         <option value="ocrqianwen.html">千问</option>
         <option value="多模态.html">极速解答</option>
+        <option value="precode.html">训练数据分析</option>
 
         <option value="jiushuwbt.html">玖数问不停</option>
         <option value="https://jiushu.cpolar.cn/数理交互动画/index.html">交互动画</option> 
@@ -168,7 +172,7 @@
         <option value="chatmodel.html">玖数智能</option>
         <option value="玖数对问.html">玖数对问</option>
         <option value="draw.html">绘图</option>
-        <option value="代码预览.html">代码预览</option>
+
         <option value="https://jiushu.vip.cpolar.cn/课程规划/index.html">课程规划</option>
         <option value="../video/index.html">学习视频</option>
         <option value="ocr.html">公式识别</option> 
@@ -203,19 +207,19 @@
   <div class="container container3" id="container3">
     <div class="menu">
       <select class="dropdown" id="dropdown3">
+        <option value="precode.html">训练数据分析</option>
         <option value="https://jiushu.cpolar.cn/数理交互动画/index.html">交互动画</option> 
-        <option value="多模态.html">极速解答</option>
-        <option value="chatmodel.html">玖数智能</option>
-        <option value="ocrqianwen.html">千问</option>
-        <option value="jiushuwbt.html">玖数问不停</option>
-        <option value="jiushuydg.html">玖数有点杠</option>
+        <option value="https://jiushu.cpolar.cn/chat/多模态.html">极速解答</option>
+        <option value="https://jiushu.cpolar.cn/chat/chatmodel.html">玖数智能</option>
+        <option value="https://jiushu.cpolar.cn/chat/ocrqianwen.html">千问</option>
+        <option value="https://jiushu.cpolar.cn/chat/jiushuwbt.html">玖数问不停</option>
+        <option value="https://jiushu.cpolar.cn/chat/jiushuydg.html">玖数有点杠</option>
 
         <option value="识图解题plus.html">识图解题plus</option>
         <option value="识图解题flash.html">识图解题flash</option>
         <option value="chatmodel.html">玖数智能</option>
         <option value="玖数对问.html">玖数对问</option>
         <option value="draw.html">绘图</option>
-        <option value="代码预览.html">代码预览</option>
         <option value="https://jiushu.vip.cpolar.cn/课程规划/index.html">课程规划</option>
         <option value="../video/index.html">学习视频</option>
         <option value="ocr.html">公式识别</option> 
