@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <link rel="icon" href="ico/问.ico" type="image/x-icon">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Learning Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+        h3 {
+            color: #333;
+            margin-top: 30px;
+        }
+        button {
+            font-size: 18px;
+            margin: 10px 5px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #status {
+            font-size: 15px;
+            color: #333;
+            margin-top: 10px;
+        }
+        #messages {
+            margin-top: 10px;
+            text-align: left;
+            width: 80%;
+            height: 600px;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin: auto;
+        }
+        #messages p {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+        }
+        .message-user {
+            background-color: #e0f7fa;
+            text-align: right;
+            max-width: 75%;
+            margin-left: auto;
+        }
+        .message-ai {
+            background-color: #e1f7e1;
+            max-width: 75%;
+            margin-right: auto;
+        }
+        .message-user-rewind {
+            background-color: #e0f7fa;
+            color: #333;
+            border: none;
+            padding: 5px 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            float: right;
+        }
+        .message-user-rewind:hover {
+            background-color: #b2ebf2;
+        }
+        .message-ai-rewind {
+            background-color: #e1f7e1;
+            color: #333;
+            border: none;
+            padding: 5px 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .message-ai-rewind:hover {
+            background-color: #c8e6c9;
+        }
+        .language-selector {
+            margin: 10px 0;
+        }
+        .feedback {
+            margin-top: 5px;
+            font-style: italic;
+            color: #607d8b;
+        }
+        .language-option {
+            margin: 0 5px;
+            padding: 5px 10px;
+            background-color: #e0f7fa;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .language-option.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .vocabulary-section {
+            margin-top: 20px;
+            text-align: left;
+            width: 80%;
+            margin: auto;
+        }
+        .vocabulary-item {
+            background-color: #f9f9f9;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .control-panel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        @media (max-width: 600px) {
+            button {
+                font-size: 16px;
+                padding: 8px 15px;
+            }
+            #messages {
+                height: 450px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<h3>English Learning Assistant<br><small>英语学习助手</small></h3>
+
+<div class="language-selector">
+    <span id="english-option" class="language-option active" onclick="setLanguage('en')">English</span>
+    <span id="chinese-option" class="language-option" onclick="setLanguage('zh')">中文</span>
+</div>
+
+<div class="control-panel">
+    <select id="learningMode">
+        <option value="conversation">Free Conversation (自由对话)</option>
+        <option value="shadowing">Repeat After Me (跟读练习)</option>
+        <option value="pronunciation">Pronunciation Practice (发音练习)</option>
+        <option value="vocabulary">Vocabulary Building (词汇积累)</option>
+        <option value="grammar">Grammar Correction (语法纠正)</option>
+    </select>
+    <select id="difficultyLevel">
+        <option value="beginner">Beginner (初学者)</option>
+        <option value="intermediate">Intermediate (中级)</option>
+        <option value="advanced">Advanced (高级)</option>
+    </select>
+</div>
+
+<div id="messages"></div>
+
+<div class="control-panel">
+    <button id="playPauseButton" style="background-color: #f44336;">Play (播放)</button>
+    <button id="startButton">Start Recording (开始录音)</button>
+    <button id="saveVocabButton">Save Word (保存单词)</button>
+    <button id="clearButton">Clear Chat (清除对话)</button>
+</div>
+
+<p id="status">Status: Ready to record... (状态：等待录音...)</p>
+
+<div id="vocabulary-list" class="vocabulary-section">
+    <h4>Vocabulary List (词汇列表)</h4>
+    <div id="saved-words"></div>
+</div>
+
+<script>
+    const apiKey = "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU";
+    let audioRecorder;
+    let audioChunks = [];
+    let isRecording = false;
+    let currentAudio = null;
+    let recognition;
+    let userAudioHistory = [];
+    let currentLanguage = 'en';
+    let vocabularyList = [];
+    
+    const startButton = document.getElementById('startButton');
+    const playPauseButton = document.getElementById('playPauseButton');
+    const statusElement = document.getElementById('status');
+    const messagesElement = document.getElementById('messages');
+    const saveVocabButton = document.getElementById('saveVocabButton');
+    const clearButton = document.getElementById('clearButton');
+    const savedWordsElement = document.getElementById('saved-words');
+    const learningModeSelect = document.getElementById('learningMode');
+    const difficultyLevelSelect = document.getElementById('difficultyLevel');
+
+    // Load saved vocabulary if available
+    if (localStorage.getItem('vocabularyList')) {
+        vocabularyList = JSON.parse(localStorage.getItem('vocabularyList'));
+        updateVocabularyDisplay();
+    }
+
+    function setLanguage(lang) {
+        currentLanguage = lang;
+        document.getElementById('english-option').className = 'language-option' + (lang === 'en' ? ' active' : '');
+        document.getElementById('chinese-option').className = 'language-option' + (lang === 'zh' ? ' active' : '');
+        
+        if (recognition) {
+            recognition.lang = lang === 'en' ? 'en-US' : 'zh-CN';
+        }
+        
+        updateUILanguage();
+    }
+
+    function updateUILanguage() {
+        if (currentLanguage === 'en') {
+            startButton.innerText = isRecording ? 'Stop Recording' : 'Start Recording';
+            playPauseButton.innerText = currentAudio && !currentAudio.paused ? 'Pause' : 'Play';
+            statusElement.innerText = 'Status: ' + statusElement.innerText.split(':')[1];
+            saveVocabButton.innerText = 'Save Word';
+            clearButton.innerText = 'Clear Chat';
+        } else {
+            startButton.innerText = isRecording ? '停止录音' : '开始录音';
+            playPauseButton.innerText = currentAudio && !currentAudio.paused ? '暂停' : '播放';
+            statusElement.innerText = '状态: ' + statusElement.innerText.split(':')[1];
+            saveVocabButton.innerText = '保存单词';
+            clearButton.innerText = '清除对话';
+        }
+    }
+
+    if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+        recognition.onresult = (event) => {
+            const userText = event.results[0][0].transcript;
+            showUserText(userText);
+        };
+        recognition.onend = () => {
+            statusElement.innerText = currentLanguage === 'en' 
+                ? 'Status: Speech recognition ended' 
+                : '状态：语音识别已结束';
+        };
+    } else {
+        alert(currentLanguage === 'en' 
+            ? 'Sorry, your browser does not support speech recognition' 
+            : '抱歉，您的浏览器不支持语音识别');
+    }
+
+    startButton.onmousedown = () => {
+        if (!isRecording) {
+            startRecording();
+        }
+    };
+
+    startButton.onmouseup = () => {
+        if (isRecording) {
+            stopRecording();
+        }
+    };
+
+    function startRecording() {
+        if (currentAudio && !currentAudio.paused) {
+            currentAudio.pause();
+            playPauseButton.innerText = currentLanguage === 'en' ? "Play" : "播放";
+            playPauseButton.style.backgroundColor = "#4CAF50";
+        }
+
+        audioChunks = [];
+        isRecording = true;
+        startButton.innerText = currentLanguage === 'en' ? 'Stop Recording' : '停止录音';
+        statusElement.innerText = currentLanguage === 'en' 
+            ? 'Status: Recording...' 
+            : '状态：正在录音...';
+
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                audioRecorder = new MediaRecorder(stream);
+                audioRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+                audioRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    saveUserAudio(audioBlob);
+                    sendAudioToServer(audioBlob);
+                };
+                audioRecorder.start();
+            })
+            .catch(error => {
+                statusElement.innerText = currentLanguage === 'en' 
+                    ? 'Status: Recording failed, please check microphone permissions' 
+                    : '状态：录音失败，请检查麦克风权限';
+            });
+
+        recognition.start();
+    }
+
+    function stopRecording() {
+        audioRecorder.stop();
+        isRecording = false;
+        startButton.innerText = currentLanguage === 'en' ? 'Start Recording' : '开始录音';
+        statusElement.innerText = currentLanguage === 'en' 
+            ? 'Status: Recording stopped' 
+            : '状态：录音已停止';
+        recognition.stop();
+    }
+
+    function saveUserAudio(audioBlob) {
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audioData = { blob: audioBlob, url: audioUrl };
+        userAudioHistory.push(audioData);
+        createRewindButton(audioData, 'user');
+    }
+
+    function createRewindButton(audioData, role) {
+        const rewindButton = document.createElement('button');
+        rewindButton.innerText = currentLanguage === 'en' ? "Replay Audio" : "回播音频";
+        rewindButton.className = role === 'user' ? 'message-user-rewind' : 'message-ai-rewind';
+        rewindButton.onclick = () => playAudio(audioData.blob);
+        messagesElement.appendChild(rewindButton);
+    }
+
+    function playAudio(blob) {
+        const audioUrl = URL.createObjectURL(blob);
+        currentAudio = new Audio(audioUrl);
+        currentAudio.play().then(() => {
+            playPauseButton.innerText = currentLanguage === 'en' ? "Pause" : "暂停";
+            playPauseButton.style.backgroundColor = "#FF5722";
+        });
+    }
+
+    function showUserText(userText) {
+        const userMessage = document.createElement('p');
+        userMessage.innerText = userText;
+        userMessage.className = 'message-user';
+        messagesElement.appendChild(userMessage);
+        messagesElement.scrollTop = messagesElement.scrollHeight;
+    }
+
+    function sendAudioToServer(audioBlob) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64Audio = reader.result.split(',')[1];
+            
+            // Create system message based on settings
+            const mode = learningModeSelect.value;
+            const level = difficultyLevelSelect.value;
+            const systemMessage = createSystemPrompt(mode, level);
+            
+            const requestPayload = {
+                model: "glm-4-voice",
+                messages: [
+                    { role: "system", content: systemMessage },
+                    { role: "user", content: [{ type: "input_audio", input_audio: { data: base64Audio, format: "wav" } }] }
+                ],
+                max_tokens: 1024,
+                stream: false
+            };
+
+            fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify(requestPayload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.choices && data.choices[0].message) {
+                    const message = data.choices[0].message;
+                    if (message.content) {
+                        const aiResponse = processFeedback(message.content, mode);
+                        const textMessage = document.createElement('p');
+                        textMessage.innerHTML = `Assistant: ${aiResponse}`;
+                        textMessage.className = 'message-ai';
+                        messagesElement.appendChild(textMessage);
+                        messagesElement.scrollTop = messagesElement.scrollHeight;
+                    }
+                    if (message.audio) {
+                        const audioBlob = base64ToBlob(message.audio.data);
+                        createRewindButton({ blob: audioBlob, url: URL.createObjectURL(audioBlob) }, 'ai');
+                        playAudio(audioBlob);
+                    }
+                }
+            })
+            .catch(error => {
+                const errorMessage = document.createElement('p');
+                errorMessage.innerText = currentLanguage === 'en' 
+                    ? `Error: Could not process audio. Please try again.` 
+                    : `错误：无法处理音频。请重试。`;
+                errorMessage.className = 'message-ai';
+                messagesElement.appendChild(errorMessage);
+                messagesElement.scrollTop = messagesElement.scrollHeight;
+            });
+        };
+        reader.readAsDataURL(audioBlob);
+    }
+
+    function createSystemPrompt(mode, level) {
+        let prompt = "You are an English language learning assistant. ";
+        
+        switch(mode) {
+            case "shadowing":
+                prompt += "This is a 'Repeat After Me' exercise. First, provide a clear, concise sentence in English for the user to repeat (mark it with 'Repeat after me:'). Then analyze their pronunciation when they respond, giving specific feedback on what sounds were correct and what needs improvement. Focus on helping the user match your pronunciation as closely as possible. ";
+                break;
+            case "pronunciation":
+                prompt += "Focus on helping the user improve their pronunciation. Provide specific feedback on how to correctly pronounce words and suggest improvements. ";
+                break;
+            case "vocabulary":
+                prompt += "Help the user build their vocabulary. Introduce useful words and phrases related to the conversation topic. ";
+                break;
+            case "grammar":
+                prompt += "Focus on identifying and correcting grammar mistakes. Explain grammar rules when relevant. ";
+                break;
+            default: // conversation
+                prompt += "Engage in natural conversation while gently correcting errors. ";
+        }
+        
+        prompt += `Adjust your language to ${level} level. `;
+        
+        if (level === "beginner") {
+            prompt += "Use simple vocabulary and shorter sentences. Speak slowly and clearly. ";
+        } else if (level === "intermediate") {
+            prompt += "Use moderate vocabulary and some idiomatic expressions. ";
+        } else { // advanced
+            prompt += "Use sophisticated vocabulary, idiomatic expressions, and complex sentence structures. ";
+        }
+        
+        prompt += "Always provide positive encouragement. If the user speaks in Chinese, gently encourage them to try in English but be supportive.";
+        
+        return prompt;
+    }
+
+    function processFeedback(content, mode) {
+        if (mode === "shadowing") {
+            // Highlight the sentence to repeat and the feedback separately
+            if (content.includes("Repeat after me:")) {
+                const parts = content.split("Repeat after me:");
+                let formattedContent = parts[0];
+                
+                if (parts.length > 1) {
+                    const sentenceParts = parts[1].split(/(?<=\.)(?=\s[A-Z])/);
+                    if (sentenceParts.length > 0) {
+                        formattedContent += "<strong>Repeat after me:</strong> <span style='color:#4CAF50'>" + sentenceParts[0].trim() + "</span>";
+                        
+                        if (sentenceParts.length > 1) {
+                            formattedContent += "<div class='feedback'>" + sentenceParts.slice(1).join(" ") + "</div>";
+                        }
+                    }
+                }
+                return formattedContent;
+            }
+        } else if (mode === "pronunciation" || mode === "grammar") {
+            // Add structured feedback for pronunciation or grammar practice
+            const parts = content.split(/\. (?=[A-Z])/);
+            if (parts.length > 1) {
+                let formattedContent = "";
+                for (let i = 0; i < parts.length; i++) {
+                    if (i === 0) {
+                        formattedContent += parts[i] + ". ";
+                    } else {
+                        formattedContent += `<div class="feedback">${parts[i]}. </div>`;
+                    }
+                }
+                return formattedContent;
+            }
+        } else if (mode === "vocabulary") {
+            // Highlight new vocabulary words
+            const vocabRegex = /\b([A-Za-z]+):/g;
+            return content.replace(vocabRegex, '<strong>$1</strong>:');
+        }
+        return content;
+    }
+
+    function base64ToBlob(base64) {
+        const binaryString = atob(base64);
+        const arrayBuffer = new ArrayBuffer(binaryString.length);
+        const uint8Array = new Uint8Array(arrayBuffer);
+        for (let i = 0; i < binaryString.length; i++) {
+            uint8Array[i] = binaryString.charCodeAt(i);
+        }
+        return new Blob([uint8Array], { type: 'audio/wav' });
+    }
+
+    playPauseButton.onclick = () => {
+        if (currentAudio) {
+            if (currentAudio.paused) {
+                currentAudio.play();
+                playPauseButton.innerText = currentLanguage === 'en' ? "Pause" : "暂停";
+                playPauseButton.style.backgroundColor = "#FF5722";
+            } else {
+                currentAudio.pause();
+                playPauseButton.innerText = currentLanguage === 'en' ? "Play" : "播放";
+                playPauseButton.style.backgroundColor = "#f44336";
+            }
+        }
+    };
+
+    saveVocabButton.onclick = () => {
+        const lastAiMessage = messagesElement.querySelector('.message-ai:last-child');
+        if (lastAiMessage) {
+            const text = lastAiMessage.textContent;
+            const words = text.match(/\b[A-Za-z]+\b/g);
+            if (words && words.length > 0) {
+                // Open a dialog to select words to save
+                const word = prompt(currentLanguage === 'en' 
+                    ? 'Enter the word you want to save:' 
+                    : '输入您想保存的单词:');
+                
+                if (word && word.trim().length > 0) {
+                    const meaning = prompt(currentLanguage === 'en' 
+                        ? 'Enter the meaning or notes for this word:' 
+                        : '输入此单词的含义或笔记:');
+                    
+                    addToVocabulary(word.trim(), meaning || '');
+                }
+            }
+        }
+    };
+
+    clearButton.onclick = () => {
+        if (confirm(currentLanguage === 'en' 
+            ? 'Are you sure you want to clear the chat history?' 
+            : '您确定要清除聊天历史记录吗？')) {
+            messagesElement.innerHTML = '';
+            userAudioHistory = [];
+        }
+    };
+
+    function addToVocabulary(word, meaning) {
+        vocabularyList.push({
+            word: word,
+            meaning: meaning,
+            date: new Date().toLocaleDateString()
+        });
+        localStorage.setItem('vocabularyList', JSON.stringify(vocabularyList));
+        updateVocabularyDisplay();
+    }
+
+    function updateVocabularyDisplay() {
+        savedWordsElement.innerHTML = '';
+        vocabularyList.forEach((item, index) => {
+            const vocabItem = document.createElement('div');
+            vocabItem.className = 'vocabulary-item';
+            vocabItem.innerHTML = `
+                <div>
+                    <strong>${item.word}</strong>: ${item.meaning}
+                    <small>(${item.date})</small>
+                </div>
+                <button onclick="removeVocabularyItem(${index})">✖</button>
+            `;
+            savedWordsElement.appendChild(vocabItem);
+        });
+    }
+
+    // Add this function to the global scope so it can be called from inline handlers
+    window.removeVocabularyItem = function(index) {
+        vocabularyList.splice(index, 1);
+        localStorage.setItem('vocabularyList', JSON.stringify(vocabularyList));
+        updateVocabularyDisplay();
+    };
+
+    // Add a welcome message
+    window.onload = function() {
+        const welcomeMessage = document.createElement('p');
+        welcomeMessage.innerHTML = `Assistant: Welcome to the English Learning Assistant! I'm here to help you practice English. Choose a learning mode and difficulty level, then press the "Start Recording" button and speak in English. I'll provide helpful feedback based on your selections.<br><br>欢迎使用英语学习助手！我将帮助您练习英语。选择学习模式和难度级别，然后按下"开始录音"按钮并用英语说话。我将根据您的选择提供有用的反馈。<br><br>For the "Repeat After Me" mode, I'll say a sentence first and then you can repeat it. I'll give you feedback on your pronunciation.`;
+        welcomeMessage.className = 'message-ai';
+        messagesElement.appendChild(welcomeMessage);
+    };
+</script>
+
+</body>
+</html>

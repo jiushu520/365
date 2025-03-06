@@ -4,41 +4,80 @@
   <link rel="icon" href="icon.ico" type="image/x-icon">
   <meta charset="UTF-8">
   <style>
-    .slider {
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    .main-container {
+      display: flex;
+      height: 97vh;
+      width: 100%;
       position: relative;
-      width: 100%;
-      height: 3vh;
-      background: #ddd;
-      margin: 0px;
-    }
-    .slider .track {
-      position: absolute;
-      height: 100%;
-      width: 100%;
-      background: #ddd;
-    }
-    .slider .handle {
-      position: absolute;
-      top: 0;
-      width: 10px;
-      height: 2.5vh;
-      background: black; 
-      cursor: pointer;
-      border-radius: 5px; /* 设置圆角 */
-      border: 2px solid grey; /* 设置蓝色边框 */
-    }
-    .slider .range {
-      background: transparent; /* 将选中范围设为透明 */
+      top: 0vh; 
     }
     .container {
-      position: absolute;
-      top: 0vh;
-      height: 97vh;
+      height: 100%;
       display: flex;
       flex-direction: column;
+      transition: width 0.2s ease;
     }
-    .container1, .container2, .container3 {
-      background: rgba(173, 216, 230, 1); /* 浅蓝色 */
+    .container1 {
+      background: rgba(173, 216, 230, 0.3);
+    }
+    .container2 {
+      background: rgba(173, 216, 230, 0.5);
+    }
+    .container3 {
+      background: rgba(173, 216, 230, 0.7);
+    }
+    .handle {
+      position: absolute;
+      top: 0;
+      width: 12px;
+      height: 100%;
+      background: #2c3e50; /* 静止状态 - 深蓝色 */
+      cursor: col-resize;
+      border-radius: 3px;
+      border: 1px solid #3498db;
+      box-shadow: 0 0 3px rgba(0,0,0,0.3);
+      z-index: 100; /* 确保手柄在最上层 */
+      transition: background-color 0.2s, width 0.2s, margin-left 0.2s; /* 添加平滑过渡效果 */
+      touch-action: none; /* 防止默认的触摸行为如滚动 */
+    }
+    .handle:hover {
+      background: #3498db; /* 悬停状态 - 亮蓝色 */
+      width: 12px;
+      margin-left: -1px;
+    }
+    .handle.dragging {
+      background: #e74c3c; /* 拖动状态 - 红色 */
+      width: 12px;
+      margin-left: -1px;
+      box-shadow: 0 0 8px rgba(231, 76, 60, 0.6); /* 拖动时增强阴影效果 */
+    }
+    
+    /* 为触摸设备添加媒体查询 */
+    @media (max-width: 768px) {
+      .handle {
+        width: 20px; /* 在触摸设备上增加手柄宽度 */
+      }
+      .handle:hover, .handle.dragging {
+        width: 20px;
+      }
+    }
+    
+    .menu {
+      background: #f8f9fa;
+      padding: 5px;
+      text-align: center;
+      border-bottom: 1px solid #dee2e6;
+    }
+    .dropdown {
+      width: 90%;
+      padding: 6px;
+      border-radius: 4px;
+      border: 1px solid #ced4da;
     }
     iframe {
       width: 100%;
@@ -46,30 +85,40 @@
       border: none;
       flex-grow: 1;
     }
-    .menu {
-      background: #f0f0f0;
-      padding: 0px;
-      text-align: center;
-    }
-    .dropdown {
-      width: 90%;
-      padding: 5px;
+    .title-bar {
+      height: 3vh;
+      background: #2c3e50;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+      position: absolute;
+      top: 0;
+      width: 100%;
     }
   </style>
 </head>
 <body>
 
-<!-- 滑动条部分 -->
-<div class="slider" id="slider">
-  <div class="track"></div>
 
-  <!-- 三个容器，分别插入不同的iframe链接 -->
+
+<!-- 主容器 -->
+<div class="main-container" id="main-container">
+  <!-- 第一个容器 -->
   <div class="container container1" id="container1">
     <div class="menu">
       <select class="dropdown" id="dropdown1">
-        <option value="../tiku/index2.html">题库</option>
-        <option value="jiushuydgfree.html">玖数有点杠</option>
-         <option value="识图解题flash.html">识图解题flash</option>
+      <option value="../tiku/index2.html">题库</option>
+        <option value="chatmodel.html">玖数智能</option>
+        <option value="https://jiushu.cpolar.cn/数理交互动画/index.html">交互动画</option> 
+        <option value="玖数对问.html">玖数对问</option>
+        <option value="识图解题flash.html">识图解题flash</option>
+        <option value="draw.html">绘图</option>
+        <option value="代码预览.html">代码预览</option>
+        <option value="https://www.geogebra.org/classic">ggb</option>
+        <option value="ggborder.html">ggborder</option>
+        <option value="website.html">任意网页</option>
         <option value="https://felo.ai/search">felo</option>
         <option value="metaso.html">metaso.cn</option>
         <option value="https://chat.deepseek.com/">deepseek</option>
@@ -80,12 +129,24 @@
     <iframe src="" id="iframe1" title="Content Viewer"></iframe>
   </div>
 
+  <!-- 第一个手柄 -->
+  <div class="handle" id="handle1"></div>
+
+  <!-- 第二个容器 -->
   <div class="container container2" id="container2">
     <div class="menu">
       <select class="dropdown" id="dropdown2">
-        <option value="jiushuydgfree.html">玖数有点杠</option>
-        <option value="../tiku/index2.html">题库</option>
-         <option value="识图解题flash.html">识图解题flash</option>
+        <option value="chatmodel.html">玖数智能(vip请加:13316325600)</option>
+      <option value="../tiku/index2.html">题库</option>
+
+        <option value="https://jiushu.cpolar.cn/数理交互动画/index.html">交互动画</option> 
+        <option value="玖数对问.html">玖数对问</option>
+        <option value="识图解题flash.html">识图解题flash</option>
+        <option value="draw.html">绘图</option>
+        <option value="代码预览.html">代码预览</option>
+        <option value="https://www.geogebra.org/classic">ggb</option>
+        <option value="ggborder.html">ggborder</option>
+        <option value="website.html">任意网页</option>
         <option value="https://felo.ai/search">felo</option>
         <option value="metaso.html">metaso.cn</option>
         <option value="https://chat.deepseek.com/">deepseek</option>
@@ -96,12 +157,23 @@
     <iframe src="" id="iframe2" title="Content Viewer"></iframe>
   </div>
 
+  <!-- 第二个手柄 -->
+  <div class="handle" id="handle2"></div>
+
+  <!-- 第三个容器 -->
   <div class="container container3" id="container3">
     <div class="menu">
       <select class="dropdown" id="dropdown3">
-        <option value="jiushuydgfree.html">玖数有点杠</option>
-        <option value="../tiku/index2.html">题库</option>
-         <option value="识图解题flash.html">识图解题flash</option>
+      <option value="../tiku/index2.html">题库</option>
+        <option value="chatmodel.html">玖数智能</option>
+        <option value="https://jiushu.cpolar.cn/数理交互动画/index.html">交互动画</option> 
+        <option value="玖数对问.html">玖数对问</option>
+        <option value="识图解题flash.html">识图解题flash</option>
+        <option value="draw.html">绘图</option>
+        <option value="代码预览.html">代码预览</option>
+        <option value="https://www.geogebra.org/classic">ggb</option>
+        <option value="ggborder.html">ggborder</option>
+        <option value="website.html">任意网页</option>
         <option value="https://felo.ai/search">felo</option>
         <option value="metaso.html">metaso.cn</option>
         <option value="https://chat.deepseek.com/">deepseek</option>
@@ -111,11 +183,6 @@
     </div>
     <iframe src="" id="iframe3" title="Content Viewer"></iframe>
   </div>
-
-  <!-- 滑动块和选中范围 -->
-  <div class="range" id="range"></div>
-  <div class="handle" id="handle1"></div>
-  <div class="handle" id="handle2"></div>
 </div>
 
 <script>
@@ -144,110 +211,146 @@
     dropdown3.addEventListener('change', function() {
       iframe3.src = this.value;
     });
+    
+    // 调整窗口大小时重新初始化handles
+    window.addEventListener('resize', function() {
+      initHandles();
+    });
   });
 
-  // 滑动条逻辑
-  let slider = document.getElementById('slider'); // 获取slider元素
-  let handle1 = document.getElementById('handle1');
-  let handle2 = document.getElementById('handle2');
-  let range = document.getElementById('range');
-  let container1 = document.getElementById('container1');
-  let container2 = document.getElementById('container2');
-  let container3 = document.getElementById('container3');
+  // 获取元素
+  const mainContainer = document.getElementById('main-container');
+  const handle1 = document.getElementById('handle1');
+  const handle2 = document.getElementById('handle2');
+  const container1 = document.getElementById('container1');
+  const container2 = document.getElementById('container2');
+  const container3 = document.getElementById('container3');
 
-  let max = slider.offsetWidth; // 确保 max 是有效的，可能在页面加载时需要更新
   let dragging = null;
   let animationFrame;
+  
+  // 修改默认比例 - 左侧60%，中间40%，右侧0%
+  const defaultRatio1 = 0.60; // 第一个容器默认占60%
+  const defaultRatio2 = 0.995;  // 第二个容器结束位置为95%
 
   function initHandles() {
-    // 防止 max 为零
-    if (max === 0) {
-      max = slider.offsetWidth; // 更新 max 值
-    }
-    // 设置 handle1 和 handle2 的位置
-    handle1.style.left = (max * 0.618 - handle1.offsetWidth / 2) + 'px';
-    handle2.style.left = (max *1 - handle2.offsetWidth / 2) + 'px';
-    updateRange();
-    updateContainers();
+    const totalWidth = mainContainer.offsetWidth;
+    const handleWidth = handle1.offsetWidth;
+    
+    // Adjust container widths to account for handle widths
+    container1.style.width = (totalWidth * defaultRatio1 - handleWidth/2) + 'px';
+    container2.style.width = (totalWidth * (defaultRatio2 - defaultRatio1) - handleWidth) + 'px';
+    container3.style.width = (totalWidth * (1 - defaultRatio2) - handleWidth/2) + 'px';
+    
+    // Set handle positions
+    handle1.style.left = (totalWidth * defaultRatio1 - handleWidth / 2) + 'px';
+    handle2.style.left = (totalWidth * defaultRatio2 - handleWidth / 2) + 'px';
   }
 
+  // 手柄拖动事件
   function onPointerDown(e) {
     e.preventDefault();
     dragging = e.target;
-    slider.setPointerCapture(e.pointerId);
+    dragging.classList.add('dragging'); // 添加拖动状态类
+    
+    // 使用 setPointerCapture 来确保即使触摸移动到元素外部也能继续接收事件
+    if (e.pointerId) {
+      dragging.setPointerCapture(e.pointerId);
+    } else {
+      // 兼容老设备
+      mainContainer.setPointerCapture(e.pointerId);
+    }
+    
+    // 禁止触摸时页面滚动
+    document.body.style.overflow = 'hidden';
   }
 
   function onPointerMove(e) {
     if (dragging) {
-      const rect = slider.getBoundingClientRect();
-      let offsetX = e.clientX - rect.left;
-      offsetX = Math.max(0, Math.min(offsetX, max));
+      // 防止事件冒泡和默认行为
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const rect = mainContainer.getBoundingClientRect();
+      // 使用 clientX 或 touches[0].clientX 获取触摸位置
+      let clientX = e.clientX;
+      if (e.touches && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+      }
+      
+      let offsetX = clientX - rect.left;
+      const totalWidth = mainContainer.offsetWidth;
+      
+      offsetX = Math.max(0, Math.min(offsetX, totalWidth));
 
       if (dragging === handle1) {
-        const handle2Pos = parseFloat(handle2.style.left) || max;
-        offsetX = Math.min(offsetX, handle2Pos);
+        const handle2Pos = parseFloat(handle2.style.left) + handle2.offsetWidth / 2;
+        offsetX = Math.min(offsetX, handle2Pos - 10); // Ensure minimum distance between handles
+        
+        // Adjust for handle width when updating container widths
+        container1.style.width = (offsetX - handle1.offsetWidth/2) + 'px';
+        container2.style.width = (handle2Pos - offsetX - handle1.offsetWidth/2) + 'px';
+        
       } else if (dragging === handle2) {
-        const handle1Pos = parseFloat(handle1.style.left) || 0;
-        offsetX = Math.max(offsetX, handle1Pos);
+        const handle1Pos = parseFloat(handle1.style.left) + handle1.offsetWidth / 2;
+        offsetX = Math.max(offsetX, handle1Pos + 10); // Ensure minimum distance between handles
+        
+        // Adjust for handle width when updating container widths
+        container2.style.width = (offsetX - handle1Pos - handle2.offsetWidth/2) + 'px';
+        container3.style.width = (totalWidth - offsetX - handle2.offsetWidth/2) + 'px';
       }
 
-      dragging.style.left = offsetX - dragging.offsetWidth / 2 + 'px';
-
-      if (!animationFrame) {
-        animationFrame = requestAnimationFrame(() => {
-          updateRange();
-          updateContainers();
-          animationFrame = null;
-        });
-      }
+      dragging.style.left = (offsetX - dragging.offsetWidth / 2) + 'px';
     }
   }
 
   function onPointerUp(e) {
-    dragging = null;
-    slider.releasePointerCapture(e.pointerId);
+    if (dragging) {
+      dragging.classList.remove('dragging'); // 移除拖动状态类
+      
+      // 释放指针捕获
+      if (e.pointerId && dragging.releasePointerCapture) {
+        dragging.releasePointerCapture(e.pointerId);
+      } else {
+        mainContainer.releasePointerCapture(e.pointerId);
+      }
+      
+      dragging = null;
+      
+      // 恢复正常滚动
+      document.body.style.overflow = '';
+    }
   }
 
-  function updateRange() {
-    const handle1Pos = parseFloat(handle1.style.left) || 0;
-    const handle2Pos = parseFloat(handle2.style.left) || max - handle2.offsetWidth;
-    const minPos = Math.min(handle1Pos, handle2Pos) + handle1.offsetWidth / 2;
-    const maxPos = Math.max(handle1Pos, handle2Pos) + handle1.offsetWidth / 2;
-    
-    range.style.left = minPos + 'px';
-    range.style.width = (maxPos - minPos) + 'px';
-  }
-
-  function updateContainers() {
-    const handle1Pos = parseFloat(handle1.style.left) || 0;
-    const handle2Pos = parseFloat(handle2.style.left) || max - handle2.offsetWidth;
-
-    // 防止容器宽度为负值
-    container1.style.width = Math.max(handle1Pos, 0) + 'px';
-    container2.style.width = Math.max(handle2Pos - handle1Pos, 0) + 'px';
-    container3.style.width = Math.max(max - handle2Pos, 0) + 'px';
-
-    container1.style.left = '0px';
-    container2.style.left = handle1Pos + 'px';
-    container3.style.left = handle2Pos + 'px';
-  }
-
-  // 下拉菜单事件监听
-  document.getElementById('dropdown1').addEventListener('change', function() {
-    document.getElementById('container1').querySelector('iframe').src = this.value;
-  });
-  document.getElementById('dropdown2').addEventListener('change', function() {
-    document.getElementById('container2').querySelector('iframe').src = this.value;
-  });
-  document.getElementById('dropdown3').addEventListener('change', function() {
-    document.getElementById('container3').querySelector('iframe').src = this.value;
-  });
-
+  // 设置事件监听器 - 同时支持鼠标和触摸
   handle1.addEventListener('pointerdown', onPointerDown);
   handle2.addEventListener('pointerdown', onPointerDown);
-  slider.addEventListener('pointermove', onPointerMove);
-  slider.addEventListener('pointerup', onPointerUp);
+  mainContainer.addEventListener('pointermove', onPointerMove);
+  mainContainer.addEventListener('pointerup', onPointerUp);
+  mainContainer.addEventListener('pointercancel', onPointerUp);
 
+  // 备用触摸事件监听器用于不支持 Pointer 事件的旧设备
+  handle1.addEventListener('touchstart', function(e) {
+    onPointerDown({target: handle1, preventDefault: function(){}, pointerId: null});
+  }, {passive: false});
+  handle2.addEventListener('touchstart', function(e) {
+    onPointerDown({target: handle2, preventDefault: function(){}, pointerId: null});
+  }, {passive: false});
+  mainContainer.addEventListener('touchmove', function(e) {
+    if (dragging) {
+      e.preventDefault();
+      onPointerMove({
+        preventDefault: function(){}, 
+        stopPropagation: function(){}, 
+        touches: e.touches,
+        clientX: e.touches[0].clientX
+      });
+    }
+  }, {passive: false});
+  mainContainer.addEventListener('touchend', onPointerUp);
+  mainContainer.addEventListener('touchcancel', onPointerUp);
+
+  // 初始化
   initHandles();
 </script>
 </body>

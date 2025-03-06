@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+ <link rel="icon" href="ico/问.ico" type="image/x-icon">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>玖数对问</title>
@@ -228,7 +229,7 @@
         reader.onloadend = () => {
             const base64Audio = reader.result.split(',')[1];
             const requestPayload = {
-                model: "glm-4-voice",
+                model: "paraformer-realtime-v2",
                 messages: [{ role: "user", content: [{ type: "input_audio", input_audio: { data: base64Audio, format: "wav" } }] }],
                 max_tokens: 1024,
                 stream: false

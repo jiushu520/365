@@ -1828,78 +1828,123 @@
         let accumulatedText = ''; // 用于累积所有识别的文本
         let interimText = ''; // 用于显示实时识别的文本
 
-        // 检查浏览器是否支持语音识别
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            recognition = new (window.webkitSpeechRecognition || window.SpeechRecognition)();
-            recognition.continuous = true; // 改为持续录音
-            recognition.interimResults = true;
-            recognition.lang = 'zh-CN';
+        // 检查是否在 Electron 环境中
+        const isElectron = window.navigator.userAgent.toLowerCase().includes('electron');
 
-            // 语音识别结果处理
-            recognition.onresult = function(event) {
-                const results = event.results;
-                // 获取最后一个结果
-                const lastResult = results[results.length - 1];
-                // 获取当前识别的文本
-                const currentText = lastResult[0].transcript;
-                
-                if (lastResult.isFinal) {
-                    // 如果是最终结果，添加到累积文本中
-                    accumulatedText += currentText + ' ';
-                    interimText = ''; // 清空临时文本
-                } else {
-                    // 如果是中间结果，更新临时文本
-                    interimText = currentText;
+        // 初始化语音识别
+        function initSpeechRecognition() {
+            if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+                voiceBtn.style.display = 'none';
+                console.warn('Browser does not support speech recognition');
+                return;
+            }
+
+            try {
+                recognition = new (window.webkitSpeechRecognition || window.SpeechRecognition)();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'zh-CN';
+
+                // 语音识别结果处理
+                recognition.onresult = function(event) {
+                    const results = event.results;
+                    const lastResult = results[results.length - 1];
+                    const currentText = lastResult[0].transcript;
+                    
+                    if (lastResult.isFinal) {
+                        accumulatedText += currentText + ' ';
+                        interimText = '';
+                    } else {
+                        interimText = currentText;
+                    }
+                    
+                    userInput.value = (accumulatedText + interimText).trim();
+                };
+
+                recognition.onend = function() {
+                    if (isRecording) {
+                        // 如果还在录音状态，重新开始录音
+                        try {
+                            recognition.start();
+                        } catch (e) {
+                            console.error('Failed to restart recognition:', e);
+                            stopRecording();
+                        }
+                    }
+                };
+
+                recognition.onerror = function(event) {
+                    console.error('Speech recognition error:', event.error);
+                    stopRecording();
+                    
+                    // 针对 Electron 环境的错误处理
+                    if (isElectron && event.error === 'not-allowed') {
+                        alert('请确保已授予麦克风访问权限。您可以在系统设置中修改权限设置。');
+                    } else {
+                        alert('语音识别出错: ' + event.error);
+                    }
+                };
+
+                // 在 Electron 环境中请求麦克风权限
+                if (isElectron) {
+                    navigator.mediaDevices.getUserMedia({ audio: true })
+                        .then(stream => {
+                            stream.getTracks().forEach(track => track.stop());
+                            console.log('Microphone permission granted');
+                        })
+                        .catch(err => {
+                            console.error('Microphone permission denied:', err);
+                            alert('请允许访问麦克风以使用语音功能');
+                        });
                 }
-                
-                // 更新输入框显示：累积文本 + 临时文本
-                userInput.value = (accumulatedText + interimText).trim();
-            };
-
-            recognition.onend = function() {
-                if (isRecording) {
-                    // 如果还在录音状态，重新开始录音
-                    recognition.start();
-                }
-            };
-
-            recognition.onerror = function(event) {
-                console.error('Speech recognition error:', event.error);
-                stopRecording();
-                alert('语音识别出错: ' + event.error);
-            };
-        } else {
-            voiceBtn.style.display = 'none';
-            console.warn('Browser does not support speech recognition');
+            } catch (e) {
+                console.error('Failed to initialize speech recognition:', e);
+                voiceBtn.style.display = 'none';
+            }
         }
 
         // 开始录音
         function startRecording() {
-            if (!recognition) return;
+            if (!recognition) {
+                initSpeechRecognition();
+                if (!recognition) return;
+            }
             
-            isRecording = true;
-            accumulatedText = ''; // 重置累积文本
-            interimText = ''; // 重置临时文本
-            userInput.value = ''; // 清空输入框
-            voiceBtn.classList.add('recording');
-            voiceStatus.style.display = 'block';
-            recognition.start();
+            try {
+                isRecording = true;
+                accumulatedText = '';
+                interimText = '';
+                userInput.value = '';
+                voiceBtn.classList.add('recording');
+                voiceStatus.style.display = 'block';
+                recognition.start();
+            } catch (e) {
+                console.error('Failed to start recording:', e);
+                stopRecording();
+                alert('启动语音识别失败，请刷新页面重试');
+            }
         }
 
         // 停止录音
         function stopRecording() {
             if (!recognition) return;
             
-            isRecording = false;
-            voiceBtn.classList.remove('recording');
-            voiceStatus.style.display = 'none';
-            recognition.stop();
-            
-            // 如果有累积的文本内容，发送消息
-            if (accumulatedText.trim()) {
-                sendMessage();
+            try {
+                isRecording = false;
+                voiceBtn.classList.remove('recording');
+                voiceStatus.style.display = 'none';
+                recognition.stop();
+                
+                if (accumulatedText.trim()) {
+                    sendMessage();
+                }
+            } catch (e) {
+                console.error('Failed to stop recording:', e);
             }
         }
+
+        // 初始化语音识别
+        initSpeechRecognition();
 
         // 语音按钮事件处理
         voiceBtn.addEventListener('mousedown', function(e) {
