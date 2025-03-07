@@ -72,6 +72,10 @@
           <line id="vectorOB" x1="0" y1="0" x2="0" y2="0" stroke="blue" stroke-width="2" marker-end="url(#arrowhead)"/>
       
           
+          <!-- 向量OB的法向量 -->
+          <line id="vectorOBNormal" x1="0" y1="0" x2="0" y2="0" stroke="magenta" stroke-width="2" marker-end="url(#arrowhead)" stroke-dasharray="5,3"/>
+          <text id="vectorOBNormalLabel" x="0" y="0" class="label" fill="magenta">OB⊥</text>
+          
           <!-- VectorOC: xa * OB -->
           <line id="vector1" x1="0" y1="0" x2="0" y2="0" stroke="orange" stroke-width="2" marker-end="url(#arrowhead)"/>
           <text id="vector1Label" x="0" y="0" class="label" fill="orange">Vector1</text>
@@ -103,6 +107,8 @@
     // 新增的向量元素
     const vectorOA = document.getElementById('vectorOA');
     const vectorOB = document.getElementById('vectorOB');
+    const vectorOBNormal = document.getElementById('vectorOBNormal');
+    const vectorOBNormalLabel = document.getElementById('vectorOBNormalLabel');
     const vector1 = document.getElementById('vector1');
     const vector2 = document.getElementById('vector2');
     const vectorProduct = document.getElementById('vectorProduct');
@@ -294,6 +300,11 @@
 
       // 计算OB = (xb, yb)
       const svg_OB_end = gridToSVG(xb, yb);
+      
+      // 计算OB的法向量 = (-yb, xb)
+      const normal_x = -yb;
+      const normal_y = xb;
+      const svg_normal_end = gridToSVG(normal_x, normal_y);
 
       // 计算Vector1 = xa * OB = (xa * xb, xa * yb)
       const vector1_x = xa * xb;
@@ -325,6 +336,17 @@
       vectorOB.setAttribute('y1', 0);
       vectorOB.setAttribute('x2', svg_vectorOB_end.x);
       vectorOB.setAttribute('y2', svg_vectorOB_end.y);
+      
+      // 更新OB的法向量位置
+      vectorOBNormal.setAttribute('x1', 0);
+      vectorOBNormal.setAttribute('y1', 0);
+      vectorOBNormal.setAttribute('x2', svg_normal_end.x);
+      vectorOBNormal.setAttribute('y2', svg_normal_end.y);
+      
+      // 更新OB的法向量标签
+      vectorOBNormalLabel.setAttribute('x', svg_normal_end.x + 5);
+      vectorOBNormalLabel.setAttribute('y', svg_normal_end.y - 5);
+      vectorOBNormalLabel.textContent = `OB⊥ (${normal_x.toFixed(0)}, ${normal_y.toFixed(0)})`;
 
       // 更新Vector1的位置
       vector1.setAttribute('x1', 0);
