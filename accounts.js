@@ -19,6 +19,15 @@ const userPasswordMap =
 "郑晋东": { "page": "./chat/1", "password": "jiushu", "avatar": "https://jiushu.cpolar.cn/avatars/玖数.jpg", "expirationDate": "2025-07-01" },
 
 
+"罗安乔": { "page": "./chat/1", "password": "jiushu", "avatar": "https://jiushu.cpolar.cn/avatars/玖数.jpg", "expirationDate": "2025-07-01" },
+"杨羿安": { "page": "./chat/1", "password": "jiushu", "avatar": "https://jiushu.cpolar.cn/avatars/玖数.jpg", "expirationDate": "2025-07-01" },
+"鲁雨欣": { "page": "./chat/1", "password": "jiushu", "avatar": "https://jiushu.cpolar.cn/avatars/玖数.jpg", "expirationDate": "2025-07-01" },
+"唐云山": { "page": "./chat/1", "password": "jiushu", "avatar": "https://jiushu.cpolar.cn/avatars/玖数.jpg", "expirationDate": "2025-07-01" },
+"孙锡远": { "page": "./chat/1", "password": "jiushu", "avatar": "https://jiushu.cpolar.cn/avatars/玖数.jpg", "expirationDate": "2025-07-01" },
+"萧孺琦": { "page": "./chat/1", "password": "jiushu", "avatar": "https://jiushu.cpolar.cn/avatars/玖数.jpg", "expirationDate": "2025-07-01" },
+"方思涵": { "page": "./chat/1", "password": "jiushu", "avatar": "https://jiushu.cpolar.cn/avatars/玖数.jpg", "expirationDate": "2025-07-01" },
+
+
 "龙沐洋": { "page": "./chat/1", "password": "jiushu", "avatar": "https://jiushu.cpolar.cn/avatars/玖数.jpg", "expirationDate": "2025-07-01" },
 "王胡睿": { "page": "./chat/1", "password": "jiushu", "avatar": "https://jiushu.cpolar.cn/avatars/玖数.jpg", "expirationDate": "2025-07-01" },
 "陈子诚": { "page": "./chat/1", "password": "jiushu", "avatar": "https://jiushu.cpolar.cn/avatars/玖数.jpg", "expirationDate": "2025-07-01" },

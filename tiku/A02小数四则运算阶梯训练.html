@@ -1264,19 +1264,11 @@
         }
         
         
+
+
+
+
         function generateLevel3Question() {
-            let m = (Math.floor(Math.random() * 19) + 1) /10;
-            let n = (Math.floor(Math.random() * 9) + 1);
-            let mn = m*n;
-        
-            let question = `${mn.toFixed(1)} \\div ${n.toFixed(0)}=?`;
-          
-            correctAnswer = [`${(m).toFixed(1)}`];
-        
-            return `\\(${question}\\)`;
-        }
-        
-        function generateLevel4Question() {
             let m = (Math.floor(Math.random() * 199) + 1) / 10;
             let n = (Math.floor(Math.random() * 9) + 1);
             let question = `${m.toFixed(1)} \\times ${n.toFixed(0)}=?`;
@@ -1293,7 +1285,21 @@
             return `\\(${question}\\)`;
         }
         
+                function generateLevel4Question() {
+            let m = (Math.floor(Math.random() * 19) + 1) /10;
+            let n = (Math.floor(Math.random() * 9) + 1);
+            let mn = m*n;
         
+            let question = `${mn.toFixed(1)} \\div ${n.toFixed(0)}=?`;
+          
+            correctAnswer = [`${(m).toFixed(1)}`];
+        
+            return `\\(${question}\\)`;
+        }
+        
+
+
+
         function generateLevel5Question() {
             let m = (Math.floor(Math.random() * 199) + 1) / 10;
             let n = (Math.floor(Math.random() * 199) + 1) / 10;
