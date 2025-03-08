@@ -1254,11 +1254,11 @@
         
         
         function generateLevel2Question() {
-            let m = (Math.floor(Math.random() * 19) + 1) /10;
-            let n = (Math.floor(Math.random() * 9) + 1);
-            let question = `${m.toFixed(1)} \\times ${n.toFixed(0)}=?`;
+            let m = (Math.floor(Math.random() * 19) + 1) / 10;
+            let n = (Math.floor(Math.random() * 9) + 1) / 10;
+            let question = `${(m + n).toFixed(1)} - ${n.toFixed(1)}=?`;
           
-            correctAnswer = [`${(m * n).toFixed(1)}`];
+            correctAnswer = [`${m.toFixed(1)}`];
         
             return `\\(${question}\\)`;
         }
