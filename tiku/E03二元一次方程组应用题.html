@@ -1352,7 +1352,7 @@ function generateLevel1eQuestion() {
     let n = Math.floor(Math.random() * 2) - 2;
     let f = r * m + c * n;
 
-    let textq = `\\[\\huge 
+    let textq = `\\[ 
         \\begin{array}{cc} 
         天命人在玖数学堂打怪，\\\\
         要打${a}下； 打中一次有${m}分；  打错一次有${n}分；\\\\
@@ -1361,17 +1361,6 @@ function generateLevel1eQuestion() {
         \\end{array}
         \\]`;
 
-    // 随机选择图片
-    let imageFile = Math.random() < 0.5 ? 'c0101.gif' : 'c0102.gif';
-
-    // 插入图片
-    textq += `<br/><img src="./images/${imageFile}" style="width:30%;"> <br/>   \\[  
-      \\begin{array}{c}
-       当你能用六种方法做出来,\\\\
-       悟空的六根聚齐，\\\\
-       \\huge 大圣也许就会回归......
-      \\end{array}       
- \\]          \\[输入格式：a,b或a;b \\]  `;
 
     correctAnswer = [`${r},${c}`, `${r};${c}`];
 
