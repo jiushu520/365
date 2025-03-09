@@ -972,20 +972,51 @@
         }
         
         function submitComputerAnswer() {
-            if (!gameInProgress || gameMode !== 'pk') return;
+    if (!gameInProgress || gameMode !== 'pk') return;
+    
+    // 计算答题用时
+    const questionTime = computerTime - computerQuestionStartTime;
+    
+    // 使用计算机题目的正确答案
+    const computerAnswer = computerCorrectAnswer[0];
+    
+    // 随机决定计算机是否答对（90%的概率答对）
+    const isCorrect = Math.random() < 0.9;
+    
+    let displayAnswer;
+    if (isCorrect) {
+        displayAnswer = computerAnswer;
+    } else {
+        // 如果要错，则显示一个稍微不同的答案
+        displayAnswer = parseInt(computerAnswer) + (Math.random() > 0.5 ? 1 : -1);
+    }
+    
+    // 更新状态为"正在输入"
+    document.getElementById('computerStatus').innerHTML = '正在输入...';
+    
+    // 清空计算机答案框
+    document.getElementById('computerAnswer').value = '';
+    document.getElementById('computerRenderedAnswer').innerHTML = '';
+    
+    // 使用打字机效果显示答案
+    let currentIndex = 0;
+    const typingInterval = setInterval(() => {
+        if (currentIndex < displayAnswer.toString().length) {
+            // 每次添加一个字符
+            document.getElementById('computerAnswer').value += displayAnswer.toString().charAt(currentIndex);
+            document.getElementById('computerRenderedAnswer').innerHTML = '\\(' + document.getElementById('computerAnswer').value + '\\)';
             
-            // 计算答题用时
-            const questionTime = computerTime - computerQuestionStartTime;
+            // 重新渲染数学公式
+            MathJax.typesetPromise([document.getElementById('computerRenderedAnswer')])
+                .catch((err) => console.log(err));
+                
+            currentIndex++;
+        } else {
+            // 打字完成，清除定时器
+            clearInterval(typingInterval);
             
-            // 使用计算机题目的正确答案
-            const computerAnswer = computerCorrectAnswer[0];
-            
-            // 随机决定计算机是否答对（90%的概率答对）
-            const isCorrect = Math.random() < 0.9;
-            
-            let displayAnswer;
+            // 显示结果
             if (isCorrect) {
-                displayAnswer = computerAnswer;
                 document.getElementById('computerResult').innerHTML = '正确!';
                 document.getElementById('computerResult').className = 'result correct';
                 computerCorrectCount++;
@@ -1005,8 +1036,6 @@
                 // 显示对诮语句
                 showTaunt('computer');
             } else {
-                // 如果要错，则显示一个稍微不同的答案
-                displayAnswer = parseInt(computerAnswer) + (Math.random() > 0.5 ? 1 : -1);
                 document.getElementById('computerResult').innerHTML = '错误';
                 document.getElementById('computerResult').className = 'result incorrect';
                 computerIncorrectCount++;
@@ -1015,10 +1044,8 @@
                 document.getElementById('wrongSound').play();
             }
             
-            // 更新显示
+            // 更新状态
             document.getElementById('computerStatus').innerHTML = '已作答';
-            document.getElementById('computerAnswer').value = displayAnswer;
-            document.getElementById('computerRenderedAnswer').innerHTML = '\\(' + displayAnswer + '\\)';
             
             // 更新总题数
             computerTotalCount++;
@@ -1026,22 +1053,20 @@
             // 更新分数
             updateComputerScore();
             
-            // 重新渲染数学公式
-            MathJax.typesetPromise([document.getElementById('computerRenderedAnswer')])
-                .catch((err) => console.log(err));
-            
             // 添加到历史记录
             addToHistory('计算机', difficultyNames[currentDifficulty - 1], 
-                          document.getElementById('computerQuestion').innerHTML, 
-                          displayAnswer, computerCorrectAnswer.join(' 或 '), 
-                          isCorrect ? '正确' : '错误', questionTime);
+                        document.getElementById('computerQuestion').innerHTML, 
+                        displayAnswer, computerCorrectAnswer.join(' 或 '), 
+                        isCorrect ? '正确' : '错误', questionTime);
             
             // 短暂延迟后生成新题目
             setTimeout(() => {
                 if (gameInProgress && gameMode === 'pk') {
                     generateComputerQuestion();
                 }
-            }, 1000);
+                    }, 8000);
+                }
+            }, 500); // 每500毫秒显示一个字符，相当于每秒显示2个字符
         }
         
         function updatePlayerScore() {
@@ -1106,8 +1131,8 @@
             });
             tableText = tableText.trim() + '\n';
 
-            // 获取表格内容
-            const rows = historyTable.querySelectorAll('tbody tr');
+           // 获取表格内容
+           const rows = historyTable.querySelectorAll('tbody tr');
             rows.forEach(row => {
                 const cells = row.querySelectorAll('td');
                 cells.forEach(cell => {
@@ -1262,7 +1287,7 @@
             const question = `
             <div style="text-align: center;">
                 \\begin{array}{cc} 
-                在三角形ABC中，高AD将底边BC分成两段，\\\\
+                在三角形ABC中，AD将底边BC分成两段，\\\\
                 BD:DC = ${simplifiedRatio1}:${simplifiedRatio2}, \\\\
                 S_1=${S1}，求右边部分的面积S_2。\\\\
                 \\end{array}
@@ -1336,7 +1361,7 @@
             const question = `
             <div style="text-align: center;">
                 \\begin{array}{cc} 
-                在三角形ABC中，高AD将底边BC分成两段，\\\\
+                在三角形ABC中，AD将底边BC分成两段，\\\\
                 已知BD=${bd}，S_1=${S1}，S_2=${S2}，\\\\
                 求CD的长度。\\\\
                 \\end{array}
@@ -1424,7 +1449,7 @@
             const question = `
             <div style="text-align: center;">
                 \\begin{array}{cc} 
-                在三角形ABC中，高AD将底边BC分成两段，\\\\
+                在三角形ABC中，AD将底边BC分成两段，\\\\
                 BD:DC = ${simplifiedRatio1}:${simplifiedRatio2}, E是AD上的一点，\\\\
                 S_1=${S1}，求右边部分的面积S_2。\\\\
                 \\end{array}
@@ -1526,7 +1551,7 @@
             <div style="text-align: center;">
                 \\begin{array}{cc} 
                 在三角形ABC中，D是底边BC上的点，\\\\
-                E是高AD上的点，且AE:ED = ${simplifiedRatio1}:${simplifiedRatio2}，\\\\
+                E是AD上的点，且AE:ED = ${simplifiedRatio1}:${simplifiedRatio2}，\\\\
                 上部分三角形ABE和ACE的面积之和S_1=${upperArea}，\\\\
                 求下部分三角形BED和CED的面积之和S_2。\\\\
                 \\end{array}

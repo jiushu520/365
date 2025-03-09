@@ -979,20 +979,51 @@
         }
         
         function submitComputerAnswer() {
-            if (!gameInProgress || gameMode !== 'pk') return;
+    if (!gameInProgress || gameMode !== 'pk') return;
+    
+    // 计算答题用时
+    const questionTime = computerTime - computerQuestionStartTime;
+    
+    // 使用计算机题目的正确答案
+    const computerAnswer = computerCorrectAnswer[0];
+    
+    // 随机决定计算机是否答对（90%的概率答对）
+    const isCorrect = Math.random() < 0.9;
+    
+    let displayAnswer;
+    if (isCorrect) {
+        displayAnswer = computerAnswer;
+    } else {
+        // 如果要错，则显示一个稍微不同的答案
+        displayAnswer = parseInt(computerAnswer) + (Math.random() > 0.5 ? 1 : -1);
+    }
+    
+    // 更新状态为"正在输入"
+    document.getElementById('computerStatus').innerHTML = '正在输入...';
+    
+    // 清空计算机答案框
+    document.getElementById('computerAnswer').value = '';
+    document.getElementById('computerRenderedAnswer').innerHTML = '';
+    
+    // 使用打字机效果显示答案
+    let currentIndex = 0;
+    const typingInterval = setInterval(() => {
+        if (currentIndex < displayAnswer.toString().length) {
+            // 每次添加一个字符
+            document.getElementById('computerAnswer').value += displayAnswer.toString().charAt(currentIndex);
+            document.getElementById('computerRenderedAnswer').innerHTML = '\\(' + document.getElementById('computerAnswer').value + '\\)';
             
-            // 计算答题用时
-            const questionTime = computerTime - computerQuestionStartTime;
+            // 重新渲染数学公式
+            MathJax.typesetPromise([document.getElementById('computerRenderedAnswer')])
+                .catch((err) => console.log(err));
+                
+            currentIndex++;
+        } else {
+            // 打字完成，清除定时器
+            clearInterval(typingInterval);
             
-            // 使用计算机题目的正确答案
-            const computerAnswer = computerCorrectAnswer[0];
-            
-            // 随机决定计算机是否答对（90%的概率答对）
-            const isCorrect = Math.random() < 0.9;
-            
-            let displayAnswer;
+            // 显示结果
             if (isCorrect) {
-                displayAnswer = computerAnswer;
                 document.getElementById('computerResult').innerHTML = '正确!';
                 document.getElementById('computerResult').className = 'result correct';
                 computerCorrectCount++;
@@ -1012,8 +1043,6 @@
                 // 显示对诮语句
                 showTaunt('computer');
             } else {
-                // 如果要错，则显示一个稍微不同的答案
-                displayAnswer = parseInt(computerAnswer) + (Math.random() > 0.5 ? 1 : -1);
                 document.getElementById('computerResult').innerHTML = '错误';
                 document.getElementById('computerResult').className = 'result incorrect';
                 computerIncorrectCount++;
@@ -1022,10 +1051,8 @@
                 document.getElementById('wrongSound').play();
             }
             
-            // 更新显示
+            // 更新状态
             document.getElementById('computerStatus').innerHTML = '已作答';
-            document.getElementById('computerAnswer').value = displayAnswer;
-            document.getElementById('computerRenderedAnswer').innerHTML = '\\(' + displayAnswer + '\\)';
             
             // 更新总题数
             computerTotalCount++;
@@ -1033,22 +1060,20 @@
             // 更新分数
             updateComputerScore();
             
-            // 重新渲染数学公式
-            MathJax.typesetPromise([document.getElementById('computerRenderedAnswer')])
-                .catch((err) => console.log(err));
-            
             // 添加到历史记录
             addToHistory('计算机', difficultyNames[currentDifficulty - 1], 
-                          document.getElementById('computerQuestion').innerHTML, 
-                          displayAnswer, computerCorrectAnswer.join(' 或 '), 
-                          isCorrect ? '正确' : '错误', questionTime);
+                        document.getElementById('computerQuestion').innerHTML, 
+                        displayAnswer, computerCorrectAnswer.join(' 或 '), 
+                        isCorrect ? '正确' : '错误', questionTime);
             
             // 短暂延迟后生成新题目
             setTimeout(() => {
                 if (gameInProgress && gameMode === 'pk') {
                     generateComputerQuestion();
                 }
-            }, 1000);
+            }, 8000);
+                }
+            }, 500); // 每500毫秒显示一个字符，相当于每秒显示2个字符
         }
         
         function updatePlayerScore() {

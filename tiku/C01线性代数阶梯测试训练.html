@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>D05偏导阶梯测试训练</title>
+    <title>C01线性代数阶梯测试训练</title>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
     <style>
@@ -439,7 +439,7 @@
 </head>
 <body>
     <div class="header">
-        <h3>D05偏导阶梯测试训练</h3>
+        <h3>C01线性代数阶梯测试训练<h3>
     </div>
     
     <!-- 添加音效元素 -->
@@ -567,14 +567,16 @@
         let gameMode = 'pk'; // 默认为PK模式，可选值: 'self'(自学练习) 或 'pk'(PK模式)
 
         const difficultyNames = [
-            "01一阶偏导", 
-            "02二元函数偏导", 
-            "03全微分", 
-            "04条件极值", 
-            "05多元复合函数", 
-            "06高阶偏导", 
-            "07综合"
-                                ];
+            "01行列式",
+            "02点乘内积", 
+            "03叉乘外积",
+            "04正切",
+            "05天命人的正切",
+            "06复数乘法",
+            "07空间法向量",
+            "08矩阵变换",
+            "09综合测试"
+        ];
 
         // 初始化
         document.addEventListener("DOMContentLoaded", () => {
@@ -1212,9 +1214,9 @@
             document.getElementById('resetGameBtn').disabled = false;
         }
 
-        // 以下是生成题目的函数，与原有代码相同
+       // 以下是生成题目的函数，与原有代码相同
 
-        function generateQuestion() {
+       function generateQuestion() {
             switch(currentDifficulty) {
                 case 1: return generateLevel1Question();
                 case 2: return generateLevel2Question();
@@ -1223,6 +1225,8 @@
                 case 5: return generateLevel5Question();
                 case 6: return generateLevel6Question();
                 case 7: return generateLevel7Question();
+                case 8: return generateLevel8Question();
+                case 9: return generateLevel9Question();
                 default: return "";
             }
         }
@@ -1237,411 +1241,315 @@
         }
 
         function generateLevel1Question() {
-            // 生成系数，范围为 ±1, ±2, ..., ±5
-            let a = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            let b = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            let c = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            
-            // 构造表达式 f(x,y) = ax^2 + bxy + cy^2
-            let x2Term = a === 1 ? "x^2" : (a === -1 ? "-x^2" : a + "x^2");
-            
-            // 处理xy项显示格式
-            let xyTerm;
-            if (b === 1) {
-                xyTerm = "+xy";
-            } else if (b === -1) {
-                xyTerm = "-xy";
-    } else {
-                xyTerm = (b > 0 ? "+" : "") + b + "xy";
-            }
-            
-            // 处理y^2项显示格式
-            let y2Term;
-            if (c === 1) {
-                y2Term = "+y^2";
-            } else if (c === -1) {
-                y2Term = "-y^2";
-            } else {
-                y2Term = (c > 0 ? "+" : "") + c + "y^2";
-            }
-            
-            // 随机选择求对x的偏导数或对y的偏导数
-            let isPartialX = Math.random() < 0.5;
-            
-            let answer;
-            if (isPartialX) {
-                // 对x求偏导: f_x = 2ax + by
-                let firstTerm = 2*a === 1 ? "x" : (2*a === -1 ? "-x" : 2*a + "x");
-                let secondTerm = b === 0 ? "" : (b === 1 ? "+y" : (b === -1 ? "-y" : (b > 0 ? "+" + b + "y" : b + "y")));
-                answer = [`${firstTerm}${secondTerm}`];
-            } else {
-                // 对y求偏导: f_y = bx + 2cy
-                let firstTerm = b === 0 ? "" : (b === 1 ? "x" : (b === -1 ? "-x" : b + "x"));
-                let secondTerm = 2*c === 0 ? "" : (2*c === 1 ? "+y" : (2*c === -1 ? "-y" : ((2*c > 0 && firstTerm !== "") ? "+" + 2*c + "y" : 2*c + "y")));
-                // 处理特殊情况: 如果第一项为空且第二项开头为+
-                if (firstTerm === "" && secondTerm.startsWith("+")) {
-                    secondTerm = secondTerm.substring(1);
-                }
-                answer = [`${firstTerm}${secondTerm}`];
-            }
-            
-            // 保存正确答案
-            correctAnswer = answer;
-            
-            // 构造 LaTeX 表达式
-            return `\\begin{gather}求偏导: f(x,y) = ${x2Term}${xyTerm}${y2Term}\\\\ ${isPartialX ? "f_x(x,y)" : "f_y(x,y)"} = ? \\end{gather}`;
+    let a = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let b = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let m = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let n = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let k = (a * n) - (b * m);
+
+    let textq = `\\(\\begin{array}{cc} \\huge \\begin{array}{|rr|} 
+              
+                 ${a} & ${b} \\\\ 
+                 ${m} & ${n} \\\\  
+                 
+                 \\end{array}=\\\\
+   \\end{array}
+\\)`;
+
+    
+
+    correctAnswer = k > 0 ? [`${k}`, `+${k}`] : [`${k}`]; // 设置为单一值
+    return ` ${textq}  `;
+}
+
+
+
+
+
+
+
+
+        function generateLevel2Question() {
+   let a = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let b = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let m = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let n = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let k = (a * m) + (b * n);
+
+    let textq = `  (${a} ,${b}) \\cdot (${m},${n})`;
+
+    correctAnswer = k > 0 ? [`${k}`, `+${k}`] : [`${k}`]; // 设置为单一值
+    return `\\( ${textq} = \\)`;
         }
 
-function generateLevel2Question() {
-            // 生成系数，范围为 ±1, ±2, ..., ±5
-            let a = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            let b = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            let c = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            let d = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            
-            // 构造表达式 f(x,y,z) = ax^2 + by^2 + cz^2 + dxyz
-            let x2Term = a === 1 ? "x^2" : (a === -1 ? "-x^2" : a + "x^2");
-            
-            // 处理y^2项显示格式
-            let y2Term;
-            if (b === 1) {
-                y2Term = "+y^2";
-            } else if (b === -1) {
-                y2Term = "-y^2";
-            } else {
-                y2Term = (b > 0 ? "+" : "") + b + "y^2";
-            }
-            
-            // 处理z^2项显示格式
-            let z2Term;
-            if (c === 1) {
-                z2Term = "+z^2";
-            } else if (c === -1) {
-                z2Term = "-z^2";
-    } else {
-                z2Term = (c > 0 ? "+" : "") + c + "z^2";
-            }
-            
-            // 处理xyz项显示格式
-            let xyzTerm;
-            if (d === 1) {
-                xyzTerm = "+xyz";
-            } else if (d === -1) {
-                xyzTerm = "-xyz";
-            } else {
-                xyzTerm = (d > 0 ? "+" : "") + d + "xyz";
-            }
-            
-            // 随机选择对哪个变量求偏导数
-            const variables = ['x', 'y', 'z'];
-            const selectedVar = variables[Math.floor(Math.random() * 3)];
-            
-            let answer;
-            if (selectedVar === 'x') {
-                // 对x求偏导: f_x = 2ax + dyz
-                let firstTerm = 2*a === 1 ? "x" : (2*a === -1 ? "-x" : 2*a + "x");
-                let secondTerm = d === 0 ? "" : (d === 1 ? "+yz" : (d === -1 ? "-yz" : (d > 0 ? "+" + d + "yz" : d + "yz")));
-                answer = [`${firstTerm}${secondTerm}`];
-            } else if (selectedVar === 'y') {
-                // 对y求偏导: f_y = 2by + dxz
-                let firstTerm = 2*b === 1 ? "y" : (2*b === -1 ? "-y" : 2*b + "y");
-                let secondTerm = d === 0 ? "" : (d === 1 ? "+xz" : (d === -1 ? "-xz" : (d > 0 ? "+" + d + "xz" : d + "xz")));
-                answer = [`${firstTerm}${secondTerm}`];
-            } else {
-                // 对z求偏导: f_z = 2cz + dxy
-                let firstTerm = 2*c === 1 ? "z" : (2*c === -1 ? "-z" : 2*c + "z");
-                let secondTerm = d === 0 ? "" : (d === 1 ? "+xy" : (d === -1 ? "-xy" : (d > 0 ? "+" + d + "xy" : d + "xy")));
-                answer = [`${firstTerm}${secondTerm}`];
-            }
-            
-            // 保存正确答案
-            correctAnswer = answer;
 
-    // 构造 LaTeX 表达式
-            return `\\begin{gather}求偏导: f(x,y,z) = ${x2Term}${y2Term}${z2Term}${xyzTerm}\\\\ \\frac{\\partial f}{\\partial ${selectedVar}} = ? \\end{gather}`;
+
+     
+
+
+
+
+
+
+
+
+
+     function generateLevel3Question() {
+ let a = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let b = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let m = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let n = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let k = (a * n) - (b * m);
+
+    let textq = `  (${a} ,${b}) \\otimes (${m},${n})`;
+
+    correctAnswer = k > 0 ? [`${k}`, `+${k}`] : [`${k}`]; // 设置为单一值
+    return `\\( ${textq} = \\)`;
         }
 
-function generateLevel3Question() {
-            // 生成系数，范围为 ±1, ±2, ..., ±5
-            let a = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-    let b = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
 
-            // 构造表达式 f(x,y) = ax^2 + bxy + constant
-            const constant = Math.floor(Math.random() * 11) - 5; // -5 到 5 之间的常数
-            
-            let x2Term = a === 1 ? "x^2" : (a === -1 ? "-x^2" : a + "x^2");
-            
-            // 处理xy项显示格式
-            let xyTerm;
-    if (b === 1) {
-                xyTerm = "+xy";
-    } else if (b === -1) {
-                xyTerm = "-xy";
-    } else {
-                xyTerm = (b > 0 ? "+" : "") + b + "xy";
+
+
+
+
+function gcd(a, b) {
+    if (!b) {
+        return a;
     }
+    return gcd(b, a % b);
+}
 
-    // 处理常数项显示格式
-            let constantTerm = constant === 0 ? "" : (constant > 0 ? "+" + constant : constant.toString());
-            
-            // 计算全微分 df = (2ax + by)dx + (bx)dy
-            let dxCoefficient = [];
-            let dyCoefficient = [];
-            
-            // 对x的偏导系数
-            let dxFirstTerm = 2*a === 1 ? "x" : (2*a === -1 ? "-x" : 2*a + "x");
-            let dxSecondTerm = b === 0 ? "" : (b === 1 ? "+y" : (b === -1 ? "-y" : (b > 0 ? "+" + b + "y" : b + "y")));
-            dxCoefficient.push(`${dxFirstTerm}${dxSecondTerm}`);
-            
-            // 对y的偏导系数
-            let dyFirstTerm = b === 0 ? "0" : (b === 1 ? "x" : (b === -1 ? "-x" : b + "x"));
-            dyCoefficient.push(dyFirstTerm);
-            
-            // 全微分答案
-            const partialX = `(${dxCoefficient[0]})dx`;
-            const partialY = `(${dyCoefficient[0]})dy`;
-            
-            // 保存正确答案 (格式：全微分表达式)
-            if (dyCoefficient[0] === "0") {
-                correctAnswer = [`${partialX}`];
-            } else {
-                correctAnswer = [`${partialX}+${partialY}`, `${partialX} + ${partialY}`];
-            }
-            
-            // 构造 LaTeX 表达式
-            return `\\begin{gather}求全微分: f(x,y) = ${x2Term}${xyTerm}${constantTerm}\\\\ df = ? \\end{gather}`;
-        }
+function generateLevel4Question() {
+    let a = Math.floor(Math.random() * 8) + 1;
+    let b = Math.floor(Math.random() * 8) + 1;
+    let m = Math.floor(Math.random() * 8) + 1;
+    let n = Math.floor(Math.random() * 8) + 1;
 
-        function generateLevel4Question() {
-            // 首先生成一组基础系数，这些系数会导致整数解
-            // 为了简化计算，我们从一些预设的系数组合中选择
-            const coefficientSets = [
-                {a: 2, b: 2, c: 2, k: 12}, // 会得到解x=y=z=2
-                {a: 3, b: 4, c: 0, k: 10}, // 会得到解x=2,y=1,z=0
-                {a: 1, b: 2, c: 3, k: 12}, // 会得到解x=4,y=2,z=0
-                {a: 2, b: 0, c: 2, k: 8},  // 会得到解x=2,y=0,z=2
-                {a: 1, b: 1, c: 1, k: 3},  // 会得到解x=y=z=1
-                {a: 4, b: 3, c: 0, k: 20}, // 会得到解x=4,y=2,z=0
-                {a: 2, b: -2, c: 2, k: 4}, // 会得到解x=2,y=-1,z=1
-                {a: 3, b: 0, c: -3, k: 6}  // 会得到解x=3,y=0,z=-1
-            ];
-            
-            // 随机选择一组系数
-            const selectedSet = coefficientSets[Math.floor(Math.random() * coefficientSets.length)];
-            let {a, b, c, k} = selectedSet;
-            
-            // 处理约束条件中的系数显示
-            let xTerm = a === 0 ? "" : (a === 1 ? "x" : (a === -1 ? "-x" : a + "x"));
-            let yTerm = b === 0 ? "" : (b === 1 ? (xTerm === "" ? "y" : "+y") : (b === -1 ? "-y" : (b > 0 ? "+" + b + "y" : b + "y")));
-            let zTerm = c === 0 ? "" : (c === 1 ? (xTerm === "" && yTerm === "" ? "z" : "+z") : (c === -1 ? "-z" : (c > 0 ? "+" + c + "z" : c + "z")));
-            
-            // 构造约束条件
-            let constraint = `${xTerm}${yTerm}${zTerm} = ${k}`;
-            
-            // 计算条件极值
-            // 使用预先计算好的整数解
-            let xVal, yVal, zVal;
-            
-            // 根据选择的系数组合设置对应的解
-            if (a === 2 && b === 2 && c === 2 && k === 12) {
-                xVal = yVal = zVal = 2;
-            } else if (a === 3 && b === 4 && c === 0 && k === 10) {
-                xVal = 2; yVal = 1; zVal = 0;
-            } else if (a === 1 && b === 2 && c === 3 && k === 12) {
-                xVal = 4; yVal = 2; zVal = 0;
-            } else if (a === 2 && b === 0 && c === 2 && k === 8) {
-                xVal = 2; yVal = 0; zVal = 2;
-            } else if (a === 1 && b === 1 && c === 1 && k === 3) {
-                xVal = yVal = zVal = 1;
-            } else if (a === 4 && b === 3 && c === 0 && k === 20) {
-                xVal = 4; yVal = 2; zVal = 0;
-            } else if (a === 2 && b === -2 && c === 2 && k === 4) {
-                xVal = 2; yVal = -1; zVal = 1;
-            } else {
-                xVal = 3; yVal = 0; zVal = -1;
-            }
-            
-            // 选择需要计算的变量
-            const variables = ['x', 'y', 'z'];
-            const selectedVar = variables[Math.floor(Math.random() * 3)];
-            
-            let answer;
-            if (selectedVar === 'x') {
-                answer = [`${xVal}`];
-            } else if (selectedVar === 'y') {
-                answer = [`${yVal}`];
-            } else {
-                answer = [`${zVal}`];
-            }
-            
-            // 保存正确答案
-            correctAnswer = answer;
-            
-            // 构造 LaTeX 表达式
-            return `\\begin{gather}求条件极值问题: \\min f(x,y,z) = x^2+y^2+z^2 \\\\
-            约束条件: ${constraint} \\\\
-            求极值点的 ${selectedVar} = ? \\end{gather}`;
-        }
+    let c = Math.abs((a * n) - (b * m));  // 向量积
+    let d =Math.abs( (a * m) + (b * n));  // 点积
 
-        function generateLevel5Question() {
-            // 创建复合函数 f(x, y) = g(u, v) 其中 u = ax + by, v = cx + dy
-            // 为简化，我们使用 g(u, v) = u^2 + v^2
-            
-            // 生成系数，范围为 ±1, ±2, ..., ±5
-            let a = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            let b = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            let c = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            let d = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            
-            // 确保系数不全为0，以使函数有意义
-            if (a === 0 && c === 0) a = 1;
-            if (b === 0 && d === 0) b = 1;
-            
-            // 构造中间函数 u 和 v
-            let uFunction = formatTerm(a, 'x') + formatAdditiveTerm(b, 'y');
-            let vFunction = formatTerm(c, 'x') + formatAdditiveTerm(d, 'y');
-            
-            // 构造复合函数 f(x, y)
-            const fFunction = `(${uFunction})^2 + (${vFunction})^2`;
-            
-            // 随机选择对x或对y求偏导
-            const isPartialX = Math.random() < 0.5;
-            
-            let answer;
-            if (isPartialX) {
-                // 对x求偏导：∂f/∂x = ∂g/∂u * ∂u/∂x + ∂g/∂v * ∂v/∂x
-                // = 2u * a + 2v * c
-                // = 2(ax + by) * a + 2(cx + dy) * c
-                // = 2a^2x + 2aby + 2c^2x + 2cdy
-                // = 2(a^2 + c^2)x + 2(ab + cd)y
-                
-                const xCoeff = 2 * (a*a + c*c);
-                const yCoeff = 2 * (a*b + c*d);
-                
-                // 处理x项
-                let xTerm = xCoeff === 0 ? "" : (xCoeff === 1 ? "x" : (xCoeff === -1 ? "-x" : xCoeff + "x"));
-                
-                // 处理y项
-                let yTerm = yCoeff === 0 ? "" : (yCoeff === 1 ? (xTerm === "" ? "y" : "+y") : 
-                                                (yCoeff === -1 ? "-y" : ((yCoeff > 0 && xTerm !== "") ? "+" + yCoeff + "y" : yCoeff + "y")));
-                
-                // 如果两个项都为空，答案为0
-                answer = [xTerm === "" && yTerm === "" ? "0" : `${xTerm}${yTerm}`];
-            } else {
-                // 对y求偏导：∂f/∂y = ∂g/∂u * ∂u/∂y + ∂g/∂v * ∂v/∂y
-                // = 2u * b + 2v * d
-                // = 2(ax + by) * b + 2(cx + dy) * d
-                // = 2abx + 2b^2y + 2cdx + 2d^2y
-                // = 2(ab + cd)x + 2(b^2 + d^2)y
-                
-                const xCoeff = 2 * (a*b + c*d);
-                const yCoeff = 2 * (b*b + d*d);
-                
-                // 处理x项
-                let xTerm = xCoeff === 0 ? "" : (xCoeff === 1 ? "x" : (xCoeff === -1 ? "-x" : xCoeff + "x"));
-                
-                // 处理y项
-                let yTerm = yCoeff === 0 ? "" : (yCoeff === 1 ? (xTerm === "" ? "y" : "+y") : 
-                                                (yCoeff === -1 ? "-y" : ((yCoeff > 0 && xTerm !== "") ? "+" + yCoeff + "y" : yCoeff + "y")));
-                
-                // 如果两个项都为空，答案为0
-                answer = [xTerm === "" && yTerm === "" ? "0" : `${xTerm}${yTerm}`];
-            }
-            
-            // 保存正确答案
-            correctAnswer = answer;
-            
-            // 构造 LaTeX 表达式
-            return `\\begin{gather}求复合函数的偏导: \\\\
-            f(x,y) = ${fFunction} \\\\
-            \\frac{\\partial f}{\\partial ${isPartialX ? 'x' : 'y'}} = ? \\end{gather}`;
-        }
+    let e = gcd(Math.abs(c), Math.abs(d));  // 计算最大公约数
+    let numerator = c / e;  // 分子
+    let denominator = d / e;  // 分母
+    let z = c / d;  // 正切值
 
-        // 辅助函数：格式化项
-        function formatTerm(coefficient, variable) {
-            if (coefficient === 0) {
-                return "0";
-            } else if (coefficient === 1) {
-                return variable;
-            } else if (coefficient === -1) {
-                return "-" + variable;
-            } else {
-                return coefficient + variable;
-            }
-        }
+    // 生成正确答案
+    correctAnswer = z === Math.floor(z) ?  [`${z}`] : [`\\frac{${numerator}}{${denominator}}`];
 
-        // 辅助函数：格式化加法项
-        function formatAdditiveTerm(coefficient, variable) {
-            if (coefficient === 0) {
-                return "";
-            } else if (coefficient === 1) {
-                return "+" + variable;
-            } else if (coefficient === -1) {
-                return "-" + variable;
-            } else if (coefficient > 0) {
-                return "+" + coefficient + variable;
-            } else {
-                return coefficient + variable;
-            }
-        }
+    // 生成题目
+    return `\\( 
+\\begin{array}{c}
+在直角坐标系中，点A (${a}, ${b})、点B (${m}, ${n}) 和点 O (0,0)，\\\\
+则 \\tan \\angle AOB 是多少？ \\\\ 
+如果是分数，请写成最简假分数。\\\\
+
+ 例:\\frac{1}{2}输入格式:\\textup{\\ frac{1}{2}}
+\\end{array} 
+\\)    `;
+}
+
+
+
+
+function generateLevel5Question() {
+    let a = Math.floor(Math.random() * 8) + 1;
+    let b = Math.floor(Math.random() * 8) + 1;
+    let m = Math.floor(Math.random() * 8) + 1;
+    let n = Math.floor(Math.random() * 8) + 1;
+
+    let c = Math.abs((a * n) - (b * m));  // 向量积
+    let d =Math.abs( (a * m) + (b * n));  // 点积
+
+    let e = gcd(Math.abs(c), Math.abs(d));  // 计算最大公约数
+    let numerator = c / e;  // 分子
+    let denominator = d / e;  // 分母
+    let z = c / d;  // 正切值
+
+
+let textq = `\\[
+   \\begin{array}{c}
+天命人以点 O (0,0)为圆心打怪，\\\\
+金箍棒头从点A (${a}, ${b})打到点B (${m}, ${n}) \\\\
+那么天命人抡了角度为\\angle AOB \\\\
+则 \\tan \\angle AOB 是多少？ \\\\ 
+如果是分数输入最简假分数 \\\\ 例:\\frac{1}{2}输入格式:\\textup{\\ frac{1}{2}} 
+\\end{array} 
+
+
+        \\]`;
+  
+    // 生成正确答案
+    correctAnswer = z === Math.floor(z) ?  [`${z}`] : [`\\frac{${numerator}}{${denominator}}`,`${numerator}/${denominator}`];
+    return textq;
+}
 
 function generateLevel6Question() {
-            // 创建二元二阶函数，然后求高阶偏导数
-            
-            // 生成系数，范围为 ±1, ±2, ..., ±5
-            let a = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            let b = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            let c = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
-            
-            // 构造函数 f(x,y) = ax^2 + bxy + cy^2
-            // 处理x^2项
-            let x2Term = a === 1 ? "x^2" : (a === -1 ? "-x^2" : a + "x^2");
-            
-            // 处理xy项
-            let xyTerm;
-            if (b === 1) {
-                xyTerm = "+xy";
-            } else if (b === -1) {
-                xyTerm = "-xy";
-            } else {
-                xyTerm = (b > 0 ? "+" : "") + b + "xy";
-            }
-            
-            // 处理y^2项
-            let y2Term;
-            if (c === 1) {
-                y2Term = "+y^2";
-            } else if (c === -1) {
-                y2Term = "-y^2";
-            } else {
-                y2Term = (c > 0 ? "+" : "") + c + "y^2";
-            }
-            
-            // 随机选择要计算的高阶偏导类型
-            const derivTypes = [
-                { name: "f_{xx}", value: 2*a },
-                { name: "f_{yy}", value: 2*c },
-                { name: "f_{xy}", value: b }
-            ];
-            
-            const selectedDeriv = derivTypes[Math.floor(Math.random() * derivTypes.length)];
-            
-            // 保存正确答案
-            correctAnswer = [`${selectedDeriv.value}`];
-            
-            // 构造 LaTeX 表达式
-            return `\\begin{gather}求高阶偏导数: f(x,y) = ${x2Term}${xyTerm}${y2Term} \\\\
-            ${selectedDeriv.name} = ? \\end{gather}`;
-        }
+    // 生成-7到7之间的随机整数，排除零
+    function getRandomNonZeroInt() {
+        let num;
+        do {
+            num = Math.floor(Math.random() * 15) - 7; // 生成-7到7的数字
+        } while (num === 0);
+        return num;
+    }
 
-        function generateLevel7Question() {
+    // 生成a, b, c, d的随机值
+    let a = getRandomNonZeroInt();
+    let b = getRandomNonZeroInt();
+    let c = getRandomNonZeroInt();
+    let d = getRandomNonZeroInt();
+
+    // 为b和d准备正确的符号显示字符串
+    let bDisplay;
+    if (b === 1) {
+        bDisplay = '+i';
+    } else if (b === -1) {
+        bDisplay = '-i';
+    } else if (b > 0) {
+        bDisplay = `+${b}i`;
+    } else {
+        bDisplay = `${b}i`;
+    }
+
+    let dDisplay;
+    if (d === 1) {
+        dDisplay = '+i';
+    } else if (d === -1) {
+        dDisplay = '-i';
+    } else if (d > 0) {
+        dDisplay = `+${d}i`;
+    } else {
+        dDisplay = `${d}i`;
+    }
+
+    // 形成复数(a + bi)和(c + di)，并加上括号
+    let complex1 = `(${a}${bDisplay})`;
+    let complex2 = `(${c}${dDisplay})`;
+
+    // 计算两个复数的乘积
+    // (a + bi)(c + di) = (ac - bd) + (ad + bc)i
+    let realProduct = a * c - b * d;
+    let imagProduct = a * d + b * c;
+
+    // 为乘积的虚部准备显示字符串
+    let imagProductDisplay;
+    if (imagProduct === 0) {
+        imagProductDisplay = '';
+    } else if (imagProduct === 1) {
+        imagProductDisplay = '+i';
+    } else if (imagProduct === -1) {
+        imagProductDisplay = '-i';
+    } else if (imagProduct > 0) {
+        imagProductDisplay = `+${imagProduct}i`;
+    } else {
+        imagProductDisplay = `${imagProduct}i`;
+    }
+
+    // 准备正确答案
+    correctAnswer = [`${realProduct}${imagProductDisplay}`];
+
+    // 构建LaTeX格式的问题文本
+    let textq = `\\[\\huge
+                 \\
+                 \\begin{array}{c}
+                 ${complex1} \\times ${complex2} = ? \\\\
+                \\end{array}
+                 \\
+                \\]`;
+
+ 
+
+    // 仅返回问题文本
+    return textq;
+}
+
+
+
+
+
+
+
+
+function generateLevel7Question() {
+    let a1 = (Math.floor(Math.random() * 8) + 1)* (Math.random() > 0.5 ? 1 : -1);
+    let a2=  (Math.floor(Math.random() * 8) + 1)* (Math.random() > 0.5 ? 1 : -1);
+    let a3 =  (Math.floor(Math.random() * 8) + 1)* (Math.random() > 0.5 ? 1 : -1);
+    let b1 =  (Math.floor(Math.random() * 8) + 1)* (Math.random() > 0.5 ? 1 : -1);
+    let b2 =  (Math.floor(Math.random() * 8) + 1)* (Math.random() > 0.5 ? 1 : -1);
+    let b3 =  (Math.floor(Math.random() * 8) + 1)* (Math.random() > 0.5 ? 1 : -1);
+
+
+    let x =a2*b3-a3*b2;  // 
+    let y =a3*b1-a1*b3;  // 
+    let z =a1*b2-a2*b1;  // 
+
+
+
+    // 生成正确答案
+    correctAnswer =  [`(${x},${y},${z})`];
+
+    // 生成题目
+    return `\\( 
+\\begin{array}{c}
+在空间直角坐标系中，向量u=(${a1}, ${a2},${a3})、v=(${b1}, ${b2},${b3})，\\\\
+求u,v的法向量？ \\\\ 
+也就是u\\otimes v=？ \\\\ 
+输入格式:(x,y,z)
+\\end{array} \\)`;
+}
+
+
+function generateLevel8Question() {
+    let a = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let b = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let c = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let d = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+
+    let m = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let n = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let x =a*m+b*n;
+    let y =c*m+d*n;
+
+
+
+    let textq = `\\(\\begin{array}{cc} \\huge 
+               \\left ( \\begin{array}{rr} 
+              
+                 ${a} & ${b} \\\\ 
+                 ${c} & ${d} \\\\  
+                 
+                 \\end{array}
+               \\right )
+               \\left (             
+               \\huge  \\begin{array}{r}
+              
+                 ${m}  \\\\ 
+                 ${n}  \\\\  
+                 
+                 \\end{array}
+                   \\right )
+                   \\huge =\\\\
+                   矩阵是时空变换之道，\\\\
+                   用复数向量三角......角度去来理解它\\\\
+                                     ......\\\\
+                 输入格式:(a,b) \\\\
+                                      \\end{array}
+               \\)`;
+输入格式:(a,b);
+
+    correctAnswer = [`(${x},${y})`]
+    return ` ${textq}  `;
+}       
+        function generateLevel9Question() {
             const levelFunctions = [
                 generateLevel1Question,
                 generateLevel2Question,
                 generateLevel3Question,
                 generateLevel4Question,
                 generateLevel5Question,
-                generateLevel6Question
+                generateLevel6Question,
+                generateLevel7Question,
+                generateLevel8Question,
             ];
 
             const randomIndex = Math.floor(Math.random() * levelFunctions.length);
@@ -1649,6 +1557,7 @@ function generateLevel6Question() {
 
             return selectedFunction();
         }
+
 
 
         // 创建冲击波效果
