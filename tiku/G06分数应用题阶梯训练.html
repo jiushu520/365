@@ -1070,11 +1070,11 @@
         }
         
         function updatePlayerScore() {
-            document.getElementById('playerScore').innerHTML = `正确: ${playerCorrectCount} | 错误: ${playerIncorrectCount} | 总题数: ${playerTotalCount}`;
+            document.getElementById('playerScore').innerHTML = `正确: ${playerCorrectCount} | 错误: ${playerIncorrectCount} | 总题数: ${playerTotalCount}| 得分: ${playerCorrectCount - playerIncorrectCount} `;
         }
         
         function updateComputerScore() {
-            document.getElementById('computerScore').innerHTML = `正确: ${computerCorrectCount} | 错误: ${computerIncorrectCount} | 总题数: ${computerTotalCount}`;
+            document.getElementById('computerScore').innerHTML = `正确: ${computerCorrectCount} | 错误: ${computerIncorrectCount} | 总题数: ${computerTotalCount}| 得分: ${computerCorrectCount - computerIncorrectCount} `;
         }
         
         function addToHistory(participant, level, question, answer, correctAnswer, result, time) {
