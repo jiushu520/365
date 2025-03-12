@@ -566,7 +566,7 @@
         // 新增游戏模式变量
         let gameMode = 'pk'; // 默认为PK模式，可选值: 'self'(自学练习) 或 'pk'(PK模式)
 
-        const difficultyNames = ["01底高模型求面积1", "02底高模型求底边", "03底高模型求面积2","04底高模型上下比","05鸟头模型","06综合测试"];
+        const difficultyNames = ["01底高模型求面积1", "02底高模型求底边", "03底高模型求面积2","04底高模型上下比","05鸟头模型1","06鸟头模型2","07综合测试"];
 
         // 初始化
         document.addEventListener("DOMContentLoaded", () => {
@@ -1214,6 +1214,7 @@
                 case 3: return generateLevel3Question();
                 case 4: return generateLevel4Question();
                 case 5: return generateLevel5Question();
+                case 6: return generateLevel6Question();
                 default: return "";
             }
         }
@@ -1361,7 +1362,7 @@
             const question = `
             <div style="text-align: center;">
                 \\begin{array}{cc} 
-                在三角形ABC中，AD将底边BC分成两段，\\\\
+                在\\triangle ABC中，AD将底边BC分成两段，\\\\
                 已知BD=${bd}，S_1=${S1}，S_2=${S2}，\\\\
                 求CD的长度。\\\\
                 \\end{array}
@@ -1449,7 +1450,7 @@
             const question = `
             <div style="text-align: center;">
                 \\begin{array}{cc} 
-                在三角形ABC中，AD将底边BC分成两段，\\\\
+                在\\triangle ABC中，AD将底边BC分成两段，\\\\
                 BD:DC = ${simplifiedRatio1}:${simplifiedRatio2}, E是AD上的一点，\\\\
                 S_1=${S1}，求右边部分的面积S_2。\\\\
                 \\end{array}
@@ -1550,7 +1551,7 @@
             const question = `
             <div style="text-align: center;">
                 \\begin{array}{cc} 
-                在三角形ABC中，D是底边BC上的点，\\\\
+                在\\triangle ABC中，D是底边BC上的点，\\\\
                 E是AD上的点，且AE:ED = ${simplifiedRatio1}:${simplifiedRatio2}，\\\\
                 上部分三角形ABE和ACE的面积之和S_1=${upperArea}，\\\\
                 求下部分三角形BED和CED的面积之和S_2。\\\\
@@ -1650,10 +1651,10 @@
             const question = `
             <div style="text-align: center;">
                 \\begin{array}{cc} 
-                在三角形ABC中，E是AB边上的点，D是AC边上的点，\\\\
+                在\\triangle ABC中，E是AB边上的点，D是AC边上的点，\\\\
                 且AE:EB = ${simplified_a}:${simplified_b}，AD:DC = ${simplified_m}:${simplified_n}，\\\\
-                已知三角形AED的面积S_1=${areaAED}，\\\\
-                求三角形ABC的面积S。\\\\
+                已知\\triangle AED的面积S_1=${areaAED}，\\\\
+                求\\triangle ABC的面积S\\triangle ABC。\\\\
                 \\end{array}
 
                 <div style="margin-top: 15px;">${svg}</div>
@@ -1666,14 +1667,114 @@
             return question;
         }
 
+        function generateLevel6Question(){
+            // 生成随机比例
+            let a = Math.floor(Math.random() * 5) + 1;  // 1 to 5
+            let b = Math.floor(Math.random() * 5) + 1;  // 1 to 5
+            let m = Math.floor(Math.random() * 5) + 1;  // 1 to 5
+            let n = Math.floor(Math.random() * 5) + 1;  // 1 to 5
+            
+            // 计算最大公约数
+            let divisor_ab = gcd(a, b);
+            let divisor_mn = gcd(m, n);
+            
+            // 将比例化为最简比
+            let simplified_a = a / divisor_ab;
+            let simplified_b = b / divisor_ab;
+            let simplified_m = m / divisor_mn;
+            let simplified_n = n / divisor_mn;
+            
+            // 生成随机面积因子，确保面积为整数
+            let areaFactor = Math.floor(Math.random() * 10) + 1;  // 1 to 10
+            
+            // 计算三角形EBD的面积
+            let areaEBD = b * m * areaFactor;
+            
+            // 计算三角形ABC的面积
+            let areaABC = areaEBD * (a + b) * (m + n) / (b * m);
+            
+            // 确保面积为整数
+            areaABC = Math.round(areaABC);
+            
+            // 计算图形中的位置
+            const width = 200;
+            const height = 150;
+            
+            // 三角形ABC的顶点坐标
+            const Ax = 100;
+            const Ay = 20;
+            const Bx = 20;
+            const By = 130;
+            const Cx = 180;
+            const Cy = 130;
+            
+            // 计算点E在AB上的位置
+            const eRatio = a / (a + b);
+            const Ex = Ax - (Ax - Bx) * eRatio;
+            const Ey = Ay + (By - Ay) * eRatio;
+            
+            // 计算点D在AC上的位置
+            const dRatio = m / (m + n);
+            const Dx = Ax - (Ax - Cx) * dRatio;
+            const Dy = Ay + (Cy - Ay) * dRatio;
+            
+            // 计算三角形EBD的重心位置用于标注面积
+            const centroidEBDx = (Ex + Bx + Dx) / 3;
+            const centroidEBDy = (Ey + By + Dy) / 3;
+            
+            // 创建SVG图形
+            const svg = `
+            <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+                <!-- 三角形ABC - 轮廓 -->
+                <polygon points="${Ax},${Ay} ${Bx},${By} ${Cx},${Cy}" fill="none" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 三角形EBD - 填充 -->
+                <polygon points="${Ex},${Ey} ${Bx},${By} ${Dx},${Dy}" fill="#e6f2ff" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 点E和D -->
+                <circle cx="${Ex}" cy="${Ey}" r="3" fill="black"/>
+                <circle cx="${Dx}" cy="${Dy}" r="3" fill="black"/>
+                
+                <!-- 顶点标注 -->
+                <text x="${Ax}" y="${Ay-5}" text-anchor="middle" font-family="serif" font-size="16">A</text>
+                <text x="${Bx-5}" y="${By+5}" text-anchor="middle" font-family="serif" font-size="16">B</text>
+                <text x="${Cx+5}" y="${Cy+5}" text-anchor="middle" font-family="serif" font-size="16">C</text>
+                <text x="${Ex-5}" y="${Ey-5}" text-anchor="middle" font-family="serif" font-size="16">E</text>
+                <text x="${Dx+5}" y="${Dy-5}" text-anchor="middle" font-family="serif" font-size="16">D</text>
+                
+                <!-- 面积标注 -->
+                <text x="${centroidEBDx}" y="${centroidEBDy}" text-anchor="middle" font-family="serif" font-size="14">S₁=${areaEBD}</text>
+            </svg>
+            `;
+            
+            // 格式化问题文本
+            const question = `
+            <div style="text-align: center;">
+                \\begin{array}{cc} 
+                在\\triangle ABC中，E是AB边上的点，D是AC边上的点，\\\\
+                且AE:EB = ${simplified_a}:${simplified_b}，AD:DC = ${simplified_m}:${simplified_n}，\\\\
+                已知\\triangle EBD的面积S_1=${areaEBD}，\\\\
+                求\\triangle ABC的面积S\\triangle ABC。\\\\
+                \\end{array}
+
+                <div style="margin-top: 15px;">${svg}</div>
+            </div>
+            `;
+            
+            // 设置正确答案
+            correctAnswer = [`${areaABC}`];
+            
+            return question;
+        }
         
-        function generateLevel6Question() {
+        function generateLevel7Question() {
             const levelFunctions = [
                 generateLevel1Question,
                 generateLevel2Question,
                 generateLevel3Question,
                 generateLevel4Question,
-                generateLevel5Question
+                generateLevel5Question,
+                generateLevel6Question
             ];
             const randomIndex = Math.floor(Math.random() * levelFunctions.length);
             const selectedFunction = levelFunctions[randomIndex];
