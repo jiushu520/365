@@ -1295,17 +1295,75 @@
 
 
      function generateLevel3Question() {
- let a = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let b = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let m = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let n = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let k = (a * n) - (b * m);
+        let a = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+        let b = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+        let m = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+        let n = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+        let k = (a * n) - (b * m);
 
-    let textq = `  (${a} ,${b}) \\otimes (${m},${n})`;
+        // 创建SVG坐标系 - 扩大画布为两倍大小
+        const svgSize = 600; // 从300扩大到600
+        const center = svgSize / 2;
+        const scale = 15; // 保持缩放因子，使±18的范围适应600px的SVG
+        
+        // 计算平行四边形的四个点坐标
+        const pointO = {x: 0, y: 0};
+        const pointA = {x: a, y: b};
+        const pointC = {x: a + m, y: b + n};
+        const pointD = {x: m, y: n};
+        
+        // 转换为SVG坐标系（原点在中心，y轴向上为正）
+        const svgO = {x: center + pointO.x * scale, y: center - pointO.y * scale};
+        const svgA = {x: center + pointA.x * scale, y: center - pointA.y * scale};
+        const svgC = {x: center + pointC.x * scale, y: center - pointC.y * scale};
+        const svgD = {x: center + pointD.x * scale, y: center - pointD.y * scale};
+        
+        // 创建SVG元素，修改刻度范围为±18
+        const svg = `
+        <svg width="${svgSize}" height="${svgSize}" style="background-color: #f9f9f9; margin: 0 auto; display: block;">
+            <!-- 绘制坐标轴 -->
+            <line x1="0" y1="${center}" x2="${svgSize}" y2="${center}" stroke="black" stroke-width="1" />
+            <line x1="${center}" y1="0" x2="${center}" y2="${svgSize}" stroke="black" stroke-width="1" />
+            
+            <!-- 绘制刻度，范围从-18到18 -->
+            ${Array.from({length: 37}, (_, i) => i - 18).map(i => 
+                `<line x1="${center + i * scale}" y1="${center - 3}" x2="${center + i * scale}" y2="${center + 3}" stroke="black" stroke-width="1" />
+                 ${i % 3 === 0 ? `<text x="${center + i * scale}" y="${center + 15}" text-anchor="middle" font-size="10">${i}</text>` : ''}
+                 <line x1="${center - 3}" y1="${center - i * scale}" x2="${center + 3}" y2="${center - i * scale}" stroke="black" stroke-width="1" />
+                 ${i % 3 === 0 ? `<text x="${center - 15}" y="${center - i * scale + 3}" text-anchor="end" font-size="10">${i}</text>` : ''}`
+            ).join('')}
+            
+            <!-- 绘制平行四边形 -->
+            <polygon points="${svgO.x},${svgO.y} ${svgA.x},${svgA.y} ${svgC.x},${svgC.y} ${svgD.x},${svgD.y}" fill="rgba(0,100,255,0.2)" stroke="blue" stroke-width="2" />
+            
+            <!-- 标记点 -->
+            <circle cx="${svgO.x}" cy="${svgO.y}" r="5" fill="red" />
+            <text x="${svgO.x + 8}" y="${svgO.y - 8}" font-size="14">O(0,0)</text>
+            
+            <circle cx="${svgA.x}" cy="${svgA.y}" r="5" fill="red" />
+            <text x="${svgA.x + 8}" y="${svgA.y - 8}" font-size="14">A(${a},${b})</text>
+            
+            <circle cx="${svgC.x}" cy="${svgC.y}" r="5" fill="red" />
+            <text x="${svgC.x + 8}" y="${svgC.y - 8}" font-size="14">C(${a+m},${b+n})</text>
+            
+            <circle cx="${svgD.x}" cy="${svgD.y}" r="5" fill="red" />
+            <text x="${svgD.x + 8}" y="${svgD.y - 8}" font-size="14">D(${m},${n})</text>
+        </svg>`;
 
-    correctAnswer = k > 0 ? [`${k}`, `+${k}`] : [`${k}`]; // 设置为单一值
-    return `\\( ${textq} = \\)`;
-        }
+        let textq = `  (${a} ,${b}) \\otimes (${m},${n})`;
+
+        correctAnswer = k > 0 ? [`${k}`, `+${k}`] : [`${k}`]; // 设置为单一值
+        
+        // 使用flex布局垂直排列题目和坐标系
+        return `<div style="display: flex; flex-direction: column; align-items: center;">
+            <div style="margin-bottom: 20px;">
+                \\( ${textq} = \\)
+            </div>
+            <div>
+                ${svg}
+            </div>
+        </div>`;
+    }
 
 
 
