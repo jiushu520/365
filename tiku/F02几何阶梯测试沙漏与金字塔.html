@@ -1230,81 +1230,117 @@
         }
 
         function generateLevel1Question() {
-          //平行x模型  添加一个静态变量来跟踪当前索引
-          if (typeof generateLevel1Question.currentIndex === 'undefined') {
-            generateLevel1Question.currentIndex = 0;
-          }
+            // 生成随机比例
+            let a = Math.floor(Math.random() * 4) + 2;  // 2-5
+            let b = Math.floor(Math.random() * 4) + 6;  // 6 to 9 (确保b>a)
+            
+            // 计算最大公约数
+            let divisor_ab = gcd(a, b);
+            
+            // 将比例化为最简比
+            let simplified_a = a / divisor_ab;
+            let simplified_b = b / divisor_ab;
+            
+            // 生成随机面积因子，确保三角形ABO面积为a²的整数倍
+            let areaFactor = Math.floor(Math.random() * 5) + 1;  // 1 to 5
+            
+            // 计算三角形ABO的面积
+            let areaABO = a * a * areaFactor;
+            
+            // 计算三角形COD的面积 = (ABO的面积/a²) * b² = areaFactor * b²
+            let areaCOD = areaFactor * b * b;
+            
+            // 计算图形中的位置
+            const width = 220;
+            const height = 200;
+            
+            // 设置基础宽度，保持固定的CD长度
+            const baseWidth = 160;
+            const topWidth = baseWidth * a / b; // 确保AB:CD = a:b
+            
+            // 梯形ABCD的顶点坐标 - 修改为确保AB < CD且比例正确
+            const Dx = 30;
+            const Dy = 160;
+            const Cx = Dx + baseWidth;
+            const Cy = 160;
+            const Ax = (width - topWidth) / 2;
+            const Ay = 40;
+            const Bx = Ax + topWidth;
+            const By = 40;
+            
+            // 计算对角线AC和BD交点O的坐标
+            const Ox = ((Ax*Cy - Ay*Cx)*(Bx-Dx) - (Ax-Cx)*(Bx*Dy - By*Dx)) / 
+                       ((Ax-Cx)*(By-Dy) - (Ay-Cy)*(Bx-Dx));
+            const Oy = ((Ax*Cy - Ay*Cx)*(By-Dy) - (Ay-Cy)*(Bx*Dy - By*Dx)) / 
+                       ((Ax-Cx)*(By-Dy) - (Ay-Cy)*(Bx-Dx));
+            
+            // 计算三角形ABO的重心位置用于标注面积
+            const centroidABOx = (Ax + Bx + Ox) / 3;
+            const centroidABOy = (Ay + By + Oy) / 3;
+            
+            // 计算三角形COD的重心用于面积标注
+            const centroidCODx = (Cx + Ox + Dx) / 3;
+            const centroidCODy = (Cy + Oy + Dy) / 3;
+            
+            // 创建SVG图形 - 改为AC和BD相交的形式，并添加不同颜色的填充
+            const svg = `
+            <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+                <!-- 梯形ABCD - 轮廓 -->
+                <polygon points="${Ax},${Ay} ${Bx},${By} ${Cx},${Cy} ${Dx},${Dy}" fill="none" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 三角形COD - 填充浅蓝色 -->
+                <polygon points="${Cx},${Cy} ${Ox},${Oy} ${Dx},${Dy}" fill="#e6f2ff" stroke="none"/>
+                
+                <!-- 三角形ADO - 填充浅黄色 -->
+                <polygon points="${Ax},${Ay} ${Dx},${Dy} ${Ox},${Oy}" fill="#fffde6" stroke="none"/>
+                
+                <!-- 三角形BCO - 填充浅黄色 -->
+                <polygon points="${Bx},${By} ${Cx},${Cy} ${Ox},${Oy}" fill="#fffde6" stroke="none"/>
+                
+                <!-- 三角形ABO - 填充浅红色 -->
+                <polygon points="${Ax},${Ay} ${Bx},${By} ${Ox},${Oy}" fill="#ffeeee" stroke="none"/>
+                
+                <!-- 对角线AC和BD -->
+                <line x1="${Ax}" y1="${Ay}" x2="${Cx}" y2="${Cy}" stroke="black" stroke-width="1"/>
+                <line x1="${Bx}" y1="${By}" x2="${Dx}" y2="${Dy}" stroke="black" stroke-width="1"/>
+                
+                <!-- 交点O -->
+                <circle cx="${Ox}" cy="${Oy}" r="3" fill="black"/>
+                
+                <!-- 顶点标注 -->
+                <text x="${Ax-5}" y="${Ay-5}" text-anchor="middle" font-family="serif" font-size="16">A</text>
+                <text x="${Bx+5}" y="${By-5}" text-anchor="middle" font-family="serif" font-size="16">B</text>
+                <text x="${Cx+5}" y="${Cy+5}" text-anchor="middle" font-family="serif" font-size="16">C</text>
+                <text x="${Dx-5}" y="${Dy+5}" text-anchor="middle" font-family="serif" font-size="16">D</text>
+                <text x="${Ox+10}" y="${Oy+5}" text-anchor="middle" font-family="serif" font-size="16">O</text>
+                
+                <!-- 面积标注 -->
+                <text x="${centroidABOx}" y="${centroidABOy}" text-anchor="middle" font-family="serif" font-size="14" fill="blue">S₁=${areaABO}</text>
+                <text x="${centroidCODx}" y="${centroidCODy}" text-anchor="middle" font-family="serif" font-size="14" fill="blue">S₂=?</text>
+            </svg>
+            `;
+            
+            // 格式化问题文本
+            const question = `
+            <div style="text-align: center;">
+                \\begin{array}{cc} 
+                如图，在梯形ABCD中，AB平行CD，对角线AC和BD相交于点O，\\\\
+                其中AB:CD = ${simplified_a}:${simplified_b}，\\\\
+                已知三角形ABO的面积S_1=${areaABO}，\\\\
+                求三角形COD的面积S_2。\\\\
+                \\end{array}
 
-          const questions = [
-            {
-              m: '1. 如图，DC平行AB，AC和DB交于点O，\\\\AB:DC=2:1，则DO:OB=\\_:\\_。\\\\',
-              image: './images/053701001.png',
-              n: '1:2'
-            },
-            {
-              m: '2. 如图，DC平行AB，AC和DB交于点O，\\\\AB:DC=3:1，则DO:OB=\\_:\\_。',
-              image: './images/053701001.png',
-              n: '3:1'
-            },
-            {
-              m: '3. 如图，DC平行AB，AC和DB交于点O，\\\\AB:DC=3:2，则DO:OB=\\_:\\_。',
-              image: './images/053701001.png',
-              n: '2:3'
-            },
-            {
-              m: '4. 如图，DC平行AB，AC和DB交于点O，\\\\DC长5厘米，\\\\AB长10厘米，DO长3厘米，\\\\那么OB长多少厘米？',
-              image: './images/053701001.png',
-              n: '6'
-            },
-            {
-              m: '5. 如图，DC平行AB，AC和DB交于点O，\\\\DC长6厘米，\\\\AB长10厘米，DO长3厘米，\\\\那么OB长多少厘米？',
-              image: './images/053701001.png',
-              n: '5'
-            },
-            {
-              m: '6. 如图，DC平行AB，AC和DB交于点O，\\\\DO长4厘米，OB长10厘米，AC长15厘米，\\\\那么OC长多少厘米？',
-              image: './images/053701002.png',
-              n: '6'
-            },
-            {
-              m: '7. 如图，AD平行BC，AC与BD交于点O，\\\\AD长6厘米，BC长10厘米，BO比OD长2厘米，\\\\那么BD长多少厘米？',
-              image: './images/053701002.png',
-              n: '8'
-            },
-            {
-              m: '8. 如图，AD平行BC，AC与BD交于点O，\\\\AD长9厘米，BC长15厘米，BO比OD长4厘米，\\\\那么BD长多少厘米？',
-              image: './images/053701002.png',
-              n: '16'
-            }
-          ];
-      
-          // 获取当前索引的题目
-          let selectedQuestion = questions[generateLevel1Question.currentIndex];
-      
-          let m = selectedQuestion.m;
-          let n = selectedQuestion.n;
-      
-          // 如果 n 是一个数组，表示有多个正确答案
-          if (Array.isArray(n)) {
-              correctAnswer = [...n];
-          } else {
-              correctAnswer = [`${n}`];
-          }
-      
-          // 构建返回的 LaTeX 代码
-          let questionLatex = `\\(\\begin{gather}${m} \\end{gather} \\)`;
-      
-          // 如果有图片路径，则插入图片
-          if (selectedQuestion.image) {
-              questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
-          }
-      
-          // 更新索引值，确保按顺序出题
-          generateLevel1Question.currentIndex = (generateLevel1Question.currentIndex + 1) % questions.length;
-      
-          return questionLatex;
+                <div style="margin-top: 15px;">${svg}</div>
+            </div>
+            `;
+            
+            // 设置正确答案
+            correctAnswer = [`${areaCOD}`];
+            
+            return question;
         }
-        
+
+
 
         
         function generateLevel2Question() {
