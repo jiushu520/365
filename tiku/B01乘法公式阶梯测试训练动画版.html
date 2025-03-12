@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C01线性代数阶梯测试训练</title>
+    <title>B01乘法公式阶梯测试训练</title>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
     <style>
@@ -439,7 +439,7 @@
 </head>
 <body>
     <div class="header">
-        <h3>C01线性代数阶梯测试训练<h3>
+        <h3>B01乘法公式阶梯测试训练</h3>
     </div>
     
     <!-- 添加音效元素 -->
@@ -567,15 +567,15 @@
         let gameMode = 'pk'; // 默认为PK模式，可选值: 'self'(自学练习) 或 'pk'(PK模式)
 
         const difficultyNames = [
-            "01行列式",
-            "02点乘内积", 
-            "03叉乘外积",
-            "04正切",
-            "05天命人的正切",
-            "06复数乘法",
-            "07空间法向量",
-            "08矩阵变换",
-            "09综合测试"
+            "01分配律1", 
+            "02分配律2", 
+            "03两大公式", 
+            "04多项式乘多项式1", 
+            "05多项式乘多项式2", 
+            "06三个多项式相乘", 
+            "07两项乘三项",
+            "08多项式除法求余",
+            "09综合"
         ];
 
         // 初始化
@@ -1189,9 +1189,9 @@
             document.getElementById('resetGameBtn').disabled = false;
         }
 
-       // 以下是生成题目的函数，与原有代码相同
+        // 以下是生成题目的函数，与原有代码相同
 
-       function generateQuestion() {
+        function generateQuestion() {
             switch(currentDifficulty) {
                 case 1: return generateLevel1Question();
                 case 2: return generateLevel2Question();
@@ -1216,305 +1216,364 @@
         }
 
         function generateLevel1Question() {
-    let a = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let b = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let m = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let n = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let k = (a * n) - (b * m);
-
-    let textq = `\\(\\begin{array}{cc} \\huge \\begin{array}{|rr|} 
-              
-                 ${a} & ${b} \\\\ 
-                 ${m} & ${n} \\\\  
-                 
-                 \\end{array}=\\\\
-   \\end{array}
-\\)`;
-
-    
-
-    correctAnswer = k > 0 ? [`${k}`, `+${k}`] : [`${k}`]; // 设置为单一值
-    return ` ${textq}  `;
-}
-
-
-
-
-
-
-
-
+            let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let textm = m === 1 ? "+1" : (m === -1 ? "-1" : (m > 1 ? `+${m}` : `${m}`));
+            let textm2 = m === 1 ? "+" : (m === -1 ? "-" : (m > 1 ? `+${m}` : `${m}`));
+            correctAnswer = [`x^2${textm2}x`];           
+            return `\\(\\begin{gather}展开: x(x${textm})\\\\ \\begin{array}{|c|c|c|} \\hline x &   &   \\\\ \\hline & x & ${m} \\\\ \\hline \\end{array} \\end{gather}\\)`;
+        }
+        
         function generateLevel2Question() {
-   let a = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let b = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let m = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let n = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let k = (a * m) + (b * n);
+            let m = (Math.floor(Math.random() * 9) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let n = (Math.floor(Math.random() * 9) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let mn = m*n;    
+            let textm = m === 1 ? "+1" : (m === -1 ? "-1" : (m > 1 ? `+${m}` : `${m}`));
+            let textn  = n === 1 ? "" : (n === -1 ? "-" : (n > 1 ? `${n}` : `${n}`));
+            let textmn = mn=== 1 ? "+" : (mn === -1 ? "-" : (mn > 1 ? `+${mn}` : `${mn}`));
+            correctAnswer = [`${textn}x^2${textmn}x`];
 
-    let textq = `  (${a} ,${b}) \\cdot (${m},${n})`;
 
-    correctAnswer = k > 0 ? [`${k}`, `+${k}`] : [`${k}`]; // 设置为单一值
-    return `\\( ${textq} = \\)`;
+           return `\\(\\begin{gather}展开:${textn}x(x${textm}) \\\\ \\begin{array}{|c|c|c|} \\hline bx & x^2 & abx \\\\ \\hline & x & a \\\\ \\hline \\end{array} \\end{gather}\\)`;
+        }
+        
+        function generateLevel3aQuestion() {
+            let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+
+
+            let textm = m > 0 ? `+${m}` : `${m}`;
+
+
+            let p = m + m;
+            let t = m * m;
+
+            let textp = p === 0 ? "" : (p === 1 ? "+x" : (p === -1 ? "-x" : (p > 1 ? `+${p}x` : `${p}x`)));
+            let textt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
+            correctAnswer = [`x^2${textp}${textt}`];
+
+            return `\\(\\begin{gather}展开:(x${textm})^2\\\\ \\begin{array}{|c|c|c|} \\hline a&ax& a^2\\\\ \\hline x & x^2 &ax \\\\ \\hline  &x&a \\\\ \\hline  \\end{array} \\end{gather}\\)`;
         }
 
+        function generateLevel3bQuestion() {
+            let m = (Math.floor(Math.random() * 9) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let n = -m ;
+
+            let textm = m > 0 ? `+${m}` : `${m}`;
+            let textn = n > 0 ? `+${n}` : `${n}`;
 
 
-     
+            let p = 0;
+            let t = m * m;
+
+            let textp = p === 0 ? "" : (p === 1 ? "+x" : (p === -1 ? "-x" : (p > 1 ? `+${p}x` : `${p}x`)));
+            let textt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
+            correctAnswer = [`x^2-${t}`];
 
 
-
-
-
-
-
-
-
-     function generateLevel3Question() {
- let a = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let b = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let m = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let n = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let k = (a * n) - (b * m);
-
-    let textq = `  (${a} ,${b}) \\otimes (${m},${n})`;
-
-    correctAnswer = k > 0 ? [`${k}`, `+${k}`] : [`${k}`]; // 设置为单一值
-    return `\\( ${textq} = \\)`;
+            return `\\(\\begin{gather}展开:(x${textm})(x${textn})\\\\ \\begin{array}{|c|c|c|} \\hline -a&-ax& -a^2\\\\ \\hline x & x^2 &ax \\\\ \\hline  &x&a \\\\ \\hline  \\end{array} \\end{gather}\\)`;
         }
 
+        function generateLevel3cQuestion() {
+            let m = (Math.floor(Math.random() * 9) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let n = -m ;
+
+            let textm = m > 0 ? `+${m}` : `${m}`;
+            let textn = n > 0 ? `+${n}` : `${n}`;
 
 
+            let p = 0;
+            let t = m * m;
+
+            let textp = p === 0 ? "" : (p === 1 ? "+x" : (p === -1 ? "-x" : (p > 1 ? `+${p}x` : `${p}x`)));
+            let textt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
+            correctAnswer = [`x^2-${t}`];
 
 
+            return `\\(\\begin{gather}展开:(${m}+x)(x${textn})\\\\ \\begin{array}{|c|c|c|} \\hline -a&-ax& -a^2\\\\ \\hline x & x^2 &ax \\\\ \\hline  &x&a \\\\ \\hline  \\end{array} \\end{gather}\\)`;
+        }
 
-function gcd(a, b) {
-    if (!b) {
-        return a;
-    }
-    return gcd(b, a % b);
-}
+        function generateLevel3Question() {
+            const levelFunctions = [
+                generateLevel3aQuestion,
+                generateLevel3bQuestion,
+                generateLevel3cQuestion,
+            ];
 
-function generateLevel4Question() {
-    let a = Math.floor(Math.random() * 8) + 1;
-    let b = Math.floor(Math.random() * 8) + 1;
-    let m = Math.floor(Math.random() * 8) + 1;
-    let n = Math.floor(Math.random() * 8) + 1;
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
 
-    let c = Math.abs((a * n) - (b * m));  // 向量积
-    let d =Math.abs( (a * m) + (b * n));  // 点积
+            return selectedFunction();
+        }
+        
+        function generateLevel4aQuestion() {
+            let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let n = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
 
-    let e = gcd(Math.abs(c), Math.abs(d));  // 计算最大公约数
-    let numerator = c / e;  // 分子
-    let denominator = d / e;  // 分母
-    let z = c / d;  // 正切值
+            let textm = m > 0 ? `+${m}` : `${m}`;
+            let textn = n > 0 ? `+${n}` : `${n}`;
 
-    // 生成正确答案
-    correctAnswer = z === Math.floor(z) ?  [`${z}`] : [`\\frac{${numerator}}{${denominator}}`];
+            let p = m + n;
+            let t = m * n;
 
-    // 生成题目
-    return `\\( 
-\\begin{array}{c}
-在直角坐标系中，点A (${a}, ${b})、点B (${m}, ${n}) 和点 O (0,0)，\\\\
-则 \\tan \\angle AOB 是多少？ \\\\ 
-如果是分数，请写成最简假分数。\\\\
+            let textp = p === 0 ? "" : (p === 1 ? "+x" : (p === -1 ? "-x" : (p > 1 ? `+${p}x` : `${p}x`)));
+            let textt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
+            correctAnswer = [ `x^2${textp}${textt}`];
 
- 例:\\frac{1}{2}输入格式:\\textup{\\ frac{1}{2}}
-\\end{array} 
-\\)    `;
-}
+            return `\\(\\begin{gather}展开:(x${textm})(x${textn}) \\\\ \\begin{array}{|c|c|c|} \\hline b&bx& ${textt}\\\\ \\hline x & x^2 &ax \\\\ \\hline  &x&a \\\\ \\hline  \\end{array} \\end{gather}\\)`;
+        }
 
+        function generateLevel4bQuestion() {
+            let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let n = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
 
+            let textm = m > 0 ? `+${m}` : `${m}`;
+            let textn = n > 0 ? `+${n}` : `${n}`;
 
+            let p = m + n;
+            let t = m * n;
 
-function generateLevel5Question() {
-    let a = Math.floor(Math.random() * 8) + 1;
-    let b = Math.floor(Math.random() * 8) + 1;
-    let m = Math.floor(Math.random() * 8) + 1;
-    let n = Math.floor(Math.random() * 8) + 1;
-
-    let c = Math.abs((a * n) - (b * m));  // 向量积
-    let d =Math.abs( (a * m) + (b * n));  // 点积
-
-    let e = gcd(Math.abs(c), Math.abs(d));  // 计算最大公约数
-    let numerator = c / e;  // 分子
-    let denominator = d / e;  // 分母
-    let z = c / d;  // 正切值
-
-
-let textq = `\\[
-   \\begin{array}{c}
-天命人以点 O (0,0)为圆心打怪，\\\\
-金箍棒头从点A (${a}, ${b})打到点B (${m}, ${n}) \\\\
-那么天命人抡了角度为\\angle AOB \\\\
-则 \\tan \\angle AOB 是多少？ \\\\ 
-如果是分数输入最简假分数 \\\\ 例:\\frac{1}{2}输入格式:\\textup{\\ frac{1}{2}} 
-\\end{array} 
-
-
-        \\]`;
+            let textp = p === 0 ? "" : (p === 1 ? "+x" : (p === -1 ? "-x" : (p > 1 ? `+${p}x` : `${p}x`)));
+            let textt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
+            correctAnswer = [`x^2${textp}${textt}`];
   
-    // 生成正确答案
-    correctAnswer = z === Math.floor(z) ?  [`${z}`] : [`\\frac{${numerator}}{${denominator}}`,`${numerator}/${denominator}`];
-    return textq;
-}
+            return `\\(\\begin{gather}展开:(x${textm})(x${textn}) \\\\ \\begin{array}{|c|c|c|} \\hline b&bx& ${textt}\\\\ \\hline x & x^2 &ax \\\\ \\hline  &x&a \\\\ \\hline  \\end{array} \\end{gather}\\)`;
+        }
 
-function generateLevel6Question() {
-    // 生成-7到7之间的随机整数，排除零
-    function getRandomNonZeroInt() {
-        let num;
-        do {
-            num = Math.floor(Math.random() * 15) - 7; // 生成-7到7的数字
-        } while (num === 0);
-        return num;
-    }
+        function generateLevel4Question() {
+            const levelFunctions = [
+                generateLevel4aQuestion,
+                generateLevel4bQuestion,
+            ];
 
-    // 生成a, b, c, d的随机值
-    let a = getRandomNonZeroInt();
-    let b = getRandomNonZeroInt();
-    let c = getRandomNonZeroInt();
-    let d = getRandomNonZeroInt();
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
 
-    // 为b和d准备正确的符号显示字符串
-    let bDisplay;
-    if (b === 1) {
-        bDisplay = '+i';
-    } else if (b === -1) {
-        bDisplay = '-i';
-    } else if (b > 0) {
-        bDisplay = `+${b}i`;
-    } else {
-        bDisplay = `${b}i`;
-    }
+            return selectedFunction();
+        }
 
-    let dDisplay;
-    if (d === 1) {
-        dDisplay = '+i';
-    } else if (d === -1) {
-        dDisplay = '-i';
-    } else if (d > 0) {
-        dDisplay = `+${d}i`;
-    } else {
-        dDisplay = `${d}i`;
-    }
+        function generateLevel5aQuestion() {
+            let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let n = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
 
-    // 形成复数(a + bi)和(c + di)，并加上括号
-    let complex1 = `(${a}${bDisplay})`;
-    let complex2 = `(${c}${dDisplay})`;
+            let textm = m > 0 ? `+${m}` : `${m}`;
+            let textn = n > 0 ? `+${n}` : `${n}`;
 
-    // 计算两个复数的乘积
-    // (a + bi)(c + di) = (ac - bd) + (ad + bc)i
-    let realProduct = a * c - b * d;
-    let imagProduct = a * d + b * c;
+            let p = m + n;
+            let t = m * n;
 
-    // 为乘积的虚部准备显示字符串
-    let imagProductDisplay;
-    if (imagProduct === 0) {
-        imagProductDisplay = '';
-    } else if (imagProduct === 1) {
-        imagProductDisplay = '+i';
-    } else if (imagProduct === -1) {
-        imagProductDisplay = '-i';
-    } else if (imagProduct > 0) {
-        imagProductDisplay = `+${imagProduct}i`;
-    } else {
-        imagProductDisplay = `${imagProduct}i`;
-    }
+            let textp = p === 0 ? "" : (p === 1 ? "+x" : (p === -1 ? "-x" : (p > 1 ? `+${p}x` : `${p}x`)));
+            let textt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
+            correctAnswer = [ `x^2${textp}${textt}`];
 
-    // 准备正确答案
-    correctAnswer = [`${realProduct}${imagProductDisplay}`];
+            return `\\(\\begin{gather}展开:(x${textm})(x${textn}) \\\\ \\begin{array}{|c|c|c|} \\hline b&bx& ${textt}\\\\ \\hline x & x^2 &ax \\\\ \\hline  &x&a \\\\ \\hline  \\end{array} \\end{gather}\\)`;
+        }
 
-    // 构建LaTeX格式的问题文本
-    let textq = `\\[\\huge
-                 \\
-                 \\begin{array}{c}
-                 ${complex1} \\times ${complex2} = ? \\\\
-                \\end{array}
-                 \\
-                \\]`;
+        function generateLevel5bQuestion() {
+            let c = (Math.floor(Math.random() * 5) + 2) * (Math.random() < 0.5 ? 1 : -1);
+            let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let n = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
 
- 
+            let textm = m > 0 ? `+${m}` : `${m}`;
+            let textn = n > 0 ? `+${n}` : `${n}`;
 
-    // 仅返回问题文本
-    return textq;
-}
+            let pc = (m + n) * c;
+            let tc = (m * n) * c;
 
+            let textpc = pc === 0 ? "" : (pc > 0 ? `+${pc}x` : `${pc}x`);
+            let texttc = tc === 0 ? "" : (tc > 0 ? `+${tc}` : `${tc}`);
+            correctAnswer = [``, `${c}x^2${textpc}${texttc}`];
+            if (m === n) {
+                correctAnswer.push(`${c}(x${textm})^2`);
+            }
+            return `\\(\\begin{gather}展开:${c}(x${textm})(x${textn}) \\\\${c}\\times  \\begin{array}{|c|c|c|} \\hline b&bx& ${m*n}\\\\ \\hline x &x^2 &ax \\\\ \\hline  &x&a \\\\ \\hline  \\end{array} \\end{gather}\\)`;
+        }
 
+        function generateLevel5cQuestion() {
+            let a = (Math.floor(Math.random() * 5) + 2) * (Math.random() < 0.5 ? 1 : -1);
+            let b = (Math.floor(Math.random() * 5) + 2) * (Math.random() < 0.5 ? 1 : -1);
+            let c = (Math.floor(Math.random() * 5) + 2) * (Math.random() < 0.5 ? 1 : -1);
+            let d = (Math.floor(Math.random() * 5) + 2) * (Math.random() < 0.5 ? 1 : -1);
 
+            let textb = b > 0 ? `+${b}y` : `${b}y`;
+            let textd = d > 0 ? `+${d}y` : `${d}y`;
 
+            let ac = a * c;
+            let acpbd = (a * d) + (b * c);  // 这里应该是 a*d 和 b*c 的乘积和
+            let bd = b * d;
 
+            let textac = ac > 0 ? `+${ac}` : `${ac}`;
+            let textacpbd = acpbd === 0 
+                ? `` 
+                : (acpbd === 1 
+                    ? `+xy` 
+                    : (acpbd === -1 
+                        ? `-xy` 
+                        : (acpbd > 0 
+                            ? `+${acpbd}xy` 
+                            : `${acpbd}xy`
+                        )
+                    )
+                );
 
+            let textbd = bd>0 ?  `+${bd}y^2` : `${bd}y^2`;
+            
+            let qtext = `(${a}x${textb})(${c}x${textd})`;
 
+            correctAnswer = [`${ac}x^2${textacpbd}${textbd}`];
+            
+            return `\\(展开: ${qtext}\\)`;
+        }
 
-function generateLevel7Question() {
-    let a1 = (Math.floor(Math.random() * 8) + 1)* (Math.random() > 0.5 ? 1 : -1);
-    let a2=  (Math.floor(Math.random() * 8) + 1)* (Math.random() > 0.5 ? 1 : -1);
-    let a3 =  (Math.floor(Math.random() * 8) + 1)* (Math.random() > 0.5 ? 1 : -1);
-    let b1 =  (Math.floor(Math.random() * 8) + 1)* (Math.random() > 0.5 ? 1 : -1);
-    let b2 =  (Math.floor(Math.random() * 8) + 1)* (Math.random() > 0.5 ? 1 : -1);
-    let b3 =  (Math.floor(Math.random() * 8) + 1)* (Math.random() > 0.5 ? 1 : -1);
+        function generateLevel5Question() {
+            const levelFunctions = [
+                generateLevel5aQuestion,
+                generateLevel5bQuestion,
+                generateLevel5cQuestion,
+            ];
 
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
 
-    let x =a2*b3-a3*b2;  // 
-    let y =a3*b1-a1*b3;  // 
-    let z =a1*b2-a2*b1;  // 
+            return selectedFunction();
+        }
 
+        function generateLevel6aQuestion() {
+            let a = (Math.floor(Math.random() * 3) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let b = (Math.floor(Math.random() * 3) + 4) ;
+            let c = (Math.floor(Math.random() * 3) - 4) ;
+            let ta   = a === 0 ? "" : (a > 0 ? `+${a}` : `${a}`);
+            let tb   = b === 0 ? "" : (b > 0 ? `+${b}` : `${b}`);
+            let tc   = c === 0 ? "" : (c > 0 ? `+${c}` : `${c}`);
 
+            let x1=a+b+c;
+            let x2=a*b+b*c+c*a;
+            let x3=a*b*c;
 
-    // 生成正确答案
-    correctAnswer =  [`(${x},${y},${z})`];
-
-    // 生成题目
-    return `\\( 
-\\begin{array}{c}
-在空间直角坐标系中，向量u=(${a1}, ${a2},${a3})、v=(${b1}, ${b2},${b3})，\\\\
-求u,v的法向量？ \\\\ 
-也就是u\\otimes v=？ \\\\ 
-输入格式:(x,y,z)
-\\end{array} \\)`;
-}
+            let textx1   = x1 === 0 ? "" : (x1 === 1 ? "+x^2" : (x1 === -1 ? "-x^2" :(x1 > 0 ? `+${x1}x^2` : `${x1}x^2`)));
+            let textx2   = x2 === 0 ? "" : (x2 === 1 ? "+x" : (x2 === -1 ? "-x" :(x2 > 0 ? `+${x2}x` : `${x2}x`)));
+            let textx3   = x3 === 0 ? "" : (x3 > 0 ? `+${x3}` : `${x3}`);
 
 
-function generateLevel8Question() {
-    let a = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let b = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let c = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let d = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+            correctAnswer = [ `x^3${textx1}${textx2}${textx3}` ];
+           
+            return `\\(\\begin{gather}展开:(x${ta})(x${tb})(x${tc}) \\\\ \\begin{array}{|c|c|c|c|} \\hline x^3&x^2&x&1\\\\ \\hline  \\hline1& a+b+c &ab+bc+ac &abc\\\\ \\hline \\end{array}\\\\
 
-    let m = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let n = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let x =a*m+b*n;
-    let y =c*m+d*n;
+\\\\
+\\begin{cases}
+a+b+c=?x^2\\\\
+ab+bc+ac=?x\\\\
+abc=?\\\\
+
+\\end{cases}\\\\
+
+ \\end{gather}\\)`;
+        }
+
+        function generateLevel6bQuestion() {
+            let a = (Math.floor(Math.random() * 3) + 1) * (Math.random() < 0.5 ? 1 : -1);
+
+            let ta   = a === 0 ? "" : (a > 0 ? `+${a}` : `${a}`);
+
+            let x1=3*a;
+            let x2=3*a*a;
+            let x3=a*a*a;
+
+            let textx1   = x1 === 0 ? "" : (x1 === 1 ? "+x^2" : (x1 === -1 ? "-x^2" :(x1 > 0 ? `+${x1}x^2` : `${x1}x^2`)));
+            let textx2   = x2 === 0 ? "" : (x2 === 1 ? "+x" : (x2 === -1 ? "-x" :(x2 > 0 ? `+${x2}x` : `${x2}x`)));
+            let textx3   = x3 === 0 ? "" : (x3 > 0 ? `+${x3}` : `${x3}`);
 
 
+            correctAnswer = [ `x^3${textx1}${textx2}${textx3}` ];
+           
+            return `\\(\\begin{gather}展开:(x${ta})^3 \\\\ \\begin{array}{|c|c|c|c|} \\hline x^3&x^2&x&1\\\\ \\hline  \\hline1& a+b+c  &ab+bc+ac&abc\\\\ \\hline \\end{array}\\\\
 
-    let textq = `\\(\\begin{array}{cc} \\huge 
-               \\left ( \\begin{array}{rr} 
-              
-                 ${a} & ${b} \\\\ 
-                 ${c} & ${d} \\\\  
-                 
-                 \\end{array}
-               \\right )
-               \\left (             
-               \\huge  \\begin{array}{r}
-              
-                 ${m}  \\\\ 
-                 ${n}  \\\\  
-                 
-                 \\end{array}
-                   \\right )
-                   \\huge =\\\\
-                   矩阵是时空变换之道，\\\\
-                   用复数向量三角......角度去来理解它\\\\
-                                     ......\\\\
-                 输入格式:(a,b) \\\\
-                                      \\end{array}
-               \\)`;
-输入格式:(a,b);
+\\\\
+\\begin{cases}
+a+b+c=?x^2\\\\
+ab+bc+ca=?x\\\\
+abc=?\\\\
 
-    correctAnswer = [`(${x},${y})`]
-    return ` ${textq}  `;
-}       
+\\end{cases}\\\\
+
+ \\end{gather}\\)`;
+        }
+
+        function generateLevel6Question() {
+            const levelFunctions = [
+                generateLevel6aQuestion,
+                generateLevel6bQuestion,
+            ];
+
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+
+            return selectedFunction();
+        }
+
+        function generateLevel7Question() {
+            let m = (Math.floor(Math.random() * 3) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let n = (Math.floor(Math.random() * 3) + 1) * (Math.random() < 0.5 ? 1 : -1);
+
+            let a = (Math.floor(Math.random() * 3) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let b = (Math.floor(Math.random() * 3) + 4);
+            let c = (Math.floor(Math.random() * 3) - 4);
+
+            let tm = m === 1 ? "" : (m === -1 ? `-` : `${m}`);
+            let tn = n > 0 ? `+${n}` : `${n}`;
+
+            let ta = a === 1 ? "" : (a === -1 ? `-` : `${a}`);
+            let tb = b > 0 ? `+${b}` : `${b}`;
+            let tc = c > 0 ? `+${c}` : `${c}`; 
+
+            let x1 = a * m;
+            let x2 = a * n + b * m;
+            let x3 = c * m + b * n;
+            let x4 = c * n;
+
+            let textx1 = x1 === 0 ? "" : (x1 === 1 ? "x^3" : (x1 === -1 ? "-x^3" :`${x1}x^3`));
+            let textx2 = x2 === 0 ? "" : (x2 === 1 ? "+x^2" : (x2 === -1 ? "-x^2" : (x2 > 0 ? `+${x2}x^2` : `${x2}x^2`)));
+            let textx3 = x3 === 0 ? "" : (x3 === 1 ? "+x" : (x3 === -1 ? "-x" : (x3 > 0 ? `+${x3}x` : `${x3}x`)));
+            let textx4 = x4 === 0 ? "" : (x4 > 0 ? `+${x4}` : `${x4}`);
+
+            correctAnswer = [`${textx1}${textx2}${textx3}${textx4}`];
+
+            return `\\(\\begin{gather}展开:(${tm}x${tn})(${ta}x^2${tb}x${tc}) \\\\ 
+            \\begin{array}{|c|c|c|c|} 
+            \\hline ${tn} & 囗x^2 & 囗x & 囗1 \\\\ 
+            \\hline ${m}x & 囗x^3 & 囗x^2& 囗x \\\\ 
+            \\hline   & ${ta}x^2 & ${tb}x & ${tc} \\\\ 
+            \\hline \\end{array} \\\\
+
+            \\end{gather}\\)`;
+        }
+
+        function generateLevel8Question() {
+            // 生成一个三次多项式除以一次多项式求余数的题目
+            let a = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let b = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let c = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let d = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let e = (Math.floor(Math.random() * 3) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            
+            // 生成除数 (x + e)
+            let texte = e > 0 ? `+${e}` : `${e}`;
+            
+            // 生成被除式的系数文本，按照数学书写规范
+            let texta = a === 1 ? "" : (a === -1 ? "-" : `${a}`);
+            let textb = b === 1 ? "+" : (b === -1 ? "-" : (b > 0 ? `+${b}` : `${b}`));
+            let textc = c === 1 ? "+" : (c === -1 ? "-" : (c > 0 ? `+${c}` : `${c}`));
+            let textd = d > 0 ? `+${d}` : `${d}`;
+            
+            // 计算余数
+            let remainder = a * Math.pow(-e, 3) + b * Math.pow(-e, 2) + c * (-e) + d;
+            
+            correctAnswer = [`${remainder}`];
+            
+            return `\\(\\begin{gather}求多项式${texta}x^3${textb}x^2${textc}x${textd}除以(x${texte})的余式 \\\\ 
+            提示：被除式可以写成商式\\times除式+余式的形式 \\\\
+            即：被除式=(ax^2+bx+c)(x${texte})+R
+            \\end{gather}\\)`;
+        }
+
         function generateLevel9Question() {
             const levelFunctions = [
                 generateLevel1Question,
@@ -1524,7 +1583,7 @@ function generateLevel8Question() {
                 generateLevel5Question,
                 generateLevel6Question,
                 generateLevel7Question,
-                generateLevel8Question,
+                generateLevel8Question
             ];
 
             const randomIndex = Math.floor(Math.random() * levelFunctions.length);
@@ -1532,8 +1591,6 @@ function generateLevel8Question() {
 
             return selectedFunction();
         }
-
-
 
         // 创建冲击波效果
         function createShockwave(attacker) {
