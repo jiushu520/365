@@ -566,7 +566,7 @@
         // 新增游戏模式变量
         let gameMode = 'pk'; // 默认为PK模式，可选值: 'self'(自学练习) 或 'pk'(PK模式)
 
-        const difficultyNames = ["01将军饮马之最短路径","02将军饮马之差最大","03一线三直角","04胡不归","05鸟头模型1","06鸟头模型2","07综合"];
+        const difficultyNames = ["01将军饮马之最短路径","02将军饮马之差最大","03一线三直角","04胡不归","05鸟头模型1","06鸟头模型2","07阿氏圆","08综合测试"];
 
         // 初始化
         document.addEventListener("DOMContentLoaded", () => {
@@ -1215,6 +1215,7 @@
                 case 4: return generateLevel4Question();
                 case 5: return generateLevel5Question();
                 case 6: return generateLevel6Question();
+                case 7: return generateLevel7Question();
                 default: return "";
             }
         }
@@ -1839,13 +1840,146 @@
         }
         
         function generateLevel7Question() {
+            // 定义两组配置
+            const configurations = [
+                {
+                    r: 2,
+                    C: [1, 0],
+                    B: [4, 0],
+                    ratio: 1/2,
+                    ratioText: "\\frac{1}{2}"
+                },
+                {
+                    r: 3,
+                    C: [1, 0],
+                    B: [9, 0],
+                    ratio: 1/3,
+                    ratioText: "\\frac{1}{3}"
+                }
+            ];
+            
+            // 随机选择一组配置
+            const config = configurations[Math.floor(Math.random() * configurations.length)];
+            
+            // 使用勾股数组
+            const pythagoreanTriplets = [
+                {a: 3, b: 4, c: 5},
+                {a: 5, b: 12, c: 13},
+                {a: 6, b: 8, c: 10},
+                {a: 8, b: 15, c: 17}
+            ];
+            
+            const triplet = pythagoreanTriplets[Math.floor(Math.random() * pythagoreanTriplets.length)];
+            
+            // 使用选中的配置设置参数
+            const r = config.r;
+            const C = config.C;
+            const B = config.B;
+            const A = [C[0] + triplet.a, triplet.b];
+            
+            // P点坐标保持在第一象限
+            const Px = Math.sqrt(r*r/2);
+            const Py = Math.sqrt(r*r/2);
+            
+            // 修改视图参数
+            const scale = 25;
+            const svgWidth = 500;
+            const svgHeight = 450;
+            // 修改偏移量，向左平移1/4宽度，向下平移1/4高度
+            const offsetX = Math.round(svgWidth * 0.5); // 从250减少到125
+            const offsetY = 250; // 保持不变
+            
+            // 修改SVG部分
+            const svg = `
+            <svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">
+                <!-- 坐标轴 -->
+                <g transform="translate(-${svgWidth/4}, ${svgHeight/4})">
+                    <line x1="0" y1="${offsetY}" x2="${svgWidth}" y2="${offsetY}" stroke="black" stroke-width="1"/>
+                    <line x1="${offsetX}" y1="0" x2="${offsetX}" y2="${svgHeight}" stroke="black" stroke-width="1"/>
+                    
+                    <!-- 原点O标注 -->
+                    <text x="${offsetX-20}" y="${offsetY+20}" font-family="serif" font-size="16">O</text>
+                    
+                    <!-- 圆 -->
+                    <circle cx="${offsetX}" cy="${offsetY}" r="${r * scale}" 
+                            fill="none" stroke="blue" stroke-width="1.5"/>
+                    
+                    <!-- 点C -->
+                    <circle cx="${offsetX + C[0] * scale}" cy="${offsetY - C[1] * scale}" r="4" fill="black"/>
+                    <text x="${offsetX + C[0] * scale - 20}" y="${offsetY - C[1] * scale + 20}" 
+                          font-family="serif" font-size="16">C(${C[0]},${C[1]})</text>
+                    
+                    <!-- 点B -->
+                    <circle cx="${offsetX + B[0] * scale}" cy="${offsetY - B[1] * scale}" r="4" fill="black"/>
+                    <text x="${offsetX + B[0] * scale - 10}" y="${offsetY - B[1] * scale + 20}" 
+                          font-family="serif" font-size="16">B(${B[0]},${B[1]})</text>
+                    
+                    <!-- 点A -->
+                    <circle cx="${offsetX + A[0] * scale}" cy="${offsetY - A[1] * scale}" r="4" fill="black"/>
+                    <text x="${offsetX + A[0] * scale - 10}" y="${offsetY - A[1] * scale - 10}" 
+                          font-family="serif" font-size="16">A(${A[0]},${A[1]})</text>
+                    
+                    <!-- 点P -->
+                    <circle cx="${offsetX + Px * scale}" cy="${offsetY - Py * scale}" r="4" fill="red"/>
+                    <text x="${offsetX + Px * scale - 10}" y="${offsetY - Py * scale - 10}" 
+                          font-family="serif" font-size="16">P</text>
+                    
+                    <!-- AC连线 -->
+                    <line x1="${offsetX + C[0] * scale}" y1="${offsetY - C[1] * scale}"
+                          x2="${offsetX + A[0] * scale}" y2="${offsetY - A[1] * scale}"
+                          stroke="gray" stroke-width="1" stroke-dasharray="4,4"/>
+                    
+                    <!-- PA和PB连线 -->
+                    <line x1="${offsetX + Px * scale}" y1="${offsetY - Py * scale}"
+                          x2="${offsetX + A[0] * scale}" y2="${offsetY - A[1] * scale}"
+                          stroke="red" stroke-width="1.5"/>
+                    <line x1="${offsetX + Px * scale}" y1="${offsetY - Py * scale}"
+                          x2="${offsetX + B[0] * scale}" y2="${offsetY - B[1] * scale}"
+                          stroke="blue" stroke-width="1.5"/>
+                    
+                    <!-- OP和PC连线 -->
+                    <line x1="${offsetX}" y1="${offsetY}"
+                          x2="${offsetX + Px * scale}" y2="${offsetY - Py * scale}"
+                          stroke="purple" stroke-width="1.5"/>
+                    <line x1="${offsetX + Px * scale}" y1="${offsetY - Py * scale}"
+                          x2="${offsetX + C[0] * scale}" y2="${offsetY - C[1] * scale}"
+                          stroke="purple" stroke-width="1.5"/>
+                    
+                    <!-- 方程标注 -->
+                    <text x="${offsetX - 100}" y="50" font-family="serif" font-size="16">圆C: x² + y² = ${r*r}</text>
+                </g>
+            </svg>
+            `;
+            
+            // 格式化问题文本
+            const question = `
+            <div style="text-align: center;">
+                \\begin{array}{cc} 
+                如图，点P在圆C:x^2+y^2=${r*r}上，\\\\
+                C(${C[0]},${C[1]})，B(${B[0]},${B[1]})，A(${A[0]},${A[1]})，\\\\
+                求AP+${config.ratioText}PB的最小值。\\\\
+                \\end{array}
+
+                <div style="margin-top: 15px;" id="svgContainer">${svg}</div>
+            </div>
+            `;
+
+            // 计算最小值 - 使用勾股数计算AC的长度
+            const minValue = triplet.c; // 最小值就是勾股数的斜边长度
+            correctAnswer = [`${minValue}`];
+            
+            return question;
+        }
+
+        function generateLevel8Question() {
             const levelFunctions = [
                 generateLevel1Question,
                 generateLevel2Question,
                 generateLevel3Question,
                 generateLevel4Question,
                 generateLevel5Question,
-                generateLevel6Question
+                generateLevel6Question,
+                generateLevel7Question
             ];
             const randomIndex = Math.floor(Math.random() * levelFunctions.length);
             const selectedFunction = levelFunctions[randomIndex];
@@ -1904,6 +2038,7 @@
             }, 2000);
         }
 
+ 
     </script>
 </body>
 </html>
