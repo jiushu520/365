@@ -573,8 +573,8 @@
             "04交点",
             "05两根距离",
             "06切线方程", 
-            "07综合合",
-            "08挑战自招"
+            "07区间值域",
+            "08综合"
         ];
 
         // 初始化
@@ -1433,10 +1433,174 @@ function generateLevel6Question() {
     return `\\( \\huge \\begin{gather} ${qtext} \\end{gather}\\)`;
 }
 
+function generateLevel7Question() {
+    // 生成二次函数的参数
+    let a = (Math.random() < 0.5 ? 1 : -1); // 二次项系数为1或-1
+    let m = (Math.floor(Math.random() * 5) + 1);
+    let n = (Math.floor(Math.random() * 5) + 1);
+    
+    // 正确计算顶点坐标
+    let h = -m;  // 顶点的x坐标始终是-m
+    let k = n;   // 顶点的y坐标取决于a的符号和n的值
+    
+    if (a < 0) {
+        // 如果开口向下，函数形式为 -x^2 + 2mx + (m^2-n)
+        // 顶点y值就是 -n + m^2
+        k = m*m - n;
+    } else {
+        // 如果开口向上，函数形式为 x^2 + 2mx + (m^2+n)
+        // 顶点y值就是 n
+        k = n;
+    }
+    
+    // 生成区间端点
+    let p, q;
+    if (Math.random() < 0.6) {
+        // 让区间包含顶点的情况
+        p = h - (Math.floor(Math.random() * 3) + 1);
+        q = h + (Math.floor(Math.random() * 3) + 1);
+    } else {
+        // 让区间在顶点一侧的情况
+        let shift = (Math.floor(Math.random() * 3) + 1);
+        if (Math.random() < 0.5) {
+            p = h + shift;
+            q = p + (Math.floor(Math.random() * 3) + 2);
+        } else {
+            q = h - shift;
+            p = q - (Math.floor(Math.random() * 3) + 2);
+        }
+    }
+    // 确保p < q
+    if (p > q) [p, q] = [q, p];
+    
+    // 构建函数表达式文本
+    let text2m = 2*m === 0 ? `` : (2*m === 1 ? `+x` : (2*m === -1 ? `-x` : (2*m > 0 ? `+${2*m}x` : `${2*m}x`)));
+    
+    // 根据a的符号计算不同的常数项
+    let constant;
+    if (a < 0) {
+        constant = m*m - n; // 开口向下情况
+    } else {
+        constant = m*m + n; // 开口向上情况
+    }
+    
+    let textConstant = constant === 0 ? `` : (constant > 0 ? `+${constant}` : `${constant}`);
+    
+    // 计算函数在区间端点的值
+    const fx = (x) => a * (x*x + 2*m*x + m*m) + (a < 0 ? -n : n);
+    let fp = fx(p);
+    let fq = fx(q);
+    let fh = fx(h); // 顶点处的函数值
+    
+    // 计算值域
+    let min, max;
+    if (a > 0) { // 开口向上
+        if (p <= h && h <= q) { // 区间包含顶点
+            min = fh;
+            max = Math.max(fp, fq);
+        } else { // 区间不包含顶点
+            min = Math.min(fp, fq);
+            max = Math.max(fp, fq);
+        }
+    } else { // 开口向下
+        if (p <= h && h <= q) { // 区间包含顶点
+            min = Math.min(fp, fq);
+            max = fh;
+        } else { // 区间不包含顶点
+            min = Math.min(fp, fq);
+            max = Math.max(fp, fq);
+        }
+    }
+    
+    // SVG图形生成
+    const width = 400;
+    const height = 400;
+    const padding = 30;
+    
+    // 坐标范围
+    const xMin = Math.min(p, h) - 2;
+    const xMax = Math.max(q, h) + 2;
+    const yValues = [fp, fq, fh, min, max];
+    const yMin = Math.min(...yValues) - 2;
+    const yMax = Math.max(...yValues) + 2;
+    
+    // 坐标转换函数
+    const xScale = (x) => padding + (x - xMin) * (width - 2 * padding) / (xMax - xMin);
+    const yScale = (y) => height - padding - (y - yMin) * (height - 2 * padding) / (yMax - yMin);
+    
+    // 生成抛物线点集
+    const points = [];
+    const numPoints = 100;
+    for (let i = 0; i < numPoints; i++) {
+        const x = xMin + (xMax - xMin) * i / (numPoints - 1);
+        const y = fx(x);
+        points.push([xScale(x), yScale(y)]);
+    }
+    
+    const pathData = points.map((point, i) => 
+        (i === 0 ? 'M' : 'L') + point[0] + ',' + point[1]
+    ).join(' ');
+    
+    // 创建SVG，确保顶点坐标正确显示
+    let svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+        <!-- 坐标轴 -->
+        <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="black" />
+        <line x1="${padding}" y1="${height - padding}" x2="${padding}" y2="${padding}" stroke="black" />
+        
+        <!-- 轴标签 -->
+        <text x="${width - padding + 10}" y="${height - padding + 15}" font-size="12">x</text>
+        <text x="${padding - 5}" y="${padding - 10}" font-size="12">y</text>
+        
+        <!-- 抛物线绘制 -->
+        <path d="${pathData}" fill="none" stroke="${a > 0 ? 'blue' : 'red'}" stroke-width="2" />
+        
+        <!-- 区间内的曲线部分强调 -->
+        <path d="M ${xScale(p)},${yScale(fp)} ${
+            points.filter(point => xScale(p) <= point[0] && point[0] <= xScale(q)).map(point => `L ${point[0]},${point[1]}`).join(' ')
+        }" fill="none" stroke="${a > 0 ? 'darkblue' : 'darkred'}" stroke-width="3" />
+        
+        <!-- 区间标记 -->
+        <line x1="${xScale(p)}" y1="${yScale(yMin)}" x2="${xScale(p)}" y2="${yScale(yMax)}" stroke="blue" stroke-dasharray="5,5" />
+        <line x1="${xScale(q)}" y1="${yScale(yMin)}" x2="${xScale(q)}" y2="${yScale(yMax)}" stroke="blue" stroke-dasharray="5,5" />
+        <text x="${xScale(p) - 10}" y="${height - padding + 15}" font-size="10">${p}</text>
+        <text x="${xScale(q) - 10}" y="${height - padding + 15}" font-size="10">${q}</text>
+        
+        <!-- 值域标记线 -->
+        <line x1="${padding - 5}" y1="${yScale(min)}" x2="${width - padding}" y2="${yScale(min)}" stroke="green" stroke-dasharray="5,5" />
+        <line x1="${padding - 5}" y1="${yScale(max)}" x2="${width - padding}" y2="${yScale(max)}" stroke="green" stroke-dasharray="5,5" />
+        <text x="${padding - 25}" y="${yScale(min) + 5}" font-size="10">${min}</text>
+        <text x="${padding - 25}" y="${yScale(max) + 5}" font-size="10">${max}</text>
+        
+        <!-- 区间端点标记 -->
+        <circle cx="${xScale(p)}" cy="${yScale(fp)}" r="3" fill="blue" />
+        <circle cx="${xScale(q)}" cy="${yScale(fq)}" r="3" fill="blue" />
+        <text x="${xScale(p) - 15}" y="${yScale(fp) - 10}" font-size="10">(${p},？)</text>
+        <text x="${xScale(q) - 15}" y="${yScale(fq) - 10}" font-size="10">(${q},?)</text>
+        
+        <!-- 顶点标记 -->
+        <circle cx="${xScale(h)}" cy="${yScale(fh)}" r="4" fill="red" />
+    </svg>`;
+    
+    // 构建函数表达式
+    let funcExpr = a < 0 ? `-x^2${text2m}${textConstant}` : `x^2${text2m}${textConstant}`;
+    let qtext = `函数 f(x)=${funcExpr}，\\\\求f(x)在区间[${p},${q}]上的值域。 \\\\`;
+    correctAnswer = [`[${min},${max}]`];
+    
+    return `
+    <div>
+        <div style="margin-bottom: 20px;">
+            \\( \\huge \\begin{gather} ${qtext} \\end{gather}\\)
+        </div>
+        <div style="text-align: center; margin-top: 20px; display: block; width: 100%;">
+            ${svg}
+
+        </div>
+    </div>`;
+}
 
 
 
-     function generateLevel7Question() {
+     function generateLevel8Question() {
             const levelFunctions = [
                 generateLevel1Question,
                 generateLevel2Question,
@@ -1444,6 +1608,7 @@ function generateLevel6Question() {
                 generateLevel4Question,
                 generateLevel5Question,
                 generateLevel6Question,
+                generateLevel7Question,
  
             ];
 
@@ -1457,41 +1622,8 @@ function generateLevel6Question() {
 
 
 
-let currentIndex = 0;
 
-function generateLevel8Question() {
-    const questions = [
-        { m: '1.已知函数y=ax^2+bx+c的图像如图所示，则化简\\\\  \\sqrt{a^2 - 2ab + b^2} - |b + c| - |a - c| = \\underline{\\quad}\\\\ ',image: './images/zzD0201.png', n: '2c' }, 
-  
-    ];
 
-    // 获取当前索引的题目
-    let selectedQuestion = questions[currentIndex];
-
-    let m = selectedQuestion.m;
-    let n = selectedQuestion.n;
-
-    // 如果 n 是一个数组，表示有多个正确答案
-    correctAnswer;
-    if (Array.isArray(n)) {
-        correctAnswer = [...n];
-    } else {
-        correctAnswer = [`${n}`];
-    }
-
-    // 构建返回的 LaTeX 代码
-    let questionLatex = `\\(\\begin{gather}${m} \\end{gather}\\)`;
-
-    // 如果有图片路径，则插入图片
-    if (selectedQuestion.image) {
-        questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
-    }
-
-    // 更新索引值，确保按顺序出题
-    currentIndex = (currentIndex + 1) % questions.length;
-
-    return questionLatex;
-}
 
 
 
