@@ -605,16 +605,12 @@
             const playerContainer = document.getElementById('playerContainer');
             const computerContainer = document.getElementById('computerContainer');
             const countdownDisplay = document.getElementById('countdownDisplay');
-            const timerSelection = document.querySelector('.timer-selection');
-            const thinkingDifficultySelection = document.querySelector('.thinking-difficulty-selection');
             
             if (mode === 'self') {
                 // 自学练习模式
                 computerContainer.style.display = 'none';
                 playerContainer.classList.add('full-width');
-                countdownDisplay.style.display = 'none';
-                timerSelection.style.display = 'none';
-                thinkingDifficultySelection.style.display = 'none';
+                countdownDisplay.style.display = 'block';
                 document.getElementById('startGameBtn').textContent = '开始练习';
                 document.getElementById('roundResult').style.display = 'none';
             } else {
@@ -622,8 +618,6 @@
                 computerContainer.style.display = 'flex';
                 playerContainer.classList.remove('full-width');
                 countdownDisplay.style.display = 'block';
-                timerSelection.style.display = 'block';
-                thinkingDifficultySelection.style.display = 'block';
                 document.getElementById('startGameBtn').textContent = '开始PK';
                 document.getElementById('roundResult').style.display = 'block';
             }
@@ -746,10 +740,12 @@
             // 开始计时器
             startTimers();
             
-            // 仅在PK模式下才生成计算机题目和启动倒计时
+            // 启动倒计时 - 无论是PK模式还是自学模式
+            startCountdown();
+            
+            // 仅在PK模式下才生成计算机题目
             if (gameMode === 'pk') {
                 generateComputerQuestion();
-                startCountdown();
             }
         }
         
@@ -1207,7 +1203,7 @@
                 document.getElementById('roundResult').innerHTML = resultMessage;
             } else {
                 // 自学练习模式
-                document.getElementById('roundResult').innerHTML = `练习结束! 共完成${playerTotalCount}题，正确${playerCorrectCount}题`;
+                document.getElementById('roundResult').innerHTML = `练习结束! 共完成${playerTotalCount}题，正确${playerCorrectCount}题，得分: ${playerCorrectCount - playerIncorrectCount}`;
                 document.getElementById('roundResult').style.display = 'block';
                 document.getElementById('roundResult').className = 'winner-indicator';
             }
