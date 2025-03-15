@@ -166,6 +166,10 @@
       <a class="bookmark" data-url="https://jiushu.cpolar.cn/chat/jiushuwbt.html">玖数问不停</a>
       <a class="bookmark" data-url="../video/index.html">学习视频</a>
       <a class="bookmark" data-url="https://shimo.im/forms/1lq7MylGd1U9RaAe/fill">提交成绩</a>
+      <a class="bookmark" data-url="https://shimo.im/tables/2wAldr0wwzCRQjAP?tableGuid=6UcrhgNW3gP&table=6UcrhgNW3gP&view=Oy9MstI2Dxn
+">查看成绩</a>
+
+
 
 
 
@@ -181,6 +185,9 @@
   <!-- 第二个容器 -->
   <div class="container container2" id="container2">
     <div class="bookmark-nav" id="bookmarks2">
+      <a class="bookmark" data-url="https://shimo.im/forms/1lq7MylGd1U9RaAe/fill">提交成绩</a>
+      <a class="bookmark" data-url="https://shimo.im/tables/2wAldr0wwzCRQjAP?tableGuid=6UcrhgNW3gP&table=6UcrhgNW3gP&view=Oy9MstI2Dxn
+">查看成绩</a>
       <a class="bookmark" data-url="https://jiushu.cpolar.cn/chat/jiushuydg.html">玖数有点杠</a>
       <a class="bookmark" data-url="https://jiushu.cpolar.cn/chat/ocrqianwen.html">千问</a>
       <a class="bookmark" data-url="https://jiushu.cpolar.cn/chat/多模态.html">多模态</a>
@@ -230,7 +237,39 @@
     
     // 为第一个容器的书签添加点击事件
     bookmarks1.forEach(bookmark => {
+      // 创建每个书签的刷新按钮
+      const refreshButton = document.createElement('a');
+      refreshButton.className = 'refresh-button';
+      refreshButton.textContent = '↻';
+      refreshButton.style.display = 'none'; // 初始隐藏
+      refreshButton.style.marginLeft = '5px';
+      refreshButton.style.fontSize = '14px';
+      refreshButton.setAttribute('title', '刷新当前页面');
+      
+      // 将刷新按钮插入到书签后面
+      bookmark.parentNode.insertBefore(refreshButton, bookmark.nextSibling);
+      
+      // 存储刷新按钮引用
+      bookmark.refreshButton = refreshButton;
+      
+      // 添加刷新按钮点击事件
+      refreshButton.addEventListener('click', function(e) {
+        e.stopPropagation(); // 阻止事件冒泡
+        const url = bookmark.getAttribute('data-url');
+        if (iframes1[url]) {
+          iframes1[url].src = iframes1[url].src;
+        }
+      });
+      
       bookmark.addEventListener('click', function() {
+        // 隐藏所有刷新按钮
+        bookmarks1.forEach(b => {
+          if (b.refreshButton) b.refreshButton.style.display = 'none';
+        });
+        
+        // 显示当前书签的刷新按钮
+        this.refreshButton.style.display = 'inline-block';
+        
         // 设置当前书签为活动状态
         bookmarks1.forEach(b => b.classList.remove('active'));
         this.classList.add('active');
@@ -263,7 +302,39 @@
     
     // 为第二个容器的书签添加点击事件
     bookmarks2.forEach(bookmark => {
+      // 创建每个书签的刷新按钮
+      const refreshButton = document.createElement('a');
+      refreshButton.className = 'refresh-button';
+      refreshButton.textContent = '↻';
+      refreshButton.style.display = 'none'; // 初始隐藏
+      refreshButton.style.marginLeft = '5px';
+      refreshButton.style.fontSize = '14px';
+      refreshButton.setAttribute('title', '刷新当前页面');
+      
+      // 将刷新按钮插入到书签后面
+      bookmark.parentNode.insertBefore(refreshButton, bookmark.nextSibling);
+      
+      // 存储刷新按钮引用
+      bookmark.refreshButton = refreshButton;
+      
+      // 添加刷新按钮点击事件
+      refreshButton.addEventListener('click', function(e) {
+        e.stopPropagation(); // 阻止事件冒泡
+        const url = bookmark.getAttribute('data-url');
+        if (iframes2[url]) {
+          iframes2[url].src = iframes2[url].src;
+        }
+      });
+      
       bookmark.addEventListener('click', function() {
+        // 隐藏所有刷新按钮
+        bookmarks2.forEach(b => {
+          if (b.refreshButton) b.refreshButton.style.display = 'none';
+        });
+        
+        // 显示当前书签的刷新按钮
+        this.refreshButton.style.display = 'inline-block';
+        
         // 设置当前书签为活动状态
         bookmarks2.forEach(b => b.classList.remove('active'));
         this.classList.add('active');
@@ -311,7 +382,7 @@
     let dragging = null;
     
     // 修改默认比例 - 左侧50%，右侧50%
-    const defaultRatio = 0.5; // 第一个容器默认占50%
+    const defaultRatio = 0.7; // 第一个容器默认占70%
     
     function initHandle() {
       const totalWidth = mainContainer.offsetWidth;
