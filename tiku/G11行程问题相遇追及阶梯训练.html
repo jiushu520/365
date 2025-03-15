@@ -590,46 +590,40 @@
 
         // 切换游戏模式
         function switchMode(mode) {
-            if (gameInProgress) {
-                alert('游戏进行中无法切换模式，请先重置游戏');
-                return;
-            }
-            
-            gameMode = mode;
-            
-            // 更新UI按钮状态
-            document.getElementById('selfPracticeBtn').classList.toggle('active', mode === 'self');
-            document.getElementById('pkModeBtn').classList.toggle('active', mode === 'pk');
-            
-            const playerContainer = document.getElementById('playerContainer');
-            const computerContainer = document.getElementById('computerContainer');
-            const countdownDisplay = document.getElementById('countdownDisplay');
-            const timerSelection = document.querySelector('.timer-selection');
-            const thinkingDifficultySelection = document.querySelector('.thinking-difficulty-selection');
-            
-            if (mode === 'self') {
-                // 自学练习模式
-                computerContainer.style.display = 'none';
-                playerContainer.classList.add('full-width');
-                countdownDisplay.style.display = 'none';
-                timerSelection.style.display = 'none';
-                thinkingDifficultySelection.style.display = 'none';
-                document.getElementById('startGameBtn').textContent = '开始练习';
-                document.getElementById('roundResult').style.display = 'none';
-            } else {
-                // PK模式
-                computerContainer.style.display = 'flex';
-                playerContainer.classList.remove('full-width');
-                countdownDisplay.style.display = 'block';
-                timerSelection.style.display = 'block';
-                thinkingDifficultySelection.style.display = 'block';
-                document.getElementById('startGameBtn').textContent = '开始PK';
-                document.getElementById('roundResult').style.display = 'block';
-            }
-            
-            // 更新界面按钮状态
-            updateButtonStates();
-        }
+    if (gameInProgress) {
+        alert('游戏进行中无法切换模式，请先重置游戏');
+        return;
+    }
+    
+    gameMode = mode;
+    
+    // 更新UI按钮状态
+    document.getElementById('selfPracticeBtn').classList.toggle('active', mode === 'self');
+    document.getElementById('pkModeBtn').classList.toggle('active', mode === 'pk');
+    
+    const playerContainer = document.getElementById('playerContainer');
+    const computerContainer = document.getElementById('computerContainer');
+    const countdownDisplay = document.getElementById('countdownDisplay');
+    
+    if (mode === 'self') {
+        // 自学练习模式
+        computerContainer.style.display = 'none';
+        playerContainer.classList.add('full-width');
+        countdownDisplay.style.display = 'block'; // 修改：显示倒计时
+        document.getElementById('startGameBtn').textContent = '开始练习';
+        document.getElementById('roundResult').style.display = 'none';
+    } else {
+        // PK模式
+        computerContainer.style.display = 'flex';
+        playerContainer.classList.remove('full-width');
+        countdownDisplay.style.display = 'block';
+        document.getElementById('startGameBtn').textContent = '开始PK';
+        document.getElementById('roundResult').style.display = 'block';
+    }
+    
+    // 更新界面按钮状态
+    updateButtonStates();
+}
 
         function generateDifficultyButtons() {
             const difficultyButtonsContainer = document.getElementById('difficultyButtons');
@@ -710,47 +704,49 @@
         }
 
         function startGame() {
-            // 重置状态
-            playerCorrectCount = 0;
-            playerIncorrectCount = 0;
-            computerCorrectCount = 0;
-            computerIncorrectCount = 0;
-            playerTotalCount = 0;
-            computerTotalCount = 0;
-            playerTime = 0;
-            computerTime = 0;
-            
-            // 更新UI
-            document.getElementById('playerScore').innerHTML = `正确: 0 | 错误: 0 | 总题数: 0`;
-            if (gameMode === 'pk') {
-                document.getElementById('computerScore').innerHTML = `正确: 0 | 错误: 0 | 总题数: 0`;
-                document.getElementById('computerTimer').innerHTML = `时间: 0秒`;
-                document.getElementById('roundResult').innerHTML = '';
-            }
-            document.getElementById('playerTimer').innerHTML = `时间: 0秒`;
-            document.getElementById('history').innerHTML = '';
-            
-            // 启用/禁用相关按钮
-            document.getElementById('startGameBtn').disabled = true;
-            document.getElementById('resetGameBtn').disabled = false;
-            document.getElementById('playerAnswer').disabled = false;
-            document.getElementById('playerSubmitBtn').disabled = false;
-            
-            // 更改游戏状态
-            gameInProgress = true;
-            
-            // 为玩家生成题目
-            generatePlayerQuestion();
-            
-            // 开始计时器
-            startTimers();
-            
-            // 仅在PK模式下才生成计算机题目和启动倒计时
-            if (gameMode === 'pk') {
-                generateComputerQuestion();
-                startCountdown();
-            }
-        }
+    // 重置状态
+    playerCorrectCount = 0;
+    playerIncorrectCount = 0;
+    computerCorrectCount = 0;
+    computerIncorrectCount = 0;
+    playerTotalCount = 0;
+    computerTotalCount = 0;
+    playerTime = 0;
+    computerTime = 0;
+    
+    // 更新UI
+    document.getElementById('playerScore').innerHTML = `正确: 0 | 错误: 0 | 总题数: 0`;
+    if (gameMode === 'pk') {
+        document.getElementById('computerScore').innerHTML = `正确: 0 | 错误: 0 | 总题数: 0`;
+        document.getElementById('computerTimer').innerHTML = `时间: 0秒`;
+        document.getElementById('roundResult').innerHTML = '';
+    }
+    document.getElementById('playerTimer').innerHTML = `时间: 0秒`;
+    document.getElementById('history').innerHTML = '';
+    
+    // 启用/禁用相关按钮
+    document.getElementById('startGameBtn').disabled = true;
+    document.getElementById('resetGameBtn').disabled = false;
+    document.getElementById('playerAnswer').disabled = false;
+    document.getElementById('playerSubmitBtn').disabled = false;
+    
+    // 更改游戏状态
+    gameInProgress = true;
+    
+    // 为玩家生成题目
+    generatePlayerQuestion();
+    
+    // 开始计时器
+    startTimers();
+    
+    // 启动倒计时 - 无论是PK模式还是自学模式
+    startCountdown();
+    
+    // 仅在PK模式下才生成计算机题目
+    if (gameMode === 'pk') {
+        generateComputerQuestion();
+    }
+}
         
         function resetGame() {
             // 停止计时器
@@ -1176,44 +1172,44 @@
 
         // 游戏结束函数
         function endGame() {
-            // 停止所有计时器
-            clearInterval(playerTimer);
-            clearInterval(computerTimer);
-            clearInterval(countdownTimer);
-            computerThinkingTimers.forEach(timer => clearTimeout(timer));
-            computerThinkingTimers = [];
-            
-            // 更改游戏状态
-            gameInProgress = false;
-            
-            // 禁用玩家输入
-            document.getElementById('playerAnswer').disabled = true;
-            document.getElementById('playerSubmitBtn').disabled = true;
-            
-            // 仅在PK模式下显示游戏结果
-            if (gameMode === 'pk') {
-                let resultMessage = '';
-                if (playerCorrectCount > computerCorrectCount) {
-                    resultMessage = `游戏结束! 玩家获胜! (${playerCorrectCount} : ${computerCorrectCount})`;
-                    document.getElementById('roundResult').className = 'winner-indicator player-win';
-                } else if (playerCorrectCount < computerCorrectCount) {
-                    resultMessage = `游戏结束! 计算机获胜! (${playerCorrectCount} : ${computerCorrectCount})`;
-                    document.getElementById('roundResult').className = 'winner-indicator computer-win';
-                } else {
-                    resultMessage = `游戏结束! 平局! (${playerCorrectCount} : ${computerCorrectCount})`;
-                    document.getElementById('roundResult').className = 'winner-indicator tie';
-                }
-                document.getElementById('roundResult').innerHTML = resultMessage;
-            } else {
-                // 自学练习模式
-                document.getElementById('roundResult').innerHTML = `练习结束! 共完成${playerTotalCount}题，正确${playerCorrectCount}题`;
-                document.getElementById('roundResult').style.display = 'block';
-                document.getElementById('roundResult').className = 'winner-indicator';
-            }
-            
-            // 启用重置按钮
-            document.getElementById('resetGameBtn').disabled = false;
+    // 停止所有计时器
+    clearInterval(playerTimer);
+    clearInterval(computerTimer);
+    clearInterval(countdownTimer);
+    computerThinkingTimers.forEach(timer => clearTimeout(timer));
+    computerThinkingTimers = [];
+    
+    // 更改游戏状态
+    gameInProgress = false;
+    
+    // 禁用玩家输入
+    document.getElementById('playerAnswer').disabled = true;
+    document.getElementById('playerSubmitBtn').disabled = true;
+    
+    // 仅在PK模式下显示游戏结果
+    if (gameMode === 'pk') {
+        let resultMessage = '';
+        if (playerCorrectCount > computerCorrectCount) {
+            resultMessage = `游戏结束! 玩家获胜! (${playerCorrectCount} : ${computerCorrectCount})`;
+            document.getElementById('roundResult').className = 'winner-indicator player-win';
+        } else if (playerCorrectCount < computerCorrectCount) {
+            resultMessage = `游戏结束! 计算机获胜! (${playerCorrectCount} : ${computerCorrectCount})`;
+            document.getElementById('roundResult').className = 'winner-indicator computer-win';
+        } else {
+            resultMessage = `游戏结束! 平局! (${playerCorrectCount} : ${computerCorrectCount})`;
+            document.getElementById('roundResult').className = 'winner-indicator tie';
         }
+        document.getElementById('roundResult').innerHTML = resultMessage;
+    } else {
+        // 自学练习模式
+        document.getElementById('roundResult').innerHTML = `练习结束! 共完成${playerTotalCount}题，正确${playerCorrectCount}题，得分: ${playerCorrectCount - playerIncorrectCount}`;
+        document.getElementById('roundResult').style.display = 'block';
+        document.getElementById('roundResult').className = 'winner-indicator';
+    }
+    
+    // 启用重置按钮
+    document.getElementById('resetGameBtn').disabled = false;
+}
 
 
         // 以下是生成题目的函数，与原有代码相同

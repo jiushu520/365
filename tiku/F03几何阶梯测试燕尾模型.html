@@ -593,16 +593,12 @@
             const playerContainer = document.getElementById('playerContainer');
             const computerContainer = document.getElementById('computerContainer');
             const countdownDisplay = document.getElementById('countdownDisplay');
-            const timerSelection = document.querySelector('.timer-selection');
-            const thinkingDifficultySelection = document.querySelector('.thinking-difficulty-selection');
             
             if (mode === 'self') {
                 // 自学练习模式
                 computerContainer.style.display = 'none';
                 playerContainer.classList.add('full-width');
-                countdownDisplay.style.display = 'none';
-                timerSelection.style.display = 'none';
-                thinkingDifficultySelection.style.display = 'none';
+                countdownDisplay.style.display = 'block'; // 修改：显示倒计时
                 document.getElementById('startGameBtn').textContent = '开始练习';
                 document.getElementById('roundResult').style.display = 'none';
             } else {
@@ -610,8 +606,6 @@
                 computerContainer.style.display = 'flex';
                 playerContainer.classList.remove('full-width');
                 countdownDisplay.style.display = 'block';
-                timerSelection.style.display = 'block';
-                thinkingDifficultySelection.style.display = 'block';
                 document.getElementById('startGameBtn').textContent = '开始PK';
                 document.getElementById('roundResult').style.display = 'block';
             }
@@ -734,10 +728,12 @@
             // 开始计时器
             startTimers();
             
-            // 仅在PK模式下才生成计算机题目和启动倒计时
+            // 启动倒计时 - 无论是PK模式还是自学模式
+            startCountdown();
+            
+            // 仅在PK模式下才生成计算机题目
             if (gameMode === 'pk') {
                 generateComputerQuestion();
-                startCountdown();
             }
         }
         
@@ -1195,7 +1191,7 @@
                 document.getElementById('roundResult').innerHTML = resultMessage;
             } else {
                 // 自学练习模式
-                document.getElementById('roundResult').innerHTML = `练习结束! 共完成${playerTotalCount}题，正确${playerCorrectCount}题`;
+                document.getElementById('roundResult').innerHTML = `练习结束! 共完成${playerTotalCount}题，正确${playerCorrectCount}题，得分: ${playerCorrectCount - playerIncorrectCount}`;
                 document.getElementById('roundResult').style.display = 'block';
                 document.getElementById('roundResult').className = 'winner-indicator';
             }
@@ -1231,100 +1227,91 @@
         }
 
         function generateLevel1Question() {
-          //认识燕尾  添加一个静态变量来跟踪当前索引
-          if (typeof generateLevel1Question.currentIndex === 'undefined') {
-            generateLevel1Question.currentIndex = 0;
-          }
+             // 生成随机比例
+            let ratio1 = Math.floor(Math.random() * 5) + 1;  // 1 to 5
+            let ratio2 = Math.floor(Math.random() * 5) + 1;  // 1 to 5
+            
+            // 计算最大公约数
+            let divisor = gcd(ratio1, ratio2);
+            
+            // 将比例化为最简比
+            let simplifiedRatio1 = ratio1 / divisor;
+            let simplifiedRatio2 = ratio2 / divisor;
+            
+            // 生成随机高度因子，确保面积为整数
+            let heightFactor = Math.floor(Math.random() * 10) + 1;  // 1 to 10
+            
+            // 计算面积
+            let S1 = ratio1 * heightFactor;
+            let S2 = ratio2 * heightFactor;
+            
+            // 计算图形中的位置
+            const totalWidth = 160;
+            const totalRatio = ratio1 + ratio2;
+            const leftWidth = (ratio1 / totalRatio) * totalWidth;
+            const dPosition = 20 + leftWidth; // x-coordinate of point D
+            
+            // 计算点E的位置 - E是AD上的任意点
+            // 随机选择E在AD上的位置，距离A的比例为0.3到0.7之间
+            const eRatio = 0.3 + Math.random() * 0.4; // E在AD上的位置比例
+            const ePositionX = 100 - (100 - dPosition) * eRatio; // E的x坐标
+            const ePositionY = 20 + (130 - 20) * eRatio; // E的y坐标
+            
+            // 计算三角形重心位置用于标注面积
+            const leftCentroidX = (100 + 20 + ePositionX) / 3;
+            const leftCentroidY = (20 + 130 + ePositionY) / 3;
+            
+            const rightCentroidX = (100 + ePositionX + 180) / 3;
+            const rightCentroidY = (20 + 130 + ePositionY) / 3;
+            
+            // 创建SVG图形
+            const svg = `
+            <svg width="200" height="150" xmlns="http://www.w3.org/2000/svg">
+                <!-- 底边BC -->
+                <line x1="20" y1="130" x2="180" y2="130" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 左侧三角形 (S1) - 浅蓝色 -->
+                <polygon points="100,20 20,130 ${ePositionX},${ePositionY}" fill="#e6f2ff" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 右侧三角形 (S2) - 浅绿色 -->
+                <polygon points="100,20 ${ePositionX},${ePositionY} 180,130" fill="#e6ffe6" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 高AD (虚线) -->
+                <line x1="100" y1="20" x2="${dPosition}" y2="130" stroke="black" stroke-width="1.5" stroke-dasharray="3,3"/>
+                
+                <!-- 点E -->
+                <circle cx="${ePositionX}" cy="${ePositionY}" r="3" fill="black"/>
+                
+                <!-- 顶点标注 -->
+                <text x="100" y="15" text-anchor="middle" font-family="serif" font-size="16">A</text>
+                <text x="15" y="135" text-anchor="middle" font-family="serif" font-size="16">B</text>
+                <text x="185" y="135" text-anchor="middle" font-family="serif" font-size="16">C</text>
+                <text x="${dPosition}" y="145" text-anchor="middle" font-family="serif" font-size="16">D</text>
+                <text x="${ePositionX+5}" y="${ePositionY+20}" text-anchor="middle" font-family="serif" font-size="16">E</text>
+                
+                <!-- 面积标注 -->
+                <text x="${leftCentroidX}" y="${leftCentroidY}" text-anchor="middle" font-family="serif" font-size="14">S₁=${S1}</text>
+                <text x="${rightCentroidX}" y="${rightCentroidY}" text-anchor="middle" font-family="serif" font-size="14">S₂=?</text>
+            </svg>
+            `;
+            
+            // 格式化问题文本
+            const question = `
+            <div style="text-align: center;">
+                \\begin{array}{cc} 
+                在\\triangle ABC中，AD将底边BC分成两段，\\\\
+                BD:DC = ${simplifiedRatio1}:${simplifiedRatio2}, E是AD上的一点，\\\\
+                S_1=${S1}，求右边部分的面积S_2。\\\\
+                \\end{array}
 
-          const questions = [
-          {
-  m: '1. 如图，三角形ABC中，  \\\\BD:DC=5:6，S△ABO=10，\\\\求S△AOC。',
-  image: './images/052401001.png',
-  n: '12'
-},
-{
-  m: '2. 如图，三角形ABC中，\\\\AD:DC=2:3，S△ABO=10，\\\\求S△BCO。',
-  image: './images/052401002.png',
-  n: '15'
-},
-{
-  m: '3. 如图，三角形ABC中，\\\\AD:DB=3:5，S△AOC=12，\\\\求S△BCO。',
-  image: './images/052401003.png',
-  n: '20'
-},
-{
-  m: '4. 如图，三角形ABC中，\\\\BC=30，S△ABO=10，S△AOC=15，\\\\求DC。',
-  image: './images/052401004.png',
-  n: '18'
-},
-{
-  m: '5. 如图，三角形ABC中，\\\\AC=40，S△ABO=30，S△BCO=50，\\\\求DC。',
-  image: './images/052401005.png',
-  n: '25'
-},
-{
-  m: '6. 如图，三角形ABC中，\\\\AB=35，S△AOC=20，S△BCO=50，\\\\求AD。',
-  image: './images/052401006.png',
-  n: '10'
-},
-{
-  m: '7. 如图，三角形ABC中，\\\\S△ABO=10，S△AOC=15，S△BCO=20，\\\\求S△BDO。',
-  image: './images/052401007.png',
-  n: '8'
-},
-{
-  m: '8. 如图，三角形ABC中，\\\\S△ABO=30，S△BCO=50，S△AOC=32，\\\\求S△AOD。',
-  image: './images/052401008.png',
-  n: '12'
-},
-{
-  m: '9. 如图，三角形ABC中，\\\\S△AOC=20，S△BCO=50，S△ABO=28，\\\\求S△ADO。',
-  image: './images/052401009.png',
-  n: '8'
-},
-{
-  m: '10. 如图，三角形ABC中，\\\\AE:EB=1:2，BD=DC，\\\\S△AOC=15，\\\\求S△DCO。',
-  image: './images/052401010.png',
-  n: '15'
-},
-{
-  m: '11. 如图，三角形ABC中，\\\\AE:EC=1:2，BD=DC，\\\\S△ABO=15，\\\\求S△BDO。',
-  image: './images/052401011.png',
-  n: '15'
-},
-{
-  m: '12. 如图，三角形ABC中，AE:EB=1:2，AD:DC=1:2，S△BCO=30，求S△AEO。',
-  image: './images/052401012.png',
-  n: '5'
-}
-
-          ];
-      
-          // 获取当前索引的题目
-          let selectedQuestion = questions[generateLevel1Question.currentIndex];
-      
-          let m = selectedQuestion.m;
-          let n = selectedQuestion.n;
-      
-          // 如果 n 是一个数组，表示有多个正确答案
-          if (Array.isArray(n)) {
-              correctAnswer = [...n];
-          } else {
-              correctAnswer = [`${n}`];
-          }
-      
-          // 构建返回的 LaTeX 代码
-          let questionLatex = `\\(\\begin{gather}${m} \\end{gather} \\)`;
-      
-          // 如果有图片路径，则插入图片
-          if (selectedQuestion.image) {
-              questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
-          }
-      
-          // 更新索引值，确保按顺序出题
-          generateLevel1Question.currentIndex = (generateLevel1Question.currentIndex + 1) % questions.length;
-      
-          return questionLatex;
+                <div style="margin-top: 15px;">${svg}</div>
+            </div>
+            `;
+            
+            // 设置正确答案
+            correctAnswer = [`${S2}`];
+            
+            return question;
         }
         
 
