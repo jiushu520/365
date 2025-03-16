@@ -1,0 +1,2455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D01一次函数阶梯测试训练</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .header {
+            text-align: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .pk-container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            justify-content: space-between;
+        }
+
+        .player-container, .computer-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 48%;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .player-container {
+            background-color: #f0f8ff; /* Light blue for player */
+        }
+
+        .computer-container {
+            background-color: #fff0f0; /* Light red for computer */
+        }
+
+        .vs-indicator {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            background-color: #ffcc00;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        .difficulty-buttons {
+            margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .difficulty-buttons button {
+            margin: 5px;
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+        }
+
+        .difficulty-buttons button.active {
+            background-color: #45a049;
+            color: white;
+        }
+
+        .question-box {
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: white;
+            width: 90%;
+        }
+
+        .answer-input {
+            padding: 10px;
+            font-size: 16px;
+            width: 80%;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .timer {
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .computer-status {
+            margin: 10px 0;
+            font-style: italic;
+            min-height: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .result {
+            min-height: 20px;
+            margin: 10px 0;
+        }
+
+        .score {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        .rendered-answer {
+            margin-top: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 80%;
+            min-height: 30px;
+            background-color: white;
+        }
+
+        .history-container {
+            margin-top: 30px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .copy-button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+        }
+
+        .copy-button:hover {
+            background-color: #218838;
+        }
+
+        #copy-success {
+            display: none;
+            margin-top: 10px;
+            color: green;
+            font-size: 14px;
+        }
+        
+        .winner-indicator {
+            font-weight: bold;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        
+        .player-win {
+            color: blue;
+        }
+        
+        .computer-win {
+            color: red;
+        }
+        
+        .tie {
+            color: purple;
+        }
+        
+        .player-row {
+            background-color: rgba(240, 248, 255, 0.3);
+        }
+        
+        .computer-row {
+            background-color: rgba(255, 240, 240, 0.3);
+        }
+        
+        /* 新增攻击效果相关样式 */
+        .shockwave {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(0.1);
+            box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.7);
+        }
+        
+        .player-attack {
+            animation: shockwave-player 1s ease-out forwards;
+        }
+        
+        .computer-attack {
+            animation: shockwave-computer 1s ease-out forwards;
+        }
+        
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shockwave-player {
+            0% {
+                opacity: 1;
+                transform: scale(0.1);
+                background: radial-gradient(circle, rgba(0,100,255,0.8) 0%, rgba(0,100,255,0) 70%);
+                box-shadow: 0 0 20px 10px rgba(0, 100, 255, 0.7);
+                left: 35%;
+                top: 50%;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(2);
+                background: radial-gradient(circle, rgba(0,100,255,0.2) 0%, rgba(0,100,255,0) 70%);
+                box-shadow: 0 0 40px 20px rgba(0, 100, 255, 0.3);
+                left: 80%;
+                top: 50%;
+            }
+        }
+        
+        @keyframes shockwave-computer {
+            0% {
+                opacity: 1;
+                transform: scale(0.1);
+                background: radial-gradient(circle, rgba(255,0,0,0.8) 0%, rgba(255,0,0,0) 70%);
+                box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.7);
+                left: 65%;
+                top: 50%;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(2);
+                background: radial-gradient(circle, rgba(255,0,0,0.2) 0%, rgba(255,0,0,0) 70%);
+                box-shadow: 0 0 40px 20px rgba(255, 0, 0, 0.3);
+                left: 20%;
+                top: 50%;
+            }
+        }
+        
+        @keyframes shake {
+            0%, 100% {transform: translateX(0);}
+            10%, 30%, 50%, 70%, 90% {transform: translateX(-5px);}
+            20%, 40%, 60%, 80% {transform: translateX(5px);}
+        }
+        
+        /* 显示对诮语句的样式 */
+        .taunt-bubble {
+            position: absolute;
+            background-color: white;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 101;
+            opacity: 0;
+            animation: show-taunt 2s ease-out forwards;
+            min-width: 120px;
+            text-align: center;
+        }
+        
+        .taunt-bubble::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border: 10px solid transparent;
+        }
+        
+        .player-taunt {
+            top: 20%;
+            left: 25%;
+        }
+        
+        .player-taunt::before {
+            border-left-color: #333;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .computer-taunt {
+            top: 20%;
+            right: 25%;
+        }
+        
+        .computer-taunt::before {
+            border-right-color: #333;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        @keyframes show-taunt {
+            0% {opacity: 0; transform: translateY(20px);}
+            20% {opacity: 1; transform: translateY(0);}
+            80% {opacity: 1; transform: translateY(0);}
+            100% {opacity: 0; transform: translateY(-20px);}
+        }
+        
+        @media (max-width: 768px) {
+            .pk-container {
+                flex-direction: column;
+            }
+            
+            .player-container, .computer-container {
+                width: 90%;
+                margin-bottom: 30px;
+            }
+        }
+
+        .timer-btn {
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+            color: white;
+            margin: 0 5px;
+        }
+        
+        .timer-btn.active {
+            background-color: #45a049;
+        }
+
+        /* 模式切换按钮样式 */
+        .mode-switch {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        
+        .mode-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+            color: white;
+            margin: 0 10px;
+        }
+        
+        .mode-btn.active {
+            background-color: #45a049;
+        }
+        
+        /* 自学模式下的全宽玩家容器 */
+        .player-container.full-width {
+            width: 100%;
+        }
+        
+        /* 历史记录上方按钮行 */
+        .history-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        
+        /* 响应式布局下的历史记录按钮 */
+        @media (max-width: 768px) {
+            .history-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .mode-switch {
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h3>D01一次函数阶梯测试训练</h3>
+    </div>
+    
+    <!-- 添加音效元素 -->
+    <audio id="playerAttackSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2073/2073-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="computerAttackSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/1293/1293-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="correctSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="wrongSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2691/2691-preview.mp3" type="audio/mpeg">
+    </audio>
+    
+    <div class="difficulty-buttons" id="difficultyButtons"></div>
+    
+    <!-- 游戏选项布局修改为一行 -->
+    <div class="game-options" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin: 10px 0;">
+        <div style="display: flex; align-items: center; margin: 0 10px;">
+
+            <button id="timer5min" class="timer-btn active" onclick="selectGameDuration(5)">5分钟</button>
+            <button id="timer10min" class="timer-btn" onclick="selectGameDuration(10)">10分钟</button>
+        </div>
+        
+        <div style="display: flex; align-items: center; margin: 0 10px;">
+            <span style="margin-right: 10px;">计算机思考难度:</span>
+            <button id="thinkingEasy" class="timer-btn active" onclick="selectThinkingDifficulty('easy')">快</button>
+            <button id="thinkingMedium" class="timer-btn" onclick="selectThinkingDifficulty('medium')">中</button>
+            <button id="thinkingHard" class="timer-btn" onclick="selectThinkingDifficulty('hard')">慢</button>
+        </div>
+    </div>
+    <div style="display: flex; justify-content: center; align-items: center; margin: 10px 0; gap: 15px;">
+        <div id="countdownDisplay" style="font-size: 20px; font-weight: bold; color: #007bff;">剩余时间: 05:00</div>
+        <button id="startGameBtn" onclick="startGame()">开始游戏</button>
+        <button id="resetGameBtn" onclick="resetGame()" disabled>重新开始</button>
+    </div>
+    
+    <div class="pk-container">
+        <div class="player-container" id="playerContainer">
+            <h3>玩家</h3>
+            <div class="timer" id="playerTimer">时间: 0秒</div>
+            <div class="question-box" id="playerQuestion"></div>
+            <input type="text" id="playerAnswer" class="answer-input" placeholder="输入你的答案" oninput="updatePreview('player')" disabled>
+            <div class="rendered-answer" id="playerRenderedAnswer"></div>
+            <button id="playerSubmitBtn" onclick="checkPlayerAnswer()" disabled>提交答案</button>
+            <div class="result" id="playerResult"></div>
+            <div class="score" id="playerScore">正确: 0 | 错误: 0 | 总题数: 0</div>
+        </div>
+        
+        <div class="computer-container" id="computerContainer">
+            <h3>计算机</h3>
+            <div class="timer" id="computerTimer">时间: 0秒</div>
+            <div class="question-box" id="computerQuestion"></div>
+            <div class="computer-status" id="computerStatus">等待开始...</div>
+            <input type="text" id="computerAnswer" class="answer-input" placeholder="计算机的答案" disabled>
+            <div class="rendered-answer" id="computerRenderedAnswer"></div>
+            <div class="result" id="computerResult"></div>
+            <div class="score" id="computerScore">正确: 0 | 错误: 0 | 总题数: 0</div>
+        </div>
+    </div>
+    
+    <div class="winner-indicator" id="roundResult"></div>
+    
+    <div class="history-container">
+        <div class="history-controls">
+            <button class="copy-button" onclick="copyHistory()">复制历史记录</button>
+            
+            <!-- 模式切换按钮移到这里 -->
+            <div class="mode-switch">
+                <button id="selfPracticeBtn" class="mode-btn" onclick="switchMode('self')">自学练习</button>
+                <button id="pkModeBtn" class="mode-btn active" onclick="switchMode('pk')">PK模式</button>
+            </div>
+        </div>
+        
+        <div id="copy-success">历史记录已复制到剪贴板！</div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>参与者</th>
+                    <th>级别</th>
+                    <th>题目</th>
+                    <th>答案</th>
+                    <th>正确答案</th>
+                    <th>结果</th>
+                    <th>用时(秒)</th>
+                </tr>
+            </thead>
+            <tbody id="history"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // 全局变量
+        let playerCorrectAnswer; // 玩家题目的正确答案
+        let computerCorrectAnswer; // 计算机题目的正确答案
+        let correctAnswer; // 保留此变量用于兼容原有函数
+        let playerCorrectCount = 0;
+        let playerIncorrectCount = 0;
+        let computerCorrectCount = 0;
+        let computerIncorrectCount = 0;
+        let playerTotalCount = 0;
+        let computerTotalCount = 0;
+        let currentDifficulty = 1;
+        let gameInProgress = false;
+        let playerTime = 0;
+        let computerTime = 0;
+        let playerQuestionStartTime = 0;
+        let computerQuestionStartTime = 0;
+        let playerTimer;
+        let computerTimer;
+        let computerThinkingTimers = [];
+        
+        // 新增倒计时变量
+        let gameDuration = 5; // 默认5分钟
+        let countdownTime = 5 * 60; // 默认5分钟，单位为秒
+        let countdownTimer;
+        
+        // 新增思考时间难度变量
+        let computerThinkingDifficulty = 'easy'; // 默认为容易，可选值: 'easy'(容易)、'medium'(中等)、'hard'(困难)
+        
+        // 新增游戏模式变量
+        let gameMode = 'pk'; // 默认为PK模式，可选值: 'self'(自学练习) 或 'pk'(PK模式)
+
+        const difficultyNames = [
+            "01求函数值",
+            "02求x值",
+            "03求两直线交点",
+            "04求斜率", 
+            "05求三角面积",
+            "06求解析式",
+            "07点到直线距高",
+            "08垂足",
+            "09对称点",
+            "10综合测试",
+            "11挑战自招"
+        ];
+
+        // 初始化
+        document.addEventListener("DOMContentLoaded", () => {
+            generateDifficultyButtons();
+            setDifficulty(1);
+            updateCountdownDisplay();
+            switchMode('pk'); // 默认PK模式
+            selectThinkingDifficulty('easy'); // 默认为容易难度
+        });
+
+        // 切换游戏模式
+        function switchMode(mode) {
+            if (gameInProgress) {
+                alert('游戏进行中无法切换模式，请先重置游戏');
+                return;
+            }
+            
+            gameMode = mode;
+            
+            // 更新UI按钮状态
+            document.getElementById('selfPracticeBtn').classList.toggle('active', mode === 'self');
+            document.getElementById('pkModeBtn').classList.toggle('active', mode === 'pk');
+            
+            const playerContainer = document.getElementById('playerContainer');
+            const computerContainer = document.getElementById('computerContainer');
+            const countdownDisplay = document.getElementById('countdownDisplay');
+            
+            if (mode === 'self') {
+                // 自学练习模式
+                computerContainer.style.display = 'none';
+                playerContainer.classList.add('full-width');
+                countdownDisplay.style.display = 'block';
+                document.getElementById('startGameBtn').textContent = '开始练习';
+                document.getElementById('roundResult').style.display = 'none';
+            } else {
+                // PK模式
+                computerContainer.style.display = 'flex';
+                playerContainer.classList.remove('full-width');
+                countdownDisplay.style.display = 'block';
+                document.getElementById('startGameBtn').textContent = '开始PK';
+                document.getElementById('roundResult').style.display = 'block';
+            }
+            
+            // 更新界面按钮状态
+            updateButtonStates();
+        }
+
+        function generateDifficultyButtons() {
+            const difficultyButtonsContainer = document.getElementById('difficultyButtons');
+            difficultyNames.forEach((name, index) => {
+                const button = document.createElement('button');
+                button.textContent = name;
+                button.id = `level${index + 1}`;
+                button.onclick = () => setDifficulty(index + 1);
+                difficultyButtonsContainer.appendChild(button);
+            });
+        }
+
+        function setDifficulty(level) {
+            if (gameInProgress) return; // 游戏进行中不能更改难度
+            
+            currentDifficulty = level;
+            document.querySelectorAll('.difficulty-buttons button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`level${level}`).classList.add('active');
+        }
+
+        // 选择游戏时长
+        function selectGameDuration(minutes) {
+            if (gameInProgress) return; // 游戏进行中不能更改时长
+            
+            gameDuration = minutes;
+            countdownTime = minutes * 60;
+            
+            // 更新UI - 先移除所有timer-btn的active类
+            document.querySelectorAll('.timer-btn').forEach(btn => {
+                // 只处理时间选择按钮，不影响思考难度按钮
+                if (btn.id.startsWith('timer')) {
+                    btn.classList.remove('active');
+                }
+            });
+            // 只给当前选择的按钮添加active类
+            document.getElementById(`timer${minutes}min`).classList.add('active');
+            
+            updateCountdownDisplay();
+        }
+        
+        // 选择计算机思考难度
+        function selectThinkingDifficulty(difficulty) {
+            if (gameInProgress) return; // 游戏进行中不能更改难度
+            
+            computerThinkingDifficulty = difficulty;
+            
+            // 更新UI - 只操作思考难度按钮
+            document.querySelectorAll('.timer-btn').forEach(btn => {
+                // 只处理思考难度按钮，不影响时间选择按钮
+                if (btn.id.startsWith('thinking')) {
+                    btn.classList.remove('active');
+                }
+            });
+            document.getElementById(`thinking${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}`).classList.add('active');
+        }
+        
+        // 更新倒计时显示
+        function updateCountdownDisplay() {
+            const minutes = Math.floor(countdownTime / 60);
+            const seconds = countdownTime % 60;
+            document.getElementById('countdownDisplay').textContent = 
+                `剩余时间: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        // 开始倒计时
+        function startCountdown() {
+            countdownTime = gameDuration * 60;
+            updateCountdownDisplay();
+            
+            countdownTimer = setInterval(() => {
+                countdownTime--;
+                updateCountdownDisplay();
+                
+                if (countdownTime <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function startGame() {
+            // 重置状态
+            playerCorrectCount = 0;
+            playerIncorrectCount = 0;
+            computerCorrectCount = 0;
+            computerIncorrectCount = 0;
+            playerTotalCount = 0;
+            computerTotalCount = 0;
+            playerTime = 0;
+            computerTime = 0;
+            
+            // 更新UI
+            document.getElementById('playerScore').innerHTML = `正确: 0 | 错误: 0 | 总题数: 0`;
+            if (gameMode === 'pk') {
+                document.getElementById('computerScore').innerHTML = `正确: 0 | 错误: 0 | 总题数: 0`;
+                document.getElementById('computerTimer').innerHTML = `时间: 0秒`;
+                document.getElementById('roundResult').innerHTML = '';
+            }
+            document.getElementById('playerTimer').innerHTML = `时间: 0秒`;
+            document.getElementById('history').innerHTML = '';
+            
+            // 启用/禁用相关按钮
+            document.getElementById('startGameBtn').disabled = true;
+            document.getElementById('resetGameBtn').disabled = false;
+            document.getElementById('playerAnswer').disabled = false;
+            document.getElementById('playerSubmitBtn').disabled = false;
+            
+            // 更改游戏状态
+            gameInProgress = true;
+            
+            // 为玩家生成题目
+            generatePlayerQuestion();
+            
+            // 开始计时器
+            startTimers();
+            
+            // 启动倒计时 - 无论是PK模式还是自学模式
+            startCountdown();
+            
+            // 仅在PK模式下才生成计算机题目
+            if (gameMode === 'pk') {
+                generateComputerQuestion();
+            }
+        }
+        
+        function resetGame() {
+            // 停止计时器
+            clearInterval(playerTimer);
+            clearInterval(computerTimer);
+            clearInterval(countdownTimer);
+            computerThinkingTimers.forEach(timer => clearTimeout(timer));
+            computerThinkingTimers = [];
+            
+            // 重置状态
+            gameInProgress = false;
+            countdownTime = gameDuration * 60;
+            updateCountdownDisplay();
+            
+            // 更新UI
+            document.getElementById('playerQuestion').innerHTML = '';
+            document.getElementById('playerAnswer').value = '';
+            document.getElementById('playerRenderedAnswer').innerHTML = '';
+            document.getElementById('playerResult').innerHTML = '';
+            
+            if (gameMode === 'pk') {
+                document.getElementById('computerQuestion').innerHTML = '';
+                document.getElementById('computerAnswer').value = '';
+                document.getElementById('computerRenderedAnswer').innerHTML = '';
+                document.getElementById('computerResult').innerHTML = '';
+                document.getElementById('computerStatus').innerHTML = '等待开始...';
+                document.getElementById('roundResult').innerHTML = '';
+            }
+            
+            // 启用/禁用相关按钮
+            updateButtonStates();
+        }
+        
+        // 更新按钮状态
+        function updateButtonStates() {
+            document.getElementById('startGameBtn').disabled = gameInProgress;
+            document.getElementById('resetGameBtn').disabled = !gameInProgress;
+            document.getElementById('playerAnswer').disabled = !gameInProgress;
+            document.getElementById('playerSubmitBtn').disabled = !gameInProgress;
+        }
+        
+        function startTimers() {
+            // 玩家计时器
+            playerTimer = setInterval(() => {
+                playerTime++;
+                document.getElementById('playerTimer').innerHTML = `时间: ${playerTime}秒`;
+            }, 1000);
+            
+            // 仅在PK模式下启动计算机计时器
+            if (gameMode === 'pk') {
+                computerTimer = setInterval(() => {
+                    computerTime++;
+                    document.getElementById('computerTimer').innerHTML = `时间: ${computerTime}秒`;
+                }, 1000);
+                
+                // 设置计算机自动答题
+                //scheduleComputerAnswer();
+            }
+            
+            // 记录开始时间
+            playerQuestionStartTime = playerTime;
+            if (gameMode === 'pk') {
+                computerQuestionStartTime = computerTime;
+            }
+        }
+        
+        function generatePlayerQuestion() {
+            // 清空答案框和结果
+            document.getElementById('playerAnswer').value = '';
+            document.getElementById('playerRenderedAnswer').innerHTML = '';
+            document.getElementById('playerResult').innerHTML = '';
+            
+            // 生成新题目
+            const playerQuestion = generateQuestion();
+            // 保存玩家题目的正确答案
+            playerCorrectAnswer = [...correctAnswer];
+            
+            // 修改问题盒子的样式，使其支持纵向布局
+            const questionBox = document.getElementById('playerQuestion');
+            questionBox.style.display = 'flex';
+            questionBox.style.flexDirection = 'column';
+            questionBox.style.alignItems = 'center';
+            
+            // 更新界面上的题目
+            questionBox.innerHTML = playerQuestion;
+            
+            // 记录题目开始时间
+            playerQuestionStartTime = playerTime;
+            
+            // 重新渲染数学公式
+            MathJax.typesetPromise([questionBox])
+                .catch((err) => console.log(err));
+        }
+        
+        function generateComputerQuestion() {
+            if (gameMode !== 'pk') return;
+            
+            // 清空答案框和结果
+            document.getElementById('computerAnswer').value = '';
+            document.getElementById('computerRenderedAnswer').innerHTML = '';
+            document.getElementById('computerResult').innerHTML = '';
+            
+            // 生成新题目
+            const computerQuestion = generateQuestion();
+            // 保存计算机题目的正确答案
+            computerCorrectAnswer = [...correctAnswer];
+            
+            // 修改问题盒子的样式，使其支持纵向布局
+            const questionBox = document.getElementById('computerQuestion');
+            questionBox.style.display = 'flex';
+            questionBox.style.flexDirection = 'column';
+            questionBox.style.alignItems = 'center';
+            
+            // 更新界面上的题目
+            questionBox.innerHTML = computerQuestion;
+            
+            // 更新计算机状态
+            document.getElementById('computerStatus').innerHTML = `正在思考...`;
+            
+            // 记录题目开始时间
+            computerQuestionStartTime = computerTime;
+            
+            // 重新渲染数学公式
+            MathJax.typesetPromise([questionBox])
+                .catch((err) => console.log(err));
+            
+            // 设置计算机自动答题
+            scheduleComputerAnswer();
+        }
+        
+        function scheduleComputerAnswer() {
+            if (!gameInProgress || gameMode !== 'pk') return;
+            
+            // 根据难度设置计算机思考时间
+            let minTime = 10;
+            let maxTime = 20;
+            
+            switch(computerThinkingDifficulty) {
+                case 'easy': // 容易：10-20秒
+                    minTime = 10;
+                    maxTime = 20;
+                    break;
+                case 'medium': // 中等：20-40秒
+                    minTime = 20;
+                    maxTime = 40;
+                    break;
+                case 'hard': // 困难：30-45秒
+                    minTime = 30;
+                    maxTime = 45;
+                    break;
+            }
+            
+            // 生成指定范围内的随机思考时间
+            const thinkingTime = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
+            
+            // 设置计算机自动答题定时器
+            const timer = setTimeout(() => {
+                if (gameInProgress && gameMode === 'pk') {
+                    submitComputerAnswer();
+                }
+            }, thinkingTime * 1000);
+            
+            // 添加到定时器列表以便重置游戏时清除
+            computerThinkingTimers.push(timer);
+        }
+        
+        function checkPlayerAnswer() {
+            if (!gameInProgress) return;
+            
+            const userAnswer = document.getElementById('playerAnswer').value.trim();
+            
+            if (userAnswer === '') {
+                document.getElementById('playerResult').innerHTML = '请输入答案！';
+                document.getElementById('playerResult').className = 'result incorrect';
+                return;
+            }
+            
+            // 计算答题用时
+            const questionTime = playerTime - playerQuestionStartTime;
+            
+            // 使用 toHalfWidth 函数将用户输入转换为半角字符
+            const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
+            
+            // 对于正数答案，同时接受带"+"号和不带"+"号的形式
+            const normalizedCorrectAnswers = playerCorrectAnswer.map(answer => {
+                const num = parseInt(answer);
+                if (num > 0) {
+                    return [answer, `+${answer}`]; // 正数同时接受带"+"号和不带"+"号的形式
+                }
+                return [answer]; // 负数只接受一种形式
+            }).flat();
+            
+            // 检查答案是否正确
+            const isCorrect = normalizedCorrectAnswers.some(answer => 
+                normalizedUserAnswer === toHalfWidth(answer.replace(/\s/g, '').toLowerCase()));
+            
+            if (isCorrect) {
+                document.getElementById('playerResult').innerHTML = '正确!';
+                document.getElementById('playerResult').className = 'result correct';
+                playerCorrectCount++;
+                
+                // 播放正确音效
+                document.getElementById('correctSound').play();
+                
+                // 仅在PK模式下显示攻击效果
+                if (gameMode === 'pk') {
+                    // 创建并添加冲击波元素
+                    createShockwave('player');
+                    
+                    // 让计算机容器抖动
+                    document.getElementById('computerContainer').classList.add('shake');
+                    setTimeout(() => {
+                        document.getElementById('computerContainer').classList.remove('shake');
+                    }, 500);
+                    
+                    // 显示对诮语句
+                    showTaunt('player');
+                }
+            } else {
+                document.getElementById('playerResult').innerHTML = '错误';
+                document.getElementById('playerResult').className = 'result incorrect';
+                playerIncorrectCount++;
+                
+                // 播放错误音效
+                document.getElementById('wrongSound').play();
+            }
+            
+            // 更新总题数
+            playerTotalCount++;
+            
+            // 更新分数
+            updatePlayerScore();
+            
+            // 添加到历史记录
+            addToHistory('玩家', difficultyNames[currentDifficulty - 1], 
+                          document.getElementById('playerQuestion').innerHTML, 
+                          userAnswer, playerCorrectAnswer.join(' 或 '), 
+                          isCorrect ? '正确' : '错误', questionTime);
+            
+            // 立即生成新题目
+            generatePlayerQuestion();
+        }
+        
+        function submitComputerAnswer() {
+    if (!gameInProgress || gameMode !== 'pk') return;
+    
+    // 计算答题用时
+    const questionTime = computerTime - computerQuestionStartTime;
+    
+    // 使用计算机题目的正确答案
+    const computerAnswer = computerCorrectAnswer[0];
+    
+    // 随机决定计算机是否答对（90%的概率答对）
+    const isCorrect = Math.random() < 0.9;
+    
+    let displayAnswer;
+    if (isCorrect) {
+        displayAnswer = computerAnswer;
+    } else {
+        // 如果要错，则显示一个稍微不同的答案
+        displayAnswer = parseInt(computerAnswer) + (Math.random() > 0.5 ? 1 : -1);
+    }
+    
+    // 更新状态为"正在输入"
+    document.getElementById('computerStatus').innerHTML = '正在输入...';
+    
+    // 清空计算机答案框
+    document.getElementById('computerAnswer').value = '';
+    document.getElementById('computerRenderedAnswer').innerHTML = '';
+    
+    // 使用打字机效果显示答案
+    let currentIndex = 0;
+    const typingInterval = setInterval(() => {
+        if (currentIndex < displayAnswer.toString().length) {
+            // 每次添加一个字符
+            document.getElementById('computerAnswer').value += displayAnswer.toString().charAt(currentIndex);
+            document.getElementById('computerRenderedAnswer').innerHTML = '\\(' + document.getElementById('computerAnswer').value + '\\)';
+            
+            // 重新渲染数学公式
+            MathJax.typesetPromise([document.getElementById('computerRenderedAnswer')])
+                .catch((err) => console.log(err));
+                
+            currentIndex++;
+        } else {
+            // 打字完成，清除定时器
+            clearInterval(typingInterval);
+            
+            // 显示结果
+            if (isCorrect) {
+                document.getElementById('computerResult').innerHTML = '正确!';
+                document.getElementById('computerResult').className = 'result correct';
+                computerCorrectCount++;
+                
+                // 播放正确音效
+                document.getElementById('correctSound').play();
+                
+                // 创建并添加冲击波元素
+                createShockwave('computer');
+                
+                // 让玩家容器抖动
+                document.getElementById('playerContainer').classList.add('shake');
+                setTimeout(() => {
+                    document.getElementById('playerContainer').classList.remove('shake');
+                }, 500);
+                
+                // 显示对诮语句
+                showTaunt('computer');
+            } else {
+                document.getElementById('computerResult').innerHTML = '错误';
+                document.getElementById('computerResult').className = 'result incorrect';
+                computerIncorrectCount++;
+                
+                // 播放错误音效
+                document.getElementById('wrongSound').play();
+            }
+            
+            // 更新状态
+            document.getElementById('computerStatus').innerHTML = '已作答';
+            
+            // 更新总题数
+            computerTotalCount++;
+            
+            // 更新分数
+            updateComputerScore();
+            
+            // 添加到历史记录
+            addToHistory('计算机', difficultyNames[currentDifficulty - 1], 
+                        document.getElementById('computerQuestion').innerHTML, 
+                        displayAnswer, computerCorrectAnswer.join(' 或 '), 
+                        isCorrect ? '正确' : '错误', questionTime);
+            
+            // 短暂延迟后生成新题目
+            setTimeout(() => {
+                if (gameInProgress && gameMode === 'pk') {
+                    generateComputerQuestion();
+                }
+                    }, 8000);
+                }
+            }, 500); // 每500毫秒显示一个字符，相当于每秒显示2个字符
+        }
+        
+        function updatePlayerScore() {
+            document.getElementById('playerScore').innerHTML = `正确: ${playerCorrectCount} | 错误: ${playerIncorrectCount} | 总题数: ${playerTotalCount}| 得分: ${playerCorrectCount - playerIncorrectCount} `;
+        }
+        
+        function updateComputerScore() {
+            document.getElementById('computerScore').innerHTML = `正确: ${computerCorrectCount} | 错误: ${computerIncorrectCount} | 总题数: ${computerTotalCount}| 得分: ${computerCorrectCount - computerIncorrectCount} `;
+        }
+        
+        function addToHistory(participant, level, question, answer, correctAnswer, result, time) {
+            const historyTable = document.getElementById('history');
+            const newRow = historyTable.insertRow(0);
+            
+            // 设置行的类
+            if (participant === '玩家') {
+                newRow.classList.add("player-row");
+            } else {
+                newRow.classList.add("computer-row");
+            }
+            
+            // 添加结果类
+            if (result === '正确') {
+                newRow.classList.add(participant === '玩家' ? "player-win" : "computer-win");
+            }
+            
+            // 填充单元格内容
+            newRow.insertCell(0).innerHTML = participant;
+            newRow.insertCell(1).innerHTML = level;
+            newRow.insertCell(2).innerHTML = question;
+            newRow.insertCell(3).innerHTML = '\\(' + answer + '\\)';
+            newRow.insertCell(4).innerHTML = '\\(' + correctAnswer + '\\)';
+            newRow.insertCell(5).innerHTML = result;
+            newRow.insertCell(6).innerHTML = time + '秒';
+            
+            // 重新渲染新添加的行中的数学公式
+            MathJax.typesetPromise([newRow]).catch((err) => console.log(err));
+        }
+        
+        function updatePreview(player) {
+            const input = document.getElementById('playerAnswer').value;
+            const renderedAnswer = document.getElementById('playerRenderedAnswer');
+            renderedAnswer.style.display = 'block';
+            renderedAnswer.innerHTML = '\\(' + input + '\\)';
+            MathJax.typesetPromise([renderedAnswer]).catch((err) => console.log(err));
+        }
+        
+        function toHalfWidth(str) {
+            return str.replace(/[\uFF01-\uFF5E]/g, function(char) {
+                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            }).replace(/\u3000/g, ' ');
+        }
+        
+        function copyHistory() {
+            const historyTable = document.querySelector('table');
+            let tableText = '';
+
+            // 获取表头
+            const headers = historyTable.querySelectorAll('thead th');
+            headers.forEach(header => {
+                tableText += header.innerText + '\t';
+            });
+            tableText = tableText.trim() + '\n';
+
+            // 获取表格内容
+            const rows = historyTable.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                cells.forEach(cell => {
+                    // 移除MathJax的数学公式标记
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = cell.innerHTML;
+                    tableText += tempDiv.innerText + '\t';
+                });
+                tableText = tableText.trim() + '\n';
+            });
+
+            // 复制到剪贴板
+            navigator.clipboard.writeText(tableText).then(() => {
+                // 显示复制成功的提示
+                const copySuccess = document.getElementById('copy-success');
+                copySuccess.style.display = 'block';
+                setTimeout(() => {
+                    copySuccess.style.display = 'none';
+                }, 2000); // 2秒后隐藏提示
+            }).catch(err => {
+                console.error('复制失败: ', err);
+            });
+        }
+        
+        document.getElementById('playerAnswer').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                checkPlayerAnswer();
+            }
+        });
+
+        // 游戏结束函数
+        function endGame() {
+            // 停止所有计时器
+            clearInterval(playerTimer);
+            clearInterval(computerTimer);
+            clearInterval(countdownTimer);
+            computerThinkingTimers.forEach(timer => clearTimeout(timer));
+            computerThinkingTimers = [];
+            
+            // 更改游戏状态
+            gameInProgress = false;
+            
+            // 禁用玩家输入
+            document.getElementById('playerAnswer').disabled = true;
+            document.getElementById('playerSubmitBtn').disabled = true;
+            
+            // 仅在PK模式下显示游戏结果
+            if (gameMode === 'pk') {
+                let resultMessage = '';
+                if (playerCorrectCount > computerCorrectCount) {
+                    resultMessage = `游戏结束! 玩家获胜! (${playerCorrectCount} : ${computerCorrectCount})`;
+                    document.getElementById('roundResult').className = 'winner-indicator player-win';
+                } else if (playerCorrectCount < computerCorrectCount) {
+                    resultMessage = `游戏结束! 计算机获胜! (${playerCorrectCount} : ${computerCorrectCount})`;
+                    document.getElementById('roundResult').className = 'winner-indicator computer-win';
+                } else {
+                    resultMessage = `游戏结束! 平局! (${playerCorrectCount} : ${computerCorrectCount})`;
+                    document.getElementById('roundResult').className = 'winner-indicator tie';
+                }
+                document.getElementById('roundResult').innerHTML = resultMessage;
+            } else {
+                // 自学练习模式
+                document.getElementById('roundResult').innerHTML = `练习结束! 共完成${playerTotalCount}题，正确${playerCorrectCount}题，得分: ${playerCorrectCount - playerIncorrectCount}`;
+                document.getElementById('roundResult').style.display = 'block';
+                document.getElementById('roundResult').className = 'winner-indicator';
+            }
+            
+            // 启用重置按钮
+            document.getElementById('resetGameBtn').disabled = false;
+        }
+
+        // 以下是生成题目的函数，与原有代码相同
+
+        function generateQuestion() {
+            switch(currentDifficulty) {
+                case 1: return generateLevel1Question();
+                case 2: return generateLevel2Question();
+                case 3: return generateLevel3Question();
+                case 4: return generateLevel4Question();
+                case 5: return generateLevel5Question();
+                case 6: return generateLevel6Question();
+                case 7: return generateLevel7Question();
+                case 8: return generateLevel8Question();
+                case 9: return generateLevel9Question();
+                case 10: return generateLevel10Question();
+                case 11: return generateLevel11Question();
+                default: return "";
+            }
+        }
+
+        function gcd(x, y) {
+            while (y != 0) {
+                let temp = y;
+                y = x % y;
+                x = temp;
+            }
+            return x;
+        }
+
+        function separateSquareRoot(n) {
+            let a = 1;
+            let b = n;
+
+            for (let i = 2; i * i <= n; i++) {
+                while (b % (i * i) === 0) {
+                    a *= i;
+                    b /= i * i;
+                }
+            }
+
+            return { a: a, b: b };
+        }
+
+        function generateLevel1Question() {
+            let k = (Math.floor(Math.random() * 3) +1)*(Math.random() < 0.5 ? -1 : 1);
+            let textk = k === 1 ? "" : (k === -1 ? "-" : (k > 0 ? `+${k}` : `${k}`));
+            let x = Math.floor(Math.random() * 7) - 3;
+            let b = (Math.floor(Math.random() * 9 - 5))-k*x;
+            let textb = b === 0 ? "" : (b > 0 ? `+${b}` : `${b}`);
+            let y = k*x+b;
+
+            correctAnswer = [`${y}`];
+            
+            // 创建SVG坐标系和函数图像
+            let svgWidth = 400;
+            let svgHeight = 400;
+            let xAxisLength = 200;
+            let yAxisLength = 200;
+            let xOrigin = 200; // 修改x轴原点位置，使负半轴可见
+            let yOrigin = 200;
+            let xScale = 20; // 每单位x对应的像素数
+            let yScale = 20; // 每单位y对应的像素数
+            
+            // 计算函数图像的点，包括负半轴
+            let pathPoints = [];
+            for (let i = -10; i <= 10; i++) { // 从-10开始，显示负半轴
+                let px = xOrigin + i * xScale;
+                let py = yOrigin - (k * i + b) * yScale;
+                pathPoints.push(`${px},${py}`);
+            }
+            
+            // 创建SVG
+            let svg = `
+            <svg width="${svgWidth}" height="${svgHeight}" style="background-color: #f9f9f9; margin-top: 10px;">
+                <!-- 坐标轴 -->
+                <line x1="0" y1="${yOrigin}" x2="${svgWidth}" y2="${yOrigin}" stroke="black" stroke-width="1"/>
+                <line x1="${xOrigin}" y1="0" x2="${xOrigin}" y2="${svgHeight}" stroke="black" stroke-width="1"/>
+                
+                <!-- 坐标标记 -->
+                <text x="${svgWidth - 10}" y="${yOrigin - 5}" font-size="12">x</text>
+                <text x="${xOrigin + 5}" y="15" font-size="12">y</text>
+                
+                <!-- x轴刻度，包括负半轴 -->
+                ${Array.from({length: 21}, (_, i) => i - 10).map(i => 
+                    `<line x1="${xOrigin + i * xScale}" y1="${yOrigin - 3}" x2="${xOrigin + i * xScale}" y2="${yOrigin + 3}" stroke="black" stroke-width="1"/>`
+                    + `<text x="${xOrigin + i * xScale}" y="${yOrigin + 15}" font-size="10" text-anchor="middle">${i}</text>`).join('')}
+                
+                <!-- y轴刻度 -->
+                ${Array.from({length: 21}, (_, i) => i - 10).map(i => 
+                    `<line x1="${xOrigin - 3}" y1="${yOrigin - i * yScale}" x2="${xOrigin + 3}" y2="${yOrigin - i * yScale}" stroke="black" stroke-width="1"/>`
+                    + `<text x="${xOrigin - 10}" y="${yOrigin - i * yScale + 3}" font-size="10" text-anchor="end">${i}</text>`).join('')}
+                
+                <!-- 函数图像 -->
+                <polyline points="${pathPoints.join(' ')}" fill="none" stroke="blue" stroke-width="2"/>
+                
+                <!-- 函数表达式 -->
+                <text x="${svgWidth - 120}" y="25" font-size="14" fill="blue">y = ${k === 1 ? "" : (k === -1 ? "-" : k)}x${textb}</text>
+                
+                <!-- 特殊点(x, y) -->
+                <circle cx="${xOrigin + x * xScale}" cy="${yOrigin - y * yScale}" r="4" fill="red"/>
+                <text x="${xOrigin + x * xScale + 5}" y="${yOrigin - y * yScale - 5}" font-size="12" fill="red">(${x}, ? )</text>
+            </svg>`;
+            
+            return `\\(\\begin{array}{lll}y=${k === 1 ? "" : (k === -1 ? "-" : k)}x${textb};&x=${x};y=?;\\\\f(x)=${k === 1 ? "" : (k === -1 ? "-" : k)}x${textb};&f(${x})=?\\end{array}\\)
+            <hr style="width:100%; margin:15px 0; border:none; border-top:1px dashed #ccc;">
+            <div style="display:block; width:100%; text-align:center; margin-top:10px;">${svg}</div>`;
+        }
+
+        function generateLevel2Question() {
+            let k = (Math.floor(Math.random() * 3) +1)*(Math.random() < 0.5 ? -1 : 1);
+            let textk = k === 1 ? "" : (k === -1 ? "-" : (k > 0 ? `+${k}` : `${k}`));
+            let x = Math.floor(Math.random() * 7) - 3;
+            let b = (Math.floor(Math.random() * 9 - 5))-k*x;
+            let textb = b === 0 ? "" : (b > 0 ? `+${b}` : `${b}`);
+            let y = k*x+b;
+
+            correctAnswer = [`${x}`];
+            
+            // 创建SVG坐标系和函数图像
+            let svgWidth = 400;
+            let svgHeight = 400;
+            let xAxisLength = 200;
+            let yAxisLength = 200;
+            let xOrigin = 200; // 修改x轴原点位置，使负半轴可见
+            let yOrigin = 200;
+            let xScale = 20; // 每单位x对应的像素数
+            let yScale = 20; // 每单位y对应的像素数
+            
+            // 计算函数图像的点，包括负半轴
+            let pathPoints = [];
+            for (let i = -10; i <= 10; i++) { // 从-10开始，显示负半轴
+                let px = xOrigin + i * xScale;
+                let py = yOrigin - (k * i + b) * yScale;
+                pathPoints.push(`${px},${py}`);
+            }
+            
+            // 创建SVG
+            let svg = `
+            <svg width="${svgWidth}" height="${svgHeight}" style="background-color: #f9f9f9; margin-top: 10px;">
+                <!-- 坐标轴 -->
+                <line x1="0" y1="${yOrigin}" x2="${svgWidth}" y2="${yOrigin}" stroke="black" stroke-width="1"/>
+                <line x1="${xOrigin}" y1="0" x2="${xOrigin}" y2="${svgHeight}" stroke="black" stroke-width="1"/>
+                
+                <!-- 坐标标记 -->
+                <text x="${svgWidth - 10}" y="${yOrigin - 5}" font-size="12">x</text>
+                <text x="${xOrigin + 5}" y="15" font-size="12">y</text>
+                
+                <!-- x轴刻度，包括负半轴 -->
+                ${Array.from({length: 21}, (_, i) => i - 10).map(i => 
+                    `<line x1="${xOrigin + i * xScale}" y1="${yOrigin - 3}" x2="${xOrigin + i * xScale}" y2="${yOrigin + 3}" stroke="black" stroke-width="1"/>`
+                    + `<text x="${xOrigin + i * xScale}" y="${yOrigin + 15}" font-size="10" text-anchor="middle">${i}</text>`).join('')}
+                
+                <!-- y轴刻度 -->
+                ${Array.from({length: 21}, (_, i) => i - 10).map(i => 
+                    `<line x1="${xOrigin - 3}" y1="${yOrigin - i * yScale}" x2="${xOrigin + 3}" y2="${yOrigin - i * yScale}" stroke="black" stroke-width="1"/>`
+                    + `<text x="${xOrigin - 10}" y="${yOrigin - i * yScale + 3}" font-size="10" text-anchor="end">${i}</text>`).join('')}
+                
+                <!-- 函数图像 -->
+                <polyline points="${pathPoints.join(' ')}" fill="none" stroke="blue" stroke-width="2"/>
+                
+                <!-- 函数表达式 -->
+                <text x="${svgWidth - 120}" y="25" font-size="14" fill="blue">y = ${k === 1 ? "" : (k === -1 ? "-" : k)}x${textb}</text>
+                
+                <!-- 特殊点(x, y) -->
+                <circle cx="${xOrigin + x * xScale}" cy="${yOrigin - y * yScale}" r="4" fill="red"/>
+                <text x="${xOrigin + x * xScale + 5}" y="${yOrigin - y * yScale - 5}" font-size="12" fill="red">(？, ${y})</text>
+            </svg>`;
+            
+            return `\\(\\begin{array}{lll}y=${k === 1 ? "" : (k === -1 ? "-" : k)}x${textb};&y=${y};x=?;\\\\f(x)=${k === 1 ? "" : (k === -1 ? "-" : k)}x${textb};&f(?)=${y}\\end{array}\\)
+            <hr style="width:100%; margin:15px 0; border:none; border-top:1px dashed #ccc;">
+            <div style="display:block; width:100%; text-align:center; margin-top:10px;">${svg}</div>`;
+        }
+
+
+
+
+
+        function generateLevel3Question() {
+            let k1 = Math.floor(Math.random() * 3) + 1;
+            let b1 = Math.floor(Math.random() * 6 - 3);
+            let textb1 = b1 === 0 ? "" : (b1 > 0 ? `+${b1}` : `${b1}`);
+            
+            let k2 = Math.floor(Math.random() * 3) + 1;
+            let b2 = Math.floor(Math.random() * 6 - 3);
+            while (k1 === k2 && b1 === b2) { // 确保两个函数不同
+                k2 = Math.floor(Math.random() * 3) + 1;
+                b2 = Math.floor(Math.random() * 6 - 3);
+            }
+            let textb2 = b2 === 0 ? "" : (b2 > 0 ? `+${b2}` : `${b2}`);
+            
+            // 计算交点
+            let x = (b2 - b1) / (k1 - k2);
+            let y = k1 * x + b1;
+            
+            // 如果交点不是整数，重新生成函数
+            if (!Number.isInteger(x) || !Number.isInteger(y)) {
+                return generateLevel3Question();
+            }
+            
+            correctAnswer = [`(${x},${y})`, `${x},${y}`];
+            
+            // 创建SVG坐标系和函数图像
+            let svgWidth = 400;
+            let svgHeight = 400;
+            let xAxisLength = 280;
+            let yAxisLength = 180;
+            let xOrigin = 150; // 修改x轴原点位置，使负半轴可见
+            let yOrigin = 160;
+            let xScale = 20; // 每单位x对应的像素数
+            let yScale = 20; // 每单位y对应的像素数
+            
+            // 计算第一个函数图像的点，包括负半轴
+            let pathPoints1 = [];
+            for (let i = -5; i <= 10; i++) { // 从-5开始，显示负半轴
+                let px = xOrigin + i * xScale;
+                let py = yOrigin - (k1 * i + b1) * yScale;
+                pathPoints1.push(`${px},${py}`);
+            }
+            
+            // 计算第二个函数图像的点，包括负半轴
+            let pathPoints2 = [];
+            for (let i = -5; i <= 10; i++) { // 从-5开始，显示负半轴
+                let px = xOrigin + i * xScale;
+                let py = yOrigin - (k2 * i + b2) * yScale;
+                pathPoints2.push(`${px},${py}`);
+            }
+            
+            // 创建SVG
+            let svg = `
+            <svg width="${svgWidth}" height="${svgHeight}" style="background-color: #f9f9f9; margin-top: 10px;">
+                <!-- 坐标轴 -->
+                <line x1="0" y1="${yOrigin}" x2="${svgWidth}" y2="${yOrigin}" stroke="black" stroke-width="1"/>
+                <line x1="${xOrigin}" y1="0" x2="${xOrigin}" y2="${svgHeight}" stroke="black" stroke-width="1"/>
+                
+                <!-- 坐标标记 -->
+                <text x="${svgWidth - 10}" y="${yOrigin - 5}" font-size="12">x</text>
+                <text x="${xOrigin + 5}" y="15" font-size="12">y</text>
+                
+                <!-- x轴刻度，包括负半轴 -->
+                ${Array.from({length: 16}, (_, i) => i - 5).map(i => 
+                    `<line x1="${xOrigin + i * xScale}" y1="${yOrigin - 3}" x2="${xOrigin + i * xScale}" y2="${yOrigin + 3}" stroke="black" stroke-width="1"/>`
+                    + `<text x="${xOrigin + i * xScale}" y="${yOrigin + 15}" font-size="10" text-anchor="middle">${i}</text>`).join('')}
+                
+                <!-- y轴刻度 -->
+                ${Array.from({length: 10}, (_, i) => i - 10).map(i => 
+                    `<line x1="${xOrigin - 3}" y1="${yOrigin - i * yScale / 1}" x2="${xOrigin + 3}" y2="${yOrigin - i * yScale / 1}" stroke="black" stroke-width="1"/>`
+                    + `<text x="${xOrigin - 10}" y="${yOrigin - i * yScale / 1 + 3}" font-size="10" text-anchor="end">${i}</text>`).join('')}
+                
+                <!-- 函数图像1 -->
+                <polyline points="${pathPoints1.join(' ')}" fill="none" stroke="red" stroke-width="2"/>
+                
+                <!-- 函数图像2 -->
+                <polyline points="${pathPoints2.join(' ')}" fill="none" stroke="blue" stroke-width="2"/>
+                
+                <!-- 函数表达式 -->
+                <text x="20" y="25" font-size="14" fill="red">y = ${k1}x${textb1}</text>
+                <text x="${svgWidth - 120}" y="25" font-size="14" fill="blue">y = ${k2}x${textb2}</text>
+                
+                <!-- 交点 -->
+                <circle cx="${xOrigin + x * xScale}" cy="${yOrigin - y * yScale}" r="4" fill="green"/>
+            </svg>`;
+            
+            return `\\(\\begin{array}{ll}
+            y=${k1}x${textb1}\\\\ 
+            y=${k2}x${textb2}
+            \\end{array}\\)
+            求两直线的交点坐标。
+            <hr style="width:100%; margin:15px 0; border:none; border-top:1px dashed #ccc;">
+            <div style="display:block; width:100%; text-align:center; margin-top:10px;">${svg}</div>`;
+        }
+
+        function generateLevel4Question() {
+            let xa, xb, ya, yb, k;
+            
+            // 使用循环直到找到符合所有条件的点
+            do {
+                // 生成两点的横坐标，确保不相等
+                xa = Math.floor(Math.random() * 19) - 9;
+                xb = Math.floor(Math.random() * 19) - 9;
+                
+                // 如果横坐标相等，则重新生成
+                if (xa === xb) continue;
+                
+                // 生成随机整数斜率，避免斜率为0
+                k = Math.floor(Math.random() * 9) - 4; // 生成-4到4之间的整数
+                if (k === 0) continue;
+                
+                // 随机生成第一个点的纵坐标
+                ya = Math.floor(Math.random() * 19) - 9;
+                
+                // 根据斜率公式计算第二个点的纵坐标
+                yb = ya - k * (xa - xb);
+                
+                // 确保yb是整数
+                yb = Math.round(yb);
+                
+                // 验证所有坐标都在范围内且ya不等于yb
+            } while (Math.abs(yb) > 9 || ya === yb);
+            
+            correctAnswer = [`${k}`];
+            
+            // 创建SVG坐标系和函数图像
+            let svgWidth = 400;
+            let svgHeight = 400;
+            let xOrigin = 200; // 原点放在中间
+            let yOrigin = 200; // 原点放在中间
+            let xScale = 20; // 每单位x对应的像素数
+            let yScale = 20; // 每单位y对应的像素数
+            
+            // 计算直线的两个端点
+            // 确保直线的端点在坐标系范围内
+            let x_left = -10;
+            let x_right = 10;
+            
+            // 使用点斜式计算对应y值
+            let y_left = ya + k * (x_left - xa);
+            let y_right = ya + k * (x_right - xa);
+            
+            // SVG中绘制直线时，需要限制y值在合理范围内，避免直线超出视图
+            let y_min = -10;
+            let y_max = 10;
+            
+            // 如果直线过陡，通过y值计算对应的x值
+            if (y_left < y_min || y_left > y_max || y_right < y_min || y_right > y_max) {
+                // 计算y=y_min和y=y_max时对应的x值
+                let x_top = xa + (y_max - ya) / k;
+                let x_bottom = xa + (y_min - ya) / k;
+                
+                // 根据计算出的x值确定直线的端点坐标
+                if (y_left < y_min) {
+                    x_left = x_bottom;
+                    y_left = y_min;
+                } else if (y_left > y_max) {
+                    x_left = x_top;
+                    y_left = y_max;
+                }
+                
+                if (y_right < y_min) {
+                    x_right = x_bottom;
+                    y_right = y_min;
+                } else if (y_right > y_max) {
+                    x_right = x_top;
+                    y_right = y_max;
+                }
+            }
+            
+            // 创建SVG
+            let svg = `
+            <svg width="${svgWidth}" height="${svgHeight}" style="background-color: #f9f9f9; margin-top: 10px;">
+                <!-- 坐标轴 -->
+                <line x1="0" y1="${yOrigin}" x2="${svgWidth}" y2="${yOrigin}" stroke="black" stroke-width="1"/>
+                <line x1="${xOrigin}" y1="0" x2="${xOrigin}" y2="${svgHeight}" stroke="black" stroke-width="1"/>
+                
+                <!-- 坐标标记 -->
+                <text x="${svgWidth - 10}" y="${yOrigin - 5}" font-size="12">x</text>
+                <text x="${xOrigin + 5}" y="15" font-size="12">y</text>
+                
+                <!-- x轴刻度 -->
+                ${Array.from({length: 21}, (_, i) => {
+                    const value = i - 10;
+                    // 只在偶数值和-10,0,10三个关键点显示标签
+                    if (value % 2 === 0 || value === -10 || value === 0 || value === 10) {
+                        return `<line x1="${xOrigin + value * xScale}" y1="${yOrigin - 3}" x2="${xOrigin + value * xScale}" y2="${yOrigin + 3}" stroke="black" stroke-width="1"/>`
+                        + `<text x="${xOrigin + value * xScale}" y="${yOrigin + 15}" font-size="10" text-anchor="middle">${value}</text>`;
+                    } else {
+                        // 其他位置只绘制刻度线不显示数字
+                        return `<line x1="${xOrigin + value * xScale}" y1="${yOrigin - 2}" x2="${xOrigin + value * xScale}" y2="${yOrigin + 2}" stroke="black" stroke-width="0.8"/>`;
+                    }
+                }).join('')}
+                
+                <!-- y轴刻度 -->
+                ${Array.from({length: 21}, (_, i) => {
+                    const value = 10 - i; // 从10到-10的值
+                    // 只在偶数值和-10,0,10三个关键点显示标签
+                    if (value % 2 === 0 || value === -10 || value === 0 || value === 10) {
+                        return `<line x1="${xOrigin - 3}" y1="${yOrigin - value * yScale}" x2="${xOrigin + 3}" y2="${yOrigin - value * yScale}" stroke="black" stroke-width="1"/>`
+                        + `<text x="${xOrigin - 10}" y="${yOrigin - value * yScale + 3}" font-size="10" text-anchor="end">${value}</text>`;
+                    } else {
+                        // 其他位置只绘制刻度线不显示数字
+                        return `<line x1="${xOrigin - 2}" y1="${yOrigin - value * yScale}" x2="${xOrigin + 2}" y2="${yOrigin - value * yScale}" stroke="black" stroke-width="0.8"/>`;
+                    }
+                }).join('')}
+                
+                <!-- 直线 -->
+                <line x1="${xOrigin + x_left * xScale}" y1="${yOrigin - y_left * yScale}" 
+                      x2="${xOrigin + x_right * xScale}" y2="${yOrigin - y_right * yScale}" 
+                      stroke="blue" stroke-width="2"/>
+                
+                <!-- 点A -->
+                <circle cx="${xOrigin + xa * xScale}" cy="${yOrigin - ya * yScale}" r="4" fill="red"/>
+                <text x="${xOrigin + xa * xScale + 5}" y="${yOrigin - ya * yScale - 5}" font-size="12" fill="red">A(${xa}, ${ya})</text>
+                
+                <!-- 点B -->
+                <circle cx="${xOrigin + xb * xScale}" cy="${yOrigin - yb * yScale}" r="4" fill="red"/>
+                <text x="${xOrigin + xb * xScale + 5}" y="${yOrigin - yb * yScale - 5}" font-size="12" fill="red">B(${xb}, ${yb})</text>
+                
+                <!-- 可视化斜率 - 使用实际的AB点间的斜率 -->
+                <line x1="${xOrigin + xa * xScale}" y1="${yOrigin - ya * yScale}" 
+                      x2="${xOrigin + xb * xScale}" y2="${yOrigin - yb * yScale}" 
+                      stroke="green" stroke-width="2"/>
+                      
+                <!-- 斜率参考线 -->
+                <line x1="${xOrigin + xa * xScale}" y1="${yOrigin - ya * yScale}" 
+                      x2="${xOrigin + xb * xScale}" y2="${yOrigin - ya * yScale}" 
+                      stroke="green" stroke-width="1" stroke-dasharray="5,2"/>
+                <line x1="${xOrigin + xb * xScale}" y1="${yOrigin - ya * yScale}" 
+                      x2="${xOrigin + xb * xScale}" y2="${yOrigin - yb * yScale}" 
+                      stroke="green" stroke-width="1" stroke-dasharray="5,2"/>
+                      
+                <!-- 显示斜率计算公式 -->
+                <text x="${xOrigin + (xa + xb) / 2 * xScale}" y="${yOrigin - (ya + yb) / 2 * yScale - 15}" font-size="12" fill="green">k = ?</text>
+            </svg>`;
+            
+            return `\\(\\begin{array}{lll}过点A(${xa},${ya}),B(${xb},${yb});\\\\直线的斜率k=? \\\\ \\textup{或在ggb上输入slope(Segment((${xa},${ya}),(${xb},${yb}))) }\\end{array}\\)
+            <hr style="width:100%; margin:15px 0; border:none; border-top:1px dashed #ccc;">
+            <div style="display:block; width:100%; text-align:center; margin-top:10px;">${svg}</div>`;
+        }
+
+        function generateLevel5Question() {
+            let xa, ya, xb, yb, s;
+            
+            // 使用循环直到找到产生整数面积的点
+            do {
+                // 生成符合范围的随机点
+                xa = Math.floor(Math.random() * 21) - 10;
+                ya = Math.floor(Math.random() * 21) - 10;
+                xb = Math.floor(Math.random() * 21) - 10;
+                yb = Math.floor(Math.random() * 21) - 10;
+                
+                // 计算面积
+                s = 0.5 * Math.abs(xa * yb - xb * ya);
+                
+                // 检查面积是否为整数
+            } while (s !== Math.floor(s));
+            
+            correctAnswer = [`${s}`];
+            
+            // 创建SVG坐标系和三角形
+            let svgWidth = 400;
+            let svgHeight = 400;
+            let xOrigin = 200; // 原点放在中间
+            let yOrigin = 200; // 原点放在中间
+            let xScale = 20; // 每单位x对应的像素数
+            let yScale = 20; // 每单位y对应的像素数
+            
+            // 创建SVG
+            let svg = `
+            <svg width="${svgWidth}" height="${svgHeight}" style="background-color: #f9f9f9; margin-top: 10px;">
+                <!-- 坐标轴 -->
+                <line x1="0" y1="${yOrigin}" x2="${svgWidth}" y2="${yOrigin}" stroke="black" stroke-width="1"/>
+                <line x1="${xOrigin}" y1="0" x2="${xOrigin}" y2="${svgHeight}" stroke="black" stroke-width="1"/>
+                
+                <!-- 坐标标记 -->
+                <text x="${svgWidth - 10}" y="${yOrigin - 5}" font-size="12">x</text>
+                <text x="${xOrigin + 5}" y="15" font-size="12">y</text>
+                
+                <!-- x轴刻度 -->
+                ${Array.from({length: 11}, (_, i) => {
+                    const value = i - 5;
+                    return `<line x1="${xOrigin + value * xScale}" y1="${yOrigin - 3}" x2="${xOrigin + value * xScale}" y2="${yOrigin + 3}" stroke="black" stroke-width="1"/>`
+                    + `<text x="${xOrigin + value * xScale}" y="${yOrigin + 15}" font-size="10" text-anchor="middle">${value}</text>`;
+                }).join('')}
+                
+                <!-- y轴刻度 -->
+                ${Array.from({length: 11}, (_, i) => {
+                    const value = 5 - i;
+                    return `<line x1="${xOrigin - 3}" y1="${yOrigin - value * yScale}" x2="${xOrigin + 3}" y2="${yOrigin - value * yScale}" stroke="black" stroke-width="1"/>`
+                    + `<text x="${xOrigin - 10}" y="${yOrigin - value * yScale + 3}" font-size="10" text-anchor="end">${value}</text>`;
+                }).join('')}
+                
+                <!-- 原点O -->
+                <circle cx="${xOrigin}" cy="${yOrigin}" r="4" fill="black"/>
+                <text x="${xOrigin + 5}" y="${yOrigin - 5}" font-size="12">O(0, 0)</text>
+                
+                <!-- 点A -->
+                <circle cx="${xOrigin + xa * xScale}" cy="${yOrigin - ya * yScale}" r="4" fill="red"/>
+                <text x="${xOrigin + xa * xScale + 5}" y="${yOrigin - ya * yScale - 5}" font-size="12" fill="red">A(${xa}, ${ya})</text>
+                
+                <!-- 点B -->
+                <circle cx="${xOrigin + xb * xScale}" cy="${yOrigin - yb * yScale}" r="4" fill="blue"/>
+                <text x="${xOrigin + xb * xScale + 5}" y="${yOrigin - yb * yScale - 5}" font-size="12" fill="blue">B(${xb}, ${yb})</text>
+                
+                <!-- 三角形OAB -->
+                <polygon points="${xOrigin},${yOrigin} ${xOrigin + xa * xScale},${yOrigin - ya * yScale} ${xOrigin + xb * xScale},${yOrigin - yb * yScale}"
+                         fill="rgba(0, 255, 0, 0.2)" stroke="green" stroke-width="2"/>
+                 
+                <!-- 显示面积的问号 -->
+                <text x="${xOrigin + (xa + xb) * xScale / 3}" y="${yOrigin - (ya + yb) * yScale / 3}" 
+                      font-size="14" fill="green" font-weight="bold">S = ?</text>
+            </svg>`;
+            
+            return `\\(\\begin{array}{lll}直角坐标系中点O(0,0),A(${xa},${ya}),B(${xb},${yb});\\\\SΔOAB=?\\\\你可以用多少不同的方法来运算，\\\\你可以先用ggb画一下的;\\\\铅垂？割补？点到线距离？三角函数？行列式？ \\end{array}\\)
+            <hr style="width:100%; margin:15px 0; border:none; border-top:1px dashed #ccc;">
+            <div style="display:block; width:100%; text-align:center; margin-top:10px;">${svg}</div>`;
+        }
+
+        function generateLevel6Question() {
+            // Helper function to compute GCD of two numbers
+            function gcd(a, b) {
+                if (!b) return Math.abs(a);
+                return gcd(b, a % b);
+            }
+
+            // Helper function to compute GCD of three numbers
+            function gcd3(a, b, c) {
+                return gcd(gcd(a, b), c);
+            }
+
+            let xa, ya, xb, yb;
+            // 确保两点不构成水平或垂直线
+            do {
+                // 将范围从-5到5改为-9到9
+                xa = Math.floor(Math.random() * 19) - 9; // -9 to 9
+                ya = Math.floor(Math.random() * 19) - 9; // -9 to 9
+                xb = Math.floor(Math.random() * 19) - 9; // -9 to 9
+                yb = Math.floor(Math.random() * 19) - 9; // -9 to 9
+            } while (xa === xb || ya === yb); // 如果形成水平或垂直线，则重新生成
+            
+            // Calculate coefficients a, b, c for the general form ax + by + c = 0
+            // Using two-point form:
+            // (y2 - y1)x - (x2 - x1)y + (x2 y1 - x1 y2) = 0
+            let a = yb - ya;
+            let b = xa - xb;
+            let c = xb * ya - xa * yb;
+
+            // Normalize coefficients to make them coprime and a positive
+            let divisor = gcd3(a, b, c);
+            a /= divisor;
+            b /= divisor;
+            c /= divisor;
+
+            // Ensure that a is positive
+            if (a < 0) {
+                a = -a;
+                b = -b;
+                c = -c;
+            }
+
+            // Function to format the coefficient for x and y
+            function formatCoefficient(coef, variable) {
+                if (coef === 1) {
+                    return `${variable}`;
+                } else if (coef === -1) {
+                    return `-${variable}`;
+                } else {
+                    return `${coef}${variable}`;
+                }
+            }
+
+            // Function to format the constant term c
+            function formatConstant(c) {
+                if (c > 0) {
+                    return `+ ${c}`;
+                } else if (c < 0) {
+                    return `- ${Math.abs(c)}`;
+                } else {
+                    return '';
+                }
+            }
+
+            // Construct the equation string based on the coefficients
+            let equation = `${formatCoefficient(a, 'x')} `;
+
+            // Handle the sign for the y term
+            if (b >= 0) {
+                equation += `+ ${formatCoefficient(b, 'y')} `;
+            } else {
+                equation += `- ${formatCoefficient(-b, 'y')} `;
+            }
+
+            // Handle the constant term
+            if (c !== 0) {
+                equation += `${formatConstant(c)} `;
+            }
+
+            equation += `= 0`;
+
+            // Set the correct answer
+            correctAnswer = [equation];
+            
+            // 创建SVG坐标系和直线
+            let svgWidth = 400;
+            let svgHeight = 400;
+            let xOrigin = 200; // 原点放在中间
+            let yOrigin = 200; // 原点放在中间
+            let xScale = 20; // 每单位x对应的像素数
+            let yScale = 20; // 每单位y对应的像素数
+            
+            // 计算直线的两个端点（扩展到图表边缘）
+            // 使用点斜式方程 y - ya = ((yb - ya) / (xb - xa)) * (x - xa)
+            // 或者通用式 ax + by + c = 0
+            let x_min = -10;
+            let x_max = 10;
+            
+            // 如果b不为0，可以表示为y = -(a/b)x - (c/b)
+            let y_min, y_max;
+            if (b !== 0) {
+                y_min = -(a/b) * x_min - (c/b);
+                y_max = -(a/b) * x_max - (c/b);
+            } else {
+                // 如果b为0，这是一条垂直线 x = -c/a
+                x_min = x_max = -c/a;
+                y_min = -10;
+                y_max = 10;
+            }
+            
+            // 确保y值在合理范围内
+            let y_clamp_min = -5;
+            let y_clamp_max = 5;
+            
+// 创建SVG
+let svg = `
+<svg width="${svgWidth}" height="${svgHeight}" style="background-color: #f9f9f9; margin-top: 10px;">
+    <!-- 坐标轴 -->
+    <line x1="0" y1="${yOrigin}" x2="${svgWidth}" y2="${yOrigin}" stroke="black" stroke-width="1"/>
+    <line x1="${xOrigin}" y1="0" x2="${xOrigin}" y2="${svgHeight}" stroke="black" stroke-width="1"/>
+    
+    <!-- 坐标标记 -->
+    <text x="${svgWidth - 10}" y="${yOrigin - 5}" font-size="12">x</text>
+    <text x="${xOrigin + 5}" y="15" font-size="12">y</text>
+    
+    <!-- x轴刻度 -->
+    ${Array.from({length: 21}, (_, i) => {
+        const value = i - 10;
+        // 只在偶数值和-10,0,10三个关键点显示标签
+        if (value % 2 === 0 || value === -10 || value === 0 || value === 10) {
+            return `<line x1="${xOrigin + value * xScale}" y1="${yOrigin - 3}" x2="${xOrigin + value * xScale}" y2="${yOrigin + 3}" stroke="black" stroke-width="1"/>`
+            + `<text x="${xOrigin + value * xScale}" y="${yOrigin + 15}" font-size="10" text-anchor="middle">${value}</text>`;
+        } else {
+            // 其他位置只绘制刻度线不显示数字
+            return `<line x1="${xOrigin + value * xScale}" y1="${yOrigin - 2}" x2="${xOrigin + value * xScale}" y2="${yOrigin + 2}" stroke="black" stroke-width="0.8"/>`;
+        }
+    }).join('')}
+    
+    <!-- y轴刻度 -->
+    ${Array.from({length: 21}, (_, i) => {
+        const value = 10 - i;
+        if (value % 2 === 0 || value === -10 || value === 0 || value === 10) {
+            return `<line x1="${xOrigin - 3}" y1="${yOrigin - value * yScale}" x2="${xOrigin + 3}" y2="${yOrigin - value * yScale}" stroke="black" stroke-width="1"/>`
+            + `<text x="${xOrigin - 10}" y="${yOrigin - value * yScale + 3}" font-size="10" text-anchor="end">${value}</text>`;
+        } else {
+            return `<line x1="${xOrigin - 2}" y1="${yOrigin - value * yScale}" x2="${xOrigin + 2}" y2="${yOrigin - value * yScale}" stroke="black" stroke-width="0.8"/>`;
+        }
+    }).join('')}
+    
+    <!-- 直线 - 修改为直接使用两点绘制，确保直线通过这两点 -->
+    <line x1="${xOrigin + xa * xScale}" y1="${yOrigin - ya * yScale}" 
+          x2="${xOrigin + xb * xScale}" y2="${yOrigin - yb * yScale}" 
+          stroke="blue" stroke-width="2"/>
+    
+    <!-- 将直线扩展到图表边缘 -->
+    ${(() => {
+        // 计算斜率和偏移
+        const dx = xb - xa;
+        const dy = yb - ya;
+        
+        // 如果不是垂直线
+        if (dx !== 0) {
+            const slope = dy / dx;
+            const yIntercept = ya - slope * xa;
+            
+            // 计算直线与图表边缘的交点
+            const leftX = -10;
+            const leftY = slope * leftX + yIntercept;
+            const rightX = 10;
+            const rightY = slope * rightX + yIntercept;
+            
+            return `<line x1="${xOrigin + leftX * xScale}" y1="${yOrigin - leftY * yScale}" 
+                         x2="${xOrigin + rightX * xScale}" y2="${yOrigin - rightY * yScale}" 
+                         stroke="blue" stroke-width="1" stroke-dasharray="5,2"/>`;
+        } else {
+            // 垂直线情况
+            return `<line x1="${xOrigin + xa * xScale}" y1="${yOrigin - 10 * yScale}" 
+                         x2="${xOrigin + xa * xScale}" y2="${yOrigin + 10 * yScale}" 
+                         stroke="blue" stroke-width="1" stroke-dasharray="5,2"/>`;
+        }
+    })()}
+    
+    <!-- 点A -->
+    <circle cx="${xOrigin + xa * xScale}" cy="${yOrigin - ya * yScale}" r="4" fill="red"/>
+    <text x="${xOrigin + xa * xScale + 5}" y="${yOrigin - ya * yScale - 5}" font-size="12" fill="red">A(${xa}, ${ya})</text>
+    
+    <!-- 点B -->
+    <circle cx="${xOrigin + xb * xScale}" cy="${yOrigin - yb * yScale}" r="4" fill="red"/>
+    <text x="${xOrigin + xb * xScale + 5}" y="${yOrigin - yb * yScale - 5}" font-size="12" fill="red">B(${xb}, ${yb})</text>
+    
+    <!-- 方程提示 -->
+    <text x="15" y="20" font-size="14" fill="blue">ax + by + c = 0</text>
+    <text x="15" y="40" font-size="12" fill="blue">求系数a, b, c的互质整数解</text>
+</svg>`;
+
+            // Return the formatted question in LaTeX
+            return `\\(\\begin{array}{lll}
+            已知直线经过点A(${xa}, ${ya})和点B(${xb}, ${yb})；\\\\
+            求该直线的一般式方程：ax + by + c = 0，\\\\其中a, b, c为互质整数，且a > 0。\\\\
+            \\textup{请在答案框中输入方程。}
+            \\end{array}\\)
+            <hr style="width:100%; margin:15px 0; border:none; border-top:1px dashed #ccc;">
+            <div style="display:block; width:100%; text-align:center; margin-top:10px;">${svg}</div>`;
+        }
+
+        function generateLevel7Question() {
+            const pairs = [
+                { a: 5, b: 12 },
+                { a: -5, b: 12 },
+                { a: 5, b: -12 },
+                { a: -5, b: -12 },
+                { a: 3, b: 4 },
+                { a: -3, b: 4 },
+                { a: 4, b: 3 },
+                { a: -4, b: -3 },
+            ];
+
+            let pair = pairs[Math.floor(Math.random() * pairs.length)];
+            let a = pair.a;
+            let b = pair.b;
+
+            let textb = b === 0 ? "" : (b > 0 ? `+${b}` : `${b}`);
+
+            let n = Math.floor(Math.random() * 11) - 5;
+            let xm = Math.floor(Math.random() * 11) - 5;
+            let ym = Math.floor(Math.random() * 11) - 5;
+
+            let c = Math.pow((a * a + b * b), 0.5) * n - a * xm - b * ym;
+            let textc = c === 0 ? "" : (c > 0 ? `+${c}` : `${c}`);
+
+            correctAnswer = [`${Math.abs(n)}`];
+            
+            // 创建SVG坐标系和直线
+            let svgWidth = 400;
+            let svgHeight = 400;
+            let xOrigin = 200; // 原点放在中间
+            let yOrigin = 200; // 原点放在中间
+            let xScale = 20; // 每单位x对应的像素数
+            let yScale = 20; // 每单位y对应的像素数
+            
+            // 计算直线的两个端点（扩展到图表边缘）
+            // 使用通用式 ax + by + c = 0
+            let x_min = -10;
+            let x_max = 10;
+            
+            // 如果b不为0，可以表示为y = -(a/b)x - (c/b)
+            let y_min, y_max;
+            if (b !== 0) {
+                y_min = -(a/b) * x_min - (c/b);
+                y_max = -(a/b) * x_max - (c/b);
+            } else {
+                // 如果b为0，这是一条垂直线 x = -c/a
+                x_min = x_max = -c/a;
+                y_min = -10;
+                y_max = 10;
+            }
+            
+            // 计算从点M到直线的垂线和垂足
+            let footX, footY;
+
+            // 使用通用公式计算垂足坐标
+            // 对于直线ax + by + c = 0，点(xm,ym)的垂足为：
+            // footX = (b*b*xm - a*b*ym - a*c)/(a*a + b*b)
+            // footY = (a*a*ym - a*b*xm - b*c)/(a*a + b*b)
+            const denominator = a*a + b*b;
+            if (denominator !== 0) {
+                footX = (b*b*xm - a*b*ym - a*c)/denominator;
+                footY = (a*a*ym - a*b*xm - b*c)/denominator;
+            } else {
+                // 处理特殊情况
+                footX = xm;
+                footY = ym;
+            }
+
+            // 计算点到直线的距离（用于验证）
+            const distance = Math.abs(a*xm + b*ym + c) / Math.sqrt(a*a + b*b);
+
+            // 创建SVG
+            let svg = `
+            <svg width="${svgWidth}" height="${svgHeight}" style="background-color: #f9f9f9; margin-top: 10px;">
+                <!-- 坐标轴 -->
+                <line x1="0" y1="${yOrigin}" x2="${svgWidth}" y2="${yOrigin}" stroke="black" stroke-width="1"/>
+                <line x1="${xOrigin}" y1="0" x2="${xOrigin}" y2="${svgHeight}" stroke="black" stroke-width="1"/>
+                
+                <!-- 坐标标记 -->
+                <text x="${svgWidth - 10}" y="${yOrigin - 5}" font-size="12">x</text>
+                <text x="${xOrigin + 5}" y="15" font-size="12">y</text>
+                
+                <!-- x轴刻度 -->
+                ${Array.from({length: 21}, (_, i) => {
+                    const value = i - 10; // 从-10到10
+                    if (value % 2 === 0 || value === -10 || value === 0 || value === 10) {
+                        return `<line x1="${xOrigin + value * xScale}" y1="${yOrigin - 3}" x2="${xOrigin + value * xScale}" y2="${yOrigin + 3}" stroke="black" stroke-width="1"/>`
+                        + `<text x="${xOrigin + value * xScale}" y="${yOrigin + 15}" font-size="10" text-anchor="middle">${value}</text>`;
+                    } else {
+                        return `<line x1="${xOrigin + value * xScale}" y1="${yOrigin - 2}" x2="${xOrigin + value * xScale}" y2="${yOrigin + 2}" stroke="black" stroke-width="0.8"/>`;
+                    }
+                }).join('')}
+                
+                <!-- y轴刻度 -->
+                ${Array.from({length: 21}, (_, i) => {
+                    const value = 10 - i; // 从10到-10
+                    if (value % 2 === 0 || value === -10 || value === 0 || value === 10) {
+                        return `<line x1="${xOrigin - 3}" y1="${yOrigin - value * yScale}" x2="${xOrigin + 3}" y2="${yOrigin - value * yScale}" stroke="black" stroke-width="1"/>`
+                        + `<text x="${xOrigin - 10}" y="${yOrigin - value * yScale + 3}" font-size="10" text-anchor="end">${value}</text>`;
+                    } else {
+                        return `<line x1="${xOrigin - 2}" y1="${yOrigin - value * yScale}" x2="${xOrigin + 2}" y2="${yOrigin - value * yScale}" stroke="black" stroke-width="0.8"/>`;
+                    }
+                }).join('')}
+                
+                <!-- 直线 -->
+                <line x1="${xOrigin + x_min * xScale}" y1="${yOrigin - y_min * yScale}" 
+                      x2="${xOrigin + x_max * xScale}" y2="${yOrigin - y_max * yScale}" 
+                      stroke="blue" stroke-width="2"/>
+                
+                <!-- 点M -->
+                <circle cx="${xOrigin + xm * xScale}" cy="${yOrigin - ym * yScale}" r="4" fill="red"/>
+                <text x="${xOrigin + xm * xScale + 5}" y="${yOrigin - ym * yScale - 5}" font-size="12" fill="red">M(${xm}, ${ym})</text>
+                
+                <!-- 垂足 -->
+                <circle cx="${xOrigin + footX * xScale}" cy="${yOrigin - footY * yScale}" r="3" fill="green"/>
+                <!-- 点到直线的垂线 -->
+<line x1="${xOrigin + xm * xScale}" 
+      y1="${yOrigin - ym * yScale}" 
+      x2="${xOrigin + footX * xScale}" 
+      y2="${yOrigin - footY * yScale}" 
+      stroke="green" stroke-width="2" stroke-dasharray="5,2"/>
+                <!-- 距离标记 -->
+                <text x="${xOrigin + (xm + footX) * xScale / 2}" 
+                      y="${yOrigin - (ym + footY) * yScale / 2}" 
+                      font-size="12" fill="green" font-weight="bold">?</text>
+                
+                <!-- 方程 -->
+                <text x="15" y="20" font-size="14" fill="blue">${a}x${textb}y${textc}=0</text>
+            </svg>`;
+
+            return `\\(\\begin{array}{lll}已知直线${a}x${textb}y${textc}=0 ;\\\\求点M(${xm},${ym})到直线的距离。\\\\你可以先用ggb画一下的;\\\\比例，勾股，向量，复数，判别式，公式......\\\\多种方法到后面才能云淡风轻.\\end{array}\\)
+            <hr style="width:100%; margin:15px 0; border:none; border-top:1px dashed #ccc;">
+            <div style="display:block; width:100%; text-align:center; margin-top:10px;">${svg}</div>`;
+        }
+
+        function generateLevel8Question() {
+
+            let a = (Math.floor(Math.random() * 4) + 1)*(Math.random() < 0.5 ? -1 : 1 );
+            let b = (Math.floor(Math.random() * 4) + 1)*(Math.random() < 0.5 ? -1 : 1 );
+            let texta = a === 1 ? "" : (a === -1 ? `-` : `${a}`);
+            let textb = b === 1 ? "+" : (b === -1 ? `-` :(b > 0 ? `+${b}` : `${b}`));
+
+            let n = Math.floor(Math.random() * 3) + 1;
+
+            let footX=(Math.floor(Math.random() * 3) + 1)*(Math.random() < 0.5 ? -1 : 1 );
+            let footY=(Math.floor(Math.random() * 3) + 1)*(Math.random() < 0.5 ? -1 : 1 );
+
+            let m, xm, ym;
+            // 使用while循环确保生成的坐标在-9到9范围内
+            do {
+                m = Math.floor(Math.random() * 2) + 1;
+                xm = footX + m * a;
+                ym = footY + m * b;
+            } while (xm < -9 || xm > 9 || ym < -9 || ym > 9);
+
+            let c = -a*footX-b*footY;
+            let textc = c === 0 ? "" : (c > 0 ? `+${c}` : `${c}`);
+
+            
+            // 创建SVG坐标系和直线
+            let svgWidth = 400;
+            let svgHeight = 400;
+            let xOrigin = 200; // 原点放在中间
+            let yOrigin = 200; // 原点放在中间
+            let xScale = 20; // 每单位x对应的像素数
+            let yScale = 20; // 每单位y对应的像素数
+            
+            // 计算直线的两个端点（扩展到图表边缘）
+            // 使用通用式 ax + by + c = 0
+            let x_min = -10;
+            let x_max = 10;
+            
+            // 如果b不为0，可以表示为y = -(a/b)x - (c/b)
+            let y_min, y_max;
+            if (b !== 0) {
+                y_min = -(a/b) * x_min - (c/b);
+                y_max = -(a/b) * x_max - (c/b);
+            } else {
+                // 如果b为0，这是一条垂直线 x = -c/a
+                x_min = x_max = -c/a;
+                y_min = -10;
+                y_max = 10;
+            }
+            
+            correctAnswer = [`(${footX},${footY})`];
+            // 计算点到直线的距离（用于验证）
+            const distance = Math.abs(a*xm + b*ym + c) / Math.sqrt(a*a + b*b);
+
+            // 创建SVG
+            let svg = `
+            <svg width="${svgWidth}" height="${svgHeight}" style="background-color: #f9f9f9; margin-top: 10px;">
+                <!-- 坐标轴 -->
+                <line x1="0" y1="${yOrigin}" x2="${svgWidth}" y2="${yOrigin}" stroke="black" stroke-width="1"/>
+                <line x1="${xOrigin}" y1="0" x2="${xOrigin}" y2="${svgHeight}" stroke="black" stroke-width="1"/>
+                
+                <!-- 坐标标记 -->
+                <text x="${svgWidth - 10}" y="${yOrigin - 5}" font-size="12">x</text>
+                <text x="${xOrigin + 5}" y="15" font-size="12">y</text>
+                
+                <!-- x轴刻度 -->
+                ${Array.from({length: 21}, (_, i) => {
+                    const value = i - 10; // 从-10到10
+                    if (value % 2 === 0 || value === -10 || value === 0 || value === 10) {
+                        return `<line x1="${xOrigin + value * xScale}" y1="${yOrigin - 3}" x2="${xOrigin + value * xScale}" y2="${yOrigin + 3}" stroke="black" stroke-width="1"/>`
+                        + `<text x="${xOrigin + value * xScale}" y="${yOrigin + 15}" font-size="10" text-anchor="middle">${value}</text>`;
+                    } else {
+                        return `<line x1="${xOrigin + value * xScale}" y1="${yOrigin - 2}" x2="${xOrigin + value * xScale}" y2="${yOrigin + 2}" stroke="black" stroke-width="0.8"/>`;
+                    }
+                }).join('')}
+                
+                <!-- y轴刻度 -->
+                ${Array.from({length: 21}, (_, i) => {
+                    const value = 10 - i; // 从10到-10
+                    if (value % 2 === 0 || value === -10 || value === 0 || value === 10) {
+                        return `<line x1="${xOrigin - 3}" y1="${yOrigin - value * yScale}" x2="${xOrigin + 3}" y2="${yOrigin - value * yScale}" stroke="black" stroke-width="1"/>`
+                        + `<text x="${xOrigin - 10}" y="${yOrigin - value * yScale + 3}" font-size="10" text-anchor="end">${value}</text>`;
+                    } else {
+                        return `<line x1="${xOrigin - 2}" y1="${yOrigin - value * yScale}" x2="${xOrigin + 2}" y2="${yOrigin - value * yScale}" stroke="black" stroke-width="0.8"/>`;
+                    }
+                }).join('')}
+                
+                <!-- 直线 -->
+                <line x1="${xOrigin + x_min * xScale}" y1="${yOrigin - y_min * yScale}" 
+                      x2="${xOrigin + x_max * xScale}" y2="${yOrigin - y_max * yScale}" 
+                      stroke="blue" stroke-width="2"/>
+                
+                <!-- 点M -->
+                <circle cx="${xOrigin + xm * xScale}" cy="${yOrigin - ym * yScale}" r="4" fill="red"/>
+                <text x="${xOrigin + xm * xScale + 5}" y="${yOrigin - ym * yScale - 5}" font-size="12" fill="red">M(${xm}, ${ym})</text>
+                
+                <!-- 垂足 -->
+                <circle cx="${xOrigin + footX * xScale}" cy="${yOrigin - footY * yScale}" r="3" fill="green"/>
+                <!-- 点到直线的垂线 -->
+      <line x1="${xOrigin + xm * xScale}" 
+      y1="${yOrigin - ym * yScale}" 
+      x2="${xOrigin + footX * xScale}" 
+      y2="${yOrigin - footY * yScale}" 
+      stroke="green" stroke-width="2" stroke-dasharray="5,2"/>
+                <!-- 距离标记 -->
+                <text x="${xOrigin + (xm + footX) * xScale / 2}" 
+                      y="${yOrigin - (ym + footY) * yScale / 2}" 
+                      font-size="12" fill="green" font-weight="bold">?</text>
+                
+                <!-- 方程 -->
+                <text x="15" y="20" font-size="14" fill="blue">${a}x${textb}y${textc}=0</text>
+            </svg>`;
+
+            return `\\(\\begin{array}{lll}已知直线${texta}x${textb}y${textc}=0 ;\\\\过点M(${xm},${ym})做直线的垂线段，求垂足坐标。\\\\你可以先用ggb画一下的;\\\\比例，勾股，向量，复数，判别式，公式......\\\\多种方法到后面才能云淡风轻.\\end{array}\\)
+            <hr style="width:100%; margin:15px 0; border:none; border-top:1px dashed #ccc;">
+            <div style="display:block; width:100%; text-align:center; margin-top:10px;">${svg}</div>`;
+        }
+
+        function generateLevel9Question() {
+ 
+            let a = (Math.floor(Math.random() * 4) + 1)*(Math.random() < 0.5 ? -1 : 1 );
+            let b = (Math.floor(Math.random() * 4) + 1)*(Math.random() < 0.5 ? -1 : 1 );
+            let texta = a === 1 ? "" : (a === -1 ? `-` : `${a}`);
+            let textb = b === 1 ? "+" : (b === -1 ? `-` :(b > 0 ? `+${b}` : `${b}`));
+
+            let n = Math.floor(Math.random() * 3) + 1;
+
+            let footX=(Math.floor(Math.random() * 3) + 1)*(Math.random() < 0.5 ? -1 : 1 );
+            let footY=(Math.floor(Math.random() * 3) + 1)*(Math.random() < 0.5 ? -1 : 1 );
+
+            let m, xm, ym;
+            // 使用while循环确保生成的坐标在-9到9范围内
+            do {
+                m = Math.floor(Math.random() * 2) + 1;
+                xm = footX + m * a;
+                ym = footY + m * b;
+            } while (xm < -9 || xm > 9 || ym < -9 || ym > 9);
+
+            let c = -a*footX-b*footY;
+            let textc = c === 0 ? "" : (c > 0 ? `+${c}` : `${c}`);
+            let p=2*footX-xm;
+            let q=2*footY-ym;
+            
+            // 创建SVG坐标系和直线
+            let svgWidth = 400;
+            let svgHeight = 400;
+            let xOrigin = 200; // 原点放在中间
+            let yOrigin = 200; // 原点放在中间
+            let xScale = 20; // 每单位x对应的像素数
+            let yScale = 20; // 每单位y对应的像素数
+            
+            // 计算直线的两个端点（扩展到图表边缘）
+            // 使用通用式 ax + by + c = 0
+            let x_min = -10;
+            let x_max = 10;
+            
+            // 如果b不为0，可以表示为y = -(a/b)x - (c/b)
+            let y_min, y_max;
+            if (b !== 0) {
+                y_min = -(a/b) * x_min - (c/b);
+                y_max = -(a/b) * x_max - (c/b);
+            } else {
+                // 如果b为0，这是一条垂直线 x = -c/a
+                x_min = x_max = -c/a;
+                y_min = -10;
+                y_max = 10;
+            }
+            
+            correctAnswer = [`(${p},${q})`];
+            // 计算点到直线的距离（用于验证）
+            const distance = Math.abs(a*xm + b*ym + c) / Math.sqrt(a*a + b*b);
+
+            // 创建SVG
+            let svg = `
+            <svg width="${svgWidth}" height="${svgHeight}" style="background-color: #f9f9f9; margin-top: 10px;">
+                <!-- 坐标轴 -->
+                <line x1="0" y1="${yOrigin}" x2="${svgWidth}" y2="${yOrigin}" stroke="black" stroke-width="1"/>
+                <line x1="${xOrigin}" y1="0" x2="${xOrigin}" y2="${svgHeight}" stroke="black" stroke-width="1"/>
+                
+                <!-- 坐标标记 -->
+                <text x="${svgWidth - 10}" y="${yOrigin - 5}" font-size="12">x</text>
+                <text x="${xOrigin + 5}" y="15" font-size="12">y</text>
+                
+                <!-- x轴刻度 -->
+                ${Array.from({length: 21}, (_, i) => {
+                    const value = i - 10; // 从-10到10
+                    if (value % 2 === 0 || value === -10 || value === 0 || value === 10) {
+                        return `<line x1="${xOrigin + value * xScale}" y1="${yOrigin - 3}" x2="${xOrigin + value * xScale}" y2="${yOrigin + 3}" stroke="black" stroke-width="1"/>`
+                        + `<text x="${xOrigin + value * xScale}" y="${yOrigin + 15}" font-size="10" text-anchor="middle">${value}</text>`;
+                    } else {
+                        return `<line x1="${xOrigin + value * xScale}" y1="${yOrigin - 2}" x2="${xOrigin + value * xScale}" y2="${yOrigin + 2}" stroke="black" stroke-width="0.8"/>`;
+                    }
+                }).join('')}
+                
+                <!-- y轴刻度 -->
+                ${Array.from({length: 21}, (_, i) => {
+                    const value = 10 - i; // 从10到-10
+                    if (value % 2 === 0 || value === -10 || value === 0 || value === 10) {
+                        return `<line x1="${xOrigin - 3}" y1="${yOrigin - value * yScale}" x2="${xOrigin + 3}" y2="${yOrigin - value * yScale}" stroke="black" stroke-width="1"/>`
+                        + `<text x="${xOrigin - 10}" y="${yOrigin - value * yScale + 3}" font-size="10" text-anchor="end">${value}</text>`;
+                    } else {
+                        return `<line x1="${xOrigin - 2}" y1="${yOrigin - value * yScale}" x2="${xOrigin + 2}" y2="${yOrigin - value * yScale}" stroke="black" stroke-width="0.8"/>`;
+                    }
+                }).join('')}
+                
+                <!-- 直线 -->
+                <line x1="${xOrigin + x_min * xScale}" y1="${yOrigin - y_min * yScale}" 
+                      x2="${xOrigin + x_max * xScale}" y2="${yOrigin - y_max * yScale}" 
+                      stroke="blue" stroke-width="2"/>
+                
+                <!-- 点M -->
+                <circle cx="${xOrigin + xm * xScale}" cy="${yOrigin - ym * yScale}" r="4" fill="red"/>
+                <text x="${xOrigin + xm * xScale + 5}" y="${yOrigin - ym * yScale - 5}" font-size="12" fill="red">M(${xm}, ${ym})</text>
+  
+                  <!-- 点M' (对称点) -->
+    <circle cx="${xOrigin + p * xScale}" cy="${yOrigin - q * yScale}" r="4" fill="purple"/>
+    <text x="${xOrigin + p * xScale + 5}" y="${yOrigin - q * yScale - 5}" font-size="12" fill="purple">M'(？, ？)</text>
+    
+    <!-- 线段MM' -->
+    <line x1="${xOrigin + xm * xScale}" y1="${yOrigin - ym * yScale}" 
+          x2="${xOrigin + p * xScale}" y2="${yOrigin - q * yScale}" 
+          stroke="purple" stroke-width="2" stroke-dasharray="3,3"/>
+
+                
+                <!-- 方程 -->
+                <text x="15" y="20" font-size="14" fill="blue">${a}x${textb}y${textc}=0</text>
+            </svg>`;
+
+            return `\\(\\begin{array}{lll}已知直线${texta}x${textb}y${textc}=0 ;\\\\求点M(${xm},${ym})对于直线的对称点。\\\\你可以先用ggb画一下的;\\\\比例，勾股，向量，复数，判别式，公式......\\\\多种方法到后面才能云淡风轻.\\end{array}\\)
+            <hr style="width:100%; margin:15px 0; border:none; border-top:1px dashed #ccc;">
+            <div style="display:block; width:100%; text-align:center; margin-top:10px;">${svg}</div>`;
+        }
+
+        function generateLevelcomQuestion() {
+            const levelFunctions = [
+                generateLevel1Question,
+                generateLevel2Question,
+                generateLevel3Question,
+                generateLevel4Question,
+                generateLevel5Question,
+                generateLevel6Question,
+                generateLevel7Question,
+                generateLevel8Question,
+                generateLevel9Question,
+            ];
+
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+
+            return selectedFunction();
+        }
+
+        function generateLevel10Question() {
+            // Level 10 uses questions from levels 1-9 randomly
+            const levelFunctions = [
+                generateLevel1Question,
+                generateLevel2Question,
+                generateLevel3Question,
+                generateLevel4Question,
+                generateLevel5Question,
+                generateLevel6Question,
+                generateLevel7Question,
+                generateLevel8Question,
+                generateLevel9Question,
+            ];
+
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+
+            return selectedFunction();
+        }
+
+        let currentQuestionIndex = 0; // 添加一个全局变量来跟踪当前题目索引
+
+        function generateLevel11Question() {
+            const Questions = [
+                {
+                    question: " \\begin{array}{l}(1)、&直线上的两点A(1,1)、B(3,2)与直线x=9交于点C，求点C的坐标，\\\\&你想到的方法得可以用，不限以下的方法，能用五种的有奖励，\\\\&1、速度与路程的关系;\\\\&2、比例法;\\\\&3、定比分点法;\\\\&4、行列式直线面积=0(这也行？？);\\\\&5、向量共线法(你现在会用也行，不会也没关系，超纲的);\\\\&6、两点式;\\\\&7、斜率;\\end{array}",
+                                        svg: `
+
+<svg width="400" height="400" >
+<line x1="0" y1="200" x2="400" y2="200" stroke="red" stroke-width="2"/>
+<line x1="200" y1="0" x2="200" y2="400" stroke="black" stroke-width="2"/>
+<line x1="380" y1="0" x2="380" y2="400" stroke="blue" stroke-width="2"/>
+<circle cx="220" cy="180" r="5" fill="blue"/>
+<text x="220" y="170" font-size="12" text-anchor="middle" fill="blue">A(1,1)</text>
+<circle cx="260" cy="160" r="5" fill="red"/>
+<text x="260" y="150" font-size="12" text-anchor="middle" fill="red">B(3,2)</text>
+<line x1="0" y1="305" x2="400" y2="80" stroke="red" stroke-width="2"/>
+ </svg>
+
+
+                    `,
+
+                    answers: ["(9,5)", "(+9,+5)"]
+                },
+                {
+                    question: " \\begin{array}{l}(2)、&求点A(5,0)关于直线y=\\frac{1}{3}x对称的点A'的坐标。\\\\&你想到的方法得可以用，不限以下的方法，能用五种的有奖励，\\\\&01、直线方程组;\\\\&02、比例法;\\\\&03、中点定比分点法;\\\\&04、折叠勾股解方程;\\\\&05、向量法(你现在会用也行，不会也没关系，超纲的);\\\\&06、三角函数法;\\\\&07、射影定理;\\\\&08、12345法;\\\\&09、直线与圆相切法；\\\\&10、公式;\\\\&11、坐标平移法向量;\\\\&12、复数法;\\\\&13、矩阵法;\\\\&14、圆方程法;\\\\&15、偏导微分法;\\end{array}",
+                    svg: `
+<svg width="400" height="400" >
+<line x1="0" y1="400" x2="400" y2="400" stroke="red" stroke-width="2"/>
+<line x1="000" y1="0" x2="000" y2="400" stroke="black" stroke-width="2"/>
+<line x1="0" y1="400" x2="400" y2="276.6" stroke="blue" stroke-width="2"/>
+<circle cx="100" cy="400" r="9" fill="blue"/>
+<text x="100" y="390" font-size="12" text-anchor="middle" fill="blue">A(5,0)</text>
+<circle cx="80" cy="340" r="5" fill="red"/>
+<text x="80" y="330" font-size="12" text-anchor="middle" fill="red">A'(?,?)</text>
+ </svg>
+                    `,
+                    answers: ["(4,3)", "(+4,+3)"]
+                },
+                // 可以添加更多题目
+            ];
+
+            currentQuestionIndex = (currentQuestionIndex) % Questions.length;
+
+            const selectedQuestion = Questions[currentQuestionIndex];
+            correctAnswer = selectedQuestion.answers;
+
+            // 生成题目的HTML
+            let questionHtml = `\\(\\begin{gather} ${selectedQuestion.question} \\end{gather}\\)`;
+
+            // 处理 img 属性
+            if (selectedQuestion.img) {
+                questionHtml += `<br><br><img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">`;
+            }
+
+            // 处理 svg 属性
+            if (selectedQuestion.svg) {
+                questionHtml += `<br><br>${selectedQuestion.svg}`;
+            }
+
+            // 增加索引，为下一题做准备，如果到达最后一道题则回到第一道
+            currentQuestionIndex = (currentQuestionIndex + 1) % Questions.length;
+
+            return questionHtml;
+        }
+
+
+        // 创建冲击波效果
+        function createShockwave(attacker) {
+            const shockwave = document.createElement('div');
+            shockwave.className = `shockwave ${attacker}-attack`;
+            
+            document.body.appendChild(shockwave);
+            
+            // 播放攻击音效
+            document.getElementById(`${attacker}AttackSound`).play();
+            
+            // 攻击动画结束后移除元素
+            setTimeout(() => {
+                document.body.removeChild(shockwave);
+            }, 1000);
+        }
+        
+        // 玩家和计算机的对诮语句
+        const playerTaunts = [
+            "算得太慢了！",
+            "这题太简单了！",
+            "接招吧！",
+            "看我的厉害！",
+            "数学很简单吧！"
+        ];
+        
+        const computerTaunts = [
+            "人类的计算速度真慢！",
+            "再快一点试试？",
+            "这就是我的实力！",
+            "你跟不上我的速度！",
+            "机器智能胜过人类！"
+        ];
+        
+        // 显示对诮语句
+        function showTaunt(source) {
+            // 创建对诮气泡
+            const taunt = document.createElement('div');
+            taunt.className = `taunt-bubble ${source}-taunt`;
+            
+            // 随机选择一条对诮语句
+            const taunts = source === 'player' ? playerTaunts : computerTaunts;
+            const randomIndex = Math.floor(Math.random() * taunts.length);
+            taunt.textContent = taunts[randomIndex];
+            
+            document.body.appendChild(taunt);
+            
+            // 对诮动画结束后移除元素
+            setTimeout(() => {
+                document.body.removeChild(taunt);
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
+
