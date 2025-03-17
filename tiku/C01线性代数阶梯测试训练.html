@@ -1252,10 +1252,79 @@
    \\end{array}
 \\)`;
 
+    // 创建SVG坐标系
+    const svgSize = 600;
+    const center = svgSize / 2;
+    const scale = 15;
     
+    // 计算平行四边形的四个点坐标
+    const pointO = {x: 0, y: 0};
+    const pointA = {x: a, y: b};
+    const pointC = {x: a + m, y: b + n};
+    const pointD = {x: m, y: n};
+    
+    // 转换为SVG坐标系（原点在中心，y轴向上为正）
+    const svgO = {x: center + pointO.x * scale, y: center - pointO.y * scale};
+    const svgA = {x: center + pointA.x * scale, y: center - pointA.y * scale};
+    const svgC = {x: center + pointC.x * scale, y: center - pointC.y * scale};
+    const svgD = {x: center + pointD.x * scale, y: center - pointD.y * scale};
+    
+    // 创建SVG元素
+    const svg = `
+    <svg width="${svgSize}" height="${svgSize}" style="background-color: #f9f9f9; margin: 0 auto; display: block;">
+        <!-- 绘制坐标轴 -->
+        <line x1="0" y1="${center}" x2="${svgSize}" y2="${center}" stroke="black" stroke-width="1" />
+        <line x1="${center}" y1="0" x2="${center}" y2="${svgSize}" stroke="black" stroke-width="1" />
+        
+        <!-- 绘制刻度，范围从-18到18 -->
+        ${Array.from({length: 37}, (_, i) => i - 18).map(i => 
+            `<line x1="${center + i * scale}" y1="${center - 3}" x2="${center + i * scale}" y2="${center + 3}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center + i * scale}" y="${center + 15}" text-anchor="middle" font-size="10">${i}</text>` : ''}
+             <line x1="${center - 3}" y1="${center - i * scale}" x2="${center + 3}" y2="${center - i * scale}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center - 15}" y="${center - i * scale + 3}" text-anchor="end" font-size="10">${i}</text>` : ''}`
+        ).join('')}
+        
+        <!-- 绘制平行四边形 -->
+        <polygon points="${svgO.x},${svgO.y} ${svgA.x},${svgA.y} ${svgC.x},${svgC.y} ${svgD.x},${svgD.y}" fill="rgba(0,100,255,0.2)" stroke="blue" stroke-width="2" />
+        
+        <!-- 标记行列式区域 -->
+        <text x="${center}" y="${center - 100}" text-anchor="middle" font-size="18" fill="red">行列式值: ${k}</text>
+        
+        <!-- 标记点 -->
+        <circle cx="${svgO.x}" cy="${svgO.y}" r="5" fill="red" />
+        <text x="${svgO.x + 8}" y="${svgO.y - 8}" font-size="14">O(0,0)</text>
+        
+        <circle cx="${svgA.x}" cy="${svgA.y}" r="5" fill="red" />
+        <text x="${svgA.x + 8}" y="${svgA.y - 8}" font-size="14">A(${a},${b})</text>
+        
+        <circle cx="${svgC.x}" cy="${svgC.y}" r="5" fill="red" />
+        <text x="${svgC.x + 8}" y="${svgC.y - 8}" font-size="14">C(${a+m},${b+n})</text>
+        
+        <circle cx="${svgD.x}" cy="${svgD.y}" r="5" fill="red" />
+        <text x="${svgD.x + 8}" y="${svgD.y - 8}" font-size="14">D(${m},${n})</text>
+        
+        <!-- 绘制向量 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgA.x}" y2="${svgA.y}" stroke="green" stroke-width="2" marker-end="url(#arrowhead)" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgD.x}" y2="${svgD.y}" stroke="purple" stroke-width="2" marker-end="url(#arrowhead)" />
+        
+        <!-- 箭头定义 -->
+        <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" />
+            </marker>
+        </defs>
+    </svg>`;
 
     correctAnswer = k > 0 ? [`${k}`, `+${k}`] : [`${k}`]; // 设置为单一值
-    return ` ${textq}  `;
+    
+    return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+    </div>`;
 }
 
 
@@ -1274,9 +1343,92 @@
 
     let textq = `  (${a} ,${b}) \\cdot (${m},${n})`;
 
+    // 创建SVG坐标系
+    const svgSize = 400;
+    const center = svgSize / 2;
+    const scale = 15;
+    
+    // 计算点坐标
+    const pointO = {x: 0, y: 0};
+    const pointA = {x: a, y: b};
+    const pointB = {x: m, y: n};
+    
+    // 转换为SVG坐标系
+    const svgO = {x: center + pointO.x * scale, y: center - pointO.y * scale};
+    const svgA = {x: center + pointA.x * scale, y: center - pointA.y * scale};
+    const svgB = {x: center + pointB.x * scale, y: center - pointB.y * scale};
+    
+    // 计算B在A方向上的投影点
+    const lenA = Math.sqrt(a*a + b*b);
+    const dotProduct = a*m + b*n;
+    const projScalar = lenA === 0 ? 0 : dotProduct / lenA;
+    const projX = lenA === 0 ? 0 : (projScalar * a) / lenA;
+    const projY = lenA === 0 ? 0 : (projScalar * b) / lenA;
+    
+    const svgProj = {x: center + projX * scale * lenA, y: center - projY * scale * lenA};
+    
+    // 计算点D (A到直线OB的垂足)
+    const lenB = Math.sqrt(m*m + n*n);
+    // 单位向量
+    const unitB = lenB === 0 ? {x: 0, y: 0} : {x: m/lenB, y: n/lenB};
+    // 点积
+    const dotAB = a*unitB.x + b*unitB.y;
+    // D点坐标
+    const pointD = {x: dotAB * unitB.x, y: dotAB * unitB.y};
+    const svgD = {x: center + pointD.x * scale, y: center - pointD.y * scale};
+    
+    // 创建SVG元素
+    const svg = `
+    <svg width="${svgSize}" height="${svgSize}" style="background-color: #f9f9f9; margin: 0 auto; display: block;">
+        <!-- 绘制坐标轴 -->
+        <line x1="0" y1="${center}" x2="${svgSize}" y2="${center}" stroke="black" stroke-width="1" />
+        <line x1="${center}" y1="0" x2="${center}" y2="${svgSize}" stroke="black" stroke-width="1" />
+        
+        <!-- 绘制刻度 -->
+        ${Array.from({length: 37}, (_, i) => i - 18).map(i => 
+            `<line x1="${center + i * scale}" y1="${center - 3}" x2="${center + i * scale}" y2="${center + 3}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center + i * scale}" y="${center + 15}" text-anchor="middle" font-size="10">${i}</text>` : ''}
+             <line x1="${center - 3}" y1="${center - i * scale}" x2="${center + 3}" y2="${center - i * scale}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center - 15}" y="${center - i * scale + 3}" text-anchor="end" font-size="10">${i}</text>` : ''}`
+        ).join('')}
+        
+        <!-- 绘制向量和直线 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgA.x}" y2="${svgA.y}" stroke="green" stroke-width="2" marker-end="url(#arrowhead)" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgB.x}" y2="${svgB.y}" stroke="blue" stroke-width="2" marker-end="url(#arrowhead)" />
+        <line x1="${svgA.x}" y1="${svgA.y}" x2="${svgD.x}" y2="${svgD.y}" stroke="purple" stroke-width="2" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgD.x}" y2="${svgD.y}" stroke="red" stroke-width="2" />
+        
+        <!-- 标记点 -->
+        <circle cx="${svgO.x}" cy="${svgO.y}" r="5" fill="red" />
+        <text x="${svgO.x + 8}" y="${svgO.y - 8}" font-size="14">O(0,0)</text>
+        
+        <circle cx="${svgA.x}" cy="${svgA.y}" r="5" fill="green" />
+        <text x="${svgA.x + 8}" y="${svgA.y - 8}" font-size="14">(${a},${b})</text>
+        
+        <circle cx="${svgB.x}" cy="${svgB.y}" r="5" fill="blue" />
+        <text x="${svgB.x + 8}" y="${svgB.y - 8}" font-size="14">(${m},${n})</text>
+        
+        <circle cx="${svgD.x}" cy="${svgD.y}" r="5" fill="purple" />
+        <text x="${svgD.x + 8}" y="${svgD.y - 8}" font-size="14">D</text>
+        
+        <!-- 箭头定义 -->
+        <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" />
+            </marker>
+        </defs>
+    </svg>`;
+
     correctAnswer = k > 0 ? [`${k}`, `+${k}`] : [`${k}`]; // 设置为单一值
-    return `\\( ${textq} = \\)`;
-        }
+    return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            \\( ${textq} = \\)
+        </div>
+        <div>
+            ${svg}
+        </div>
+    </div>`;
+}
 
 
 
@@ -1386,20 +1538,102 @@ function generateLevel4Question() {
     let numerator = c / e;  // 分子
     let denominator = d / e;  // 分母
     let z = c / d;  // 正切值
+    
+    // 创建SVG坐标系
+    const svgSize = 400;
+    const center = svgSize / 2;
+    const scale = 15;
+    
+    // 计算点坐标
+    const pointO = {x: 0, y: 0};
+    const pointA = {x: a, y: b};
+    const pointB = {x: m, y: n};
+    
+    // 转换为SVG坐标系
+    const svgO = {x: center + pointO.x * scale, y: center - pointO.y * scale};
+    const svgA = {x: center + pointA.x * scale, y: center - pointA.y * scale};
+    const svgB = {x: center + pointB.x * scale, y: center - pointB.y * scale};
+    
+    // 计算角度（用于绘制弧）
+    const angleA = Math.atan2(b, a);
+    const angleB = Math.atan2(n, m);
+    
+    // 确定大小角
+    let startAngle, endAngle;
+    if (Math.abs(angleB - angleA) > Math.PI) {
+        startAngle = Math.max(angleA, angleB);
+        endAngle = Math.min(angleA, angleB) + 2 * Math.PI;
+    } else {
+        startAngle = Math.min(angleA, angleB);
+        endAngle = Math.max(angleA, angleB);
+    }
+    
+    // 创建SVG元素
+    const svg = `
+    <svg width="${svgSize}" height="${svgSize}" style="background-color: #f9f9f9; margin: 0 auto; display: block;">
+        <!-- 绘制坐标轴 -->
+        <line x1="0" y1="${center}" x2="${svgSize}" y2="${center}" stroke="black" stroke-width="1" />
+        <line x1="${center}" y1="0" x2="${center}" y2="${svgSize}" stroke="black" stroke-width="1" />
+        
+        <!-- 绘制刻度 -->
+        ${Array.from({length: 37}, (_, i) => i - 18).map(i => 
+            `<line x1="${center + i * scale}" y1="${center - 3}" x2="${center + i * scale}" y2="${center + 3}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center + i * scale}" y="${center + 15}" text-anchor="middle" font-size="10">${i}</text>` : ''}
+             <line x1="${center - 3}" y1="${center - i * scale}" x2="${center + 3}" y2="${center - i * scale}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center - 15}" y="${center - i * scale + 3}" text-anchor="end" font-size="10">${i}</text>` : ''}`
+        ).join('')}
+        
+        <!-- 绘制向量OA和OB -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgA.x}" y2="${svgA.y}" stroke="green" stroke-width="1" marker-end="url(#arrowhead)" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgB.x}" y2="${svgB.y}" stroke="blue" stroke-width="1" marker-end="url(#arrowhead)" />
+        
+
+        
+        <!-- 标记角度 -->
+        <text x="${svgO.x + 50 * Math.cos((startAngle + endAngle) / 2)}" 
+              y="${svgO.y - 50 * Math.sin((startAngle + endAngle) / 2)}" 
+              text-anchor="middle" font-size="14" fill="red"></text>
+        
+
+        
+        <!-- 标记点 -->
+        <circle cx="${svgO.x}" cy="${svgO.y}" r="5" fill="red" />
+        <text x="${svgO.x + 8}" y="${svgO.y + 24}" font-size="14">O(0,0)</text>
+        
+        <circle cx="${svgA.x}" cy="${svgA.y}" r="5" fill="green" />
+        <text x="${svgA.x + 8}" y="${svgA.y - 8}" font-size="14">A(${a},${b})</text>
+        
+        <circle cx="${svgB.x}" cy="${svgB.y}" r="5" fill="blue" />
+        <text x="${svgB.x + 8}" y="${svgB.y - 8}" font-size="14">B(${m},${n})</text>
+        
+        <!-- 箭头定义 -->
+        <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" />
+            </marker>
+        </defs>
+    </svg>`;
 
     // 生成正确答案
     correctAnswer = z === Math.floor(z) ?  [`${z}`] : [`\\frac{${numerator}}{${denominator}}`];
 
     // 生成题目
-    return `\\( 
-\\begin{array}{c}
-在直角坐标系中，点A (${a}, ${b})、点B (${m}, ${n}) 和点 O (0,0)，\\\\
-则 \\tan \\angle AOB 是多少？ \\\\ 
-如果是分数，请写成最简假分数。\\\\
-
- 例:\\frac{1}{2}输入格式:\\textup{\\ frac{1}{2}}
-\\end{array} 
-\\)    `;
+    return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            \\( 
+            \\begin{array}{c}
+            在直角坐标系中，点A (${a}, ${b})、点B (${m}, ${n}) 和点 O (0,0)，\\\\
+            则 \\tan \\angle AOB 是多少？ \\\\ 
+            如果是分数，请写成最简假分数。\\\\
+            
+             例:\\frac{1}{2}输入格式:\\textup{\\ frac{1}{2}}
+            \\end{array} 
+            \\)
+        </div>
+        <div>
+            ${svg}
+        </div>
+    </div>`;
 }
 
 
@@ -1419,8 +1653,93 @@ function generateLevel5Question() {
     let denominator = d / e;  // 分母
     let z = c / d;  // 正切值
 
+    // 创建SVG坐标系
+    const svgSize = 400;
+    const center = svgSize / 2;
+    const scale = 15;
+    
+    // 计算点坐标
+    const pointO = {x: 0, y: 0};
+    const pointA = {x: a, y: b};
+    const pointB = {x: m, y: n};
+    
+    // 转换为SVG坐标系
+    const svgO = {x: center + pointO.x * scale, y: center - pointO.y * scale};
+    const svgA = {x: center + pointA.x * scale, y: center - pointA.y * scale};
+    const svgB = {x: center + pointB.x * scale, y: center - pointB.y * scale};
+    
+    // 计算角度（用于绘制弧）
+    const angleA = Math.atan2(b, a);
+    const angleB = Math.atan2(n, m);
+    
+    // 确定大小角
+    let startAngle, endAngle;
+    if (Math.abs(angleB - angleA) > Math.PI) {
+        startAngle = Math.max(angleA, angleB);
+        endAngle = Math.min(angleA, angleB) + 2 * Math.PI;
+    } else {
+        startAngle = Math.min(angleA, angleB);
+        endAngle = Math.max(angleA, angleB);
+    }
+    
+    // 创建SVG元素 - 天命人主题
+    const svg = `
+    <svg width="${svgSize}" height="${svgSize}" style="background-color: #000030; margin: 0 auto; display: block;">
+        <!-- 背景图案 - 简单的宇宙/天命风格 -->
+        ${Array.from({length: 100}, () => {
+            const x = Math.random() * svgSize;
+            const y = Math.random() * svgSize;
+            const r = Math.random() * 1.5 + 0.5;
+            return `<circle cx="${x}" cy="${y}" r="${r}" fill="white" opacity="${Math.random() * 0.8 + 0.2}" />`;
+        }).join('')}
+        
+        <!-- 绘制坐标轴 -->
+        <line x1="0" y1="${center}" x2="${svgSize}" y2="${center}" stroke="white" stroke-width="1" opacity="0.5" />
+        <line x1="${center}" y1="0" x2="${center}" y2="${svgSize}" stroke="white" stroke-width="1" opacity="0.5" />
+        
+        <!-- 绘制刻度 -->
+        ${Array.from({length: 37}, (_, i) => i - 18).map(i => 
+            `<line x1="${center + i * scale}" y1="${center - 3}" x2="${center + i * scale}" y2="${center + 3}" stroke="white" stroke-width="1" opacity="0.5" />
+             ${i % 6 === 0 ? `<text x="${center + i * scale}" y="${center + 15}" text-anchor="middle" font-size="10" fill="white">${i}</text>` : ''}
+             <line x1="${center - 3}" y1="${center - i * scale}" x2="${center + 3}" y2="${center - i * scale}" stroke="white" stroke-width="1" opacity="0.5" />
+             ${i % 6 === 0 ? `<text x="${center - 15}" y="${center - i * scale + 3}" text-anchor="end" font-size="10" fill="white">${i}</text>` : ''}`
+        ).join('')}
+        
+        <!-- 绘制圆圈（金箍棒的范围） -->
+        <circle cx="${svgO.x}" cy="${svgO.y}" r="${Math.sqrt(a*a + b*b) * scale}" fill="none" stroke="gold" stroke-width="1" stroke-dasharray="5,5" opacity="0.6" />
+        
+        <!-- 绘制金箍棒 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgA.x}" y2="${svgA.y}" stroke="gold" stroke-width="1" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgB.x}" y2="${svgB.y}" stroke="gold" stroke-width="1" />
+        
+        <!-- 绘制角度弧 -->
+        <path d="M ${svgO.x + 50 * Math.cos(startAngle)} ${svgO.y - 50 * Math.sin(startAngle)} 
+                 A 50 50 0 0 1 ${svgO.x + 50 * Math.cos(endAngle)} ${svgO.y - 50 * Math.sin(endAngle)}" 
+              fill="none" stroke="red" stroke-width="2" />
+        
+        <!-- 标记角度 -->
+        <text x="${svgO.x + 65 * Math.cos((startAngle + endAngle) / 2)}" 
+              y="${svgO.y - 65 * Math.sin((startAngle + endAngle) / 2)}" 
+              text-anchor="middle" font-size="16" fill="white"></text>
+        
+        
+        <!-- 标记点 -->
+        <circle cx="${svgO.x}" cy="${svgO.y}" r="8" fill="red" />
+        
+        <circle cx="${svgA.x}" cy="${svgA.y}" r="6" fill="gold" />
+        <text x="${svgA.x + 10}" y="${svgA.y - 10}" font-size="14" fill="white">A(${a},${b})</text>
+        
+        <circle cx="${svgB.x}" cy="${svgB.y}" r="6" fill="gold" />
+        <text x="${svgB.x + 10}" y="${svgB.y - 10}" font-size="14" fill="white">B(${m},${n})</text>
+        
+        <!-- 光效 -->
+        <circle cx="${svgO.x}" cy="${svgO.y}" r="20" fill="rgba(255,0,0,0.3)">
+            <animate attributeName="r" values="20;30;20" dur="2s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0.3;0.6;0.3" dur="2s" repeatCount="indefinite" />
+        </circle>
+    </svg>`;
 
-let textq = `\\[
+    let textq = `\\[
    \\begin{array}{c}
 天命人以点 O (0,0)为圆心打怪，\\\\
 金箍棒头从点A (${a}, ${b})打到点B (${m}, ${n}) \\\\
@@ -1428,34 +1747,41 @@ let textq = `\\[
 则 \\tan \\angle AOB 是多少？ \\\\ 
 如果是分数输入最简假分数 \\\\ 例:\\frac{1}{2}输入格式:\\textup{\\ frac{1}{2}} 
 \\end{array} 
-
-
-        \\]`;
+    \\]`;
   
     // 生成正确答案
-    correctAnswer = z === Math.floor(z) ?  [`${z}`] : [`\\frac{${numerator}}{${denominator}}`,`${numerator}/${denominator}`];
-    return textq;
+    correctAnswer = z === Math.floor(z) ? [`${z}`] : [`\\frac{${numerator}}{${denominator}}`,`${numerator}/${denominator}`];
+    
+    return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+    </div>`;
 }
 
 function generateLevel6Question() {
-    // 生成-7到7之间的随机整数，排除零
-    function getRandomNonZeroInt() {
-        let num;
-        do {
-            num = Math.floor(Math.random() * 15) - 7; // 生成-7到7的数字
-        } while (num === 0);
-        return num;
-    }
-
-    // 生成a, b, c, d的随机值
-    let a = getRandomNonZeroInt();
-    let b = getRandomNonZeroInt();
-    let c = getRandomNonZeroInt();
-    let d = getRandomNonZeroInt();
+    // 生成复数乘法所需的随机系数
+    let a, b, c, d;
+    
+    do {
+        // 生成-4到4的随机整数
+        a = Math.floor(Math.random() * 9) - 4;
+        b = Math.floor(Math.random() * 9) - 4;
+        c = Math.floor(Math.random() * 9) - 4;
+        d = Math.floor(Math.random() * 9) - 4;
+        
+        // 确保至少有一个非零，且乘积的实部和虚部不会太大
+    } while ((a === 0 && b === 0) || (c === 0 && d === 0) || 
+             Math.abs(a*c-b*d) > 20 || Math.abs(a*d+b*c) > 20);
 
     // 为b和d准备正确的符号显示字符串
     let bDisplay;
-    if (b === 1) {
+    if (b === 0) {
+        bDisplay = '';
+    } else if (b === 1) {
         bDisplay = '+i';
     } else if (b === -1) {
         bDisplay = '-i';
@@ -1466,7 +1792,9 @@ function generateLevel6Question() {
     }
 
     let dDisplay;
-    if (d === 1) {
+    if (d === 0) {
+        dDisplay = '';
+    } else if (d === 1) {
         dDisplay = '+i';
     } else if (d === -1) {
         dDisplay = '-i';
@@ -1477,8 +1805,12 @@ function generateLevel6Question() {
     }
 
     // 形成复数(a + bi)和(c + di)，并加上括号
-    let complex1 = `(${a}${bDisplay})`;
-    let complex2 = `(${c}${dDisplay})`;
+    let complex1 = a === 0 ? `(${bDisplay})` : b === 0 ? `(${a})` : `(${a}${bDisplay})`;
+    let complex2 = c === 0 ? `(${dDisplay})` : d === 0 ? `(${c})` : `(${c}${dDisplay})`;
+
+    // 处理特殊情况：完全为0的复数
+    if (a === 0 && b === 0) complex1 = '(0)';
+    if (c === 0 && d === 0) complex2 = '(0)';
 
     // 计算两个复数的乘积
     // (a + bi)(c + di) = (ac - bd) + (ad + bc)i
@@ -1499,8 +1831,85 @@ function generateLevel6Question() {
         imagProductDisplay = `${imagProduct}i`;
     }
 
-    // 准备正确答案
-    correctAnswer = [`${realProduct}${imagProductDisplay}`];
+    // 准备正确答案，处理特殊情况
+    let answer;
+    if (realProduct === 0 && imagProduct === 0) {
+        answer = '0';
+    } else if (realProduct === 0) {
+        answer = imagProduct === 1 ? 'i' : imagProduct === -1 ? '-i' : `${imagProduct}i`;
+    } else if (imagProduct === 0) {
+        answer = `${realProduct}`;
+    } else {
+        answer = `${realProduct}${imagProductDisplay}`;
+    }
+    
+    correctAnswer = [answer];
+
+    // 创建SVG可视化
+    // 设置SVG尺寸和中心点
+    const svgWidth = 600;
+    const svgHeight = 600;
+    const centerX = svgWidth / 2;
+    const centerY = svgHeight / 2;
+    const scale = 15; // 缩放因子，将复平面坐标映射到SVG坐标
+
+    // 计算复数点的SVG坐标
+    const svgA = {
+        x: centerX + a * scale,
+        y: centerY - b * scale // 注意y轴在SVG中是向下的，所以需要取反
+    };
+
+    const svgB = {
+        x: centerX + c * scale,
+        y: centerY - d * scale
+    };
+
+    // 计算乘积的坐标
+    const svgProduct = {
+        x: centerX + (a * c - b * d) * scale,
+        y: centerY - (a * d + b * c) * scale
+    };
+
+
+    // 创建SVG
+    const svg = `<svg width="${svgWidth}" height="${svgHeight}" style="background-color: #2c3e50; border-radius: 10px;">
+        <!-- 绘制坐标轴 -->
+        <line x1="0" y1="${centerY}" x2="${svgWidth}" y2="${centerY}" stroke="white" stroke-width="1" />
+        <line x1="${centerX}" y1="0" x2="${centerX}" y2="${svgHeight}" stroke="white" stroke-width="1" />
+        
+        <!-- 坐标轴标签 -->
+        <text x="${svgWidth - 15}" y="${centerY - 5}" fill="white" font-size="14">Re</text>
+        <text x="${centerX + 5}" y="15" fill="white" font-size="14">Im</text>
+        
+        <!-- 绘制刻度 -->
+        ${Array.from({length: 41}, (_, i) => i - 20).map(i => 
+            `<line x1="${centerX + i * scale}" y1="${centerY - 2}" x2="${centerX + i * scale}" y2="${centerY + 2}" stroke="white" stroke-width="1" />`
+        ).join('')}
+        
+        ${Array.from({length: 41}, (_, i) => i - 20).map(i => 
+            `<line x1="${centerX - 2}" y1="${centerY - i * scale}" x2="${centerX + 2}" y2="${centerY - i * scale}" stroke="white" stroke-width="1" />`
+        ).join('')}
+        
+        <!-- 绘制从原点到复数点的向量 -->
+        <line x1="${centerX}" y1="${centerY}" x2="${svgA.x}" y2="${svgA.y}" stroke="gold" stroke-width="1" />
+        <line x1="${centerX}" y1="${centerY}" x2="${svgB.x}" y2="${svgB.y}" stroke="limegreen" stroke-width="1" />
+        <line x1="${centerX}" y1="${centerY}" x2="${svgProduct.x}" y2="${svgProduct.y}" stroke="red" stroke-width="1" />
+
+
+
+        <!-- 标记点 -->
+        <circle cx="${centerX}" cy="${centerY}" r="1" fill="white" />
+        <text x="${centerX + 10}" y="${centerY - 10}" font-size="14" fill="white">O</text>
+
+        <circle cx="${svgA.x}" cy="${svgA.y}" r="2" fill="gold" />
+        <text x="${svgA.x }" y="${svgA.y}" font-size="14" fill="white">(${a},${b})</text>
+
+        <circle cx="${svgB.x}" cy="${svgB.y}" r="2" fill="limegreen" />
+        <text x="${svgB.x }" y="${svgB.y }" font-size="14" fill="white">(${c},${d})</text>
+
+        <circle cx="${svgProduct.x}" cy="${svgProduct.y}" r="2" fill="red" />
+
+    </svg>`;
 
     // 构建LaTeX格式的问题文本
     let textq = `\\[\\huge
@@ -1511,10 +1920,15 @@ function generateLevel6Question() {
                  \\
                 \\]`;
 
- 
-
-    // 仅返回问题文本
-    return textq;
+    // 返回完整的HTML，包含问题和SVG
+    return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+    </div>`;
 }
 
 

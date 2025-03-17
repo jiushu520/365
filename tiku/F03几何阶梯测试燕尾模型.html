@@ -566,7 +566,7 @@
         // 新增游戏模式变量
         let gameMode = 'pk'; // 默认为PK模式，可选值: 'self'(自学练习) 或 'pk'(PK模式)
 
-        const difficultyNames = ["01认识燕尾", "02两外比", "03 一外一内上","04一外一内下","05两内比","06鸟头定理","07综合",];
+        const difficultyNames = ["01认识燕尾", "02两外比", "03 一外一内","04两内比","05鸟头定理","06综合",];
 
         // 初始化
         document.addEventListener("DOMContentLoaded", () => {
@@ -1211,7 +1211,6 @@
                 case 4: return generateLevel4Question();
                 case 5: return generateLevel5Question();
                 case 6: return generateLevel6Question();
-                case 7: return generateLevel7Question();
 
                 default: return "";
             }
@@ -1316,554 +1315,643 @@
         
 
         
-        function generateLevel2Question() {
-            //两外比  添加一个静态变量来跟踪当前索引
-            if (typeof generateLevel2Question.currentIndex === 'undefined') {
-                generateLevel2Question.currentIndex = 0;
-            }
-
-            const questions = [
-            {
-  m: '1. 如图，三角形ABC中，\\\\AG:GB=1:2，BD:DC=3:4，\\\\则AE:EC=\\_:\\_。',
-  image: './images/052402010.png',
-  n: '3:8'
-},
-{
-  m: '2. 如图，三角形ABC中，\\\\AE:EC=1:2，BD:DC=4:3，\\\\则AG:GB=\\_:\\_。',
-  image: './images/052402011.png',
-  n: '3:8'
-},
-{
-  m: '3. 如图，三角形ABC中，\\\\AG:GB=1:2，AE:EC=3:4，\\\\则BD:DC=\\_:\\_。',
-  image: './images/052402012.png',
-  n: '3:2'
-},
-{
-  m: '4. 如图，三角形ABC中，\\\\AE:EC=1:2，CD=DB。\\\\若S△ABC=120。\\\\求S四边形EODC。',
-  image: './images/052402007.png',
-  n: '50'
-},
-{
-  m: '5. 如图，三角形ABC中，\\\\AE:EC=1:2，BD=DC。\\\\若S△ABC=60。\\\\求S四边形EODC。',
-  image: './images/052402008.png',
-  n: '25'
-},
-{
-  m: '6. 如图，三角形ABC中，已知\\\\AD:DC=2:1，BE:EC=2:1。\\\\若S△ABC=60。\\\\求S四边形EODC。',
-  image: './images/052402009.png',
-  n: '10'
-},
-{
-  m: '7. 如图，三角形ABC中，\\\\AE:EC=1:2，BD=DC，\\\\S△AOB=6平方厘米。\\\\那么S△AOE是多少平方厘米？',
-  image: './images/052402001.png',
-  n: '2'
-},
-{
-  m: '8. 如图，三角形ABC中，\\\\AF:FB=1:2，BD=DC，\\\\S△AOC=10平方厘米。\\\\那么S△BOD是多少平方厘米？',
-  image: './images/052402002.png',
-  n: '10'
-},
-{
-  m: '9. 如图，三角形ABC中，\\\\AF:FB=1:2，AE:EC=1:2，\\\\S△BOC=6平方厘米。\\\\那么S△AOE是多少平方厘米？',
-  image: './images/052402003.png',
-  n: '1'
-},
-{
-  m: '10. 如图，三角形ABC中，\\\\AE:EC=1:2，BD=DC，\\\\S△AOB=10平方厘米。\\\\那么S△ABC是多少平方厘米？',
-  image: './images/052402004.png',
-  n: '40'
-},
-{
-  m: '11. 如图，三角形ABC中，\\\\AF:FB=1:2，BD=DC，\\\\S△AOC=20平方厘米。\\\\那么S△ABC是多少平方厘米？',
-  image: './images/052402005.png',
-  n: '80'
-},
-{
-  m: '12. 如图，三角形ABC中，\\\\AF:FB=1:2，AE:EC=1:2，\\\\S△BOC=10平方厘米。\\\\那么S△ABC是多少平方厘米？',
-  image: './images/052402006.png',
-  n: '20'
-}
-
-
-          ];
-      
-          // 获取当前索引的题目
-          let selectedQuestion = questions[generateLevel2Question.currentIndex];
-      
-          let m = selectedQuestion.m;
-          let n = selectedQuestion.n;
-      
-          // 如果 n 是一个数组，表示有多个正确答案
-          if (Array.isArray(n)) {
-              correctAnswer = [...n];
-          } else {
-              correctAnswer = [`${n}`];
-          }
-      
-          // 构建返回的 LaTeX 代码
-          let questionLatex = `\\(\\begin{gather}${m} \\end{gather} \\)`;
-      
-          // 如果有图片路径，则插入图片
-          if (selectedQuestion.image) {
-              questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
-          }
-      
-          // 更新索引值，确保按顺序出题
-          generateLevel2Question.currentIndex = (generateLevel2Question.currentIndex + 1) % questions.length;
-      
-          return questionLatex;
+        function generateLevel2Question() {//两外比
+            // 生成随机比例
+            let ratioA = Math.floor(Math.random() * 4) + 1;  // 1 to 4
+            let ratioB = Math.floor(Math.random() * 4) + 1;  // 1 to 4
+            let ratioC = Math.floor(Math.random() * 4) + 1;  // 1 to 4
+            let ratioD = Math.floor(Math.random() * 4) + 1;  // 1 to 4
+            
+            // 计算最大公约数
+            let gcdAB = gcd(ratioA, ratioB);
+            let gcdCD = gcd(ratioC, ratioD);
+            
+            // 将比例化为最简比
+            let simplifiedRatioA = ratioA / gcdAB;
+            let simplifiedRatioB = ratioB / gcdAB;
+            let simplifiedRatioC = ratioC / gcdCD;
+            let simplifiedRatioD = ratioD / gcdCD;
+            
+            // 计算E点的比例 AE:EC = ratioB*ratioD : ratioA*ratioC
+            let ratioE = ratioB * ratioD;
+            let ratioF = ratioA * ratioC;
+            
+            // 计算最大公约数
+            let gcdEF = gcd(ratioE, ratioF);
+            
+            // 将比例化为最简比
+            let simplifiedRatioE = ratioE / gcdEF;
+            let simplifiedRatioF = ratioF / gcdEF;
+            
+            // 计算图形中的位置
+            const width = 160;
+            const height = 110;
+            
+            // 三角形ABC的顶点
+            const pointA = {x: 100, y: 20};
+            const pointB = {x: 20, y: 130};
+            const pointC = {x: 180, y: 130};
+            
+            // 计算点G在AB上的位置
+            const pointG = {
+                x: (ratioA * pointB.x + ratioB * pointA.x) / (ratioA + ratioB),
+                y: (ratioA * pointB.y + ratioB * pointA.y) / (ratioA + ratioB)
+            };
+            
+            // 计算点D在BC上的位置
+            const pointD = {
+                x: (ratioC * pointC.x + ratioD * pointB.x) / (ratioC + ratioD),
+                y: (ratioC * pointC.y + ratioD * pointB.y) / (ratioC + ratioD)
+            };
+            
+            // 计算点E在AC上的位置
+            const pointE = {
+                x: (ratioF * pointC.x + ratioE * pointA.x) / (ratioE + ratioF),
+                y: (ratioF * pointC.y + ratioE * pointA.y) / (ratioE + ratioF)
+            };
+            
+            // 计算AD和CG的交点O
+            // 使用公式 O = (bd*A + a(c+d)*D) / (bd + a(c+d))
+            const pointO = {
+                x: (ratioB * ratioD * pointA.x + ratioA * (ratioC + ratioD) * pointD.x) / (ratioB * ratioD + ratioA * (ratioC + ratioD)),
+                y: (ratioB * ratioD * pointA.y + ratioA * (ratioC + ratioD) * pointD.y) / (ratioB * ratioD + ratioA * (ratioC + ratioD))
+            };
+            
+            // 创建SVG图形
+            const svg = `
+            <svg width="200" height="150" xmlns="http://www.w3.org/2000/svg">
+                <!-- 三角形ABC -->
+                <polygon points="${pointA.x},${pointA.y} ${pointB.x},${pointB.y} ${pointC.x},${pointC.y}" fill="#f0f8ff" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 直线AD -->
+                <line x1="${pointA.x}" y1="${pointA.y}" x2="${pointD.x}" y2="${pointD.y}" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 直线CG -->
+                <line x1="${pointC.x}" y1="${pointC.y}" x2="${pointG.x}" y2="${pointG.y}" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 直线BE -->
+                <line x1="${pointB.x}" y1="${pointB.y}" x2="${pointE.x}" y2="${pointE.y}" stroke="black" stroke-width="1.5" stroke-dasharray="3,3"/>
+                
+                <!-- 顶点标注 -->
+                <circle cx="${pointA.x}" cy="${pointA.y}" r="3" fill="black"/>
+                <circle cx="${pointB.x}" cy="${pointB.y}" r="3" fill="black"/>
+                <circle cx="${pointC.x}" cy="${pointC.y}" r="3" fill="black"/>
+                <circle cx="${pointD.x}" cy="${pointD.y}" r="3" fill="black"/>
+                <circle cx="${pointE.x}" cy="${pointE.y}" r="3" fill="black"/>
+                <circle cx="${pointG.x}" cy="${pointG.y}" r="3" fill="black"/>
+                <circle cx="${pointO.x}" cy="${pointO.y}" r="3" fill="black"/>
+                
+                <text x="${pointA.x}" y="${pointA.y-5}" text-anchor="middle" font-family="serif" font-size="16">A</text>
+                <text x="${pointB.x-5}" y="${pointB.y}" text-anchor="middle" font-family="serif" font-size="16">B</text>
+                <text x="${pointC.x+5}" y="${pointC.y}" text-anchor="middle" font-family="serif" font-size="16">C</text>
+                <text x="${pointD.x}" y="${pointD.y+15}" text-anchor="middle" font-family="serif" font-size="16">D</text>
+                <text x="${pointE.x+5}" y="${pointE.y+5}" text-anchor="middle" font-family="serif" font-size="16">E</text>
+                <text x="${pointG.x-5}" y="${pointG.y-5}" text-anchor="middle" font-family="serif" font-size="16">G</text>
+                <text x="${pointO.x+5}" y="${pointO.y-5}" text-anchor="middle" font-family="serif" font-size="16">O</text>
+            </svg>
+            `;
+            
+            // 格式化问题文本
+            const question = `
+            <div style="text-align: center;">
+            \\begin{array}{cc} 
+                1.如图，三角形ABC中，
+                AG:GB = ${simplifiedRatioA} : ${simplifiedRatioB}，BD:DC = ${simplifiedRatioC} : ${simplifiedRatioD}，
+                \\\\则AE : EC = \\_:\\_。
+            \\end{array}
+                <div style="margin-top: 15px;">${svg}</div>
+            </div>
+            `;
+            
+            // 设置正确答案
+            correctAnswer = [`${simplifiedRatioF}:${simplifiedRatioE}`, `${simplifiedRatioF}：${simplifiedRatioE}`]; 
+            
+            return question;
         }
         
-        function generateLevel3Question() {
-                //一外一内上   添加一个静态变量来跟踪当前索引
-                if (typeof generateLevel3Question.currentIndex === 'undefined') {
-            generateLevel3Question.currentIndex = 0;
-          }
 
-          const questions = [
-          {
-  m: '1. 如图，三角形ABC中，\\\\AE:EB=1:2，EO=OC，\\\\S△AOC=10平方厘米。\\\\则S△ABC为多少平方厘米？',
-  image: './images/052403001.png',
-  n: '60'
-},
-{
-  m: '2. 如图，三角形ABC中，\\\\BD:DC=3:1，AO:OD=2:1，\\\\S△ABO=30平方厘米。\\\\则S△ABC为多少平方厘米？',
-  image: './images/052403002.png',
-  n: '60'
-},
-{
-  m: '3. 如图，三角形ABC中，\\\\AE:EC=3:2，BO:OE=5:1，\\\\S△BOC=40平方厘米。\\\\则S△ABC为多少平方厘米？',
-  image: './images/052403003.png',
-  n: '120'
-},
-{
-  m: '4. 如图，三角形ABC中，\\\\AE:EB=1:2，EO=OC，\\\\S△AOC=10平方厘米。\\\\则S△BDO为多少平方厘米？',
-  image: './images/052403004.png',
-  n: '15'
-},
-{
-  m: '5. 如图，三角形ABC中，\\\\BD:DC=3:1，AO:OD=2:1，\\\\S△ABO=30平方厘米。\\\\则S△CEO为多少平方厘米？',
-  image: './images/052403005.png',
-  n: '4'
-},
-{
-  m: '6. 如图，三角形ABC中，\\\\AE:EC=3:2，BO:OE=5:1，\\\\S△BOC=40平方厘米。\\\\则S△ADO为多少平方厘米？',
-  image: './images/052403006.png',
-  n: '20'
-},
-{
-  m: '7. 如图，三角形ABC中，\\\\AE:EB=1:2，EO=OC，\\\\S△AOC=10平方厘米。\\\\则BD:DC=\\_:\\_ 。',
-  image: './images/052403007.png',
-  n: '3:1'
-},
-{
-  m: '8. 如图，三角形ABC中，\\\\BD:DC=3:1，AO:OD=2:1，\\\\S△ABO=30平方厘米。\\\\则AE:EC=\\_:\\_。',
-  image: './images/052403008.png',
-  n: '3:2'
-},
-{
-  m: '9. 如图，三角形ABC中，\\\\AE:EC=3:2，BO:OE=5:1，\\\\S△BOC=40平方厘米。\\\\则AD:DB=\\_:\\_。',
-  image: './images/052403009.png',
-  n: '1:2'
-},
-{
-  m: '10. 如图所示，在△ABC中，\\\\BD:DC=3:1，点O是AD的中点，\\\\那么AE:EC=\\_:\\_。',
-  image: './images/052403010.png',
-  n: '3:4'
-},
-{
-  m: '11. 如图所示，在△ABC中，\\\\AE:EC=3:1，BO:OE=2:1，\\\\那么BD:DC=\\_:\\_。',
-  image: './images/052403011.png',
-  n: '3:2'
-},
-{
-  m: '12. 如图所示，在△ABC中，\\\\AE:EC=1:3，BO:OE=8:1，\\\\那么BD:DC=\\_:\\_。',
-  image: './images/052403012.png',
-  n: '2:1'
-}
+        
+        function generateLevel3Question() {//一外一内
+            // 生成随机比例
+            let ratioA = Math.floor(Math.random() * 3) + 1;  // 1 to 3
+            let ratioB = Math.floor(Math.random() * 3) + 1;  // 1 to 3
+            
+            // 计算最大公约数
+            let gcdAB = gcd(ratioA, ratioB);
+            
+            // 将比例化为最简比
+            let simplifiedRatioA = ratioA / gcdAB;
+            let simplifiedRatioB = ratioB / gcdAB;
+            
+            // 计算BD:DC的比例 (ac+bd):ad
+            // 这里随机选一个比例，倒推出c和d
+            let ratioC = Math.floor(Math.random() * 3) + 1;  // 1 to 3
+            let ratioD = Math.floor(Math.random() * 3) + 1;  // 1 to 3
+            
+            // 计算最大公约数
+            let gcdCD = gcd(ratioC, ratioD);
+            
+            // 将比例化为最简比
+            let simplifiedRatioC = ratioC / gcdCD;
+            let simplifiedRatioD = ratioD / gcdCD;
+            
+            // 生成一个随机的三角形BCO面积
+            let areaBCO = (Math.floor(Math.random() * 4) + 1) * 5;  // 5, 10, 15, 或 20
+            
+            // 计算三角形ABC的面积 = areaBCO * (ac+ad+bd)/bd
+            let areaABC = areaBCO * (ratioA*ratioC + ratioA*ratioD + ratioB*ratioD) / (ratioB*ratioD);
+            
+            // 确保面积是整数
+            areaABC = Math.round(areaABC);
+            
+            // 计算图形中的位置
+            const width = 160;
+            const height = 110;
+            
+            // 三角形ABC的顶点
+            const pointA = {x: 100, y: 20};
+            const pointB = {x: 20, y: 130};
+            const pointC = {x: 180, y: 130};
+            
+            // 计算点G在AB上的位置
+            const pointG = {
+                x: (ratioA * pointB.x + ratioB * pointA.x) / (ratioA + ratioB),
+                y: (ratioA * pointB.y + ratioB * pointA.y) / (ratioA + ratioB)
+            };
+            
+            // 计算点D在BC上的位置
+            const pointD = {
+                x: (ratioC * pointC.x + ratioD * pointB.x) / (ratioC + ratioD),
+                y: (ratioC * pointC.y + ratioD * pointB.y) / (ratioC + ratioD)
+            };
+            
+            // 计算点E在AC上的位置 (这里使用与级别2相同的计算方式)
+            let ratioE = ratioB * ratioD;
+            let ratioF = ratioA * ratioC;
+            
+            // 计算最大公约数
+            let gcdEF = gcd(ratioE, ratioF);
+            
+            // 将比例化为最简比
+            let simplifiedRatioE = ratioE / gcdEF;
+            let simplifiedRatioF = ratioF / gcdEF;
+            
+            const pointE = {
+                x: (ratioF * pointC.x + ratioE * pointA.x) / (ratioE + ratioF),
+                y: (ratioF * pointC.y + ratioE * pointA.y) / (ratioE + ratioF)
+            };
+            
+            // 计算AD和CG的交点O (使用与级别2相同的计算方式)
+            const pointO = {
+                x: (ratioB * ratioD * pointA.x + ratioA * (ratioC + ratioD) * pointD.x) / (ratioB * ratioD + ratioA * (ratioC + ratioD)),
+                y: (ratioB * ratioD * pointA.y + ratioA * (ratioC + ratioD) * pointD.y) / (ratioB * ratioD + ratioA * (ratioC + ratioD))
+            };
+            
+            // 创建SVG图形
+            const svg = `
+            <svg width="200" height="150" xmlns="http://www.w3.org/2000/svg">
+                <!-- 三角形ABC -->
+                <polygon points="${pointA.x},${pointA.y} ${pointB.x},${pointB.y} ${pointC.x},${pointC.y}" fill="#f0f8ff" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 直线AD -->
+                <line x1="${pointA.x}" y1="${pointA.y}" x2="${pointD.x}" y2="${pointD.y}" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 直线CG -->
+                <line x1="${pointC.x}" y1="${pointC.y}" x2="${pointG.x}" y2="${pointG.y}" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 直线BE -->
+                <line x1="${pointB.x}" y1="${pointB.y}" x2="${pointE.x}" y2="${pointE.y}" stroke="black" stroke-width="1.5" stroke-dasharray="3,3"/>
+                <line x1="${pointO.x}" y1="${pointO.y}" x2="${pointD.x}" y2="${pointD.y}" stroke="black" stroke-width="1.5" stroke-dasharray="3,3"/>
+                
+                <!-- 标记三角形BCO区域 (填充浅绿色) -->
+                <polygon points="${pointB.x},${pointB.y} ${pointC.x},${pointC.y} ${pointO.x},${pointO.y}" fill="#e6ffe6" stroke="black" stroke-width="1" stroke-dasharray="3,3"/>
+                
+                <!-- 顶点标注 -->
+                <circle cx="${pointA.x}" cy="${pointA.y}" r="3" fill="black"/>
+                <circle cx="${pointB.x}" cy="${pointB.y}" r="3" fill="black"/>
+                <circle cx="${pointC.x}" cy="${pointC.y}" r="3" fill="black"/>
+                <circle cx="${pointD.x}" cy="${pointD.y}" r="3" fill="black"/>
+                <circle cx="${pointE.x}" cy="${pointE.y}" r="3" fill="black"/>
+                <circle cx="${pointG.x}" cy="${pointG.y}" r="3" fill="black"/>
+                <circle cx="${pointO.x}" cy="${pointO.y}" r="3" fill="black"/>
+                
+                <text x="${pointA.x}" y="${pointA.y-5}" text-anchor="middle" font-family="serif" font-size="16">A</text>
+                <text x="${pointB.x-5}" y="${pointB.y}" text-anchor="middle" font-family="serif" font-size="16">B</text>
+                <text x="${pointC.x+5}" y="${pointC.y}" text-anchor="middle" font-family="serif" font-size="16">C</text>
+                <text x="${pointD.x}" y="${pointD.y+15}" text-anchor="middle" font-family="serif" font-size="16">D</text>
+                <text x="${pointE.x+10}" y="${pointE.y+5}" text-anchor="middle" font-family="serif" font-size="16">E</text>
+                <text x="${pointG.x-5}" y="${pointG.y-5}" text-anchor="middle" font-family="serif" font-size="16">G</text>
+                <text x="${pointO.x+5}" y="${pointO.y-5}" text-anchor="middle" font-family="serif" font-size="16">O</text>
+                
+                <!-- 面积标注 -->
+                <text x="${(pointB.x + pointC.x + pointO.x)/3}" y="${(pointB.y + pointC.y + pointO.y)/3}" text-anchor="middle" font-family="serif" font-size="14">S△BCO=${areaBCO}</text>
+            </svg>
+            `;
+            
+            // 格式化问题文本
+            const question = `
+            <div style="text-align: center;">
+                \\begin{array}{cc} 
+                如图，三角形ABC中，\\\\
+                AG:GB = ${simplifiedRatioA}:${simplifiedRatioB}，
+                BO:OE = ${simplifiedRatioA*simplifiedRatioC+simplifiedRatioB*simplifiedRatioD}:${simplifiedRatioA*simplifiedRatioD}，\\\\
+                S_{\\triangle BCO} = ${areaBCO}平方厘米，\\\\
+                则S_{\\triangle ABC} = \\_平方厘米。
+                \\end{array}
 
-
-          ];
-      
-          // 获取当前索引的题目
-          let selectedQuestion = questions[generateLevel3Question.currentIndex];
-      
-          let m = selectedQuestion.m;
-          let n = selectedQuestion.n;
-      
-          // 如果 n 是一个数组，表示有多个正确答案
-          if (Array.isArray(n)) {
-              correctAnswer = [...n];
-          } else {
-              correctAnswer = [`${n}`];
-          }
-      
-          // 构建返回的 LaTeX 代码
-          let questionLatex = `\\(\\begin{gather}${m} \\end{gather} \\)`;
-      
-          // 如果有图片路径，则插入图片
-          if (selectedQuestion.image) {
-              questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
-          }
-      
-          // 更新索引值，确保按顺序出题
-          generateLevel3Question.currentIndex = (generateLevel3Question.currentIndex + 1) % questions.length;
-      
-          return questionLatex;
+                <div style="margin-top: 15px;">${svg}</div>
+            </div>
+            `;
+            
+            // 设置正确答案
+            correctAnswer = [`${areaABC}`];
+            
+            return question;
         }
+
+
+ 
+
 
 
         function generateLevel4Question() {
-                 //一外一内下  添加一个静态变量来跟踪当前索引
-                 if (typeof generateLevel4Question.currentIndex === 'undefined') {
-            generateLevel4Question.currentIndex = 0;
-          }
+            // 两内比
+           // 生成随机比例
+           let ratioA = Math.floor(Math.random() * 3) + 1;  // 1 to 3
+            let ratioB = Math.floor(Math.random() * 3) + 1;  // 1 to 3
+            
+            // 计算最大公约数
+            let gcdAB = gcd(ratioA, ratioB);
+            
+            // 将比例化为最简比
+            let simplifiedRatioA = ratioA / gcdAB;
+            let simplifiedRatioB = ratioB / gcdAB;
+            
+            // 计算BD:DC的比例 (ac+bd):ad
+            // 这里随机选一个比例，倒推出c和d
+            let ratioC = Math.floor(Math.random() * 3) + 1;  // 1 to 3
+            let ratioD = Math.floor(Math.random() * 3) + 1;  // 1 to 3
+            
+            // 计算最大公约数
+            let gcdCD = gcd(ratioC, ratioD);
+            
+            // 将比例化为最简比
+            let simplifiedRatioC = ratioC / gcdCD;
+            let simplifiedRatioD = ratioD / gcdCD;
+            
+            // 生成一个随机的三角形BCO面积
+            let areaBCO = (Math.floor(Math.random() * 4) + 1) * simplifiedRatioB*simplifiedRatioD;  // bd的倍数
+            
+            // 计算三角形ABC的面积 = areaBCO * (ac+ad+bd)/bd
+            let areaABC = areaBCO * (ratioA*ratioC + ratioA*ratioD + ratioB*ratioD) / (ratioB*ratioD);
+            
+            // 确保面积是整数
+            areaABC = Math.round(areaABC);
+            
+            // 计算图形中的位置
+            const width = 160;
+            const height = 110;
+            
+            // 三角形ABC的顶点
+            const pointA = {x: 100, y: 20};
+            const pointB = {x: 20, y: 130};
+            const pointC = {x: 180, y: 130};
+            
+            // 计算点G在AB上的位置
+            const pointG = {
+                x: (ratioA * pointB.x + ratioB * pointA.x) / (ratioA + ratioB),
+                y: (ratioA * pointB.y + ratioB * pointA.y) / (ratioA + ratioB)
+            };
+            
+            // 计算点D在BC上的位置
+            const pointD = {
+                x: (ratioC * pointC.x + ratioD * pointB.x) / (ratioC + ratioD),
+                y: (ratioC * pointC.y + ratioD * pointB.y) / (ratioC + ratioD)
+            };
+            
+            // 计算点E在AC上的位置 (这里使用与级别2相同的计算方式)
+            let ratioE = ratioB * ratioD;
+            let ratioF = ratioA * ratioC;
+            
+            // 计算最大公约数
+            let gcdEF = gcd(ratioE, ratioF);
+            
+            // 将比例化为最简比
+            let simplifiedRatioE = ratioE / gcdEF;
+            let simplifiedRatioF = ratioF / gcdEF;
+            
+            const pointE = {
+                x: (ratioF * pointC.x + ratioE * pointA.x) / (ratioE + ratioF),
+                y: (ratioF * pointC.y + ratioE * pointA.y) / (ratioE + ratioF)
+            };
+            
+            // 计算AD和CG的交点O (使用与级别2相同的计算方式)
+            const pointO = {
+                x: (ratioB * ratioD * pointA.x + ratioA * (ratioC + ratioD) * pointD.x) / (ratioB * ratioD + ratioA * (ratioC + ratioD)),
+                y: (ratioB * ratioD * pointA.y + ratioA * (ratioC + ratioD) * pointD.y) / (ratioB * ratioD + ratioA * (ratioC + ratioD))
+            };
+            
+            // 创建SVG图形
+            const svg = `
+            <svg width="200" height="150" xmlns="http://www.w3.org/2000/svg">
+                <!-- 三角形ABC -->
+                <polygon points="${pointA.x},${pointA.y} ${pointB.x},${pointB.y} ${pointC.x},${pointC.y}" fill="#f0f8ff" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 直线AD -->
+                <line x1="${pointA.x}" y1="${pointA.y}" x2="${pointD.x}" y2="${pointD.y}" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 直线CG -->
+                <line x1="${pointC.x}" y1="${pointC.y}" x2="${pointG.x}" y2="${pointG.y}" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 直线BE -->
+                <line x1="${pointB.x}" y1="${pointB.y}" x2="${pointE.x}" y2="${pointE.y}" stroke="black" stroke-width="1.5" stroke-dasharray="3,3"/>
+                <line x1="${pointO.x}" y1="${pointO.y}" x2="${pointD.x}" y2="${pointD.y}" stroke="black" stroke-width="1.5" stroke-dasharray="3,3"/>
+                
+                <!-- 标记三角形BCO区域 (填充浅绿色) -->
+                <polygon points="${pointB.x},${pointB.y} ${pointC.x},${pointC.y} ${pointO.x},${pointO.y}" fill="#e6ffe6" stroke="black" stroke-width="1" stroke-dasharray="3,3"/>
+                
+                <!-- 顶点标注 -->
+                <circle cx="${pointA.x}" cy="${pointA.y}" r="3" fill="black"/>
+                <circle cx="${pointB.x}" cy="${pointB.y}" r="3" fill="black"/>
+                <circle cx="${pointC.x}" cy="${pointC.y}" r="3" fill="black"/>
+                <circle cx="${pointD.x}" cy="${pointD.y}" r="3" fill="black"/>
+                <circle cx="${pointE.x}" cy="${pointE.y}" r="3" fill="black"/>
+                <circle cx="${pointG.x}" cy="${pointG.y}" r="3" fill="black"/>
+                <circle cx="${pointO.x}" cy="${pointO.y}" r="3" fill="black"/>
+                
+                <text x="${pointA.x}" y="${pointA.y-5}" text-anchor="middle" font-family="serif" font-size="16">A</text>
+                <text x="${pointB.x-5}" y="${pointB.y}" text-anchor="middle" font-family="serif" font-size="16">B</text>
+                <text x="${pointC.x+5}" y="${pointC.y}" text-anchor="middle" font-family="serif" font-size="16">C</text>
+                <text x="${pointD.x}" y="${pointD.y+15}" text-anchor="middle" font-family="serif" font-size="16">D</text>
+                <text x="${pointE.x+10}" y="${pointE.y+5}" text-anchor="middle" font-family="serif" font-size="16">E</text>
+                <text x="${pointG.x-5}" y="${pointG.y-5}" text-anchor="middle" font-family="serif" font-size="16">G</text>
+                <text x="${pointO.x+5}" y="${pointO.y-5}" text-anchor="middle" font-family="serif" font-size="16">O</text>
+                
+                <!-- 面积标注 -->
+                <text x="${(pointB.x + pointC.x + pointO.x)/3}" y="${(pointB.y + pointC.y + pointO.y)/3}" text-anchor="middle" font-family="serif" font-size="14">S△BCO=${areaBCO}</text>
+            </svg>
+            `;
+            
+            // 格式化问题文本
+            const question = `
+            <div style="text-align: center;">
+                \\begin{array}{cc} 
+                如图，三角形ABC中，\\\\
+                BO:OE = ${simplifiedRatioA*simplifiedRatioC+simplifiedRatioB*simplifiedRatioD}:${simplifiedRatioA*simplifiedRatioD}，
+                CO:OG = ${simplifiedRatioA*simplifiedRatioD+simplifiedRatioB*simplifiedRatioD}:${simplifiedRatioA*simplifiedRatioC}，\\\\
+                S_{\\triangle BCO} = ${areaBCO}平方厘米，\\\\
+                则S_{\\triangle ABC} = \\_平方厘米。
+                \\end{array}
 
-          const questions = [
-          {
-  m: '1. 如图，三角形ABC中，\\\\AE:EC=1:2，AO:OD=2:1，\\\\S△AOB=10平方厘米。\\\\则S△CDO为多少平方厘米？',
-  image: './images/052404001.png',
-  n: '15'
-},
-{
-  m: '2. 如图，三角形ABC中，\\\\BD:DC=3:1，BO:OE=5:1，\\\\S△ABO=30平方厘米。\\\\则S△CEO为多少平方厘米？',
-  image: './images/052404002.png',
-  n: '4'
-},
-{
-  m: '3. 如图，三角形ABC中，\\\\BE:EC=2:3，BO:OD=1:1，\\\\S△ABO=40平方厘米。\\\\则S△CDO为多少平方厘米？',
-  image: './images/052404003.png',
-  n: '20'
-},
-{
-  m: '4. 如图，三角形ABC中，\\\\BD:DC=3:1，BO:OE=5:1，\\\\S△ABO=30平方厘米。\\\\则S△BCO为多少平方厘米？',
-  image: './images/052404004.png',
-  n: '20'
-},
-{
-  m: '5. 如图，三角形ABC中，\\\\BD:DC=2:3，BO:OE=1:1，\\\\S△ABO=20平方厘米。\\\\则S△BCO为多少平方厘米？',
-  image: './images/052404005.png',
-  n: '10'
-},
-{
-  m: '6. 如图，三角形ABC中，\\\\BD:DC=1:2，BO:OE=1:1，\\\\S△ABO=10平方厘米。\\\\则S△BCO为多少平方厘米？',
-  image: './images/052404006.png',
-  n: '10'
-},
-{
-  m: '7. 如图，三角形ABC中，\\\\BD:DC=3:1，BO:OE=5:1，\\\\S△ABO=120平方厘米。\\\\则S四边形DCEO为多少平方厘米？',
-  image: './images/052404007.png',
-  n: '36'
-},
-{
-  m: '8. 如图，三角形ABC中，\\\\BD:DC=3:1，BO:OE=5:1，\\\\S△ABO=60平方厘米。\\\\则S四边形DCEO为多少平方厘米？',
-  image: './images/052404008.png',
-  n: '18'
-},
-{
-  m: '9. 如图，三角形ABC中，\\\\BD:DC=3:1，BO:OE=5:1，\\\\S△ABO=30平方厘米。\\\\则S四边形DCEO为多少平方厘米？',
-  image: './images/052404009.png',
-  n: '9'
-},
-{
-  m: '10. 如图，三角形ABC中，\\\\AE:EB=1:2，AO:OD=2:1，\\\\S△ABC=120平方厘米。\\\\则S四边形BDOE为多少平方厘米？',
-  image: './images/052404010.png',
-  n: '70'
-},
-{
-  m: '11. 如图，三角形ABC中，\\\\BD:DC=3:1，BO:OE=5:1，\\\\S△ABC=120平方厘米。\\\\则S四边形DCEO为多少平方厘米？',
-  image: './images/052404011.png',
-  n: '20'
-},
-{
-  m: '12. 如图，三角形ABC中，\\\\AE:EC=3:2，DO:OC=1:1，\\\\S△ABC=120平方厘米。\\\\  则S四边形ADOE为多少平方厘米？',
-  image: './images/052404012.png',
-  n: '32'
-}
-
-
-
-
-          ];
-      
-          // 获取当前索引的题目
-          let selectedQuestion = questions[generateLevel4Question.currentIndex];
-      
-          let m = selectedQuestion.m;
-          let n = selectedQuestion.n;
-      
-          // 如果 n 是一个数组，表示有多个正确答案
-          if (Array.isArray(n)) {
-              correctAnswer = [...n];
-          } else {
-              correctAnswer = [`${n}`];
-          }
-      
-          // 构建返回的 LaTeX 代码
-          let questionLatex = `\\(\\begin{gather}${m} \\end{gather} \\)`;
-      
-          // 如果有图片路径，则插入图片
-          if (selectedQuestion.image) {
-              questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
-          }
-      
-          // 更新索引值，确保按顺序出题
-          generateLevel4Question.currentIndex = (generateLevel4Question.currentIndex + 1) % questions.length;
-      
-          return questionLatex;
+                <div style="margin-top: 15px;">${svg}</div>
+            </div>
+            `;
+            
+            // 设置正确答案
+            correctAnswer = [`${areaABC}`];
+            
+            return question;
         }
 
 
+        function generateLevel5aQuestion() {
+            //鸟头定理      添加一个静态变量来跟踪当前索引
+            // 生成随机比例
+            let a = Math.floor(Math.random() * 5) + 1;  // 1 to 5
+            let b = Math.floor(Math.random() * 5) + 1;  // 1 to 5
+            let m = Math.floor(Math.random() * 5) + 1;  // 1 to 5
+            let n = Math.floor(Math.random() * 5) + 1;  // 1 to 5
+            
+            // 计算最大公约数
+            let divisor_ab = gcd(a, b);
+            let divisor_mn = gcd(m, n);
+            
+            // 将比例化为最简比
+            let simplified_a = a / divisor_ab;
+            let simplified_b = b / divisor_ab;
+            let simplified_m = m / divisor_mn;
+            let simplified_n = n / divisor_mn;
+            
+            // 生成随机面积因子，确保面积为整数
+            let areaFactor = Math.floor(Math.random() * 10) + 1;  // 1 to 10
+            
+            // 计算三角形EBD的面积
+            let areaEBD = b * m * areaFactor;
+            
+            // 计算三角形ABC的面积
+            let areaABC = areaEBD * (a + b) * (m + n) / (b * m);
+            
+            // 确保面积为整数
+            areaABC = Math.round(areaABC);
+            
+            // 计算图形中的位置
+            const width = 200;
+            const height = 150;
+            
+            // 三角形ABC的顶点坐标
+            const Ax = 100;
+            const Ay = 20;
+            const Bx = 20;
+            const By = 130;
+            const Cx = 180;
+            const Cy = 130;
+            
+            // 计算点E在AB上的位置
+            const eRatio = a / (a + b);
+            const Ex = Ax - (Ax - Bx) * eRatio;
+            const Ey = Ay + (By - Ay) * eRatio;
+            
+            // 计算点D在AC上的位置
+            const dRatio = m / (m + n);
+            const Dx = Ax - (Ax - Cx) * dRatio;
+            const Dy = Ay + (Cy - Ay) * dRatio;
+            
+            // 计算三角形EBD的重心位置用于标注面积
+            const centroidEBDx = (Ex + Bx + Dx) / 3;
+            const centroidEBDy = (Ey + By + Dy) / 3;
+            
+            // 创建SVG图形
+            const svg = `
+            <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+                <!-- 三角形ABC - 轮廓 -->
+                <polygon points="${Ax},${Ay} ${Bx},${By} ${Cx},${Cy}" fill="none" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 三角形EBD - 填充 -->
+                <polygon points="${Ex},${Ey} ${Bx},${By} ${Dx},${Dy}" fill="#e6f2ff" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 点E和D -->
+                <circle cx="${Ex}" cy="${Ey}" r="3" fill="black"/>
+                <circle cx="${Dx}" cy="${Dy}" r="3" fill="black"/>
+                
+                <!-- 顶点标注 -->
+                <text x="${Ax}" y="${Ay-5}" text-anchor="middle" font-family="serif" font-size="16">A</text>
+                <text x="${Bx-5}" y="${By+5}" text-anchor="middle" font-family="serif" font-size="16">B</text>
+                <text x="${Cx+5}" y="${Cy+5}" text-anchor="middle" font-family="serif" font-size="16">C</text>
+                <text x="${Ex-5}" y="${Ey-5}" text-anchor="middle" font-family="serif" font-size="16">E</text>
+                <text x="${Dx+5}" y="${Dy-5}" text-anchor="middle" font-family="serif" font-size="16">D</text>
+                
+                <!-- 面积标注 -->
+                <text x="${centroidEBDx}" y="${centroidEBDy}" text-anchor="middle" font-family="serif" font-size="14">S₁=${areaEBD}</text>
+            </svg>
+            `;
+            
+            // 格式化问题文本
+            const question = `
+            <div style="text-align: center;">
+                \\begin{array}{cc} 
+                在\\triangle ABC中，E是AB边上的点，D是AC边上的点，\\\\
+                且AE:EB = ${simplified_a}:${simplified_b}，AD:DC = ${simplified_m}:${simplified_n}，\\\\
+                已知\\triangle EBD的面积S_1=${areaEBD}，\\\\
+                求\\triangle ABC的面积S\\triangle ABC。\\\\
+                \\end{array}
 
+                <div style="margin-top: 15px;">${svg}</div>
+            </div>
+            `;
+            
+            // 设置正确答案
+            correctAnswer = [`${areaABC}`];
+            
+            return question;
+        }
+
+
+        
+
+        function generateLevel5bQuestion(){
+            // 生成随机比例
+            let a = Math.floor(Math.random() * 5) + 1;  // 1 to 5
+            let b = Math.floor(Math.random() * 5) + 1;  // 1 to 5
+            let m = Math.floor(Math.random() * 5) + 1;  // 1 to 5
+            let n = Math.floor(Math.random() * 5) + 1;  // 1 to 5
+            
+            // 计算最大公约数
+            let divisor_ab = gcd(a, b);
+            let divisor_mn = gcd(m, n);
+            
+            // 将比例化为最简比
+            let simplified_a = a / divisor_ab;
+            let simplified_b = b / divisor_ab;
+            let simplified_m = m / divisor_mn;
+            let simplified_n = n / divisor_mn;
+            
+            // 生成随机面积因子，确保面积为整数
+            let areaFactor = Math.floor(Math.random() * 10) + 1;  // 1 to 10
+            
+            // 计算三角形AED的面积
+            let areaAED = a * m * areaFactor;
+            
+            // 计算三角形ABC的面积
+            let areaABC = areaAED * (a + b) * (m + n) / (a * m);
+            
+            // 确保面积为整数
+            areaABC = Math.round(areaABC);
+            
+            // 计算图形中的位置
+            const width = 200;
+            const height = 150;
+            
+            // 三角形ABC的顶点坐标
+            const Ax = 100;
+            const Ay = 20;
+            const Bx = 20;
+            const By = 130;
+            const Cx = 180;
+            const Cy = 130;
+            
+            // 计算点E在AB上的位置
+            const eRatio = a / (a + b);
+            const Ex = Ax - (Ax - Bx) * eRatio;
+            const Ey = Ay + (By - Ay) * eRatio;
+            
+            // 计算点D在AC上的位置
+            const dRatio = m / (m + n);
+            const Dx = Ax - (Ax - Cx) * dRatio;
+            const Dy = Ay + (Cy - Ay) * dRatio;
+            
+            // 计算三角形AED的重心位置用于标注面积
+            const centroidAEDx = (Ax + Ex + Dx) / 3;
+            const centroidAEDy = (Ay + Ey + Dy) / 3;
+            
+            // 创建SVG图形
+            const svg = `
+            <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+                <!-- 三角形ABC - 轮廓 -->
+                <polygon points="${Ax},${Ay} ${Bx},${By} ${Cx},${Cy}" fill="none" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 三角形AED - 填充 -->
+                <polygon points="${Ax},${Ay} ${Ex},${Ey} ${Dx},${Dy}" fill="#e6f2ff" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 点E和D -->
+                <circle cx="${Ex}" cy="${Ey}" r="3" fill="black"/>
+                <circle cx="${Dx}" cy="${Dy}" r="3" fill="black"/>
+                
+                <!-- 顶点标注 -->
+                <text x="${Ax}" y="${Ay-5}" text-anchor="middle" font-family="serif" font-size="16">A</text>
+                <text x="${Bx-5}" y="${By+5}" text-anchor="middle" font-family="serif" font-size="16">B</text>
+                <text x="${Cx+5}" y="${Cy+5}" text-anchor="middle" font-family="serif" font-size="16">C</text>
+                <text x="${Ex-5}" y="${Ey-5}" text-anchor="middle" font-family="serif" font-size="16">E</text>
+                <text x="${Dx+5}" y="${Dy-5}" text-anchor="middle" font-family="serif" font-size="16">D</text>
+                
+                <!-- 面积标注 -->
+                <text x="${centroidAEDx}" y="${centroidAEDy}" text-anchor="middle" font-family="serif" font-size="14">S₁=${areaAED}</text>
+            </svg>
+            `;
+            
+            // 格式化问题文本
+            const question = `
+            <div style="text-align: center;">
+                \\begin{array}{cc} 
+                在\\triangle ABC中，E是AB边上的点，D是AC边上的点，\\\\
+                且AE:EB = ${simplified_a}:${simplified_b}，AD:DC = ${simplified_m}:${simplified_n}，\\\\
+                已知\\triangle AED的面积S_1=${areaAED}，\\\\
+                求\\triangle ABC的面积S\\triangle ABC。\\\\
+                \\end{array}
+
+                <div style="margin-top: 15px;">${svg}</div>
+            </div>
+            `;
+            
+            // 设置正确答案
+            correctAnswer = [`${areaABC}`];
+            
+            return question;
+        }
 
         function generateLevel5Question() {
-                 //两内比      添加一个静态变量来跟踪当前索引
-                 if (typeof generateLevel5Question.currentIndex === 'undefined') {
-            generateLevel5Question.currentIndex = 0;
-          }
+            // 包含所有之前级别的题目生成函数
+            const levelFunctions = [
+                generateLevel5aQuestion,
+                generateLevel5bQuestion
+            ];
 
-          const questions = [
-          {
-  m: '1. 如图，三角形ABC中，\\\\AO:OD=2:1，BO:OE=5:1，\\\\S△ABO=30平方厘米，S△OCE=4平方厘米。\\\\则S△DCO为多少平方厘米？',
-  image: './images/052405001.png',
-  n: '5'
-},
-{
-  m: '2. 如图，三角形ABC中，\\\\AO:OD=2:1，BO:OE=5:1，\\\\S△ABO=60平方厘米，S△OCE=8平方厘米。\\\\则S△DCO为多少平方厘米？',
-  image: './images/052405002.png',
-  n: '10'
-},
-{
-  m: '3. 如图，三角形ABC中，\\\\AO:OD=2:1，BO:OE=5:1，\\\\S△ABO=90平方厘米，S△OCE=12平方厘米。\\\\则S△DCO为多少平方厘米？',
-  image: './images/052405003.png',
-  n: '15'
-},
-{
-  m: '4. 如图，三角形ABC中，\\\\AO:OD=2:1，BO:OE=5:1，\\\\S△ABO=30平方厘米。\\\\设S△CEO=x平方厘米，S△DCO=y平方厘米，\\\\则S四边形DCEO为多少平方厘米？',
-  image: './images/052405004.png',
-  n: '9'
-},
-{
-  m: '5. 如图，三角形ABC中，\\\\AO:OD=2:1，BO:OE=5:1，\\\\S△ABO=60平方厘米。\\\\设S△CEO=x平方厘米，S△DCO=y平方厘米，\\\\则S四边形DCEO为多少平方厘米？',
-  image: './images/052405005.png',
-  n: '18'
-},
-{
-  m: '6. 如图，三角形ABC中，\\\\AO:OD=2:1，BO:OE=5:1，\\\\S△ABO=90平方厘米。\\\\设S△CEO=x平方厘米，S△DCO=y平方厘米，\\\\则S四边形DCEO为多少平方厘米？',
-  image: './images/052405006.png',
-  n: '27'
-},
-{
-  m: '7. 如图，三角形ABC中，\\\\BO:OE=1:1，AO:OD=2:1，\\\\S△ABO=10平方厘米。\\\\则S四边形DCEO为多少平方厘米？',
-  image: './images/052405007.png',
-  n: '35'
-},
-{
-  m: '8. 如图，三角形ABC中，\\\\BO:OE=1:1，AO:OD=2:1，\\\\S△ABO=20平方厘米。\\\\则S四边形DCEO为多少平方厘米？',
-  image: './images/052405008.png',
-  n: '70'
-},
-{
-  m: '9. 如图，三角形ABC中，\\\\BO:OE=1:1，AO:OD=2:1，\\\\S△ABO=8平方厘米。\\\\则S四边形DCEO为多少平方厘米？',
-  image: './images/052405009.png',
-  n: '28'
-},
-{
-  m: '10. 如图，三角形ABC中，\\\\BO:OE=1:1，AO:OD=3:1，\\\\S△ABC=24平方厘米。\\\\则S四边形DCEO为多少平方厘米？',
-  image: './images/052405010.png',
-  n: '10'
-},
-{
-  m: '11. 如图，三角形ABC中，\\\\BO:OE=1:1，AO:OD=3:1，\\\\S△ABC=36平方厘米。\\\\则S四边形DCEO为多少平方厘米？',
-  image: './images/052405011.png',
-  n: '15'
-},
-{
-  m: '12. 如图，三角形ABC中，\\\\BO:OE=1:1，AO:OD=3:1，\\\\S△ABC=48平方厘米。\\\\ 则S四边形DCEO为多少平方厘米？',
-  image: './images/052405012.png',
-  n: '20'
-}
-
-
-
-          ];
-      
-          // 获取当前索引的题目
-          let selectedQuestion = questions[generateLevel5Question.currentIndex];
-      
-          let m = selectedQuestion.m;
-          let n = selectedQuestion.n;
-      
-          // 如果 n 是一个数组，表示有多个正确答案
-          if (Array.isArray(n)) {
-              correctAnswer = [...n];
-          } else {
-              correctAnswer = [`${n}`];
-          }
-      
-          // 构建返回的 LaTeX 代码
-          let questionLatex = `\\(\\begin{gather}${m} \\end{gather} \\)`;
-      
-          // 如果有图片路径，则插入图片
-          if (selectedQuestion.image) {
-              questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
-          }
-      
-          // 更新索引值，确保按顺序出题
-          generateLevel5Question.currentIndex = (generateLevel5Question.currentIndex + 1) % questions.length;
-      
-          return questionLatex;
+            // 随机选择一个题型函数
+            const randomLevelIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomLevelIndex];
+            
+            // 直接调用选择的函数生成题目
+            return selectedFunction();
         }
-
-
-        function generateLevel6Question() {
-                 //两内比      添加一个静态变量来跟踪当前索引
-                 if (typeof generateLevel6Question.currentIndex === 'undefined') {
-            generateLevel6Question.currentIndex = 0;
-          }
-
-          const questions = [
-          {
-  m: '1. 如图，在△ABC中，\\\\AB的长度是BD的4倍，\\\\AC的长度是EC的3倍。\\\\如果△ABC的面积为20平方厘米，\\\\那么△ADE的面积是多少平方厘米？',
-  image: './images/051802001.png',
-  n: '10'
-},
-{
-  m: '2. 如图，在△ABC中，\\\\D点是最靠近B点的四等分点，\\\\E点是靠近C点的三等分点。\\\\如果△ABC的面积为10平方厘米，\\\\那么△AED的面积是多少平方厘米？',
-  image: './images/051802002.png',
-  n: '5'
-},
-{
-  m: '3. 如图，在△ABC中，\\\\BD:DA=1:3，\\\\CE:EA=1:2。\\\\如果△ABC的面积为10平方厘米，\\\\那么△ADE的面积是多少平方厘米？',
-  image: './images/051802003.png',
-  n: '5'
-},
-{
-  m: '4. 如图，在平行四边形ABCD中，\\\\AF的长度是FD的2倍，\\\\CE的长度等于ED。\\\\如果平行四边形ABCD的面积为120平方厘米，\\\\那么△FDE的面积是多少平方厘米？',
-  image: './images/051802004.png',
-  n: '10'
-},
-{
-  m: '5. 如图，在平行四边形ABCD中，\\\\点F为靠近点D的三等分点，\\\\E为CD中点。\\\\如果平行四边形ABCD的面积为120平方厘米，\\\\那么△FDE的面积是多少平方厘米？',
-  image: './images/051802005.png',
-  n: '10'
-},
-{
-  m: '6. 如图，在平行四边形ABCD中，\\\\AD:AF=3:2，\\\\CD:CE=2:1。\\\\如果平行四边形ABCD的面积为120平方厘米，\\\\那么△FDE的面积是多少平方厘米？',
-  image: './images/051802006.png',
-  n: '10'
-},
-{
-  m: '7. 三角形ABC中，\\\\AB的长度是DB的4倍，\\\\E点是靠近C点的三等分点，\\\\BF:FC=3:2。\\\\若三角形ABC的面积等于120平方厘米，\\\\则三角形DEF的面积是多少平方厘米？',
-  image: './images/051802007.png',
-  n: '26'
-},
-{
-  m: '8. 三角形ABC中，\\\\AB的长度是DB的2倍，\\\\E点是靠近C点的三等分点，\\\\BF:FC=3:2。\\\\若三角形ABC的面积等于60平方厘米，\\\\则三角形DEF的面积是多少平方厘米？',
-  image: './images/051802008.png',
-  n: '14'
-},
-{
-  m: '9. 三角形ABC中，\\\\AB的长度是DB的2倍，\\\\E点是靠近A点的三等分点，\\\\BF:FC=2:3。\\\\若三角形ABC的面积等于90平方厘米，\\\\则三角形DEF的面积是多少平方厘米？',
-  image: './images/051802009.png',
-  n: '21'
-},
-{
-  m: '10. 如图，在△ABC中，\\\\AD的长度是DB的2倍，\\\\AC的长度是EC的4倍。\\\\如果四边形DBEC的面积为10平方厘米，\\\\那么△ABC的面积是多少平方厘米？',
-  image: './images/051802010.png',
-  n: '20'
-},
-{
-  m: '11. 如图，在△ABC中，\\\\AD:BD=1:3，\\\\E是AC的中点。\\\\如果四边形ADEC的面积为70平方厘米，\\\\那么△ABC的面积是多少平方厘米？',
-  image: './images/051802011.png',
-  n: '105'
-}
-
-
-
-          ];
-      
-          // 获取当前索引的题目
-          let selectedQuestion = questions[generateLevel6Question.currentIndex];
-      
-          let m = selectedQuestion.m;
-          let n = selectedQuestion.n;
-      
-          // 如果 n 是一个数组，表示有多个正确答案
-          if (Array.isArray(n)) {
-              correctAnswer = [...n];
-          } else {
-              correctAnswer = [`${n}`];
-          }
-      
-          // 构建返回的 LaTeX 代码
-          let questionLatex = `\\(\\begin{gather}${m} \\end{gather} \\)`;
-      
-          // 如果有图片路径，则插入图片
-          if (selectedQuestion.image) {
-              questionLatex += `<br/><img src="${selectedQuestion.image}" style="width:50%;"><br/>`;
-          }
-      
-          // 更新索引值，确保按顺序出题
-          generateLevel6Question.currentIndex = (generateLevel6Question.currentIndex + 1) % questions.length;
-      
-          return questionLatex;
-        }
-
-
-
 
 
  
         
-        function generateLevel7Question() {
+        function generateLevel6Question() {
+            // 包含所有之前级别的题目生成函数
             const levelFunctions = [
-        generateLevel1Question,
-        generateLevel2Question,
-        generateLevel3Question,
-        generateLevel4Question,
-        generateLevel5Question,
-        generateLevel6Question,
-    ];
+                generateLevel1Question,
+                generateLevel2Question,
+                generateLevel3Question,
+                generateLevel4Question,
+                generateLevel5Question
+            ];
 
-    // 随机选择一个题型函数
-    const randomLevelIndex = Math.floor(Math.random() * levelFunctions.length);
-    const selectedFunction = levelFunctions[randomLevelIndex];
-    
-    // 获取当前选择的函数的索引属性名
-    const indexPropertyName = `${selectedFunction.name}.currentIndex`;
-    
-    // 保存原始索引
-    const originalIndex = selectedFunction.currentIndex;
-    
-    // 获取该题型的题目数量（通过检查函数内部定义的questions数组长度）
-    let questionsCount = 0;
-    
-    // 根据不同的函数名获取题目数量
-    if (selectedFunction === generateLevel1Question) {
-        questionsCount = 8; // 根据Level1的题目数量
-    } else if (selectedFunction === generateLevel2Question) {
-        questionsCount = 12; // 根据Level2的题目数量
-    } else if (selectedFunction === generateLevel3Question) {
-        questionsCount = 12; // 根据Level3的题目数量
-    } else if (selectedFunction === generateLevel4Question) {
-        questionsCount = 12; // 根据Level4的题目数量
-    } else if (selectedFunction === generateLevel5Question) {
-        questionsCount = 9; // 根据Level5的题目数量
-    }
-    else if (selectedFunction === generateLevel6Question) {
-        questionsCount = 12; // 根据Level6的题目数量
-    }
-    // 随机设置索引
-    selectedFunction.currentIndex = Math.floor(Math.random() * questionsCount);
-    
-    // 生成问题
-    const question = selectedFunction();
-    
-    // 恢复原始索引
-    selectedFunction.currentIndex = originalIndex;
-    
-    return question;
+            // 随机选择一个题型函数
+            const randomLevelIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomLevelIndex];
+            
+            // 直接调用选择的函数生成题目
+            return selectedFunction();
         }
 
         // 创建冲击波效果
