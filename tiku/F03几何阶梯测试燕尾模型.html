@@ -484,7 +484,7 @@
             <h3>玩家</h3>
             <div class="timer" id="playerTimer">时间: 0秒</div>
             <div class="question-box" id="playerQuestion"></div>
-            <input type="text" id="playerAnswer" class="answer-input" placeholder="输入你的答案" oninput="updatePreview('player')" disabled>
+            <input type="text" id="playerAnswer" class="answer-input" placeholder="输入你的答案" oninput="updatePreview('player')" disabled autocomplete="off">
             <div class="rendered-answer" id="playerRenderedAnswer"></div>
             <button id="playerSubmitBtn" onclick="checkPlayerAnswer()" disabled>提交答案</button>
             <div class="result" id="playerResult"></div>
@@ -496,7 +496,7 @@
             <div class="timer" id="computerTimer">时间: 0秒</div>
             <div class="question-box" id="computerQuestion"></div>
             <div class="computer-status" id="computerStatus">等待开始...</div>
-            <input type="text" id="computerAnswer" class="answer-input" placeholder="计算机的答案" disabled>
+            <input type="text" id="computerAnswer" class="answer-input" placeholder="计算机的答案" disabled autocomplete="off">
             <div class="rendered-answer" id="computerRenderedAnswer"></div>
             <div class="result" id="computerResult"></div>
             <div class="score" id="computerScore">正确: 0 | 错误: 0 | 总题数: 0</div>
@@ -1692,13 +1692,26 @@
             </svg>
             `;
             
+            // 计算BO:OE和CO:OG的比例并简化
+            let ratioBO_OE_1 = simplifiedRatioA*simplifiedRatioC+simplifiedRatioB*simplifiedRatioD;
+            let ratioBO_OE_2 = simplifiedRatioA*simplifiedRatioD;
+            let gcdBO_OE = gcd(ratioBO_OE_1, ratioBO_OE_2);
+            let simplifiedBO_OE_1 = ratioBO_OE_1 / gcdBO_OE;
+            let simplifiedBO_OE_2 = ratioBO_OE_2 / gcdBO_OE;
+            
+            let ratioCO_OG_1 = simplifiedRatioA*simplifiedRatioD+simplifiedRatioB*simplifiedRatioD;
+            let ratioCO_OG_2 = simplifiedRatioA*simplifiedRatioC;
+            let gcdCO_OG = gcd(ratioCO_OG_1, ratioCO_OG_2);
+            let simplifiedCO_OG_1 = ratioCO_OG_1 / gcdCO_OG;
+            let simplifiedCO_OG_2 = ratioCO_OG_2 / gcdCO_OG;
+            
             // 格式化问题文本
             const question = `
             <div style="text-align: center;">
                 \\begin{array}{cc} 
                 如图，三角形ABC中，\\\\
-                BO:OE = ${simplifiedRatioA*simplifiedRatioC+simplifiedRatioB*simplifiedRatioD}:${simplifiedRatioA*simplifiedRatioD}，
-                CO:OG = ${simplifiedRatioA*simplifiedRatioD+simplifiedRatioB*simplifiedRatioD}:${simplifiedRatioA*simplifiedRatioC}，\\\\
+                BO:OE = ${simplifiedBO_OE_1}:${simplifiedBO_OE_2}，
+                CO:OG = ${simplifiedCO_OG_1}:${simplifiedCO_OG_2}，\\\\
                 S_{\\triangle BCO} = ${areaBCO}平方厘米，\\\\
                 则S_{\\triangle ABC} = \\_平方厘米。
                 \\end{array}
@@ -1923,12 +1936,12 @@
             const levelFunctions = [
                 generateLevel5aQuestion,
                 generateLevel5bQuestion
-            ];
+    ];
 
-            // 随机选择一个题型函数
-            const randomLevelIndex = Math.floor(Math.random() * levelFunctions.length);
-            const selectedFunction = levelFunctions[randomLevelIndex];
-            
+    // 随机选择一个题型函数
+    const randomLevelIndex = Math.floor(Math.random() * levelFunctions.length);
+    const selectedFunction = levelFunctions[randomLevelIndex];
+    
             // 直接调用选择的函数生成题目
             return selectedFunction();
         }

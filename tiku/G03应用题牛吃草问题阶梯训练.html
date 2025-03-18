@@ -483,7 +483,7 @@
             <h3>玩家</h3>
             <div class="timer" id="playerTimer">时间: 0秒</div>
             <div class="question-box" id="playerQuestion"></div>
-            <input type="text" id="playerAnswer" class="answer-input" placeholder="输入你的答案" oninput="updatePreview('player')" disabled>
+            <input type="text" id="playerAnswer" class="answer-input" placeholder="输入你的答案" oninput="updatePreview('player')" disabled autocomplete="off">
             <div class="rendered-answer" id="playerRenderedAnswer"></div>
             <button id="playerSubmitBtn" onclick="checkPlayerAnswer()" disabled>提交答案</button>
             <div class="result" id="playerResult"></div>
@@ -495,12 +495,12 @@
             <div class="timer" id="computerTimer">时间: 0秒</div>
             <div class="question-box" id="computerQuestion"></div>
             <div class="computer-status" id="computerStatus">等待开始...</div>
-            <input type="text" id="computerAnswer" class="answer-input" placeholder="计算机的答案" disabled>
+            <input type="text" id="computerAnswer" class="answer-input" placeholder="计算机的答案" disabled autocomplete="off">
             <div class="rendered-answer" id="computerRenderedAnswer"></div>
             <div class="result" id="computerResult"></div>
             <div class="score" id="computerScore">正确: 0 | 错误: 0 | 总题数: 0</div>
         </div>
-    </div>
+    </div>>
     
     <div class="winner-indicator" id="roundResult"></div>
     
