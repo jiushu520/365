@@ -1124,31 +1124,50 @@
         }
         
         function copyHistory() {
-            const historyTable = document.querySelector('table');
-            let tableText = '';
-
-            // 获取表头
-            const headers = historyTable.querySelectorAll('thead th');
-            headers.forEach(header => {
-                tableText += header.innerText + '\t';
-            });
-            tableText = tableText.trim() + '\n';
-
+            // 创建历史记录的JSON对象
+            const historyData = {
+                records: [],
+                result: {}
+            };
+            
             // 获取表格内容
-            const rows = historyTable.querySelectorAll('tbody tr');
+            const rows = document.querySelectorAll('tbody tr');
             rows.forEach(row => {
                 const cells = row.querySelectorAll('td');
-                cells.forEach(cell => {
-                    // 移除MathJax的数学公式标记
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = cell.innerHTML;
-                    tableText += tempDiv.innerText + '\t';
-                });
-                tableText = tableText.trim() + '\n';
+                if(cells.length >= 7) {
+                    const record = {
+                        participant: cells[0].innerText,
+                        level: cells[1].innerText,
+                        question: cells[2].innerText.replace(/\\\(|\\\)/g, ''), // 移除\( \)标记
+                        answer: cells[3].innerText.replace(/\\\(|\\\)/g, ''),
+                        correctAnswer: cells[4].innerText.replace(/\\\(|\\\)/g, ''),
+                        result: cells[5].innerText,
+                        time: parseInt(cells[6].innerText)
+                    };
+                    historyData.records.push(record);
+                }
             });
+            
+            // 添加最终结果
+            historyData.result = {
+                playerCorrect: playerCorrectCount,
+                playerIncorrect: playerIncorrectCount,
+                playerTotal: playerTotalCount,
+                playerScore: playerCorrectCount - playerIncorrectCount,
+                computerCorrect: computerCorrectCount,
+                computerIncorrect: computerIncorrectCount,
+                computerTotal: computerTotalCount,
+                computerScore: computerCorrectCount - computerIncorrectCount,
+                gameMode: gameMode,
+                gameDuration: gameDuration,
+                difficulty: difficultyNames[currentDifficulty - 1]
+            };
+
+            // 转换为JSON字符串
+            const jsonStr = JSON.stringify(historyData, null, 2);
 
             // 复制到剪贴板
-            navigator.clipboard.writeText(tableText).then(() => {
+            navigator.clipboard.writeText(jsonStr).then(() => {
                 // 显示复制成功的提示
                 const copySuccess = document.getElementById('copy-success');
                 copySuccess.style.display = 'block';
@@ -1206,7 +1225,6 @@
             // 启用重置按钮
             document.getElementById('resetGameBtn').disabled = false;
         }
-
         // 以下是生成题目的函数，与原有代码相同
 
         function generateQuestion() {
