@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C01线性代数阶梯测试训练</title>
+    <title>C02线性代数阶梯测试训练</title>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
     <style>
@@ -439,7 +439,7 @@
 </head>
 <body>
     <div class="header">
-        <h3>C01线性代数阶梯测试训练<h3>
+        <h3>C02线性代数阶梯测试训练<h3>
     </div>
     
     <!-- 添加音效元素 -->
@@ -1793,7 +1793,7 @@ function generateLevel6Question() {
         
         // 确保至少有一个非零，且乘积的实部和虚部不会太大
     } while ((a === 0 && b === 0) || (c === 0 && d === 0) || 
-             Math.abs(a*c-b*d) > 20 || Math.abs(a*d+b*c) > 20);
+             Math.abs(a*c-b*d) > 16 || Math.abs(a*d+b*c) > 16);
 
     // 为b和d准备正确的符号显示字符串
     let bDisplay;
@@ -1865,8 +1865,8 @@ function generateLevel6Question() {
 
     // 创建SVG可视化
     // 设置SVG尺寸和中心点
-    const svgWidth = 600;
-    const svgHeight = 600;
+    const svgWidth = 520;
+    const svgHeight = 520;
     const centerX = svgWidth / 2;
     const centerY = svgHeight / 2;
     const scale = 15; // 缩放因子，将复平面坐标映射到SVG坐标
