@@ -2429,7 +2429,7 @@ function generateLevel6Question() {
     const svgHeight = 520;
     const centerX = svgWidth / 2;
     const centerY = svgHeight / 2;
-    const scale = 240/Math.sqrt(a*a + b*b); // 缩放因子
+    const scale = 200/Math.sqrt(a*a + b*b); // 缩放因子
     
     // 计算四个点的坐标
     const pointO = {
@@ -2457,9 +2457,12 @@ function generateLevel6Question() {
         y: centerY - n * scale
     };
 
+
+
     // 生成唯一ID用于SVG元素
     const svgId = "svg-level6-" + Date.now();
     const pointBId = "pointB-" + Date.now();
+    const pointFId = "pointF-" + Date.now();
 
     // 创建SVG
     const svg = `<svg id="${svgId}" width="${svgWidth}" height="${svgHeight}" style="background-color: #2c3e50; border-radius: 10px;">
@@ -2489,6 +2492,8 @@ function generateLevel6Question() {
         <circle id="pointAPrime" cx="${pointAPrime.x}" cy="${pointAPrime.y}" r="4" fill="red" />
         <text id="pointAPrimeText" x="${pointAPrime.x + 10}" y="${pointAPrime.y - 10}" fill="red" font-size="14">A'(?,?)</text>
         
+       
+        
         <!-- 绘制矩形 -->
         <line id="lineOA" x1="${pointO.x}" y1="${pointO.y}" x2="${pointA.x}" y2="${pointA.y}" stroke="white" stroke-width="1.5" />
         <line id="lineAB" x1="${pointA.x}" y1="${pointA.y}" x2="${pointB.x}" y2="${pointB.y}" stroke="white" stroke-width="1.5" />
@@ -2507,7 +2512,7 @@ function generateLevel6Question() {
                  \\
                  \\begin{array}{c}              
                  如图，已知矩形OABC中，
-                 \\\\O=(0,0), A=(${a},0), B=(${a},${b}), C=(0,${b}) 
+                 \\\\O=(0,0), A=(${a},0), B=(${a},${b}), C=(0,${b}), F=(${a},${b}) 
                  \\\\点A关于对角线OB的对称点为A' 
                  \\\\求点A'的坐标
                  \\\\如果是小数则输入小数
@@ -2524,177 +2529,11 @@ function generateLevel6Question() {
             ${svg}
         </div>
         <div id="dragInstructions" style="margin-top: 10px; color: #007bff; font-style: italic;">
-            提示: 你可以拖动蓝色点B来探索不同的情况
+
         </div>
     </div>`;
     
-    // 设置一个延时函数，在SVG渲染后添加拖动功能
-    setTimeout(() => {
-        const svgElement = document.getElementById(svgId);
-        if (!svgElement) return;
-        
-        const pointB = document.getElementById(pointBId);
-        const pointBText = document.getElementById("pointBText");
-        const pointA = document.getElementById("pointA");
-        const pointAText = document.getElementById("pointAText");
-        const pointC = document.getElementById("pointC");
-        const pointCText = document.getElementById("pointCText");
-        const pointAPrime = document.getElementById("pointAPrime");
-        const pointAPrimeText = document.getElementById("pointAPrimeText");
-        
-        const lineOA = document.getElementById("lineOA");
-        const lineAB = document.getElementById("lineAB");
-        const lineBC = document.getElementById("lineBC");
-        const lineCO = document.getElementById("lineCO");
-        const lineOB = document.getElementById("lineOB");
-        const lineAAPrime = document.getElementById("lineAAPrime");
-        
-        if (!pointB || !lineOB || !pointBText || !pointAPrimeText || !pointAPrime || !lineAAPrime) return;
-        
-        let isDragging = false;
-        
-        // 拖动开始
-        pointB.addEventListener('mousedown', startDrag);
-        pointB.addEventListener('touchstart', startDrag);
-        
-        // 拖动中
-        document.addEventListener('mousemove', drag);
-        document.addEventListener('touchmove', drag);
-        
-        // 拖动结束
-        document.addEventListener('mouseup', endDrag);
-        document.addEventListener('touchend', endDrag);
-        
-        function startDrag(e) {
-            e.preventDefault();
-            isDragging = true;
-        }
-        
-        function drag(e) {
-            if (!isDragging) return;
-            
-            e.preventDefault();
-            
-            // 获取鼠标/触摸位置
-            const svgRect = svgElement.getBoundingClientRect();
-            let clientX, clientY;
-            
-            if (e.type === 'touchmove') {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            } else {
-                clientX = e.clientX;
-                clientY = e.clientY;
-            }
-            
-            // 计算在SVG内的坐标
-            const x = clientX - svgRect.left;
-            const y = clientY - svgRect.top;
-            
-            // 更新点B的位置
-            pointB.setAttribute('cx', x);
-            pointB.setAttribute('cy', y);
-            
-            // 计算新的坐标相对于中心点的位置
-            const newBX = Math.round((x - centerX) / scale);
-            const newBY = Math.round((centerY - y) / scale);
-            
-            // 保持A的x坐标和B的x坐标相同（矩形特性）
-            const newAX = newBX;
-            const newAY = 0; // A点始终在x轴上
-            
-            // 保持C的y坐标和B的y坐标相同（矩形特性）
-            const newCX = 0; // C点始终在y轴上
-            const newCY = newBY;
-            
-            // 更新A点位置
-            const pointAX = centerX + newAX * scale;
-            const pointAY = centerY - newAY * scale;
-            pointA.setAttribute('cx', pointAX);
-            pointA.setAttribute('cy', pointAY);
-            
-            // 更新点C位置
-            const pointCX = centerX + newCX * scale;
-            const pointCY = centerY - newCY * scale;
-            pointC.setAttribute('cx', pointCX);
-            pointC.setAttribute('cy', pointCY);
-            
-            // 更新点B文本显示
-            pointBText.setAttribute('x', x + 10);
-            pointBText.setAttribute('y', y - 10);
-            pointBText.textContent = `B(${newBX},${newBY})`;
-            
-            // 更新点A文本显示
-            pointAText.setAttribute('x', pointAX + 10);
-            pointAText.setAttribute('y', pointAY + 20);
-            pointAText.textContent = `A(${newAX},0)`;
-            
-            // 更新点C文本显示
-            pointCText.setAttribute('x', pointCX - 40);
-            pointCText.setAttribute('y', pointCY - 10);
-            pointCText.textContent = `C(0,${newCY})`;
-            
-            // 重新计算A'的坐标
-            const newAPrimeCoords = calculateAprimeCoordinates(newAX, newAY, newBX, newBY);
-            const newAPrimeX = newAPrimeCoords.m;
-            const newAPrimeY = newAPrimeCoords.n;
-            
-            // 更新点A'的位置
-            const pointAPrimeX = centerX + newAPrimeX * scale;
-            const pointAPrimeY = centerY - newAPrimeY * scale;
-            pointAPrime.setAttribute('cx', pointAPrimeX);
-            pointAPrime.setAttribute('cy', pointAPrimeY);
-            
-            // 更新点A'的文本位置
-            pointAPrimeText.setAttribute('x', pointAPrimeX + 10);
-            pointAPrimeText.setAttribute('y', pointAPrimeY - 10);
-            pointAPrimeText.textContent = `A'(?,?)`;
-            
-            // 更新所有线段
-            lineOA.setAttribute('x2', pointAX);
-            lineOA.setAttribute('y2', pointAY);
-            
-            lineAB.setAttribute('x1', pointAX);
-            lineAB.setAttribute('y1', pointAY);
-            lineAB.setAttribute('x2', x);
-            lineAB.setAttribute('y2', y);
-            
-            lineBC.setAttribute('x1', x);
-            lineBC.setAttribute('y1', y);
-            lineBC.setAttribute('x2', pointCX);
-            lineBC.setAttribute('y2', pointCY);
-            
-            lineCO.setAttribute('x1', pointCX);
-            lineCO.setAttribute('y1', pointCY);
-            
-            lineOB.setAttribute('x2', x);
-            lineOB.setAttribute('y2', y);
-            
-            lineAAPrime.setAttribute('x1', pointAX);
-            lineAAPrime.setAttribute('y1', pointAY);
-            lineAAPrime.setAttribute('x2', pointAPrimeX);
-            lineAAPrime.setAttribute('y2', pointAPrimeY);
-            
-            // 更新正确答案
-            correctAnswer = formatAnswer(newAPrimeX, newAPrimeY);
-            
-            // 验证矩形条件
-            const isValidRectangle = (newBX !== 0 && newBY !== 0);
-            if (!isValidRectangle) {
-                pointBText.setAttribute('fill', 'orange');
-                document.getElementById('dragInstructions').textContent = '警告: 请确保B点不在坐标轴上，以保持矩形性质';
-                document.getElementById('dragInstructions').style.color = 'orange';
-            } else {
-                pointBText.setAttribute('fill', 'lightblue');
-                document.getElementById('dragInstructions').textContent = '提示: 你可以拖动蓝色点B来探索不同的情况';
-                document.getElementById('dragInstructions').style.color = '#007bff';
-            }
-        }
-        
-        function endDrag() {
-            isDragging = false;
-        }
-    }, 500);
+ 
 
     return result;
 }
