@@ -915,13 +915,19 @@
             // 使用 toHalfWidth 函数将用户输入转换为半角字符
             const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
             
-            // 对于正数答案，同时接受带"+"号和不带"+"号的形式
-            const normalizedCorrectAnswers = playerCorrectAnswer.map(answer => {
-                const num = parseInt(answer);
-                if (num > 0) {
-                    return [answer, `+${answer}`]; // 正数同时接受带"+"号和不带"+"号的形式
+            // 对于正数答案和分数答案进行处理
+            const normalizedCorrectAnswers = playerCorrectAnswer.flat().map(answer => {
+                // 如果是分数形式，直接使用原格式
+                if (typeof answer === 'string' && answer.includes('/')) {
+                    return answer;
                 }
-                return [answer]; // 负数只接受一种形式
+                
+                // 尝试解析为数字
+                const num = parseInt(answer);
+                if (!isNaN(num) && num > 0) {
+                    return [`${answer}`, `+${answer}`]; // 正数同时接受带"+"号和不带"+"号的形式
+                }
+                return answer; // 负数和其他格式保持不变
             }).flat();
             
             // 检查答案是否正确
@@ -1499,29 +1505,32 @@
     numerator = numerator / divisor;
     denominator = denominator / divisor;
     
-    // 处理负号
-    if (denominator < 0) {
-        numerator = -numerator;
-        denominator = -denominator;
-    }
+
+
+
+
+  // 构建答案
+  let answer;
     
-    // 构建答案
-    let answer;
-    let alternativeAnswer = null;
-    
-    if (denominator === 1) {
-        answer = `${numerator}`;
+    if (Math.abs(denominator) === 1) {
+        answer = `${numerator/denominator}`;
     } else {
-        if (numerator < 0) {
+        if (denominator*numerator < 0) {
             // 负分数有两种表示方式
-            answer = `\\frac{${numerator}}{${denominator}}`; // 在分子内的负号
-            alternativeAnswer = `-\\frac{${Math.abs(numerator)}}{${denominator}}`; // 在分数外的负号
+            answer = [`\\frac{-${Math.abs(numerator)}}{${Math.abs(denominator)}}`, `-\\frac{${Math.abs(numerator)}}{${Math.abs(denominator)}}`, `-${Math.abs(numerator)}/${Math.abs(denominator)}`]; // 在分子内的负号
         } else {
-            answer = `\\frac{${numerator}}{${denominator}}`;
+            answer = [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
         }
     }
     
-    correctAnswer = alternativeAnswer ? [answer, alternativeAnswer] : [answer];
+    correctAnswer =  [answer];
+
+
+
+
+
+
+
 
     // 创建SVG可视化
     // 设置SVG尺寸和坐标系
@@ -1661,22 +1670,22 @@ function generateLevel3Question() {
     }
     
     // 构建答案
-    let answer;
-    let alternativeAnswer = null;
+// 构建答案
+let answer;
     
-    if (denominator === 1) {
-        answer = `${numerator}`;
+    if (Math.abs(denominator) === 1) {
+        answer = `${numerator/denominator}`;
     } else {
-        if (numerator < 0) {
+        if (denominator*numerator < 0) {
             // 负分数有两种表示方式
-            answer = `\\frac{${numerator}}{${denominator}}`; // 在分子内的负号
-            alternativeAnswer = `-\\frac{${Math.abs(numerator)}}{${denominator}}`; // 在分数外的负号
+            answer = [`\\frac{-${Math.abs(numerator)}}{${Math.abs(denominator)}}`, `-\\frac{${Math.abs(numerator)}}{${Math.abs(denominator)}}`, `-${Math.abs(numerator)}/${Math.abs(denominator)}`]; // 在分子内的负号
         } else {
-            answer = `\\frac{${numerator}}{${denominator}}`;
+            answer = [`\\frac{${numerator}}{${denominator}}`, `${numerator}/${denominator}`];
         }
     }
     
-    correctAnswer = alternativeAnswer ? [answer, alternativeAnswer] : [answer];
+    correctAnswer =  [answer];
+
 
     // 创建SVG可视化
     // 设置SVG尺寸和坐标系
