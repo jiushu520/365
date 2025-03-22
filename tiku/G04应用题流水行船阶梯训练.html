@@ -1425,33 +1425,35 @@ function generateLevel4Question() {
 
 
 function generateLevel5Question() {
-    let a = Math.floor(Math.random() * 20) + 20; // 静水速度
-    let b = Math.floor(Math.random() * (a - 10)) + 10; // 水流速度
+    let a = Math.floor(Math.random() * 10) + 10; // 静水速度
+    let b = Math.floor(Math.random() * (6)) + 1; // 水流速度
     let c = a + b; // 顺流速度
-    let d = Math.abs(a - b); // 逆流速度
+    let d = a - b; // 逆流速度
 
-    // 计算顺流和逆流速度的最小公倍数
-    let commonMultiple = lcm(c, d);
+    // 计算顺流和逆流速度和漂流速度的最小公倍数
+    let commonMultiple = lcm(d,lcm(b,c));
 
-    let t = Math.floor(Math.random() * 5) + 2; // 时间
+    let t = Math.floor(Math.random() * 3) + 1; // 时间
 
     let totalDistance = commonMultiple * t; // 总距离
 
     // 计算顺流和逆流时间
-    let downstreamTime = Math.round(totalDistance / c); // 顺流时间
-    let upstreamTime = Math.round(totalDistance / d);   // 逆流时间
+    let downstreamTime = totalDistance / c; // 顺流时间
+    let upstreamTime = totalDistance / d;   // 逆流时间
+    let 漂流时间 = totalDistance / b;   // 漂流时间
 
     // 生成问题文本
     let textq = `\\begin{array}{cc} 
                 一条河上广州到玖数学堂两地相距${totalDistance}千米;\\\\ 
                 一艘船顺流而下需要${downstreamTime}小时;\\\\ 
                 一艘船逆流而上需要${upstreamTime}小时;\\\\ 
-                如果从上流放一个漂流瓶需要几小时到达下流？\\\\
+                如果从广州放一个漂流瓶需要几小时到达玖数学堂？\\\\
                 \\end{array}`;
 
     // 正确答案是顺流时间
-    correctAnswer = [`${downstreamTime}`]; 
+    correctAnswer = [`${漂流时间}`]; 
     return `\\( ${textq} \\)`;
+
 }
 
 
