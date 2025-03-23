@@ -575,7 +575,8 @@
             "06复数乘法",
             "07空间法向量",
             "08矩阵变换",
-            "09综合测试"
+            "09正交矩阵变换",
+            "10综合测试"
         ];
 
         // 初始化
@@ -583,8 +584,8 @@
             generateDifficultyButtons();
             setDifficulty(1);
             updateCountdownDisplay();
-            switchMode('pk'); // 默认PK模式
-            selectThinkingDifficulty('easy'); // 默认为容易难度
+            switchMode('self'); // 默认PK模式
+            selectThinkingDifficulty('hard'); // 默认为容易难度
         });
 
         // 切换游戏模式
@@ -1241,6 +1242,7 @@
                 case 7: return generateLevel7Question();
                 case 8: return generateLevel8Question();
                 case 9: return generateLevel9Question();
+                case 10: return generateLevel10Question();
                 default: return "";
             }
         }
@@ -1271,7 +1273,7 @@
 \\)`;
 
     // 创建SVG坐标系
-    const svgSize = 600;
+    const svgSize = 480;
     const center = svgSize / 2;
     const scale = 15;
     
@@ -1305,8 +1307,7 @@
         <!-- 绘制平行四边形 -->
         <polygon points="${svgO.x},${svgO.y} ${svgA.x},${svgA.y} ${svgC.x},${svgC.y} ${svgD.x},${svgD.y}" fill="rgba(0,100,255,0.2)" stroke="blue" stroke-width="2" />
         
-        <!-- 标记行列式区域 -->
-        <text x="${center}" y="${center - 100}" text-anchor="middle" font-size="18" fill="red">行列式值: ${k}</text>
+
         
         <!-- 标记点 -->
         <circle cx="${svgO.x}" cy="${svgO.y}" r="5" fill="red" />
@@ -1362,7 +1363,7 @@
     let textq = `  (${a} ,${b}) \\cdot (${m},${n})`;
 
     // 创建SVG坐标系
-    const svgSize = 400;
+    const svgSize = 480;
     const center = svgSize / 2;
     const scale = 15;
     
@@ -1468,7 +1469,7 @@
         let k = (a * n) - (b * m);
 
         // 创建SVG坐标系 - 扩大画布为两倍大小
-        const svgSize = 600; // 从300扩大到600
+        const svgSize = 480; // 从300扩大到480
         const center = svgSize / 2;
         const scale = 15; // 保持缩放因子，使±18的范围适应600px的SVG
         
@@ -1558,7 +1559,7 @@ function generateLevel4Question() {
     let z = c / d;  // 正切值
     
     // 创建SVG坐标系
-    const svgSize = 400;
+    const svgSize = 480;
     const center = svgSize / 2;
     const scale = 15;
     
@@ -1672,7 +1673,7 @@ function generateLevel5Question() {
     let z = c / d;  // 正切值
 
     // 创建SVG坐标系
-    const svgSize = 400;
+    const svgSize = 480;
     const center = svgSize / 2;
     const scale = 15;
     
@@ -1762,9 +1763,10 @@ function generateLevel5Question() {
 天命人以点 O (0,0)为圆心打怪，\\\\
 金箍棒头从点A (${a}, ${b})打到点B (${m}, ${n}) \\\\
 那么天命人抡了角度为\\angle AOB \\\\
-则 \\tan \\angle AOB 是多少？ \\\\ 
-如果是分数输入最简假分数 \\\\ 例:\\frac{1}{2}输入格式:\\textup{\\ frac{1}{2}} 
+则 \\tan \\angle AOB 是多少？
+\\\\如果是分数输入最简假分数 \\\\ 例:\\frac{1}{2}输入格式:\\textup{\\ frac{1}{2}} 
 \\end{array} 
+
     \\]`;
   
     // 生成正确答案
@@ -1777,7 +1779,9 @@ function generateLevel5Question() {
         <div>
             ${svg}
         </div>
-    </div>`;
+   </div>`;
+
+
 }
 
 function generateLevel6Question() {
@@ -1999,13 +2003,13 @@ function generateLevel8Question() {
 
 
     let textq = `\\(\\begin{array}{cc} \\huge 
-               \\left ( \\begin{array}{rr} 
+               \\left [ \\begin{array}{rr} 
               
                  ${a} & ${b} \\\\ 
                  ${c} & ${d} \\\\  
                  
                  \\end{array}
-               \\right )
+               \\right ]
                \\left (             
                \\huge  \\begin{array}{r}
               
@@ -2026,7 +2030,104 @@ function generateLevel8Question() {
     correctAnswer = [`(${x},${y})`]
     return ` ${textq}  `;
 }       
-        function generateLevel9Question() {
+
+
+function generateLevel9Question() {
+    let a = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let b = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+
+    // Ensure a^2 + b^2 > 0
+    while (a*a + b*b === 0) {
+        a = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+        b = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    }
+
+    let c = -b;
+    let d = a;
+
+    let m = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let n = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let x =a*m+b*n;
+    let y =c*m+d*n;
+
+    // Create SVG for vector visualization
+    const svgSize = 480;
+    const center = svgSize / 2;
+    const scale = 15; // Scale factor for vector display
+    
+    // Create SVG element
+    let svg = `<svg width="${svgSize}" height="${svgSize}" style="background: #f9f9f9; margin: 20px auto; display: block;">
+        <!-- Coordinate axes -->
+        <line x1="0" y1="${center}" x2="${svgSize}" y2="${center}" stroke="black" stroke-width="1" />
+        <line x1="${center}" y1="0" x2="${center}" y2="${svgSize}" stroke="black" stroke-width="1" />
+        
+        <!-- Grid lines -->
+        <g stroke="#ddd" stroke-width="0.5">
+            ${Array.from({length: svgSize/scale}, (_, i) => 
+                `<line x1="0" y1="${center + i*scale}" x2="${svgSize}" y2="${center + i*scale}" />
+                <line x1="0" y1="${center - i*scale}" x2="${svgSize}" y2="${center - i*scale}" />
+                <line x1="${center + i*scale}" y1="0" x2="${center + i*scale}" y2="${svgSize}" />
+                <line x1="${center - i*scale}" y1="0" x2="${center - i*scale}" y2="${svgSize}" />`
+            ).join('')}
+        </g>
+        
+
+        <line x1="${center}" y1="${center}" x2="${center + a*scale}" y2="${center - b*scale}" stroke="blue" stroke-width="1" stroke-dasharray="5,3" />
+        <circle cx="${center + a*scale}" cy="${center - b*scale}" r="3" fill="blue" />
+        <text x="${center + a*scale + 10}" y="${center - b*scale}" fill="blue">(${a},${b})</text>
+        
+        <!-- Vector (c,d) in green -->
+        <line x1="${center}" y1="${center}" x2="${center + c*scale}" y2="${center - d*scale}" stroke="green" stroke-width="1" stroke-dasharray="5,3" />
+        <circle cx="${center + c*scale}" cy="${center - d*scale}" r="3" fill="green" />
+        <text x="${center + c*scale + 10}" y="${center - d*scale}" fill="green">(${c},${d})</text>
+        
+        <!-- Vector (m,n) in red -->
+        <line x1="${center}" y1="${center}" x2="${center + m*scale}" y2="${center - n*scale}" stroke="red" stroke-width="1" />
+        <circle cx="${center + m*scale}" cy="${center - n*scale}" r="3" fill="red" />
+        <text x="${center + m*scale + 10}" y="${center - n*scale}" fill="red">(${m},${n})</text>
+        
+       
+    </svg>`;
+
+    let textq = `\\(\\begin{array}{cc} \\huge 
+               \\left [ \\begin{array}{rr} 
+              
+                 ${a} & ${b} \\\\ 
+                 ${c} & ${d} \\\\  
+                 
+                 \\end{array}
+               \\right ]
+               \\left (             
+               \\huge  \\begin{array}{r}
+              
+                 ${m}  \\\\ 
+                 ${n}  \\\\  
+                 
+                 \\end{array}
+                   \\right )=?
+                   \\
+                 \\\\
+                                      \\end{array}
+               \\)`;
+input格式:(a,b);
+
+    correctAnswer = [`(${x},${y})`]
+    // 返回完整的HTML，包含问题和SVG
+    return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+输入格式:(a,b) 
+    </div>`;
+
+
+}       
+
+
+        function generateLevel10Question() {
             const levelFunctions = [
                 generateLevel1Question,
                 generateLevel2Question,
@@ -2036,6 +2137,7 @@ function generateLevel8Question() {
                 generateLevel6Question,
                 generateLevel7Question,
                 generateLevel8Question,
+                generateLevel9Question,
             ];
 
             const randomIndex = Math.floor(Math.random() * levelFunctions.length);

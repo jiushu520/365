@@ -561,10 +561,10 @@
         let countdownTimer;
         
         // 新增思考时间难度变量
-        let computerThinkingDifficulty = 'easy'; // 默认为容易，可选值: 'easy'(容易)、'medium'(中等)、'hard'(困难)
+        let computerThinkingDifficulty = 'hard'; // 默认为困难难度
         
         // 新增游戏模式变量
-        let gameMode = 'pk'; // 默认为PK模式，可选值: 'self'(自学练习) 或 'pk'(PK模式)
+        let gameMode = 'self'; // 默认为self模式
 
         const difficultyNames = [
         "01首项系数为1",
@@ -583,8 +583,8 @@
             generateDifficultyButtons();
             setDifficulty(1);
             updateCountdownDisplay();
-            switchMode('pk'); // 默认PK模式
-            selectThinkingDifficulty('easy'); // 默认为容易难度
+            switchMode('self'); // 默认self模式
+            selectThinkingDifficulty('hard'); // 默认为困难难度
         });
 
         // 切换游戏模式

@@ -582,7 +582,7 @@
             generateDifficultyButtons();
             setDifficulty(1);
             updateCountdownDisplay();
-            switchMode('pk'); // 默认PK模式
+            switchMode('self'); // 默认PK模式
             selectThinkingDifficulty('easy'); // 默认为容易难度
         });
 
@@ -1366,78 +1366,11 @@
 
     let textq = `\\(\\begin{array}{cc} \\huge (${vector1}) + (${vector2}) = ? \\end{array}\\)`;
 
-    // 创建SVG坐标系
-    const svgSize = 600;
-    const center = svgSize / 2;
-    const scale = 15;
-    
-    // 计算平行四边形的四个点坐标
-    const pointO = {x: 0, y: 0};
-    const pointA = {x: a, y: b};
-    const pointC = {x: a + m, y: b + n};
-    const pointD = {x: m, y: n};
-    
-    // 转换为SVG坐标系（原点在中心，y轴向上为正）
-    const svgO = {x: center + pointO.x * scale, y: center - pointO.y * scale};
-    const svgA = {x: center + pointA.x * scale, y: center - pointA.y * scale};
-    const svgC = {x: center + pointC.x * scale, y: center - pointC.y * scale};
-    const svgD = {x: center + pointD.x * scale, y: center - pointD.y * scale};
-    
-    // 创建SVG元素
-    const svg = `
-    <svg width="${svgSize}" height="${svgSize}" style="background-color: #f9f9f9; margin: 0 auto; display: block;">
-        <!-- 绘制坐标轴 -->
-        <line x1="0" y1="${center}" x2="${svgSize}" y2="${center}" stroke="black" stroke-width="1" />
-        <line x1="${center}" y1="0" x2="${center}" y2="${svgSize}" stroke="black" stroke-width="1" />
-        
-        <!-- 绘制刻度，范围从-18到18 -->
-        ${Array.from({length: 37}, (_, i) => i - 18).map(i => 
-            `<line x1="${center + i * scale}" y1="${center - 3}" x2="${center + i * scale}" y2="${center + 3}" stroke="black" stroke-width="1" />
-             ${i % 3 === 0 ? `<text x="${center + i * scale}" y="${center + 15}" text-anchor="middle" font-size="10">${i}</text>` : ''}
-             <line x1="${center - 3}" y1="${center - i * scale}" x2="${center + 3}" y2="${center - i * scale}" stroke="black" stroke-width="1" />
-             ${i % 3 === 0 ? `<text x="${center - 15}" y="${center - i * scale + 3}" text-anchor="end" font-size="10">${i}</text>` : ''}`
-        ).join('')}
-        
-        <!-- 绘制平行四边形 -->
-        <polygon points="${svgO.x},${svgO.y} ${svgA.x},${svgA.y} ${svgC.x},${svgC.y} ${svgD.x},${svgD.y}" fill="rgba(0,100,255,0.2)" stroke="blue" stroke-width="2" />
-        
-        <!-- 标记结果 -->
-        <text x="${center}" y="${center - 100}" text-anchor="middle" font-size="18" fill="red">${resultVector}</text>
-        
-        <!-- 标记点 -->
-        <circle cx="${svgO.x}" cy="${svgO.y}" r="5" fill="red" />
-        <text x="${svgO.x + 8}" y="${svgO.y - 8}" font-size="14">O(0,0)</text>
-        
-        <circle cx="${svgA.x}" cy="${svgA.y}" r="5" fill="red" />
-        <text x="${svgA.x + 8}" y="${svgA.y - 8}" font-size="14">A(${vector1})</text>
-        
-        <circle cx="${svgC.x}" cy="${svgC.y}" r="5" fill="red" />
-        <text x="${svgC.x + 8}" y="${svgC.y - 8}" font-size="14">C(${resultVector})</text>
-        
-        <circle cx="${svgD.x}" cy="${svgD.y}" r="5" fill="red" />
-        <text x="${svgD.x + 8}" y="${svgD.y - 8}" font-size="14">D(${vector2})</text>
-        
-        <!-- 绘制向量 -->
-        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgA.x}" y2="${svgA.y}" stroke="green" stroke-width="2" marker-end="url(#arrowhead)" />
-        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgD.x}" y2="${svgD.y}" stroke="purple" stroke-width="2" marker-end="url(#arrowhead)" />
-        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgC.x}" y2="${svgC.y}" stroke="red" stroke-width="2" marker-end="url(#arrowhead)" />
-        
-        <!-- 箭头定义 -->
-        <defs>
-            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
-                <polygon points="0 0, 10 3.5, 0 7" />
-            </marker>
-        </defs>
-    </svg>`;
-
     correctAnswer = [`(${resultVector})`, resultVector]; // 设置正确答案
     
     return `<div style="display: flex; flex-direction: column; align-items: center;">
         <div style="margin-bottom: 20px;">
             ${textq}
-        </div>
-        <div>
-            ${svg}
         </div>
     </div>`;
 }
