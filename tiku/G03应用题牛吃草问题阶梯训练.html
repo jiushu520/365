@@ -461,6 +461,473 @@
     <div class="game-options" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin: 10px 0;">
         <div style="display: flex; align-items: center; margin: 0 10px;">
 
+            <button id="timer5min" class="timer-btn" onclick="selectGameDuration(5)">5分钟</button>
+            <button id="timer10min" class="timer-btn active" onclick="selectGameDuration(10)">10分钟</button>
+        </div>
+        
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G03应用题牛吃草问题阶梯训练</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .header {
+            text-align: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .pk-container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            justify-content: space-between;
+        }
+
+        .player-container, .computer-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 48%;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .player-container {
+            background-color: #f0f8ff; /* Light blue for player */
+        }
+
+        .computer-container {
+            background-color: #fff0f0; /* Light red for computer */
+        }
+
+        .vs-indicator {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            background-color: #ffcc00;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        .difficulty-buttons {
+            margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .difficulty-buttons button {
+            margin: 5px;
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+        }
+
+        .difficulty-buttons button.active {
+            background-color: #45a049;
+            color: white;
+        }
+
+        .question-box {
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: white;
+            width: 90%;
+        }
+
+        .answer-input {
+            padding: 10px;
+            font-size: 16px;
+            width: 80%;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .timer {
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .computer-status {
+            margin: 10px 0;
+            font-style: italic;
+            min-height: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .result {
+            min-height: 20px;
+            margin: 10px 0;
+        }
+
+        .score {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        .rendered-answer {
+            margin-top: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 80%;
+            min-height: 30px;
+            background-color: white;
+        }
+
+        .history-container {
+            margin-top: 30px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .copy-button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+        }
+
+        .copy-button:hover {
+            background-color: #218838;
+        }
+
+        #copy-success {
+            display: none;
+            margin-top: 10px;
+            color: green;
+            font-size: 14px;
+        }
+        
+        .winner-indicator {
+            font-weight: bold;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        
+        .player-win {
+            color: blue;
+        }
+        
+        .computer-win {
+            color: red;
+        }
+        
+        .tie {
+            color: purple;
+        }
+        
+        .player-row {
+            background-color: rgba(240, 248, 255, 0.3);
+        }
+        
+        .computer-row {
+            background-color: rgba(255, 240, 240, 0.3);
+        }
+        
+        /* 新增攻击效果相关样式 */
+        .shockwave {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(0.1);
+            box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.7);
+        }
+        
+        .player-attack {
+            animation: shockwave-player 1s ease-out forwards;
+        }
+        
+        .computer-attack {
+            animation: shockwave-computer 1s ease-out forwards;
+        }
+        
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shockwave-player {
+            0% {
+                opacity: 1;
+                transform: scale(0.1);
+                background: radial-gradient(circle, rgba(0,100,255,0.8) 0%, rgba(0,100,255,0) 70%);
+                box-shadow: 0 0 20px 10px rgba(0, 100, 255, 0.7);
+                left: 35%;
+                top: 50%;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(2);
+                background: radial-gradient(circle, rgba(0,100,255,0.2) 0%, rgba(0,100,255,0) 70%);
+                box-shadow: 0 0 40px 20px rgba(0, 100, 255, 0.3);
+                left: 80%;
+                top: 50%;
+            }
+        }
+        
+        @keyframes shockwave-computer {
+            0% {
+                opacity: 1;
+                transform: scale(0.1);
+                background: radial-gradient(circle, rgba(255,0,0,0.8) 0%, rgba(255,0,0,0) 70%);
+                box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.7);
+                left: 65%;
+                top: 50%;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(2);
+                background: radial-gradient(circle, rgba(255,0,0,0.2) 0%, rgba(255,0,0,0) 70%);
+                box-shadow: 0 0 40px 20px rgba(255, 0, 0, 0.3);
+                left: 20%;
+                top: 50%;
+            }
+        }
+        
+        @keyframes shake {
+            0%, 100% {transform: translateX(0);}
+            10%, 30%, 50%, 70%, 90% {transform: translateX(-5px);}
+            20%, 40%, 60%, 80% {transform: translateX(5px);}
+        }
+        
+        /* 显示对诮语句的样式 */
+        .taunt-bubble {
+            position: absolute;
+            background-color: white;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 101;
+            opacity: 0;
+            animation: show-taunt 2s ease-out forwards;
+            min-width: 120px;
+            text-align: center;
+        }
+        
+        .taunt-bubble::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border: 10px solid transparent;
+        }
+        
+        .player-taunt {
+            top: 20%;
+            left: 25%;
+        }
+        
+        .player-taunt::before {
+            border-left-color: #333;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .computer-taunt {
+            top: 20%;
+            right: 25%;
+        }
+        
+        .computer-taunt::before {
+            border-right-color: #333;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        @keyframes show-taunt {
+            0% {opacity: 0; transform: translateY(20px);}
+            20% {opacity: 1; transform: translateY(0);}
+            80% {opacity: 1; transform: translateY(0);}
+            100% {opacity: 0; transform: translateY(-20px);}
+        }
+        
+        @media (max-width: 768px) {
+            .pk-container {
+                flex-direction: column;
+            }
+            
+            .player-container, .computer-container {
+                width: 90%;
+                margin-bottom: 30px;
+            }
+        }
+
+        .timer-btn {
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+            color: white;
+            margin: 0 5px;
+        }
+        
+        .timer-btn.active {
+            background-color: #45a049;
+        }
+
+        /* 模式切换按钮样式 */
+        .mode-switch {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        
+        .mode-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+            color: white;
+            margin: 0 10px;
+        }
+        
+        .mode-btn.active {
+            background-color: #45a049;
+        }
+        
+        /* 自学模式下的全宽玩家容器 */
+        .player-container.full-width {
+            width: 100%;
+        }
+        
+        /* 历史记录上方按钮行 */
+        .history-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        
+        /* 响应式布局下的历史记录按钮 */
+        @media (max-width: 768px) {
+            .history-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .mode-switch {
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h3>G03应用题牛吃草问题阶梯训练</h3>
+    </div>    
+    <!-- 添加音效元素 -->
+    <audio id="playerAttackSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2073/2073-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="computerAttackSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/1293/1293-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="correctSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="wrongSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2691/2691-preview.mp3" type="audio/mpeg">
+    </audio>
+    
+    <div class="difficulty-buttons" id="difficultyButtons"></div>
+    
+    <!-- 游戏选项布局修改为一行 -->
+    <div class="game-options" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin: 10px 0;">
+        <div style="display: flex; align-items: center; margin: 0 10px;">
+
             <button id="timer5min" class="timer-btn active" onclick="selectGameDuration(5)">5分钟</button>
             <button id="timer10min" class="timer-btn" onclick="selectGameDuration(10)">10分钟</button>
         </div>

@@ -461,9 +461,8 @@
     <!-- 游戏选项布局修改为一行 -->
     <div class="game-options" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin: 10px 0;">
         <div style="display: flex; align-items: center; margin: 0 10px;">
-
-            <button id="timer5min" class="timer-btn active" onclick="selectGameDuration(5)">5分钟</button>
-            <button id="timer10min" class="timer-btn" onclick="selectGameDuration(10)">10分钟</button>
+            <button id="timer5min" class="timer-btn" onclick="selectGameDuration(5)">5分钟</button>
+            <button id="timer10min" class="timer-btn active" onclick="selectGameDuration(10)">10分钟</button>
         </div>
         
         <div style="display: flex; align-items: center; margin: 0 10px;">
@@ -556,8 +555,8 @@
         let computerThinkingTimers = [];
         
         // 新增倒计时变量
-        let gameDuration = 5; // 默认5分钟
-        let countdownTime = 5 * 60; // 默认5分钟，单位为秒
+        let gameDuration = 10; // 默认10分钟
+        let countdownTime = 10 * 60; // 默认10分钟，单位为秒
         let countdownTimer;
         
         // 新增思考时间难度变量
