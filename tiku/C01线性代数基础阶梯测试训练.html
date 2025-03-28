@@ -570,11 +570,13 @@
             "01向量加减法",
             "02复数加减法", 
             "03数乘向量",
-            "04数乘复数",
-            "05向量的线性组合",
-            "06共线向量",
-            "07复数乘法",
-            "07综合"
+            "04复数点乘",
+            "05数乘复数",
+            "06向量的线性组合",
+            "07正交分解",
+            "08共线向量",
+            "09复数乘法",
+            "10综合"
         ];
 
         // 初始化
@@ -1595,6 +1597,106 @@
 
 
 
+    function generateLevel4Question() {
+    // 生成向量分量，确保投影坐标为整数
+    let a, b, m, n, k, lenSquared;
+    do {
+        a = (Math.floor(Math.random() * 10) + 4)* (Math.random() > 0.5 ? 1 : -1);
+        b = (Math.floor(Math.random() * 10) + 4)* (Math.random() > 0.5 ? 1 : -1);
+        m = (Math.floor(Math.random() * 10) + 4)* (Math.random() > 0.5 ? 1 : -1);
+        n = (Math.floor(Math.random() * 10) + 4)* (Math.random() > 0.5 ? 1 : -1);
+        k = (a * m) + (b * n);
+        lenSquared = m * m + n * n;
+    } while (k % lenSquared !== 0||a*n-b*m===0);
+
+    // 投影坐标（此时必为整数）
+    const projX = (k / lenSquared) * m;
+    const projY = (k / lenSquared) * n;
+
+    // 题目文本：求投影坐标
+    let textq = `\\(\\begin{array}{cc}  求向量 OA(${a},${b}) 在向量 OB(${m},${n}) 上的投影坐标。\\\\
+                     输入格式 (x,y)                                                                                   
+                    \\end{array}\\)`;
+
+    // 创建SVG坐标系
+    const svgSize = 480;
+    const center = svgSize / 2;
+    const scale = 15;
+    
+    // 计算点坐标
+    const pointO = {x: 0, y: 0};
+    const pointA = {x: a, y: b};
+    const pointB = {x: m, y: n};
+    const pointD = {x: projX, y: projY}; // 直接使用投影坐标
+    
+    // 转换为SVG坐标系
+    const svgO = {x: center + pointO.x * scale, y: center - pointO.y * scale};
+    const svgA = {x: center + pointA.x * scale, y: center - pointA.y * scale};
+    const svgB = {x: center + pointB.x * scale, y: center - pointB.y * scale};
+    const svgD = {x: center + pointD.x * scale, y: center - pointD.y * scale};
+    
+    // 创建SVG元素
+    const svg = `
+    <svg width="${svgSize}" height="${svgSize}" style="background-color: #f9f9f9; margin: 0 auto; display: block;">
+        <!-- 绘制坐标轴 -->
+        <line x1="0" y1="${center}" x2="${svgSize}" y2="${center}" stroke="black" stroke-width="1" />
+        <line x1="${center}" y1="0" x2="${center}" y2="${svgSize}" stroke="black" stroke-width="1" />
+        
+        <!-- 绘制刻度 -->
+        ${Array.from({length: 37}, (_, i) => i - 18).map(i => 
+            `<line x1="${center + i * scale}" y1="${center - 3}" x2="${center + i * scale}" y2="${center + 3}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center + i * scale}" y="${center + 15}" text-anchor="middle" font-size="10">${i}</text>` : ''}
+             <line x1="${center - 3}" y1="${center - i * scale}" x2="${center + 3}" y2="${center - i * scale}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center - 15}" y="${center - i * scale + 3}" text-anchor="end" font-size="10">${i}</text>` : ''}`
+        ).join('')}
+        
+        <!-- 绘制向量和直线 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgA.x}" y2="${svgA.y}" stroke="green" stroke-width="2" marker-end="url(#arrowhead)" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgB.x}" y2="${svgB.y}" stroke="blue" stroke-width="2" marker-end="url(#arrowhead)" />
+        <line x1="${svgA.x}" y1="${svgA.y}" x2="${svgD.x}" y2="${svgD.y}" stroke="purple" stroke-width="2" stroke-dasharray="5,5" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgD.x}" y2="${svgD.y}" stroke="purple" stroke-width="2" stroke-dasharray="5,5" />
+        
+        <!-- 标记点 -->
+        <circle cx="${svgO.x}" cy="${svgO.y}" r="5" fill="red" />
+        <text x="${svgO.x + 8}" y="${svgO.y - 8}" font-size="14">O(0,0)</text>
+        
+        <circle cx="${svgA.x}" cy="${svgA.y}" r="5" fill="green" />
+        <text x="${svgA.x + 8}" y="${svgA.y - 8}" font-size="14">A(${a},${b})</text>
+        
+        <circle cx="${svgB.x}" cy="${svgB.y}" r="5" fill="blue" />
+        <text x="${svgB.x + 8}" y="${svgB.y - 8}" font-size="14">B(${m},${n})</text>
+        
+        <circle cx="${svgD.x}" cy="${svgD.y}" r="5" fill="purple" />
+        <text x="${svgD.x + 12}" y="${svgD.y - 12}" font-size="14"></text>
+        
+        <!-- 箭头定义 -->
+        <defs>
+            <marker id="arrowhead" markerWidth="5" markerHeight="5" refX="5" refY="2.5" orient="auto">
+                <polygon points="0 0, 5 2.5, 0 5" />
+            </marker>
+        </defs>
+    </svg>`;
+
+    // 正确答案：投影坐标
+    correctAnswer = [`(${projX}, ${projY})`];
+    return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+    </div>`;
+}
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1605,7 +1707,7 @@ function gcd(a, b) {
     return gcd(b, a % b);
 }
 
-function generateLevel4Question() {
+function generateLevel5Question() {
     // 生成复数的实部和虚部
     let real = (Math.floor(Math.random() * 4)+1)* (Math.random() > 0.5 ? 1 : -1);
     let imag = (Math.floor(Math.random() * 4)+1)* (Math.random() > 0.5 ? 1 : -1);
@@ -1710,7 +1812,7 @@ function generateLevel4Question() {
 
 
 
-function generateLevel5Question() {
+function generateLevel6Question() {
     // 生成两个向量的分量和组合系数
     let a, b, c, d, m, n;
     let resultX, resultY;
@@ -1732,7 +1834,7 @@ function generateLevel5Question() {
         
         // 确保向量不全为零，且结果分量不超过16
     } while ((a === 0 && b === 0) || (c === 0 && d === 0) || 
-             Math.abs(resultX) > 16 || Math.abs(resultY) > 16);
+             Math.abs(resultX) > 16 || Math.abs(resultY) > 16||m+n===0);
     
     // 格式化向量显示
     let vector1 = formatVector([a, b], ["i", "j"]);
@@ -1744,7 +1846,7 @@ function generateLevel5Question() {
     let nDisplay = n === 1 ? "+" : n === -1 ? "-" : n > 0 ? "+" + n : n;
     
     // 修改题目文本，使其显示为加权平均数
-    let textq = `\\(\\begin{array}{cc}  \\frac{${mDisplay}(${vector1}) ${nDisplay}(${vector2})}{${m+n}} = ? \\end{array}\\)`;
+    let textq = `\\(\\begin{array}{cc}  ${mDisplay}(${vector1}) ${nDisplay}(${vector2}) = ? \\end{array}\\)`;
     
     // 创建SVG坐标系
     const svgSize = 520;
@@ -1842,7 +1944,141 @@ function generateLevel5Question() {
 }
 
 
-function generateLevel6Question() {
+function generateLevel7Question() {
+    // 正交分解
+    let a, b, c, d, m, n;
+    let resultX, resultY;
+    
+    do {
+        // 生成向量分量，范围在-4到4之间
+        a = Math.floor(Math.random() * 9) - 4;
+        b = Math.floor(Math.random() * 9) - 4;
+        c = -b;
+        d = a;
+        
+        // 生成组合系数，范围在-3到3之间，但不包括0
+        m = (Math.floor(Math.random() * 3) + 1) * (Math.random() > 0.5 ? 1 : -1);
+        n = (Math.floor(Math.random() * 3) + 1) * (Math.random() > 0.5 ? 1 : -1);
+        
+        // 计算结果向量分量
+        resultX = m * a + n * c;
+        resultY = m * b + n * d;
+        r=Math.sqrt(resultX*resultX+resultY*resultY);
+        
+        // 确保向量不全为零，且结果分量不超过16
+    } while ((a*b === 0) || (c *d === 0) || 
+             Math.abs(resultX) > 16 || Math.abs(resultY) > 16||m+n===0);
+    
+    // 格式化向量显示
+    let vector1 = formatVector([a, b], ["i", "j"]);
+    let vector2 = formatVector([c, d], ["i", "j"]);
+    let resultVector = formatVector([resultX, resultY], ["i", "j"]);
+    
+    // 格式化系数显示
+    let mDisplay = m === 1 ? "" : m === -1 ? "-" : m;
+    let nDisplay = n === 1 ? "+" : n === -1 ? "-" : n > 0 ? "+" + n : n;
+    
+    // 修改题目文本，使其显示为加权平均数
+    let textq = `\\(\\begin{array}{cc}  m(${vector1}) + n(${vector2}) = ${resultVector} \\\\
+               (m,n)=?
+       \\end{array}\\)`;
+    
+    // 创建SVG坐标系
+    const svgSize = 520;
+    const center = svgSize / 2;
+    const scale = 2/r*100;
+    
+    // 计算各个点的坐标
+    const pointO = {x: 0, y: 0};
+    const pointV1 = {x: a, y: b};
+    const pointV2 = {x: c, y: d};
+    const pointMV1 = {x: m * a, y: m * b};
+    const pointNV2 = {x: n * c, y: n * d};
+    const pointResult = {x: resultX, y: resultY};
+    
+    // 转换为SVG坐标系
+    const svgO = {x: center + pointO.x * scale, y: center - pointO.y * scale};
+    const svgV1 = {x: center + pointV1.x * scale, y: center - pointV1.y * scale};
+    const svgV2 = {x: center + pointV2.x * scale, y: center - pointV2.y * scale};
+    const svgMV1 = {x: center + pointMV1.x * scale, y: center - pointMV1.y * scale};
+    const svgNV2 = {x: center + pointNV2.x * scale, y: center - pointNV2.y * scale};
+    const svgResult = {x: center + pointResult.x * scale, y: center - pointResult.y * scale};
+    
+    // 创建SVG元素
+    const svg = `
+    <svg width="${svgSize}" height="${svgSize}" style="background-color: #f9f9f9; margin: 0 auto; display: block;">
+        <!-- 绘制坐标轴 -->
+        <line x1="0" y1="${center}" x2="${svgSize}" y2="${center}" stroke="black" stroke-width="1" />
+        <line x1="${center}" y1="0" x2="${center}" y2="${svgSize}" stroke="black" stroke-width="1" />
+        
+        <!-- 绘制刻度，范围从-18到18 -->
+        ${Array.from({length: 37}, (_, i) => i - 18).map(i => 
+            `<line x1="${center + i * scale}" y1="${center - 3}" x2="${center + i * scale}" y2="${center + 3}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center + i * scale}" y="${center + 15}" text-anchor="middle" font-size="10">${i}</text>` : ''}
+             <line x1="${center - 3}" y1="${center - i * scale}" x2="${center + 3}" y2="${center - i * scale}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center - 15}" y="${center - i * scale + 3}" text-anchor="end" font-size="10">${i}</text>` : ''}`
+        ).join('')}
+        
+        <!-- 绘制原始向量 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgV1.x}" y2="${svgV1.y}" stroke="blue" stroke-width="1" marker-end="url(#arrowhead)" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgV2.x}" y2="${svgV2.y}" stroke="green" stroke-width="1" marker-end="url(#arrowhead)" />
+        
+        <!-- 绘制缩放后的向量 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgMV1.x}" y2="${svgMV1.y}" stroke="blue" stroke-width="2" marker-end="url(#arrowhead)" stroke-dasharray="5,3" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgNV2.x}" y2="${svgNV2.y}" stroke="green" stroke-width="2" marker-end="url(#arrowhead)" stroke-dasharray="5,3" />
+        
+        <!-- 绘制平行四边形 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgMV1.x}" y2="${svgMV1.y}" stroke="blue" stroke-width="1" />
+        <line x1="${svgMV1.x}" y1="${svgMV1.y}" x2="${svgResult.x}" y2="${svgResult.y}" stroke="green" stroke-width="1" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgNV2.x}" y2="${svgNV2.y}" stroke="green" stroke-width="1" />
+        <line x1="${svgNV2.x}" y1="${svgNV2.y}" x2="${svgResult.x}" y2="${svgResult.y}" stroke="blue" stroke-width="1" />
+        
+        <!-- 绘制结果向量 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgResult.x}" y2="${svgResult.y}" stroke="red" stroke-width="2" marker-end="url(#arrowhead)" />
+        
+        <!-- 标记结果 -->
+        <text x="${center}" y="${center - 100}" text-anchor="middle" font-size="18" fill="red">${resultVector}</text>
+        
+        <!-- 标记点 -->
+        <circle cx="${svgO.x}" cy="${svgO.y}" r="5" fill="black" />
+        <text x="${svgO.x + 8}" y="${svgO.y - 8}" font-size="14">O(0,0)</text>
+        
+        <circle cx="${svgV1.x}" cy="${svgV1.y}" r="3" fill="blue" />
+        <text x="${svgV1.x + 8}" y="${svgV1.y - 8}" font-size="12">${vector1}</text>
+        
+        <circle cx="${svgV2.x}" cy="${svgV2.y}" r="3" fill="green" />
+        <text x="${svgV2.x + 8}" y="${svgV2.y - 8}" font-size="12">${vector2}</text>
+        
+        <circle cx="${svgMV1.x}" cy="${svgMV1.y}" r="3" fill="blue" />
+        <text x="${svgMV1.x + 8}" y="${svgMV1.y - 8}" font-size="12">${m}(${vector1})</text>
+        
+        <circle cx="${svgNV2.x}" cy="${svgNV2.y}" r="3" fill="green" />
+        <text x="${svgNV2.x + 8}" y="${svgNV2.y - 8}" font-size="12">${n}(${vector2})</text>
+        
+        <circle cx="${svgResult.x}" cy="${svgResult.y}" r="5" fill="red" />
+        <text x="${svgResult.x + 8}" y="${svgResult.y - 8}" font-size="14">${resultVector}</text>
+        
+        <!-- 箭头定义 -->
+        <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" />
+            </marker>
+        </defs>
+    </svg>`;
+
+    correctAnswer = [`(${m},${n})`];
+    
+    return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+    </div>`;
+}
+
+function generateLevel8Question() {
 
     //共线向量 生成两个向量的分量和组合系数
     let a, b, c, d, m, n;
@@ -1972,7 +2208,7 @@ function generateLevel6Question() {
 
 
 
-function generateLevel7Question() {
+function generateLevel9Question() {
     // 生成复数乘法所需的随机系数
     let a, b, c, d;
     
@@ -2101,7 +2337,7 @@ function generateLevel7Question() {
 }
 
 
-        function generateLevel8Question() {
+        function generateLevel10Question() {
             const levelFunctions = [
                 generateLevel1Question,
                 generateLevel2Question,
@@ -2110,6 +2346,8 @@ function generateLevel7Question() {
                 generateLevel5Question,
                 generateLevel6Question,
                 generateLevel7Question,
+                generateLevel8Question,
+                generateLevel9Question,
             ];
 
             const randomIndex = Math.floor(Math.random() * levelFunctions.length);
