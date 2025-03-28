@@ -564,7 +564,7 @@
         let computerThinkingDifficulty = 'easy'; // 默认为容易，可选值: 'easy'(容易)、'medium'(中等)、'hard'(困难)
         
         // 新增游戏模式变量
-        let gameMode = 'pk'; // 默认为PK模式，可选值: 'self'(自学练习) 或 'pk'(PK模式)
+        let gameMode = 'self'; // 默认为PK模式，可选值: 'self'(自学练习) 或 'pk'(PK模式)
 
         const difficultyNames = [
         "01鸡兔同笼",
@@ -583,8 +583,8 @@
             generateDifficultyButtons();
             setDifficulty(1);
             updateCountdownDisplay();
-            switchMode('pk'); // 默认PK模式
-            selectThinkingDifficulty('easy'); // 默认为容易难度
+            switchMode('self'); // 默认PK模式
+            selectThinkingDifficulty('hard'); // 默认为容易难度
         });
 
         // 切换游戏模式
@@ -775,6 +775,9 @@
                 document.getElementById('roundResult').innerHTML = '';
             }
             
+            // 清空输入框的记忆
+            document.getElementById('playerAnswer').autocomplete = 'off';
+            
             // 启用/禁用相关按钮
             updateButtonStates();
         }
@@ -832,6 +835,9 @@
             // 重新渲染数学公式
             MathJax.typesetPromise([document.getElementById('playerQuestion')])
                 .catch((err) => console.log(err));
+
+            // 清空输入框的记忆
+            document.getElementById('playerAnswer').autocomplete = 'off';
         }
         
         function generateComputerQuestion() {
@@ -972,6 +978,10 @@
                           document.getElementById('playerQuestion').innerHTML, 
                           userAnswer, playerCorrectAnswer.join(' 或 '), 
                           isCorrect ? '正确' : '错误', questionTime);
+            
+            // 清空输入框
+            document.getElementById('playerAnswer').value = '';
+            document.getElementById('playerRenderedAnswer').innerHTML = '';
             
             // 立即生成新题目
             generatePlayerQuestion();
@@ -1521,9 +1531,9 @@ function generateLevel2fQuestion() {
                 那么悟空准备了多少个${x}？\\\\
                \\end{array}`;
 
-
-               return `\\( ${textq}  \\)`;
                correctAnswer = [`${t}`]  
+               return `\\( ${textq}  \\)`;
+
 }
 
 
@@ -1541,6 +1551,7 @@ function generateLevel2gQuestion() {
     let t = a*b+d+e;//总量
     let x = (Math.random() > 0.5 ? "桃子" : "芒果");
 
+
     
     let textq =  `\\begin{array}{cc} 
                 悟空给猴子们分${x},第一只猴子拿了${e}个;  \\\\ 
@@ -1549,8 +1560,10 @@ function generateLevel2gQuestion() {
                 如果每只猴子分${b+c}个；则缺了${a*c-d}个; \\\\
                 那么悟空准备了多少个${x}？\\\\
                \\end{array}`;
-               return `\\( ${textq}  \\)`;
+
                correctAnswer = [`${t}`]  
+               return `\\( ${textq}  \\)`;
+
 }
 
         
@@ -1964,30 +1977,6 @@ function generateLevel3fQuestion() {
         answers: ["12"]
     },
     {
-        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管6小时能把空水池注满；}\\\\ \\text{单开排水管3个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
-        answers: ["6"]
-    },
-    {
-        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管12个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
-        answers: ["36"]
-    },
-    {
-        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管8个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
-        answers: ["24"]
-    },
-    {
-        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管9个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
-        answers: ["18"]
-    },
-    {
-        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管15个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
-        answers: ["90"]
-    },
-    {
-        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管6小时能把空水池注满；}\\\\ \\text{单开排水管4个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
-        answers: ["12"]
-    },
-    {
         question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管18小时能把空水池注满；}\\\\ \\text{单开排水管9个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
         answers: ["18"]
     },
@@ -2038,10 +2027,6 @@ function generateLevel3fQuestion() {
     {
         question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管10个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
         answers: ["60"]
-    },
-    {
-        question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管8个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
-        answers: ["24"]
     },
     {
         question: "\\[ \\begin{array}{c} \\text{一个水池有一个进水管和一个排水管}\\\\ \\text{单开进水管12小时能把空水池注满；}\\\\ \\text{单开排水管8个小时能把满的水池排空，}\\\\ \\text{问同时打开进水管和排水管几小时能把满水的水池排空？} \\end{array} \\]",
