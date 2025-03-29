@@ -1280,11 +1280,15 @@
                 let a = values[Math.floor(Math.random() * values.length)]; // 得出溶液的量
                 let b = Math.floor(Math.random() * (a - 1)) + 1; // 得出溶质的量
 
-                let c = Math.floor(100 * b / a); // 原来的深度
-                let d = a * (Math.floor(Math.random() * 2 + 1) * 2); // 后来的溶液
-                let e = d - a; // 后来加入的溶质
-
-                let newConcentration = Math.floor(100 * (e + b) / d);
+                let c = Math.floor(100 * b / a); // 原来的浓度
+                
+ 
+                let multipliers = [1, 2, 3,4];
+                let multiplier = multipliers[Math.floor(Math.random() * multipliers.length)];
+                let e = Math.round(a * multiplier); // 加入的糖量是溶液的一个简单倍数
+                
+                let d = a + e; // 后来的溶液总量 = 原溶液量 + 加入的糖
+                let newConcentration = Math.floor(100 * (e + b) / d); // 新浓度
 
                 let textq = `\\begin{array}{cc}             
                     浓度为${c}\\text{%}糖水${a}克,\\\\
