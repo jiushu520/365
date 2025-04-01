@@ -718,7 +718,7 @@
                     levelProgress.className = 'level-progress';
                     levelProgress.innerHTML = `
                         <div class="level-indicator">当前关卡: 1</div>
-                        <div class="question-counter">完成题数: 0/5</div>
+                        <div class="question-counter">完成题数: 0/3</div>
                         <div class="conquest-timer">总用时: 0秒</div>
                     `;
                     document.querySelector('.player-container').insertBefore(
@@ -1091,10 +1091,10 @@
                 if (gameMode === 'conquest') {
                     conquestCorrectCount++;
                     
-                    // 检查是否完成当前关卡(5题)
-                    if (conquestCorrectCount >= 5) {
+                    // 检查是否完成当前关卡(3题)
+                    if (conquestCorrectCount >= 3) {
                         // 检查是否通关所有10个级别
-                        if (conquestLevel >= 10) {
+                        if (conquestLevel >= difficultyNames.length) {
                             // 游戏胜利
                             const totalTime = Math.floor((new Date().getTime() - conquestStartTime) / 1000);
                             alert(`恭喜！你已通关所有级别！\n总用时: ${totalTime}秒`);
@@ -2351,7 +2351,7 @@ answers: ["(x+p-1)(x^2+x+1)", "(x^2+x+1)(x+p-1)"]
             
             document.getElementById('levelProgress').innerHTML = `
                 <div class="level-indicator">当前关卡: ${conquestLevel}</div>
-                <div class="question-counter">完成题数: ${conquestCorrectCount}/5</div>
+                <div class="question-counter">完成题数: ${conquestCorrectCount}/3</div>
                 <div class="conquest-timer">总用时: ${Math.floor((new Date().getTime() - conquestStartTime) / 1000)}秒</div>
             `;
         }

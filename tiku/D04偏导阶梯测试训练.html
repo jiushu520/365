@@ -710,7 +710,7 @@
                     levelProgress.className = 'level-progress';
                     levelProgress.innerHTML = `
                         <div class="level-indicator">当前关卡: 1</div>
-                        <div class="question-counter">完成题数: 0/5</div>
+                        <div class="question-counter">完成题数: 0/3</div>
                         <div class="conquest-timer">总用时: 0秒</div>
                     `;
                     document.querySelector('.player-container').insertBefore(
@@ -1120,7 +1120,7 @@
                     conquestCorrectCount++;
                     
                     // 检查是否完成当前关卡(5题)
-                    if (conquestCorrectCount >= 5) {
+                    if (conquestCorrectCount >= 3) {
                         // 检查是否通关所有级别
                         if (conquestLevel >= difficultyNames.length) {
                             // 游戏胜利
@@ -1931,7 +1931,7 @@ function generateLevel6Question() {
             
             document.getElementById('levelProgress').innerHTML = `
                 <div class="level-indicator">当前关卡: ${conquestLevel}</div>
-                <div class="question-counter">完成题数: ${conquestCorrectCount}/5</div>
+                <div class="question-counter">完成题数: ${conquestCorrectCount}/3</div>
                 <div class="conquest-timer">总用时: ${Math.floor((new Date().getTime() - conquestStartTime) / 1000)}秒</div>
             `;
         }

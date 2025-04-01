@@ -435,6 +435,40 @@
                 margin-top: 10px;
             }
         }
+
+        /* 通关模式相关样式 */
+        .level-progress {
+            background-color: #eee;
+            height: 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .level-progress-bar {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .level-indicator {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        
+        .question-counter {
+            font-size: 16px;
+            margin: 5px 0;
+        }
+        
+        .conquest-timer {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 5px 0;
+            color: #007bff;
+        }
     </style>
 </head>
 <body>
@@ -513,6 +547,7 @@
             <div class="mode-switch">
                 <button id="selfPracticeBtn" class="mode-btn" onclick="switchMode('self')">自学练习</button>
                 <button id="pkModeBtn" class="mode-btn active" onclick="switchMode('pk')">PK模式</button>
+                <button id="conquestModeBtn" class="mode-btn" onclick="switchMode('conquest')">通关模式</button>
             </div>
         </div>
         
@@ -564,17 +599,23 @@
         let computerThinkingDifficulty = 'easy'; // 默认为容易，可选值: 'easy'(容易)、'medium'(中等)、'hard'(困难)
         
         // 新增游戏模式变量
-        let gameMode = 'pk'; // 默认为PK模式，可选值: 'self'(自学练习) 或 'pk'(PK模式)
+        let gameMode = 'pk'; // 默认为PK模式，可选值: 'self'(自学练习)、'pk'(PK模式)、'conquest'(通关模式)
+        
+        // 新增通关模式相关变量
+        let conquestLevel = 1; // 当前关卡
+        let conquestCorrectCount = 0; // 当前关卡已答对的题目数
+        let conquestStartTime = 0; // 通关模式开始时间
+        let conquestTotalTime = 0; // 通关模式总用时
 
-        const difficultyNames = ["01认识燕尾", "02两外比", "03 一外一内","04两内比","05鸟头定理","06综合",];
+        const difficultyNames = ["01认识燕尾", "02两外比", "03 一外一内","04两内比","05鸟头定理","06矩形中的燕尾模型","07综合"];
 
         // 初始化
         document.addEventListener("DOMContentLoaded", () => {
             generateDifficultyButtons();
             setDifficulty(1);
             updateCountdownDisplay();
-            switchMode('self'); // 默认PK模式
-            selectThinkingDifficulty('hard'); // 默认为容易难度
+            switchMode('self'); // 默认self模式
+            selectThinkingDifficulty('hard'); // 默认为困难难度
         });
 
         // 切换游戏模式
@@ -589,6 +630,7 @@
             // 更新UI按钮状态
             document.getElementById('selfPracticeBtn').classList.toggle('active', mode === 'self');
             document.getElementById('pkModeBtn').classList.toggle('active', mode === 'pk');
+            document.getElementById('conquestModeBtn').classList.remove('active');
             
             const playerContainer = document.getElementById('playerContainer');
             const computerContainer = document.getElementById('computerContainer');
@@ -598,9 +640,36 @@
                 // 自学练习模式
                 computerContainer.style.display = 'none';
                 playerContainer.classList.add('full-width');
-                countdownDisplay.style.display = 'block'; // 修改：显示倒计时
+                countdownDisplay.style.display = 'block';
                 document.getElementById('startGameBtn').textContent = '开始练习';
                 document.getElementById('roundResult').style.display = 'none';
+            } else if (mode === 'conquest') {
+                document.getElementById('conquestModeBtn').classList.add('active');
+                computerContainer.style.display = 'none';
+                playerContainer.classList.add('full-width');
+                countdownDisplay.style.display = 'none';
+                document.getElementById('startGameBtn').textContent = '开始通关';
+                document.getElementById('roundResult').style.display = 'block';
+                
+                // 添加通关模式UI元素
+                if (!document.querySelector('.level-progress')) {
+                    playerContainer.insertAdjacentHTML('afterbegin', `
+                    <div class="level-progress">
+                        <div class="level-progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="level-indicator">当前关卡: 1</div>
+                    <div class="question-counter">完成题数: 0/3</div>
+                    <div class="conquest-timer">总用时: 0秒</div>
+                    `);
+                }
+                
+                // 重置通关模式变量
+                conquestLevel = 1;
+                conquestCorrectCount = 0;
+                setDifficulty(conquestLevel);
+                
+                // 更新难度按钮状态
+                updateDifficultyButtonsForConquest();
             } else {
                 // PK模式
                 computerContainer.style.display = 'flex';
@@ -626,11 +695,15 @@
         }
 
         function setDifficulty(level) {
-            if (gameInProgress) return; // 游戏进行中不能更改难度
+            if (gameInProgress && gameMode !== 'conquest') return; // 游戏进行中不能更改难度，通关模式除外
             
             currentDifficulty = level;
             document.querySelectorAll('.difficulty-buttons button').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`level${level}`).classList.add('active');
+            
+            if (gameMode === 'conquest' && gameInProgress) {
+                updateDifficultyButtonsForConquest();
+            }
         }
 
         // 选择游戏时长
@@ -728,8 +801,21 @@
             // 开始计时器
             startTimers();
             
-            // 启动倒计时 - 无论是PK模式还是自学模式
-            startCountdown();
+            // 通关模式特殊处理
+            if (gameMode === 'conquest') {
+                conquestStartTime = new Date().getTime();
+                conquestTotalTime = 0;
+                conquestLevel = 1;
+                conquestCorrectCount = 0;
+                setDifficulty(conquestLevel);
+                updateConquestUI();
+            }
+            
+            // 不是通关模式才启动倒计时
+            if (gameMode !== 'conquest') {
+                // 启动倒计时
+                startCountdown();
+            }
             
             // 仅在PK模式下才生成计算机题目
             if (gameMode === 'pk') {
@@ -763,6 +849,14 @@
                 document.getElementById('computerResult').innerHTML = '';
                 document.getElementById('computerStatus').innerHTML = '等待开始...';
                 document.getElementById('roundResult').innerHTML = '';
+            }
+            
+            if (gameMode === 'conquest') {
+                conquestLevel = 1;
+                conquestCorrectCount = 0;
+                setDifficulty(conquestLevel);
+                updateConquestUI();
+                updateDifficultyButtonsForConquest();
             }
             
             // 启用/禁用相关按钮
@@ -925,11 +1019,41 @@
                 document.getElementById('playerResult').className = 'result correct';
                 playerCorrectCount++;
                 
+                // 通关模式特殊处理
+                if (gameMode === 'conquest') {
+                    conquestCorrectCount++;
+                    
+                    // 判断是否完成当前关卡
+                    if (conquestCorrectCount >= 3) {
+                        // 判断是否完成所有关卡
+                        if (conquestLevel >= difficultyNames.length) {
+                            // 通关成功
+                            const totalTime = Math.floor((new Date().getTime() - conquestStartTime) / 1000);
+                            alert(`恭喜你完成了所有关卡！
+总用时: ${totalTime}秒
+总题数: ${playerTotalCount + 1}题
+正确率: ${Math.round((playerCorrectCount / (playerTotalCount + 1)) * 100)}%`);
+                            resetGame();
+                            return;
+                        } else {
+                            // 晋级下一关
+                            conquestLevel++;
+                            conquestCorrectCount = 0;
+                            setDifficulty(conquestLevel);
+                            updateDifficultyButtonsForConquest();
+                            alert(`恭喜！你已晋级到第${conquestLevel}关！`);
+                        }
+                    }
+                    
+                    // 更新通关模式UI
+                    updateConquestUI();
+                }
+                
                 // 播放正确音效
                 document.getElementById('correctSound').play();
                 
                 // 仅在PK模式下显示攻击效果
-                if (gameMode === 'pk') {
+                if (gameMode === 'pk' && document.getElementById('computerResult').innerHTML !== '') {
                     // 创建并添加冲击波元素
                     createShockwave('player');
                     
@@ -940,7 +1064,9 @@
                     }, 500);
                     
                     // 显示对诮语句
-                    showTaunt('player');
+                    if (gameMode === 'pk' && isCorrect) {
+                        showTaunt('player');
+                    }
                 }
             } else {
                 document.getElementById('playerResult').innerHTML = '错误';
@@ -949,6 +1075,16 @@
                 
                 // 播放错误音效
                 document.getElementById('wrongSound').play();
+                
+                // 通关模式错误处理
+                if (gameMode === 'conquest') {
+                    // 错误时重置当前关卡
+                    alert(`回答错误，请重新开始第${conquestLevel}关！`);
+                    conquestLevel = 1;
+                    conquestCorrectCount = 0;
+                    setDifficulty(conquestLevel);
+                    updateConquestUI();
+                }
             }
             
             // 更新总题数
@@ -1228,7 +1364,7 @@
                 case 4: return generateLevel4Question();
                 case 5: return generateLevel5Question();
                 case 6: return generateLevel6Question();
-
+                case 7: return generateLevel7Question();
                 default: return "";
             }
         }
@@ -1964,16 +2100,171 @@
         }
 
 
+        function generateLevel6Question() {//矩形中的燕尾模型
+            // 生成随机比例
+            let ratioA = Math.floor(Math.random() * 4) + 1;  // 1 to 4
+            let ratioB = Math.floor(Math.random() * 4) + 1;  // 1 to 4
+            let ratioC = Math.floor(Math.random() * 4) + 1;  // 1 to 4
+            let ratioD = Math.floor(Math.random() * 4) + 1;  // 1 to 4
+            
+            // 计算最大公约数
+            let gcdAB = gcd(ratioA, ratioB);
+            let gcdCD = gcd(ratioC, ratioD);
+            
+            // 将比例化为最简比
+            let simplifiedRatioA = ratioA / gcdAB;
+            let simplifiedRatioB = ratioB / gcdAB;
+            let simplifiedRatioC = ratioC / gcdCD;
+            let simplifiedRatioD = ratioD / gcdCD;
+
+
+            
+            // 计算E点的比例 AE:EC = ratioB*ratioD : ratioA*ratioC
+            let ratioE = ratioA * ratioD;
+            let ratioF = ratioB * ratioC;
+
+
+
+
+            
+            // 计算最大公约数
+            let gcdEF = gcd(ratioE, ratioF);
+            
+            // 将比例化为最简比
+            let simplifiedRatioE = ratioE / gcdEF;
+            let simplifiedRatioF = ratioF / gcdEF;
+
+            let A = simplifiedRatioA;
+            let B = simplifiedRatioB;
+            let C = simplifiedRatioC;
+            let D = simplifiedRatioD;
+            let E = ratioE;
+            let F = ratioF;
+            let sBDO = B*D*(Math.floor(Math.random() * 4) + 1);
+            let sABCD = (sBDO/(B*D))*(A*D+B*D+B*C);
+            
+            // 计算图形中的位置
+            const width = 400;
+            const height = 300;
+            
+            // 矩形ABCD的顶点 - 调整为更合适的位置
+            const pointA = {x: 40, y:260 };  // 顶部中心点
+            const pointB = {x: 360, y: 260};  // 顶部右点
+            const pointC = {x: 360, y: 40}; // 底部右点
+            const pointD = {x: 40, y: 40}; // 
+
+
+             // 计算点F在AD上的位置
+            const pointF = {
+                x: pointA.x,
+                y: pointA.y + (pointD.y - pointA.y) * (ratioC / (ratioC + ratioD))
+            };
+            
+            
+            // 计算点G在AB上的位置
+            const pointG = {
+                x: pointA.x + (pointB.x - pointA.x) * (ratioA / (ratioA + ratioB)),
+                y: pointA.y
+            };
+            
+
+            // 计算点E的位置
+            const pointE = {
+                x: (pointB.x * E + pointD.x * F) / (E + F),
+                y: (pointB.y * E + pointD.y * F) / (E + F)
+            };
+            
+
+                        // 计算点O的位置
+           const pointO = {
+                x: (pointA.x * (B*D) + pointE.x * (A*D+B*C)) / (B*D + A*D+B*C),
+                y: (pointA.y * (B*D) + pointE.y * (A*C+B*D)) / (B*D + A*C+B*D)
+            };
+
+
+            
+            
+
+            
+            // 创建SVG图形
+            const svg = `
+            <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+                <!-- 矩形ABCD -->
+                <polygon points="${pointA.x},${pointA.y} ${pointB.x},${pointB.y} ${pointC.x},${pointC.y} ${pointD.x},${pointD.y}" 
+                         fill="none" stroke="black" stroke-width="1.5"/>
+                                         <!-- 三角形BDO -->
+                <polygon points="${pointB.x},${pointB.y} ${pointD.x},${pointD.y} ${pointO.x},${pointO.y}" 
+                         fill="#e6ffe6" stroke="black" stroke-width="0"/>
+
+                
+                <!-- 直线BF -->
+                <line x1="${pointB.x}" y1="${pointB.y}" x2="${pointF.x}" y2="${pointF.y}" stroke="black" stroke-width="1.5"/>
+                                <!-- 直线AE -->
+                <line x1="${pointA.x}" y1="${pointA.y}" x2="${pointE.x}" y2="${pointE.y}" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 直线DG -->
+                <line x1="${pointD.x}" y1="${pointD.y}" x2="${pointG.x}" y2="${pointG.y}" stroke="black" stroke-width="1.5"/>
+                
+                <!-- 直线BC-->
+                <line x1="${pointB.x}" y1="${pointB.y}" x2="${pointD.x}" y2="${pointD.y}" stroke="black" stroke-width="1.5" stroke-dasharray="3,3"/>
+                
+                <!-- 顶点标注 -->
+                <circle cx="${pointA.x}" cy="${pointA.y}" r="3" fill="black"/>
+                <circle cx="${pointB.x}" cy="${pointB.y}" r="3" fill="black"/>
+                <circle cx="${pointC.x}" cy="${pointC.y}" r="3" fill="black"/>
+                <circle cx="${pointD.x}" cy="${pointD.y}" r="3" fill="black"/>
+                <circle cx="${pointG.x}" cy="${pointG.y}" r="3" fill="black"/>
+                <circle cx="${pointE.x}" cy="${pointE.y}" r="3" fill="black"/>
+                <circle cx="${pointF.x}" cy="${pointF.y}" r="3" fill="black"/>
+                <circle cx="${pointO.x}" cy="${pointO.y}" r="1" fill="black"/>
+
+
+
+                <text x="${pointA.x-10}" y="${pointA.y+5}" text-anchor="middle" font-family="serif" font-size="16">A</text>
+                <text x="${pointB.x+10}" y="${pointB.y+5}" text-anchor="middle" font-family="serif" font-size="16">B</text>
+                <text x="${pointC.x+10}" y="${pointC.y+0}" text-anchor="middle" font-family="serif" font-size="16">C</text>
+                <text x="${pointD.x-10}" y="${pointD.y+0}" text-anchor="middle" font-family="serif" font-size="16">D</text>
+                <text x="${pointG.x-10}" y="${pointG.y+15}" text-anchor="middle" font-family="serif" font-size="16">G</text>
+                <text x="${pointF.x-10}" y="${pointF.y-0}" text-anchor="middle" font-family="serif" font-size="16">F</text>
+                <text x="${pointO.x-10}" y="${pointO.y+10}" text-anchor="middle" font-family="serif" font-size="16">O</text>
+                <text x="${pointE.x+10}" y="${pointE.y+0}" text-anchor="middle" font-family="serif" font-size="16">E</text>
+            </svg>
+            `;
+            
+            // 格式化问题文本
+            const question = `
+            <div style="text-align: center;">
+            \\begin{array}{cc} 
+                如图，矩形ABCD中，
+                \\\\ AG:GB = ${A} : ${B}，AF:FD = ${C} : ${D}，
+                \\\\S_{BDO}=${sBDO}，
+                S_{ABCD}=？
+            \\end{array}
+                <div style="margin-top: 15px;">${svg}</div>
+            </div>
+            `;
+            
+            // 设置正确答案
+            correctAnswer = [`${sABCD}`]; 
+            
+            return question;
+        }
+        
+
+
+
+
  
         
-        function generateLevel6Question() {
+        function generateLevel7Question() {
             // 包含所有之前级别的题目生成函数
             const levelFunctions = [
                 generateLevel1Question,
                 generateLevel2Question,
                 generateLevel3Question,
                 generateLevel4Question,
-                generateLevel5Question
+                generateLevel5Question,
+                generateLevel6Question
             ];
 
             // 随机选择一个题型函数
@@ -2035,6 +2326,57 @@
                 document.body.removeChild(taunt);
             }, 2000);
         }
+
+        // 通关模式UI更新函数
+        function updateConquestUI() {
+            if (document.querySelector('.level-progress-bar')) {
+                document.querySelector('.level-progress-bar').style.width = `${(conquestCorrectCount / 5) * 100}%`;
+                document.querySelector('.level-indicator').textContent = `当前关卡: ${conquestLevel}`;
+                document.querySelector('.question-counter').textContent = `完成题数: ${conquestCorrectCount}/3`;
+                document.querySelector('.conquest-timer').textContent = `总用时: ${Math.floor((new Date().getTime() - conquestStartTime) / 1000)}秒`;
+            }
+        }
+        
+        // 更新通关模式难度按钮状态
+        function updateDifficultyButtonsForConquest() {
+            if (gameMode !== 'conquest') return;
+            
+            // 禁用所有难度按钮
+            document.querySelectorAll('.difficulty-buttons button').forEach(btn => {
+                btn.disabled = true;
+                btn.classList.remove('active');
+                
+                // 标记当前关卡按钮
+                if (parseInt(btn.dataset.level) === conquestLevel) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // 启用已通过的关卡和当前关卡按钮
+            for (let i = 1; i <= conquestLevel; i++) {
+                const btn = document.querySelector(`.difficulty-buttons button[data-level="${i}"]`);
+                if (btn) {
+                    btn.disabled = false;
+                }
+            }
+            
+            // 高亮当前关卡按钮
+            const currentBtn = document.querySelector(`.difficulty-buttons button[data-level="${conquestLevel}"]`);
+            if (currentBtn) {
+                currentBtn.classList.add('active');
+            }
+        }
+        
+        // 添加到游戏循环中
+        setInterval(() => {
+            // 更新通关模式计时器显示
+            if (gameMode === 'conquest') {
+                const currentTime = Math.floor((new Date().getTime() - conquestStartTime) / 1000);
+                if (document.querySelector('.conquest-timer')) {
+                    document.querySelector('.conquest-timer').textContent = `总用时: ${currentTime}秒`;
+                }
+            }
+        }, 1000);
     </script>
 </body>
 </html>

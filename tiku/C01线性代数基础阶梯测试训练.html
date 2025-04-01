@@ -719,7 +719,7 @@
                     levelProgress.className = 'level-progress';
                     levelProgress.innerHTML = `
                         <div class="level-indicator">当前关卡: 1</div>
-                        <div class="question-counter">完成题数: 0/5</div>
+                        <div class="question-counter">完成题数: 0/3</div>
                         <div class="conquest-timer">总用时: 0秒</div>
                     `;
                     document.querySelector('.player-container').insertBefore(
@@ -1092,10 +1092,10 @@
                 if (gameMode === 'conquest') {
                     conquestCorrectCount++;
                     
-                    // 检查是否完成当前关卡(5题)
-                    if (conquestCorrectCount >= 5) {
+                    // 检查是否完成当前关卡(3题)
+                    if (conquestCorrectCount >= 3) {
                         // 检查是否通关所有10个级别
-                        if (conquestLevel >= 10) {
+                        if (conquestLevel >= difficultyNames.length) {
                             // 游戏胜利
                             const totalTime = Math.floor((new Date().getTime() - conquestStartTime) / 1000);
                             alert(`恭喜！你已通关所有级别！\n总用时: ${totalTime}秒`);
@@ -1113,6 +1113,11 @@
                             conquestLevel++;
                             conquestCorrectCount = 0;
                             setDifficulty(conquestLevel);
+                            
+                            // 清空输入框和结果显示
+                            document.getElementById('playerAnswer').value = '';
+                            document.getElementById('playerRenderedAnswer').innerHTML = '';
+                            
                             updateDifficultyButtonsForConquest();
                             alert(`恭喜！你已晋级到第${conquestLevel}关！`);
                         }
@@ -1868,7 +1873,7 @@
     </svg>`;
 
     // 正确答案：投影坐标
-    correctAnswer = [`(${projX}, ${projY})`];
+    correctAnswer = [`(${projX},${projY})`,`${projX},${projY}`];
     return `<div style="display: flex; flex-direction: column; align-items: center;">
         <div style="margin-bottom: 20px;">
             ${textq}
@@ -2256,7 +2261,7 @@ function generateLevel7Question() {
         </defs>
     </svg>`;
 
-    correctAnswer = [`(${m},${n})`];
+    correctAnswer = [`(${m},${n})`,`m=${m},n=${n}`,`${m},${n}`];
     
     return `<div style="display: flex; flex-direction: column; align-items: center;">
         <div style="margin-bottom: 20px;">
@@ -2404,19 +2409,20 @@ function generateLevel9Question() {
     
     do {
         // 生成-4到4的随机整数
-        a = Math.floor(Math.random() * 9) - 4;
-        b = Math.floor(Math.random() * 9) - 4;
-        c = Math.floor(Math.random() * 9) - 4;
-        d = Math.floor(Math.random() * 9) - 4;
+        a = (Math.floor(Math.random() * 9) + 2)*(Math.random()<0.5?1:-1);
+        b = (Math.floor(Math.random() * 9) + 2)*(Math.random()<0.5?1:-1);
+        c = (Math.floor(Math.random() * 9) + 2)*(Math.random()<0.5?1:-1);
+        d = (Math.floor(Math.random() * 9) + 2)*(Math.random()<0.5?1:-1);
         
         // 确保至少一个复数不为0
-    } while ((a === 0 && b === 0) || (c === 0 && d === 0));
+    } while ((a === 0 && b === 0) || (c === 0 && d === 0)||Math.abs( a * c - b * d)>=16||Math.abs( a * d + b * c)>=16);
     
     // 计算复数乘法结果
     // (a + bi) * (c + di) = (ac - bd) + (ad + bc)i
     const resultReal = a * c - b * d;
     const resultImag = a * d + b * c;
     
+    const r=Math.sqrt(resultReal*resultReal+resultImag*resultImag);
     // 格式化复数显示
     const formatComplex = (real, imag) => {
         if (real === 0 && imag === 0) return "0";
@@ -2448,6 +2454,8 @@ function generateLevel9Question() {
     
     const complex1 = formatComplex(a, b);
     const complex2 = formatComplex(c, d);
+    const complex3 = formatComplex(a*c, a*d);
+    const complex4 = formatComplex(b*-d, b*c);
     const resultComplex = formatComplex(resultReal, resultImag);
     
     // 创建问题文本
@@ -2456,18 +2464,22 @@ function generateLevel9Question() {
     // 创建SVG坐标系用于可视化复数乘法
     const svgSize = 520;
     const center = svgSize / 2;
-    const scale = 15;
+    const scale = r;
     
     // 计算各个点的坐标
     const pointO = {x: 0, y: 0};
     const point1 = {x: a, y: b};
     const point2 = {x: c, y: d};
+    const point3 = {x: a*c, y: a*d};
+    const point4 = {x: b*-d, y: b*c};
     const pointResult = {x: resultReal, y: resultImag};
     
     // 转换为SVG坐标系
     const svgO = {x: center + pointO.x * scale, y: center - pointO.y * scale};
     const svg1 = {x: center + point1.x * scale, y: center - point1.y * scale};
     const svg2 = {x: center + point2.x * scale, y: center - point2.y * scale};
+    const svg3 = {x: center + point3.x * scale, y: center - point3.y * scale};
+    const svg4 = {x: center + point4.x * scale, y: center - point4.y * scale};
     const svgResult = {x: center + pointResult.x * scale, y: center - pointResult.y * scale};
     
     // 创建SVG元素
@@ -2478,11 +2490,11 @@ function generateLevel9Question() {
         <line x1="${center}" y1="0" x2="${center}" y2="${svgSize}" stroke="black" stroke-width="1" />
         
         <!-- 绘制刻度，范围从-18到18 -->
-        ${Array.from({length: 37}, (_, i) => i - 18).map(i => 
-            `<line x1="${center + i * scale}" y1="${center - 3}" x2="${center + i * scale}" y2="${center + 3}" stroke="black" stroke-width="1" />
-             ${i % 3 === 0 ? `<text x="${center + i * scale}" y="${center + 15}" text-anchor="middle" font-size="10">${i}</text>` : ''}
-             <line x1="${center - 3}" y1="${center - i * scale}" x2="${center + 3}" y2="${center - i * scale}" stroke="black" stroke-width="1" />
-             ${i % 3 === 0 ? `<text x="${center - 15}" y="${center - i * scale + 3}" text-anchor="end" font-size="10">${i}</text>` : ''}`
+        ${Array.from({length: 2*r}, (_, i) => i - r).map(i => 
+            `<line x1="${center + i * scale}" y1="${center - 1}" x2="${center + i * scale}" y2="${center + 1}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center + i * scale}" y="${center + r}" text-anchor="middle" font-size="10">${i}</text>` : ''}
+             <line x1="${center - 1}" y1="${center - i * scale}" x2="${center + 1}" y2="${center - i * scale}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center - r/2}" y="${center - i * scale +  1}" text-anchor="end" font-size="10">${i}</text>` : ''}`
         ).join('')}
         
         <!-- 绘制复数点 -->
@@ -2496,16 +2508,24 @@ function generateLevel9Question() {
         <circle cx="${svg2.x}" cy="${svg2.y}" r="3" fill="green" />
         <text x="${svg2.x + 8}" y="${svg2.y - 8}" font-size="12">${complex2}</text>
         <line x1="${svgO.x}" y1="${svgO.y}" x2="${svg2.x}" y2="${svg2.y}" stroke="green" stroke-width="1" marker-end="url(#arrowhead)" />
+     
+        <circle cx="${svg3.x}" cy="${svg3.y}" r="3" fill="green" />
+        <text x="${svg3.x + 8}" y="${svg3.y - 8}" font-size="12">${complex3}</text>
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svg3.x}" y2="${svg3.y}" stroke="green" stroke-width="1" marker-end="url(#arrowhead)" />
+
+        <circle cx="${svg4.x}" cy="${svg4.y}" r="3" fill="green" />
+        <text x="${svg4.x + 8}" y="${svg4.y - 8}" font-size="12">${complex4}</text>
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svg4.x}" y2="${svg4.y}" stroke="green" stroke-width="1" marker-end="url(#arrowhead)" />
+        <line x1="${svg3.x}" y1="${svg3.y}" x2="${svgResult.x}" y2="${svgResult.y}" stroke="green" stroke-width="1" marker-end="url(#arrowhead)" />
+
+
         
+
         <circle cx="${svgResult.x}" cy="${svgResult.y}" r="5" fill="red" />
-        <text x="${svgResult.x + 8}" y="${svgResult.y - 8}" font-size="14">${resultComplex}</text>
         <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgResult.x}" y2="${svgResult.y}" stroke="red" stroke-width="2" marker-end="url(#arrowhead)" />
         
-        <!-- 绘制复数乘法解释 -->
-        <text x="${center}" y="${center - 200}" text-anchor="middle" font-size="18">(${complex1}) · (${complex2}) = ${resultComplex}</text>
-        <text x="${center}" y="${center - 180}" text-anchor="middle" font-size="14">(${a} ${b > 0 ? '+' + b : b}i) · (${c} ${d > 0 ? '+' + d : d}i) = (${a}·${c} - ${b}·${d}) + (${a}·${d} + ${b}·${c})i</text>
-        <text x="${center}" y="${center - 160}" text-anchor="middle" font-size="14">= ${resultReal} ${resultImag > 0 ? '+' + resultImag : resultImag}i</text>
-        
+
+ 
         <!-- 箭头定义 -->
         <defs>
             <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
@@ -2514,7 +2534,7 @@ function generateLevel9Question() {
         </defs>
     </svg>`;
     
-    correctAnswer = [`${resultComplex}`];
+    correctAnswer = [`${resultComplex}`,`${resultReal},${resultImag}`,`(${resultReal},${resultImag})`];
     
     return `<div style="display: flex; flex-direction: column; align-items: center;">
         <div style="margin-bottom: 20px;">
@@ -2606,7 +2626,7 @@ function generateLevel9Question() {
             
             document.getElementById('levelProgress').innerHTML = `
                 <div class="level-indicator">当前关卡: ${conquestLevel}</div>
-                <div class="question-counter">完成题数: ${conquestCorrectCount}/5</div>
+                <div class="question-counter">完成题数: ${conquestCorrectCount}/3</div>
                 <div class="conquest-timer">总用时: ${Math.floor((new Date().getTime() - conquestStartTime) / 1000)}秒</div>
             `;
         }
