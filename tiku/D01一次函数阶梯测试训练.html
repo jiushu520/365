@@ -1395,17 +1395,20 @@
             document.getElementById('playerAnswer').disabled = true;
             document.getElementById('playerSubmitBtn').disabled = true;
             
-            // 仅在PK模式下显示游戏结果
-            if (gameMode === 'pk') {
+           // 仅在PK模式下显示游戏结果
+           if (gameMode === 'pk') {
                 let resultMessage = '';
-                if (playerCorrectCount > computerCorrectCount) {
-                    resultMessage = `游戏结束! 玩家获胜! (${playerCorrectCount} : ${computerCorrectCount})`;
+                let playerNetScore = playerCorrectCount - playerIncorrectCount;
+                let computerNetScore = computerCorrectCount - computerIncorrectCount;
+                
+                if (playerNetScore > computerNetScore) {
+                    resultMessage = `游戏结束! 玩家获胜! (${playerNetScore} : ${computerNetScore})`;
                     document.getElementById('roundResult').className = 'winner-indicator player-win';
-                } else if (playerCorrectCount < computerCorrectCount) {
-                    resultMessage = `游戏结束! 计算机获胜! (${playerCorrectCount} : ${computerCorrectCount})`;
+                } else if (playerNetScore < computerNetScore) {
+                    resultMessage = `游戏结束! 计算机获胜! (${playerNetScore} : ${computerNetScore})`;
                     document.getElementById('roundResult').className = 'winner-indicator computer-win';
                 } else {
-                    resultMessage = `游戏结束! 平局! (${playerCorrectCount} : ${computerCorrectCount})`;
+                    resultMessage = `游戏结束! 平局! (${playerNetScore} : ${computerNetScore})`;
                     document.getElementById('roundResult').className = 'winner-indicator tie';
                 }
                 document.getElementById('roundResult').innerHTML = resultMessage;
@@ -1419,6 +1422,7 @@
             // 启用重置按钮
             document.getElementById('resetGameBtn').disabled = false;
         }
+
        // 以下是生成题目的函数，与原有代码相同
 
        function generateQuestion() {
@@ -1569,6 +1573,7 @@
             let y = k*x+b;
 
             correctAnswer = [`${y}`];
+            const textq = `\\(\\begin{array}{lll}y=${k === 1 ? "" : (k === -1 ? "-" : k)}x${textb};&x=${x};y=?;\\\\f(x)=${k === 1 ? "" : (k === -1 ? "-" : k)}x${textb};&f(${x})=?\\end{array}\\)`;
             
             // 创建SVG坐标系和函数图像
             let svgWidth = 400;
@@ -1620,9 +1625,16 @@
                 <text x="${xOrigin + x * xScale + 5}" y="${yOrigin - y * yScale - 5}" font-size="12" fill="red">(${x}, ? )</text>
             </svg>`;
             
-            return `\\(\\begin{array}{lll}y=${k === 1 ? "" : (k === -1 ? "-" : k)}x${textb};&x=${x};y=?;\\\\f(x)=${k === 1 ? "" : (k === -1 ? "-" : k)}x${textb};&f(${x})=?\\end{array}\\)
-            <hr style="width:100%; margin:15px 0; border:none; border-top:1px dashed #ccc;">
-            <div style="display:block; width:100%; text-align:center; margin-top:10px;">${svg}</div>`;
+            return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+        </div>`;
+
+
         }
 
         function generateLevel2Question() {
@@ -1634,7 +1646,7 @@
             let y = k*x+b;
 
             correctAnswer = [`${x}`];
-            
+            const textq = `\\(\\begin{array}{lll}y=${k === 1 ? "" : (k === -1 ? "-" : k)}x${textb};&y=${y};x=?;\\\\f(x)=${k === 1 ? "" : (k === -1 ? "-" : k)}x${textb};&f(?)=${y}\\end{array}\\)`;
             // 创建SVG坐标系和函数图像
             let svgWidth = 400;
             let svgHeight = 400;
@@ -1685,9 +1697,14 @@
                 <text x="${xOrigin + x * xScale + 5}" y="${yOrigin - y * yScale - 5}" font-size="12" fill="red">(？, ${y})</text>
             </svg>`;
             
-            return `\\(\\begin{array}{lll}y=${k === 1 ? "" : (k === -1 ? "-" : k)}x${textb};&y=${y};x=?;\\\\f(x)=${k === 1 ? "" : (k === -1 ? "-" : k)}x${textb};&f(?)=${y}\\end{array}\\)
-            <hr style="width:100%; margin:15px 0; border:none; border-top:1px dashed #ccc;">
-            <div style="display:block; width:100%; text-align:center; margin-top:10px;">${svg}</div>`;
+            return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+     </div>`;
         }
 
 
@@ -1716,7 +1733,8 @@
                 return generateLevel3Question();
             }
             
-            correctAnswer = [`(${x},${y})`, `${x},${y}`];
+            correctAnswer = [`(${x},${y})`,`${x},${y}`];
+            const textq = `\\(\\begin{array}{lll}y=${k1}x${textb1};&y=${y};x=?;\\\\y=${k2}x${textb2};&f(?)=${y}\\end{array}\\)`;
             
             // 创建SVG坐标系和函数图像
             let svgWidth = 400;
@@ -1779,13 +1797,14 @@
                 <circle cx="${xOrigin + x * xScale}" cy="${yOrigin - y * yScale}" r="4" fill="green"/>
             </svg>`;
             
-            return `\\(\\begin{array}{ll}
-            y=${k1}x${textb1}\\\\ 
-            y=${k2}x${textb2}
-            \\end{array}\\)
-            求两直线的交点坐标。
-            <hr style="width:100%; margin:15px 0; border:none; border-top:1px dashed #ccc;">
-            <div style="display:block; width:100%; text-align:center; margin-top:10px;">${svg}</div>`;
+            return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+     </div>`;
         }
 
         function generateLevel4Question() {
@@ -1817,7 +1836,7 @@
             } while (Math.abs(yb) > 9 || ya === yb);
             
             correctAnswer = [`${k}`];
-            
+            const textq = `\\(\\begin{array}{lll}过点A(${xa},${ya}),B(${xb},${yb});\\\\直线的斜率k=? \\\\ \\textup{或在ggb上输入slope(Segment((${xa},${ya}),(${xb},${yb}))) }\\end{array}\\)`;
             // 创建SVG坐标系和函数图像
             let svgWidth = 400;
             let svgHeight = 400;
@@ -1930,9 +1949,14 @@
                 <text x="${xOrigin + (xa + xb) / 2 * xScale}" y="${yOrigin - (ya + yb) / 2 * yScale - 15}" font-size="12" fill="green">k = ?</text>
             </svg>`;
             
-            return `\\(\\begin{array}{lll}过点A(${xa},${ya}),B(${xb},${yb});\\\\直线的斜率k=? \\\\ \\textup{或在ggb上输入slope(Segment((${xa},${ya}),(${xb},${yb}))) }\\end{array}\\)
-            <hr style="width:100%; margin:15px 0; border:none; border-top:1px dashed #ccc;">
-            <div style="display:block; width:100%; text-align:center; margin-top:10px;">${svg}</div>`;
+            return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+     </div>`;
         }
 
         function generateLevel5Question() {
@@ -1953,7 +1977,7 @@
             } while (s !== Math.floor(s));
             
             correctAnswer = [`${s}`];
-            
+            const textq = `\\(\\begin{array}{lll}直角坐标系中点O(0,0),A(${xa},${ya}),B(${xb},${yb});\\\\SΔOAB=?\\\\你可以用多少不同的方法来运算，\\\\你可以先用ggb画一下的;\\\\铅垂？割补？点到线距离？三角函数？行列式？ \\end{array}\\)`;
             // 创建SVG坐标系和三角形
             let svgWidth = 400;
             let svgHeight = 400;
@@ -2008,9 +2032,14 @@
                       font-size="14" fill="green" font-weight="bold">S = ?</text>
             </svg>`;
             
-            return `\\(\\begin{array}{lll}直角坐标系中点O(0,0),A(${xa},${ya}),B(${xb},${yb});\\\\SΔOAB=?\\\\你可以用多少不同的方法来运算，\\\\你可以先用ggb画一下的;\\\\铅垂？割补？点到线距离？三角函数？行列式？ \\end{array}\\)
-            <hr style="width:100%; margin:15px 0; border:none; border-top:1px dashed #ccc;">
-            <div style="display:block; width:100%; text-align:center; margin-top:10px;">${svg}</div>`;
+            return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+     </div>`;
         }
 
         function generateLevel6Question() {
@@ -2096,7 +2125,7 @@
 
             // Set the correct answer
             correctAnswer = [equation];
-            
+            const textq = `\\(\\begin{array}{lll}直角坐标系中点O(0,0),A(${xa},${ya}),B(${xb},${yb});\\\\SΔOAB=?\\\\你可以用多少不同的方法来运算，\\\\你可以先用ggb画一下的;\\\\铅垂？割补？点到线距离？三角函数？行列式？ \\end{array}\\)`;
             // 创建SVG坐标系和直线
             let svgWidth = 400;
             let svgHeight = 400;
@@ -2209,13 +2238,14 @@ let svg = `
 </svg>`;
 
             // Return the formatted question in LaTeX
-            return `\\(\\begin{array}{lll}
-            已知直线经过点A(${xa}, ${ya})和点B(${xb}, ${yb})；\\\\
-            求该直线的一般式方程：ax + by + c = 0，\\\\其中a, b, c为互质整数，且a > 0。\\\\
-            \\textup{请在答案框中输入方程。}
-            \\end{array}\\)
-            <hr style="width:100%; margin:15px 0; border:none; border-top:1px dashed #ccc;">
-            <div style="display:block; width:100%; text-align:center; margin-top:10px;">${svg}</div>`;
+            return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+     </div>`;
         }
 
         function generateLevel7Question() {
@@ -2289,6 +2319,8 @@ let svg = `
 
             // 计算点到直线的距离（用于验证）
             const distance = Math.abs(a*xm + b*ym + c) / Math.sqrt(a*a + b*b);
+            const textq = `\\(\\begin{array}{lll}已知直线${a}x${textb}y${textc}=0 ;\\\\求点M(${xm},${ym})到直线的距离。\\\\你可以先用ggb画一下的;\\\\比例，勾股，向量，复数，判别式，公式......\\\\多种方法到后面才能云淡风轻.\\end{array}\\)`
+            
 
             // 创建SVG
             let svg = `
@@ -2349,10 +2381,18 @@ let svg = `
                 <text x="15" y="20" font-size="14" fill="blue">${a}x${textb}y${textc}=0</text>
             </svg>`;
 
-            return `\\(\\begin{array}{lll}已知直线${a}x${textb}y${textc}=0 ;\\\\求点M(${xm},${ym})到直线的距离。\\\\你可以先用ggb画一下的;\\\\比例，勾股，向量，复数，判别式，公式......\\\\多种方法到后面才能云淡风轻.\\end{array}\\)
-            <hr style="width:100%; margin:15px 0; border:none; border-top:1px dashed #ccc;">
-            <div style="display:block; width:100%; text-align:center; margin-top:10px;">${svg}</div>`;
+            return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+     </div>`;
         }
+
+
+
 
         function generateLevel8Question() {
 
@@ -2376,6 +2416,7 @@ let svg = `
 
             let c = -a*footX-b*footY;
             let textc = c === 0 ? "" : (c > 0 ? `+${c}` : `${c}`);
+            const textq = `\\(\\begin{array}{lll}已知直线${texta}x${textb}y${textc}=0 ;\\\\过点M(${xm},${ym})做直线的垂线段，求垂足坐标。\\\\你可以先用ggb画一下的;\\\\比例，勾股，向量，复数，判别式，公式......\\\\多种方法到后面才能云淡风轻.\\end{array}\\)`
 
             
             // 创建SVG坐标系和直线
@@ -2465,10 +2506,15 @@ let svg = `
                 <!-- 方程 -->
                 <text x="15" y="20" font-size="14" fill="blue">${a}x${textb}y${textc}=0</text>
             </svg>`;
+            return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+     </div>`;
 
-            return `\\(\\begin{array}{lll}已知直线${texta}x${textb}y${textc}=0 ;\\\\过点M(${xm},${ym})做直线的垂线段，求垂足坐标。\\\\你可以先用ggb画一下的;\\\\比例，勾股，向量，复数，判别式，公式......\\\\多种方法到后面才能云淡风轻.\\end{array}\\)
-            <hr style="width:100%; margin:15px 0; border:none; border-top:1px dashed #ccc;">
-            <div style="display:block; width:100%; text-align:center; margin-top:10px;">${svg}</div>`;
         }
 
         function generateLevel9Question() {
@@ -2524,6 +2570,7 @@ let svg = `
             correctAnswer = [`(${p},${q})`];
             // 计算点到直线的距离（用于验证）
             const distance = Math.abs(a*xm + b*ym + c) / Math.sqrt(a*a + b*b);
+            const textq = `\\(\\begin{array}{lll}已知直线${texta}x${textb}y${textc}=0 ;\\\\求点M(${xm},${ym})对于直线的对称点。\\\\你可以先用ggb画一下的;\\\\比例，勾股，向量，复数，判别式，公式......\\\\多种方法到后面才能云淡风轻.\\end{array}\\)`
 
             // 创建SVG
             let svg = `
@@ -2581,29 +2628,17 @@ let svg = `
                 <text x="15" y="20" font-size="14" fill="blue">${a}x${textb}y${textc}=0</text>
             </svg>`;
 
-            return `\\(\\begin{array}{lll}已知直线${texta}x${textb}y${textc}=0 ;\\\\求点M(${xm},${ym})对于直线的对称点。\\\\你可以先用ggb画一下的;\\\\比例，勾股，向量，复数，判别式，公式......\\\\多种方法到后面才能云淡风轻.\\end{array}\\)
-            <hr style="width:100%; margin:15px 0; border:none; border-top:1px dashed #ccc;">
-            <div style="display:block; width:100%; text-align:center; margin-top:10px;">${svg}</div>`;
+            return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+     </div>`;
         }
 
-        function generateLevelcomQuestion() {
-            const levelFunctions = [
-                generateLevel1Question,
-                generateLevel2Question,
-                generateLevel3Question,
-                generateLevel4Question,
-                generateLevel5Question,
-                generateLevel6Question,
-                generateLevel7Question,
-                generateLevel8Question,
-                generateLevel9Question,
-            ];
 
-            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
-            const selectedFunction = levelFunctions[randomIndex];
-
-            return selectedFunction();
-        }
 
         function generateLevel10Question() {
             // Level 10 uses questions from levels 1-9 randomly
@@ -2631,8 +2666,7 @@ let svg = `
             const Questions = [
                 {
                     question: " \\begin{array}{l}(1)、&直线上的两点A(1,1)、B(3,2)与直线x=9交于点C，求点C的坐标，\\\\&你想到的方法得可以用，不限以下的方法，能用五种的有奖励，\\\\&1、速度与路程的关系;\\\\&2、比例法;\\\\&3、定比分点法;\\\\&4、行列式直线面积=0(这也行？？);\\\\&5、向量共线法(你现在会用也行，不会也没关系，超纲的);\\\\&6、两点式;\\\\&7、斜率;\\end{array}",
-                                        svg: `
-
+                    svg: `
 <svg width="400" height="400" >
 <line x1="0" y1="200" x2="400" y2="200" stroke="red" stroke-width="2"/>
 <line x1="200" y1="0" x2="200" y2="400" stroke="black" stroke-width="2"/>
@@ -2642,11 +2676,7 @@ let svg = `
 <circle cx="260" cy="160" r="5" fill="red"/>
 <text x="260" y="150" font-size="12" text-anchor="middle" fill="red">B(3,2)</text>
 <line x1="0" y1="305" x2="400" y2="80" stroke="red" stroke-width="2"/>
- </svg>
-
-
-                    `,
-
+ </svg>`,
                     answers: ["(9,5)", "(+9,+5)"]
                 },
                 {
@@ -2660,8 +2690,7 @@ let svg = `
 <text x="100" y="390" font-size="12" text-anchor="middle" fill="blue">A(5,0)</text>
 <circle cx="80" cy="340" r="5" fill="red"/>
 <text x="80" y="330" font-size="12" text-anchor="middle" fill="red">A'(?,?)</text>
- </svg>
-                    `,
+ </svg>`,
                     answers: ["(4,3)", "(+4,+3)"]
                 },
                 // 可以添加更多题目
@@ -2672,23 +2701,27 @@ let svg = `
             const selectedQuestion = Questions[currentQuestionIndex];
             correctAnswer = selectedQuestion.answers;
 
-            // 生成题目的HTML
-            let questionHtml = `\\(\\begin{gather} ${selectedQuestion.question} \\end{gather}\\)`;
+            // 使用flex布局创建上下排列的容器
+            let questionHtml = `<div style="display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; max-width: 800px; margin: 0 auto;">
+                <div style="width: 100%; text-align: center;">
+                    \\(\\begin{gather} ${selectedQuestion.question} \\end{gather}\\)
+                </div>`;
 
             // 处理 img 属性
             if (selectedQuestion.img) {
-                questionHtml += `<br><br><img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">`;
+                questionHtml += `<div style="width: 100%; text-align: center;">
+                    <img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">
+                </div>`;
             }
 
             // 处理 svg 属性
             if (selectedQuestion.svg) {
-                // 修改SVG容器样式
-                questionHtml += `<div style="margin-top: 30px; margin-bottom: 30px; text-align: center; width: 100%; background-color: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); box-sizing: border-box;">
-                    <div style="max-width: 500px; margin: 0 auto;">
-                        ${selectedQuestion.svg.trim()}
-                    </div>
+                questionHtml += `<div style="width: 100%; text-align: center; background-color: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    ${selectedQuestion.svg.trim()}
                 </div>`;
             }
+
+            questionHtml += '</div>';
 
             // 增加索引，为下一题做准备，如果到达最后一道题则回到第一道
             currentQuestionIndex = (currentQuestionIndex + 1) % Questions.length;

@@ -1205,17 +1205,20 @@
             document.getElementById('playerAnswer').disabled = true;
             document.getElementById('playerSubmitBtn').disabled = true;
             
-            // 仅在PK模式下显示游戏结果
-            if (gameMode === 'pk') {
+           // 仅在PK模式下显示游戏结果
+           if (gameMode === 'pk') {
                 let resultMessage = '';
-                if (playerCorrectCount > computerCorrectCount) {
-                    resultMessage = `游戏结束! 玩家获胜! (${playerCorrectCount} : ${computerCorrectCount})`;
+                let playerNetScore = playerCorrectCount - playerIncorrectCount;
+                let computerNetScore = computerCorrectCount - computerIncorrectCount;
+                
+                if (playerNetScore > computerNetScore) {
+                    resultMessage = `游戏结束! 玩家获胜! (${playerNetScore} : ${computerNetScore})`;
                     document.getElementById('roundResult').className = 'winner-indicator player-win';
-                } else if (playerCorrectCount < computerCorrectCount) {
-                    resultMessage = `游戏结束! 计算机获胜! (${playerCorrectCount} : ${computerCorrectCount})`;
+                } else if (playerNetScore < computerNetScore) {
+                    resultMessage = `游戏结束! 计算机获胜! (${playerNetScore} : ${computerNetScore})`;
                     document.getElementById('roundResult').className = 'winner-indicator computer-win';
                 } else {
-                    resultMessage = `游戏结束! 平局! (${playerCorrectCount} : ${computerCorrectCount})`;
+                    resultMessage = `游戏结束! 平局! (${playerNetScore} : ${computerNetScore})`;
                     document.getElementById('roundResult').className = 'winner-indicator tie';
                 }
                 document.getElementById('roundResult').innerHTML = resultMessage;
@@ -1229,6 +1232,7 @@
             // 启用重置按钮
             document.getElementById('resetGameBtn').disabled = false;
         }
+
 
         // 以下是生成题目的函数，与原有代码相同
 
