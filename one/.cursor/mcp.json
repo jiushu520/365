@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "mcp": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@hyperbrowserai/mcp",
+        "--config",
+        {"hbApiKey": "2a47f0dc-730d-402f-81d7-f804f76f9e15"}
+      ]
+    }
+  }
+}

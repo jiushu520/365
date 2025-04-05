@@ -1,0 +1,432 @@
+
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>玖数学</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src=".\mathjax\MathJax-master\es5\tex-mml-chtml.js"></script>
+
+
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            background-color: #e0f7fa;
+        }
+        .top, .left, .center {
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            border-radius: 5px;
+        }
+        .top {
+            padding: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 50px;
+        }
+        .main {
+            display: flex;
+            flex-grow: 1;
+            height: calc(100vh - 50px);
+            transition: margin-left 0.3s;
+        }
+        .left {
+            flex: 0.4;
+            overflow-y: auto;
+            transition: transform 0.3s ease-in-out;
+            min-width: 250px;
+        }
+        .left.hidden {
+            transform: translateX(-100%);
+        }
+        .center {
+            flex: 4;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: flex 0.3s;
+            overflow: hidden;
+        }
+        .top-content {
+            flex: 1 1 auto;
+            overflow: hidden;
+        }
+        .canvas-switch {
+            padding: 15px;
+            background-color: #e0f7fa;
+            text-align: center;
+            border-top: 1px solid #b2dfdb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .bottom-content {
+            height: 0;
+            overflow: hidden;
+            transition: height 0.3s;
+        }
+        .bottom-content iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        .menu-item {
+            cursor: pointer;
+            margin: 5px 0;
+            padding: 8px 10px 8px 20px;
+            text-decoration: none;
+            color: #333;
+            display: block;
+            transition: all 0.2s;
+            border-radius: 4px;
+        }
+        .menu-item:hover {
+            background-color: #e0f2f1;
+            color: #00695c;
+        }
+        .menu-item.selected {
+            background-color: #009688;
+            color: white;
+            font-weight: bold;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        #search {
+            width: 90%;
+            padding: 8px 12px;
+            margin: 15px auto;
+            border: 1px solid #b2dfdb;
+            border-radius: 20px;
+            display: block;
+            font-size: 14px;
+            transition: all 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        #search:focus {
+            outline: none;
+            border-color: #009688;
+            box-shadow: 0 1px 5px rgba(0,150,136,0.2);
+        }
+        .collapsible {
+            background-color: #e0f7fa;
+            color: #00796b;
+            cursor: pointer;
+            padding: 12px 15px;
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid #b2dfdb;
+            text-align: left;
+            outline: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .active, .collapsible:hover {
+            background-color: #b2dfdb;
+            color: #004d40;
+        }
+        .content {
+            padding: 0 18px;
+            display: none;
+            overflow: hidden;
+            background-color: #e0f7fa;
+        }
+        .toggle-menu-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 150, 136, 0.8);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .toggle-menu-btn:hover {
+            background-color: rgba(0, 150, 136, 1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .main.menu-hidden .left {
+            flex: 0;
+            width: 0;
+            min-width: 0;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+            border: none;
+        }
+        .main.menu-hidden .center {
+            flex: 1;
+            width: 100%;
+        }
+        @media (max-width: 768px) {
+            .left {
+                position: absolute;
+                z-index: 1000;
+                background-color: #fff;
+                height: 100%;
+                width: 300px;
+                box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+            }
+            .left.hidden {
+                transform: translateX(-100%);
+            }
+            .main.menu-hidden .center {
+                flex: 1;
+            }
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            height: 8px;
+            background: #b2dfdb;
+            border-radius: 5px;
+            margin: 0 10px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #009688;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main" id="main">
+        <div class="left" id="menu">
+            <input type="text" id="search" placeholder="搜索目录..." onkeyup="filterMenu()">
+            <!-- 菜单将通过JavaScript动态生成 -->
+        </div>
+        
+        <div class="center" id="content">
+
+            <div class="toggle-menu-btn" onclick="toggleMenu()">
+                <i class="menu-icon">☰</i> 目录
+            </div>
+
+            <div class="top-content">
+
+                <iframe src="https://shimo.im/docs/gO3odYvGvRfzMZqD" frameborder="0"></iframe>
+            </div>
+            <div class="bottom-content" id="canvasContainer">
+                <iframe src="" frameborder="0" id="canvasIframe"></iframe>
+            </div>
+
+
+            <div class="canvas-switch">
+                <label for="canvasSwitch">画布</label>
+                <input type="checkbox" id="canvasSwitch" onchange="toggleCanvas()">
+                <label for="canvasHeight">高度(px):</label>
+                <input type="range" id="canvasHeight" value="500" min="0" max="1000" oninput="setCanvasHeight()">
+                <span id="heightValue">500</span> px
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        const menuData = [
+
+            {
+                title: 'B01乘法公式',
+                items: [
+                    { text: 'B0101乘法公式分配律一', url: 'B0101乘法公式分配律一.html' },
+                    { text: 'B0102乘法公式分配律二', url: 'B0102乘法公式分配律二.html' },
+                    { text: 'B0103乘法公式两大公式', url: 'B0103乘法公式两大公式.html' },
+                    { text: 'B0104乘法公式多项式乘多项式一', url: 'B0104乘法公式多项式乘多项式一.html' },
+                    { text: 'B0105乘法公式多项式乘多项式二', url: 'B0105乘法公式多项式乘多项式二.html' },
+                    { text: 'B0106乘法公式三个多项式相乘', url: 'B0106乘法公式三个多项式相乘.html' },
+                    { text: 'B0107乘法公式两项乘三项', url: 'B0107乘法公式两项乘三项.html' },
+                    { text: 'B0108乘法公式多项式除法求余', url: 'B0108乘法公式多项式除法求余.html' },
+                    { text: 'B0109乘法公式综合', url: 'B0109乘法公式综合.html' },
+                ]
+            },
+            {
+                title: 'B02乘法公式综合',
+                items: [
+                    { text: 'B0201乘法公式综合0配方法顶点式', url: 'B0201乘法公式综合0配方法顶点式.html' },
+                    { text: 'B0202乘法公式综合完全平方公式知二得四1', url: 'B0202乘法公式综合完全平方公式知二得四1.html' },
+                    { text: 'B0203乘法公式综合完全平方公式知二得四2', url: 'B0203乘法公式综合完全平方公式知二得四2.html' },
+                    { text: 'B0204乘法公式综合完全平方公式知二得四3', url: 'B0204乘法公式综合完全平方公式知二得四3.html' },
+                    { text: 'B0205乘法公式综合完全平方公式知二得四4', url: 'B0205乘法公式综合完全平方公式知二得四4.html' },
+                    { text: 'B0206乘法公式综合综合', url: 'B0206乘法公式综合综合.html' },
+
+                ]
+            },
+            {
+                title: 'B03因式分解',
+                items: [
+                    { text: 'B0301因式分解首项系数为1', url: 'B0301因式分解首项系数为1.html' },
+                    { text: 'B0302因式分解首项系数不为1', url: 'B0302因式分解首项系数不为1.html' },
+                    { text: 'B0303因式分解两大公式', url: 'B0303因式分解两大公式.html' },
+                    { text: 'B0304因式分解首项系数为1十字交叉', url: 'B0304因式分解首项系数为1十字交叉.html' },
+                    { text: 'B0305因式分解首项系数不为1十字交叉', url: 'B0305因式分解首项系数不为1十字交叉.html' },
+                    { text: 'B0306因式分解三次项', url: 'B0306因式分解三次项.html' },
+                    { text: 'B0307因式分解解二次方程', url: 'B0307因式分解解二次方程.html' },
+                    { text: 'B0308因式分解双十字相乘法', url: 'B0308因式分解双十字相乘法.html' },
+                    { text: 'B0309因式分解综合', url: 'B0309因式分解综合.html' },
+                ]
+            },
+            {
+                title: 'B04因式分解技巧',
+                items: [
+                    { text: 'B0401因式分解技巧提公因式', url: 'B0401因式分解技巧提公因式.html' },
+                    { text: 'B0402因式分解技巧公式法', url: 'B0402因式分解技巧公式法.html' },
+                    { text: 'B0403因式分解技巧分组分解', url: 'B0403因式分解技巧分组分解.html' },
+                    { text: 'B0404因式分解技巧拆项与添项', url: 'B0404因式分解技巧拆项与添项.html' },
+                    { text: 'B0405因式分解技巧十字相乘', url: 'B0405因式分解技巧十字相乘.html' },
+                    { text: 'B0406因式分解技巧二元二次分解', url: 'B0406因式分解技巧二元二次分解.html' },
+                    { text: 'B0407因式分解技巧综合运用', url: 'B0407因式分解技巧综合运用.html' },
+                    { text: 'B0408因式分解技巧多项式的一次因式', url: 'B0408因式分解技巧多项式的一次因式.html' },
+                    { text: 'B0409因式分解技巧综合', url: 'B0409因式分解技巧综合.html' },
+                ]
+            },
+        ];
+
+        function generateMenu() {
+            const menu = document.getElementById('menu');
+            menuData.forEach(section => {
+                const button = document.createElement('button');
+                button.className = 'collapsible';
+                button.textContent = section.title;
+
+                const content = document.createElement('div');
+                content.className = 'content';
+
+                section.items.forEach(item => {
+                    const link = document.createElement('a');
+                    link.href = 'javascript:void(0);';
+                    link.className = 'menu-item';
+                    link.textContent = item.text;
+                    link.setAttribute('data-url', item.url);
+                    link.onclick = () => {
+                        // Remove selected class from all menu items
+                        document.querySelectorAll('.menu-item').forEach(menuItem => {
+                            menuItem.classList.remove('selected');
+                        });
+                        // Add selected class to clicked item
+                        link.classList.add('selected');
+                        showContent(item.url);
+                    };
+                    content.appendChild(link);
+                });
+
+                menu.appendChild(button);
+                menu.appendChild(content);
+            });
+
+            initializeCollapsible();
+        }
+
+        function initializeCollapsible() {
+            document.querySelectorAll('.collapsible').forEach(button => {
+                button.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const content = this.nextElementSibling;
+                    content.style.display = content.style.display === 'block' ? 'none' : 'block';
+                });
+            });
+        }
+
+        function showContent(url) {
+            const iframe = document.querySelector('.top-content iframe');
+            
+            iframe.style.opacity = '0.6';
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.style.position = 'absolute';
+            loadingIndicator.style.top = '50%';
+            loadingIndicator.style.left = '50%';
+            loadingIndicator.style.transform = 'translate(-50%, -50%)';
+            loadingIndicator.style.zIndex = '1000';
+            loadingIndicator.innerHTML = '加载中...';
+            document.querySelector('.top-content').appendChild(loadingIndicator);
+            
+            iframe.onload = function() {
+                iframe.style.opacity = '1';
+                if (loadingIndicator.parentNode) {
+                    loadingIndicator.parentNode.removeChild(loadingIndicator);
+                }
+            };
+            
+            iframe.src = url;
+            
+            if (window.innerWidth <= 768) {
+                toggleMenu();
+            }
+        }
+
+        function filterMenu() {
+            const input = document.getElementById('search');
+            const filter = input.value.toLowerCase();
+            const menuItems = document.querySelectorAll('.menu-item');
+            const sections = document.querySelectorAll('.content');
+
+            menuItems.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(filter)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            sections.forEach(section => {
+                const visibleItems = Array.from(section.querySelectorAll('.menu-item')).some(item => item.style.display !== 'none');
+                section.style.display = visibleItems ? 'block' : 'none';
+                const button = section.previousElementSibling;
+                if (button) button.classList.toggle('active', visibleItems);
+            });
+        }
+
+        function toggleMenu() {
+            const main = document.getElementById('main');
+            const menu = document.getElementById('menu');
+            main.classList.toggle('menu-hidden');
+            menu.classList.toggle('hidden');
+        }
+
+        function toggleCanvas() {
+            const isChecked = document.getElementById('canvasSwitch').checked;
+            const canvasContainer = document.getElementById('canvasContainer');
+            const canvasIframe = document.getElementById('canvasIframe');
+
+            if (isChecked) {
+                setCanvasHeight();
+                canvasIframe.src = '画布.html';
+            } else {
+                canvasContainer.style.height = '0';
+                canvasIframe.src = '';
+            }
+        }
+
+        function setCanvasHeight() {
+            const canvasContainer = document.getElementById('canvasContainer');
+            const height = document.getElementById('canvasHeight').value;
+            canvasContainer.style.height = height + 'px';
+            document.getElementById('heightValue').textContent = height;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            generateMenu();
+        });
+    </script>
+</body>
+</html>

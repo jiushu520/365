@@ -1,0 +1,42 @@
+{
+    "version": "0.2.0",
+    "configurations": [       
+        {
+            "name": "Launch Chrome",
+            "request": "launch",
+            "type": "chrome",
+            "url": "http://localhost:8080",
+            "webRoot": "${workspaceFolder}"
+        },
+
+        {
+            "name": "Launch Edge",
+            "request": "launch",
+            "type": "msedge",
+            "url": "http://localhost:8080",
+            "webRoot": "${workspaceFolder}"
+        },
+        {
+            "name": "Launch Edge",
+            "request": "launch",
+            "type": "msedge",
+            "url": "http://localhost:8080",
+            "webRoot": "${workspaceFolder}"
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "打开当前 HTML 文件",
+            "file": "${file}",
+            "webRoot": "${workspaceFolder}",
+            "reuseExistingTab": true,
+            "userDataDir": false,
+            "cleanUp": true,
+            "args": [
+                "--remote-debugging-port=9222",
+                "--user-data-dir=${workspaceFolder}/.vscode/chrome-debug-profile"
+            ]
+        },
+
+    ]
+}

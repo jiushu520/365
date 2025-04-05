@@ -1,0 +1,1926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B03因式分解阶梯测试训练</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .header {
+            text-align: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .pk-container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            justify-content: space-between;
+        }
+
+        .player-container, .computer-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 48%;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .player-container {
+            background-color: #f0f8ff; /* Light blue for player */
+        }
+
+        .computer-container {
+            background-color: #fff0f0; /* Light red for computer */
+        }
+
+        .vs-indicator {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            background-color: #ffcc00;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        .difficulty-buttons {
+            margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .difficulty-buttons button {
+            margin: 5px;
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+        }
+
+        .difficulty-buttons button.active {
+            background-color: #45a049;
+            color: white;
+        }
+
+        .question-box {
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: white;
+            width: 90%;
+        }
+
+        .answer-input {
+            padding: 10px;
+            font-size: 16px;
+            width: 80%;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .timer {
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .computer-status {
+            margin: 10px 0;
+            font-style: italic;
+            min-height: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .result {
+            min-height: 20px;
+            margin: 10px 0;
+        }
+
+        .score {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        .rendered-answer {
+            margin-top: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 80%;
+            min-height: 30px;
+            background-color: white;
+        }
+
+        .history-container {
+            margin-top: 30px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .copy-button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+        }
+
+        .copy-button:hover {
+            background-color: #218838;
+        }
+
+        #copy-success {
+            display: none;
+            margin-top: 10px;
+            color: green;
+            font-size: 14px;
+        }
+        
+        .winner-indicator {
+            font-weight: bold;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        
+        .player-win {
+            color: blue;
+        }
+        
+        .computer-win {
+            color: red;
+        }
+        
+        .tie {
+            color: purple;
+        }
+        
+        .player-row {
+            background-color: rgba(240, 248, 255, 0.3);
+        }
+        
+        .computer-row {
+            background-color: rgba(255, 240, 240, 0.3);
+        }
+        
+        /* 新增攻击效果相关样式 */
+        .shockwave {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(0.1);
+            box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.7);
+        }
+        
+        .player-attack {
+            animation: shockwave-player 1s ease-out forwards;
+        }
+        
+        .computer-attack {
+            animation: shockwave-computer 1s ease-out forwards;
+        }
+        
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shockwave-player {
+            0% {
+                opacity: 1;
+                transform: scale(0.1);
+                background: radial-gradient(circle, rgba(0,100,255,0.8) 0%, rgba(0,100,255,0) 70%);
+                box-shadow: 0 0 20px 10px rgba(0, 100, 255, 0.7);
+                left: 35%;
+                top: 50%;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(2);
+                background: radial-gradient(circle, rgba(0,100,255,0.2) 0%, rgba(0,100,255,0) 70%);
+                box-shadow: 0 0 40px 20px rgba(0, 100, 255, 0.3);
+                left: 80%;
+                top: 50%;
+            }
+        }
+        
+        @keyframes shockwave-computer {
+            0% {
+                opacity: 1;
+                transform: scale(0.1);
+                background: radial-gradient(circle, rgba(255,0,0,0.8) 0%, rgba(255,0,0,0) 70%);
+                box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.7);
+                left: 65%;
+                top: 50%;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(2);
+                background: radial-gradient(circle, rgba(255,0,0,0.2) 0%, rgba(255,0,0,0) 70%);
+                box-shadow: 0 0 40px 20px rgba(255, 0, 0, 0.3);
+                left: 20%;
+                top: 50%;
+            }
+        }
+        
+        @keyframes shake {
+            0%, 100% {transform: translateX(0);}
+            10%, 30%, 50%, 70%, 90% {transform: translateX(-5px);}
+            20%, 40%, 60%, 80% {transform: translateX(5px);}
+        }
+        
+        /* 显示对诮语句的样式 */
+        .taunt-bubble {
+            position: absolute;
+            background-color: white;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 101;
+            opacity: 0;
+            animation: show-taunt 2s ease-out forwards;
+            min-width: 120px;
+            text-align: center;
+        }
+        
+        .taunt-bubble::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border: 10px solid transparent;
+        }
+        
+        .player-taunt {
+            top: 20%;
+            left: 25%;
+        }
+        
+        .player-taunt::before {
+            border-left-color: #333;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .computer-taunt {
+            top: 20%;
+            right: 25%;
+        }
+        
+        .computer-taunt::before {
+            border-right-color: #333;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        @keyframes show-taunt {
+            0% {opacity: 0; transform: translateY(20px);}
+            20% {opacity: 1; transform: translateY(0);}
+            80% {opacity: 1; transform: translateY(0);}
+            100% {opacity: 0; transform: translateY(-20px);}
+        }
+        
+        @media (max-width: 768px) {
+            .pk-container {
+                flex-direction: column;
+            }
+            
+            .player-container, .computer-container {
+                width: 90%;
+                margin-bottom: 30px;
+            }
+        }
+
+        .timer-btn {
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+            color: white;
+            margin: 0 5px;
+        }
+        
+        .timer-btn.active {
+            background-color: #45a049;
+        }
+
+        /* 模式切换按钮样式 */
+        .mode-switch {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        
+        .mode-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+            color: white;
+            margin: 0 10px;
+        }
+        
+        .mode-btn.active {
+            background-color: #45a049;
+        }
+        
+        /* 自学模式下的全宽玩家容器 */
+        .player-container.full-width {
+            width: 100%;
+        }
+        
+        /* 历史记录上方按钮行 */
+        .history-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        
+        /* 响应式布局下的历史记录按钮 */
+        @media (max-width: 768px) {
+            .history-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .mode-switch {
+                margin-top: 10px;
+            }
+        }
+        
+        /* 通关模式相关样式 */
+        .level-progress {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        
+        .level-indicator {
+            font-size: 16px;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        
+        .question-counter {
+            font-size: 14px;
+        }
+        
+        .conquest-timer {
+            font-size: 14px;
+            margin-left: 15px;
+            color: #007bff;
+        }
+        
+        /* 已通关的关卡高亮样式 */
+        .difficulty-buttons button.completed {
+            background-color: #28a745;
+            color: white;
+            position: relative;
+        }
+        
+        .difficulty-buttons button.completed::after {
+            content: "✓";
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ffc107;
+            color: #000;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .difficulty-buttons button.current {
+            background-color: #007bff;
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 123, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h3>B03因式分解阶梯测试训练<h3>
+    </div>
+    
+    <!-- 添加音效元素 -->
+    <audio id="playerAttackSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2073/2073-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="computerAttackSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/1293/1293-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="correctSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="wrongSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2691/2691-preview.mp3" type="audio/mpeg">
+    </audio>
+    
+    <div class="difficulty-buttons" id="difficultyButtons"></div>
+    
+    <!-- 游戏选项布局修改为一行 -->
+    <div class="game-options" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin: 10px 0;">
+        <div style="display: flex; align-items: center; margin: 0 10px;">
+
+            <button id="timer5min" class="timer-btn" onclick="selectGameDuration(5)">5分钟</button>
+            <button id="timer10min" class="timer-btn active" onclick="selectGameDuration(10)">10分钟</button>
+        </div>
+        
+        <div style="display: flex; align-items: center; margin: 0 10px;">
+            <span style="margin-right: 10px;">计算机思考难度:</span>
+            <button id="thinkingEasy" class="timer-btn active" onclick="selectThinkingDifficulty('easy')">快</button>
+            <button id="thinkingMedium" class="timer-btn" onclick="selectThinkingDifficulty('medium')">中</button>
+            <button id="thinkingHard" class="timer-btn" onclick="selectThinkingDifficulty('hard')">慢</button>
+        </div>
+    </div>
+    <div style="display: flex; justify-content: center; align-items: center; margin: 10px 0; gap: 15px;">
+        <div id="countdownDisplay" style="font-size: 20px; font-weight: bold; color: #007bff;">剩余时间: 05:00</div>
+        <button id="startGameBtn" onclick="startGame()">开始游戏</button>
+        <button id="resetGameBtn" onclick="resetGame()" disabled>重新开始</button>
+    </div>
+    
+    <div class="pk-container">
+        <div class="player-container" id="playerContainer">
+            <h3>玩家</h3>
+            <div class="timer" id="playerTimer">时间: 0秒</div>
+            <div class="question-box" id="playerQuestion"></div>
+            <input type="text" id="playerAnswer" class="answer-input" placeholder="输入你的答案" oninput="updatePreview('player')" disabled autocomplete="off">
+            <div class="rendered-answer" id="playerRenderedAnswer"></div>
+            <button id="playerSubmitBtn" onclick="checkPlayerAnswer()" disabled>提交答案</button>
+            <div class="result" id="playerResult"></div>
+            <div class="score" id="playerScore">正确: 0 | 错误: 0 | 总题数: 0</div>
+        </div>
+        
+        <div class="computer-container" id="computerContainer">
+            <h3>计算机</h3>
+            <div class="timer" id="computerTimer">时间: 0秒</div>
+            <div class="question-box" id="computerQuestion"></div>
+            <div class="computer-status" id="computerStatus">等待开始...</div>
+            <input type="text" id="computerAnswer" class="answer-input" placeholder="计算机的答案" disabled autocomplete="off">
+            <div class="rendered-answer" id="computerRenderedAnswer"></div>
+            <div class="result" id="computerResult"></div>
+            <div class="score" id="computerScore">正确: 0 | 错误: 0 | 总题数: 0</div>
+        </div>
+    </div>
+    
+    <div class="winner-indicator" id="roundResult"></div>
+    
+    <div class="history-container">
+        <div class="history-controls">
+            <button class="copy-button" onclick="copyHistory()">复制历史记录</button>
+            
+            <!-- 模式切换按钮移到这里 -->
+            <div class="mode-switch">
+                <button id="selfPracticeBtn" class="mode-btn" onclick="switchMode('self')">自学练习</button>
+                <button id="pkModeBtn" class="mode-btn active" onclick="switchMode('pk')">PK模式</button>
+                <button id="conquestModeBtn" class="mode-btn" onclick="switchMode('conquest')">通关模式</button>
+            </div>
+        </div>
+        
+        <div id="copy-success">历史记录已复制到剪贴板！</div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>参与者</th>
+                    <th>级别</th>
+                    <th>题目</th>
+                    <th>答案</th>
+                    <th>正确答案</th>
+                    <th>结果</th>
+                    <th>用时(秒)</th>
+                </tr>
+            </thead>
+            <tbody id="history"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // 全局变量
+        let playerCorrectAnswer; // 玩家题目的正确答案
+        let computerCorrectAnswer; // 计算机题目的正确答案
+        let correctAnswer; // 保留此变量用于兼容原有函数
+        let playerCorrectCount = 0;
+        let playerIncorrectCount = 0;
+        let computerCorrectCount = 0;
+        let computerIncorrectCount = 0;
+        let playerTotalCount = 0;
+        let computerTotalCount = 0;
+        let currentDifficulty = 1;
+        let gameInProgress = false;
+        let playerTime = 0;
+        let computerTime = 0;
+        let playerQuestionStartTime = 0;
+        let computerQuestionStartTime = 0;
+        let playerTimer;
+        let computerTimer;
+        let computerThinkingTimers = [];
+        
+        // 新增倒计时变量
+        let gameDuration = 10; // 默认10分钟
+        let countdownTime = 10 * 60; // 默认10分钟，单位为秒
+        let countdownTimer;
+        
+        // 新增思考时间难度变量
+        let computerThinkingDifficulty = 'easy'; // 默认为容易，可选值: 'easy'(容易)、'medium'(中等)、'hard'(困难)
+        
+        // 新增游戏模式变量
+        let gameMode = 'pk'; // 默认为PK模式，可选值: 'self'(自学练习)、'pk'(PK模式)、'conquest'(通关模式)
+
+        // 通关模式变量
+        let conquestLevel = 1; // 当前关卡
+        let conquestCorrectCount = 0; // 当前关卡已答对的题目数
+        let conquestStartTime = 0; // 通关模式开始时间
+        let conquestTotalTime = 0; // 通关模式总用时
+
+        const difficultyNames = [
+        "01首项系数为1",
+            "02首项系数不为1",
+            "03两大公式",
+            "04首项系数为1十字交叉",
+            "05首项系数不为1十字交叉",
+            "06三次项",
+            "07解二次方程",
+            "08双十字相乘",
+            "09综合"
+        ];
+
+        // 初始化
+        document.addEventListener("DOMContentLoaded", () => {
+            generateDifficultyButtons();
+            setDifficulty(1);
+            updateCountdownDisplay();
+            switchMode('self'); // 默认PK模式
+            selectThinkingDifficulty('easy'); // 默认为容易难度
+        });
+
+        // 切换游戏模式
+        function switchMode(mode) {
+            if (gameInProgress) {
+                alert('游戏进行中无法切换模式，请先重置游戏');
+                return;
+            }
+            
+            gameMode = mode;
+            
+            // 重置UI元素
+            document.getElementById('selfPracticeBtn').classList.remove('active');
+            document.getElementById('pkModeBtn').classList.remove('active');
+            document.getElementById('conquestModeBtn').classList.remove('active');
+            
+            // 根据不同模式设置UI
+            if (mode === 'self') {
+                document.getElementById('selfPracticeBtn').classList.add('active');
+                document.getElementById('playerContainer').classList.add('full-width');
+                document.getElementById('computerContainer').style.display = 'none';
+                document.getElementById('roundResult').style.display = 'none';
+                // 隐藏计时器选择，自学模式不需要计时限制
+                document.getElementById('timer5min').parentElement.style.display = 'none';
+                document.getElementById('countdownDisplay').style.display = 'none';
+                
+                // 恢复所有难度按钮的可点击状态
+                document.querySelectorAll('.difficulty-buttons button').forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('completed', 'current');
+                });
+                
+                // 显示当前选中的难度
+                setDifficulty(currentDifficulty);
+            } else if (mode === 'pk') {
+                document.getElementById('pkModeBtn').classList.add('active');
+                document.getElementById('playerContainer').classList.remove('full-width');
+                document.getElementById('computerContainer').style.display = 'block';
+                document.getElementById('roundResult').style.display = 'block';
+                // 显示计时器选择
+                document.getElementById('timer5min').parentElement.style.display = 'flex';
+                document.getElementById('countdownDisplay').style.display = 'block';
+                
+                // 恢复所有难度按钮的可点击状态
+                document.querySelectorAll('.difficulty-buttons button').forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('completed', 'current');
+                });
+                
+                // 显示当前选中的难度
+                setDifficulty(currentDifficulty);
+            } else if (mode === 'conquest') {
+                document.getElementById('conquestModeBtn').classList.add('active');
+                document.getElementById('playerContainer').classList.add('full-width');
+                document.getElementById('computerContainer').style.display = 'none';
+                document.getElementById('roundResult').style.display = 'none';
+                // 隐藏计时器选择，通关模式不限时但计时
+                document.getElementById('timer5min').parentElement.style.display = 'none';
+                document.getElementById('countdownDisplay').style.display = 'none';
+                
+                // 添加关卡进度显示
+                if (!document.getElementById('levelProgress')) {
+                    const levelProgress = document.createElement('div');
+                    levelProgress.id = 'levelProgress';
+                    levelProgress.className = 'level-progress';
+                    levelProgress.innerHTML = `
+                        <div class="level-indicator">当前关卡: 1</div>
+                        <div class="question-counter">完成题数: 0/5</div>
+                        <div class="conquest-timer">总用时: 0秒</div>
+                    `;
+                    document.querySelector('.player-container').insertBefore(
+                        levelProgress, 
+                        document.querySelector('.player-container .timer')
+                    );
+                }
+                
+                // 重置通关模式状态
+                conquestLevel = 1;
+                conquestCorrectCount = 0;
+                setDifficulty(conquestLevel);
+                
+                // 更新难度按钮禁用状态
+                updateDifficultyButtonsForConquest();
+            }
+            
+            // 更新界面按钮状态
+            updateButtonStates();
+        }
+
+        // 生成难度按钮
+        function generateDifficultyButtons() {
+            const buttonsContainer = document.getElementById('difficultyButtons');
+            buttonsContainer.innerHTML = '';
+            
+            difficultyNames.forEach((name, index) => {
+                const button = document.createElement('button');
+                button.textContent = name;
+                button.dataset.level = index + 1;  // 使用dataset存储难度级别
+                button.onclick = () => setDifficulty(index + 1);
+                buttonsContainer.appendChild(button);
+            });
+        }
+        
+        // 设置难度
+        function setDifficulty(level) {
+            if (gameInProgress && gameMode !== 'conquest') {
+                alert('游戏进行中无法更改难度，请先重置游戏');
+                return;
+            }
+            
+            currentDifficulty = level;
+            
+            // 更新按钮样式
+            document.querySelectorAll('.difficulty-buttons button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const selectedBtn = document.querySelector(`.difficulty-buttons button[data-level="${level}"]`);
+            if (selectedBtn) {
+                selectedBtn.classList.add('active');
+            }
+            
+            // 如果在通关模式下，更新通关模式UI
+            if (gameMode === 'conquest' && gameInProgress) {
+                updateDifficultyButtonsForConquest();
+            }
+        }
+
+        // 选择游戏时长
+        function selectGameDuration(minutes) {
+            if (gameInProgress) return; // 游戏进行中不能更改时长
+            
+            gameDuration = minutes;
+            countdownTime = minutes * 60;
+            
+            // 更新UI - 先移除所有timer-btn的active类
+            document.querySelectorAll('.timer-btn').forEach(btn => {
+                // 只处理时间选择按钮，不影响思考难度按钮
+                if (btn.id.startsWith('timer')) {
+                    btn.classList.remove('active');
+                }
+            });
+            // 只给当前选择的按钮添加active类
+            document.getElementById(`timer${minutes}min`).classList.add('active');
+            
+            updateCountdownDisplay();
+        }
+        
+        // 选择计算机思考难度
+        function selectThinkingDifficulty(difficulty) {
+            if (gameInProgress) return; // 游戏进行中不能更改难度
+            
+            computerThinkingDifficulty = difficulty;
+            
+            // 更新UI - 只操作思考难度按钮
+            document.querySelectorAll('.timer-btn').forEach(btn => {
+                // 只处理思考难度按钮，不影响时间选择按钮
+                if (btn.id.startsWith('thinking')) {
+                    btn.classList.remove('active');
+                }
+            });
+            document.getElementById(`thinking${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}`).classList.add('active');
+        }
+        
+        // 更新倒计时显示
+        function updateCountdownDisplay() {
+            const minutes = Math.floor(countdownTime / 60);
+            const seconds = countdownTime % 60;
+            document.getElementById('countdownDisplay').textContent = 
+                `剩余时间: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        // 开始倒计时
+        function startCountdown() {
+            countdownTime = gameDuration * 60;
+            updateCountdownDisplay();
+            
+            countdownTimer = setInterval(() => {
+                countdownTime--;
+                updateCountdownDisplay();
+                
+                if (countdownTime <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function startGame() {
+            // 重置状态
+            playerCorrectCount = 0;
+            playerIncorrectCount = 0;
+            computerCorrectCount = 0;
+            computerIncorrectCount = 0;
+            playerTotalCount = 0;
+            computerTotalCount = 0;
+            playerTime = 0;
+            computerTime = 0;
+            
+            // 通关模式特殊处理
+            if (gameMode === 'conquest') {
+                conquestStartTime = new Date().getTime();
+                conquestTotalTime = 0;
+                conquestLevel = 1;
+                conquestCorrectCount = 0;
+                setDifficulty(conquestLevel);
+                updateConquestUI();
+            }
+            
+            // 更新UI
+            document.getElementById('playerScore').innerHTML = `正确: 0 | 错误: 0 | 总题数: 0`;
+            if (gameMode === 'pk') {
+                document.getElementById('computerScore').innerHTML = `正确: 0 | 错误: 0 | 总题数: 0`;
+                document.getElementById('computerTimer').innerHTML = `时间: 0秒`;
+                document.getElementById('roundResult').innerHTML = '';
+            }
+            document.getElementById('playerTimer').innerHTML = `时间: 0秒`;
+            document.getElementById('history').innerHTML = '';
+            
+            // 启用/禁用相关按钮
+            document.getElementById('startGameBtn').disabled = true;
+            document.getElementById('resetGameBtn').disabled = false;
+            document.getElementById('playerAnswer').disabled = false;
+            document.getElementById('playerSubmitBtn').disabled = false;
+            
+            // 更改游戏状态
+            gameInProgress = true;
+            
+            // 为玩家生成题目
+            generatePlayerQuestion();
+            
+            // 开始计时器
+            startTimers();
+            
+            // 只在PK和自学模式下启动倒计时
+            if (gameMode !== 'conquest') {
+                startCountdown();
+            }
+            
+            // 仅在PK模式下才生成计算机题目
+            if (gameMode === 'pk') {
+                generateComputerQuestion();
+            }
+            
+            // 通关模式下禁用难度按钮
+            if (gameMode === 'conquest') {
+                updateDifficultyButtonsForConquest();
+            }
+        }
+        
+        function resetGame() {
+            // 停止计时器
+            clearInterval(playerTimer);
+            clearInterval(computerTimer);
+            clearInterval(countdownTimer);
+            computerThinkingTimers.forEach(timer => clearTimeout(timer));
+            computerThinkingTimers = [];
+            
+            // 重置状态
+            gameInProgress = false;
+            
+            // 非通关模式重置倒计时
+            if (gameMode !== 'conquest') {
+                countdownTime = gameDuration * 60;
+                updateCountdownDisplay();
+            }
+            
+            // 通关模式重置
+            if (gameMode === 'conquest') {
+                conquestLevel = 1;
+                conquestCorrectCount = 0;
+                setDifficulty(conquestLevel);
+                updateConquestUI();
+                updateDifficultyButtonsForConquest();
+            }
+            
+            // 更新UI
+            document.getElementById('playerQuestion').innerHTML = '';
+            document.getElementById('playerAnswer').value = '';
+            document.getElementById('playerRenderedAnswer').innerHTML = '';
+            document.getElementById('playerResult').innerHTML = '';
+            
+            if (gameMode === 'pk') {
+                document.getElementById('computerQuestion').innerHTML = '';
+                document.getElementById('computerAnswer').value = '';
+                document.getElementById('computerRenderedAnswer').innerHTML = '';
+                document.getElementById('computerResult').innerHTML = '';
+                document.getElementById('computerStatus').innerHTML = '等待开始...';
+                document.getElementById('roundResult').innerHTML = '';
+            }
+            
+            // 启用/禁用相关按钮
+            updateButtonStates();
+        }
+        
+        // 更新按钮状态
+        function updateButtonStates() {
+            document.getElementById('startGameBtn').disabled = gameInProgress;
+            document.getElementById('resetGameBtn').disabled = !gameInProgress;
+            document.getElementById('playerAnswer').disabled = !gameInProgress;
+            document.getElementById('playerSubmitBtn').disabled = !gameInProgress;
+        }
+        
+        function startTimers() {
+            // 玩家计时器
+            playerTimer = setInterval(() => {
+                playerTime++;
+                document.getElementById('playerTimer').innerHTML = `时间: ${playerTime}秒`;
+                
+                // 通关模式特殊处理
+                if (gameMode === 'conquest') {
+                    updateTimers();
+                }
+            }, 1000);
+            
+            // 仅在PK模式下启动计算机计时器
+            if (gameMode === 'pk') {
+                computerTimer = setInterval(() => {
+                    computerTime++;
+                    document.getElementById('computerTimer').innerHTML = `时间: ${computerTime}秒`;
+                }, 1000);
+            }
+            
+            // 记录开始时间
+            playerQuestionStartTime = playerTime;
+            if (gameMode === 'pk') {
+                computerQuestionStartTime = computerTime;
+            }
+        }
+        
+        function generatePlayerQuestion() {
+            // 清空答案框和结果
+            document.getElementById('playerAnswer').value = '';
+            document.getElementById('playerRenderedAnswer').innerHTML = '';
+            document.getElementById('playerResult').innerHTML = '';
+            
+            // 生成新题目
+            const playerQuestion = generateQuestion();
+            // 保存玩家题目的正确答案
+            playerCorrectAnswer = [...correctAnswer];
+            
+            // 更新界面上的题目
+            document.getElementById('playerQuestion').innerHTML = playerQuestion;
+            
+            // 记录题目开始时间
+            playerQuestionStartTime = playerTime;
+            
+            // 重新渲染数学公式
+            MathJax.typesetPromise([document.getElementById('playerQuestion')])
+                .catch((err) => console.log(err));
+        }
+        
+        function generateComputerQuestion() {
+            if (gameMode !== 'pk') return;
+            
+            // 清空答案框和结果
+            document.getElementById('computerAnswer').value = '';
+            document.getElementById('computerRenderedAnswer').innerHTML = '';
+            document.getElementById('computerResult').innerHTML = '';
+            
+            // 生成新题目
+            const computerQuestion = generateQuestion();
+            // 保存计算机题目的正确答案
+            computerCorrectAnswer = [...correctAnswer];
+            
+            // 更新界面上的题目
+            document.getElementById('computerQuestion').innerHTML = computerQuestion;
+            
+            // 更新计算机状态
+            document.getElementById('computerStatus').innerHTML = `正在思考...`;
+            
+            // 记录题目开始时间
+            computerQuestionStartTime = computerTime;
+            
+            // 重新渲染数学公式
+            MathJax.typesetPromise([document.getElementById('computerQuestion')])
+                .catch((err) => console.log(err));
+            
+            // 设置计算机自动答题
+            scheduleComputerAnswer();
+        }
+        
+        function scheduleComputerAnswer() {
+            if (!gameInProgress || gameMode !== 'pk') return;
+            
+            // 根据难度设置计算机思考时间
+            let minTime = 10;
+            let maxTime = 20;
+            
+            switch(computerThinkingDifficulty) {
+                case 'easy': // 容易：10-20秒
+                    minTime = 10;
+                    maxTime = 20;
+                    break;
+                case 'medium': // 中等：20-40秒
+                    minTime = 20;
+                    maxTime = 40;
+                    break;
+                case 'hard': // 困难：30-45秒
+                    minTime = 30;
+                    maxTime = 45;
+                    break;
+            }
+            
+            // 生成指定范围内的随机思考时间
+            const thinkingTime = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
+            
+            // 设置计算机自动答题定时器
+            const timer = setTimeout(() => {
+                if (gameInProgress && gameMode === 'pk') {
+                    submitComputerAnswer();
+                }
+            }, thinkingTime * 1000);
+            
+            // 添加到定时器列表以便重置游戏时清除
+            computerThinkingTimers.push(timer);
+        }
+        
+        function checkPlayerAnswer() {
+            if (!gameInProgress) return;
+            
+            const userAnswer = document.getElementById('playerAnswer').value.trim();
+            
+            // 如果没有输入答案，不做处理
+            if (!userAnswer) return;
+            
+            const questionTime = playerTime - playerQuestionStartTime;
+            const isCorrect = playerCorrectAnswer.some(answer => 
+                userAnswer.replace(/\s+/g, '') === answer.replace(/\s+/g, ''));
+            
+            // 更新计数
+            playerTotalCount++;
+            if (isCorrect) {
+                playerCorrectCount++;
+                document.getElementById('correctSound').play();
+                document.getElementById('playerResult').innerHTML = '<span class="correct">回答正确！</span>';
+                
+                // 通关模式特殊处理
+                if (gameMode === 'conquest') {
+                    conquestCorrectCount++;
+                    
+                    // 检查是否完成当前关卡(3题)
+                    if (conquestCorrectCount >= 3) {
+                        // 检查是否通关所有10个级别
+                        if (conquestLevel >= difficultyNames.length) {
+                            // 游戏胜利
+                            const totalTime = Math.floor((new Date().getTime() - conquestStartTime) / 1000);
+                            alert(`恭喜！你已通关所有级别！\n总用时: ${totalTime}秒`);
+                            
+                            // 最后一次更新所有按钮状态，使所有关卡都显示为已完成
+                            document.querySelectorAll('.difficulty-buttons button').forEach((btn, index) => {
+                                btn.classList.remove('active', 'current');
+                                btn.classList.add('completed');
+                            });
+                            
+                            resetGame();
+                            return;
+                        } else {
+                            // 晋级到下一关
+                            conquestLevel++;
+                            conquestCorrectCount = 0;
+                            setDifficulty(conquestLevel);
+                            updateDifficultyButtonsForConquest();
+                            alert(`恭喜！你已晋级到第${conquestLevel}关！`);
+                        }
+                    }
+                    
+                    updateConquestUI();
+                }
+            } else {
+                playerIncorrectCount++;
+                document.getElementById('wrongSound').play();
+                document.getElementById('playerResult').innerHTML = `<span class="incorrect">回答错误！正确答案是：${playerCorrectAnswer[0]}</span>`;
+                
+                // 通关模式特殊处理 - 错一题就重新开始
+                if (gameMode === 'conquest') {
+                    setTimeout(() => {
+                        alert(`很遗憾，答错了，需要重新开始第1关！`);
+                        conquestLevel = 1;
+                        conquestCorrectCount = 0;
+                        setDifficulty(conquestLevel);
+                        updateConquestUI();
+                    }, 1000);
+                }
+            }
+            
+            // 更新分数显示
+            document.getElementById('playerScore').innerHTML = 
+                `正确: ${playerCorrectCount} | 错误: ${playerIncorrectCount} | 总题数: ${playerTotalCount}`;
+            
+            // 添加到历史记录
+            addToHistory('玩家', currentDifficulty, 
+                document.getElementById('playerQuestion').innerHTML,
+                userAnswer, playerCorrectAnswer[0], isCorrect, questionTime);
+            
+            // 游戏中 - 生成新题目
+            if (gameInProgress) {
+                // 延迟一秒后生成新题目，给用户时间看结果
+                setTimeout(() => {
+                    if (gameInProgress) {
+                        generatePlayerQuestion();
+                    }
+                }, 1000);
+            }
+            
+            // 在PK模式中，如果双方都已回答，判断此轮胜负
+            if (gameMode === 'pk' && document.getElementById('computerResult').innerHTML !== '') {
+                determineRoundWinner();
+            }
+            
+            // 攻击特效 - 仅在PK模式下显示
+            if (gameMode === 'pk' && isCorrect) {
+                showAttackEffect('player');
+            }
+        }
+        
+        function submitComputerAnswer() {
+    if (!gameInProgress || gameMode !== 'pk') return;
+    
+    // 计算答题用时
+    const questionTime = computerTime - computerQuestionStartTime;
+    
+    // 使用计算机题目的正确答案
+    const computerAnswer = computerCorrectAnswer[0];
+    
+    // 随机决定计算机是否答对（90%的概率答对）
+    const isCorrect = Math.random() < 0.9;
+    
+    let displayAnswer;
+    if (isCorrect) {
+        displayAnswer = computerAnswer;
+    } else {
+        // 如果要错，则显示一个稍微不同的答案
+        displayAnswer = parseInt(computerAnswer) + (Math.random() > 0.5 ? 1 : -1);
+    }
+    
+    // 更新状态为"正在输入"
+    document.getElementById('computerStatus').innerHTML = '正在输入...';
+    
+    // 清空计算机答案框
+    document.getElementById('computerAnswer').value = '';
+    document.getElementById('computerRenderedAnswer').innerHTML = '';
+    
+    // 使用打字机效果显示答案
+    let currentIndex = 0;
+    const typingInterval = setInterval(() => {
+        if (currentIndex < displayAnswer.toString().length) {
+            // 每次添加一个字符
+            document.getElementById('computerAnswer').value += displayAnswer.toString().charAt(currentIndex);
+            document.getElementById('computerRenderedAnswer').innerHTML = '\\(' + document.getElementById('computerAnswer').value + '\\)';
+            
+            // 重新渲染数学公式
+            MathJax.typesetPromise([document.getElementById('computerRenderedAnswer')])
+                .catch((err) => console.log(err));
+                
+            currentIndex++;
+        } else {
+            // 打字完成，清除定时器
+            clearInterval(typingInterval);
+            
+            // 显示结果
+            if (isCorrect) {
+                document.getElementById('computerResult').innerHTML = '正确!';
+                document.getElementById('computerResult').className = 'result correct';
+                computerCorrectCount++;
+                
+                // 播放正确音效
+                document.getElementById('correctSound').play();
+                
+                // 创建并添加冲击波元素
+                createShockwave('computer');
+                
+                // 让玩家容器抖动
+                document.getElementById('playerContainer').classList.add('shake');
+                setTimeout(() => {
+                    document.getElementById('playerContainer').classList.remove('shake');
+                }, 500);
+                
+                // 显示对诮语句
+                showTaunt('computer');
+            } else {
+                document.getElementById('computerResult').innerHTML = '错误';
+                document.getElementById('computerResult').className = 'result incorrect';
+                computerIncorrectCount++;
+                
+                // 播放错误音效
+                document.getElementById('wrongSound').play();
+            }
+            
+            // 更新状态
+            document.getElementById('computerStatus').innerHTML = '已作答';
+            
+            // 更新总题数
+            computerTotalCount++;
+            
+            // 更新分数
+            updateComputerScore();
+            
+            // 添加到历史记录
+            addToHistory('计算机', difficultyNames[currentDifficulty - 1], 
+                        document.getElementById('computerQuestion').innerHTML, 
+                        displayAnswer, computerCorrectAnswer.join(' 或 '), 
+                        isCorrect ? '正确' : '错误', questionTime);
+            
+            // 短暂延迟后生成新题目
+            setTimeout(() => {
+                if (gameInProgress && gameMode === 'pk') {
+                    generateComputerQuestion();
+                }
+                    }, 8000);
+                }
+            }, 500); // 每500毫秒显示一个字符，相当于每秒显示2个字符
+        }
+        
+        function updatePlayerScore() {
+            document.getElementById('playerScore').innerHTML = `正确: ${playerCorrectCount} | 错误: ${playerIncorrectCount} | 总题数: ${playerTotalCount}| 得分: ${playerCorrectCount - playerIncorrectCount} `;
+        }
+        
+        function updateComputerScore() {
+            document.getElementById('computerScore').innerHTML = `正确: ${computerCorrectCount} | 错误: ${computerIncorrectCount} | 总题数: ${computerTotalCount}| 得分: ${computerCorrectCount - computerIncorrectCount} `;
+        }
+        
+        function addToHistory(participant, level, question, answer, correctAnswer, result, time) {
+            const historyTable = document.getElementById('history');
+            const newRow = historyTable.insertRow(0);
+            
+            // 设置行的类
+            if (participant === '玩家') {
+                newRow.classList.add("player-row");
+            } else {
+                newRow.classList.add("computer-row");
+            }
+            
+            // 添加结果类
+            if (result === '正确') {
+                newRow.classList.add(participant === '玩家' ? "player-win" : "computer-win");
+            }
+            
+            // 填充单元格内容
+            newRow.insertCell(0).innerHTML = participant;
+            newRow.insertCell(1).innerHTML = level;
+            newRow.insertCell(2).innerHTML = question;
+            newRow.insertCell(3).innerHTML = '\\(' + answer + '\\)';
+            newRow.insertCell(4).innerHTML = '\\(' + correctAnswer + '\\)';
+            newRow.insertCell(5).innerHTML = result;
+            newRow.insertCell(6).innerHTML = time + '秒';
+            
+            // 重新渲染新添加的行中的数学公式
+            MathJax.typesetPromise([newRow]).catch((err) => console.log(err));
+        }
+        
+        function updatePreview(player) {
+            const input = document.getElementById('playerAnswer').value;
+            const renderedAnswer = document.getElementById('playerRenderedAnswer');
+            renderedAnswer.style.display = 'block';
+            renderedAnswer.innerHTML = '\\(' + input + '\\)';
+            MathJax.typesetPromise([renderedAnswer]).catch((err) => console.log(err));
+        }
+        
+        function toHalfWidth(str) {
+            return str.replace(/[\uFF01-\uFF5E]/g, function(char) {
+                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            }).replace(/\u3000/g, ' ');
+        }
+        
+        function copyHistory() {
+            // 创建历史记录的JSON对象
+            const historyData = {
+                records: [],
+                result: {}
+            };
+            
+            // 获取表格内容
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if(cells.length >= 7) {
+                    const record = {
+                        participant: cells[0].innerText,
+                        level: cells[1].innerText,
+                        question: cells[2].innerText.replace(/\\\(|\\\)/g, ''), // 移除\( \)标记
+                        answer: cells[3].innerText.replace(/\\\(|\\\)/g, ''),
+                        correctAnswer: cells[4].innerText.replace(/\\\(|\\\)/g, ''),
+                        result: cells[5].innerText,
+                        time: parseInt(cells[6].innerText)
+                    };
+                    historyData.records.push(record);
+                }
+            });
+            
+            // 添加最终结果
+            historyData.result = {
+                playerCorrect: playerCorrectCount,
+                playerIncorrect: playerIncorrectCount,
+                playerTotal: playerTotalCount,
+                playerScore: playerCorrectCount - playerIncorrectCount,
+                computerCorrect: computerCorrectCount,
+                computerIncorrect: computerIncorrectCount,
+                computerTotal: computerTotalCount,
+                computerScore: computerCorrectCount - computerIncorrectCount,
+                gameMode: gameMode,
+                gameDuration: gameDuration,
+                difficulty: difficultyNames[currentDifficulty - 1]
+            };
+
+            // 转换为JSON字符串
+            const jsonStr = JSON.stringify(historyData, null, 2);
+
+            // 复制到剪贴板
+            navigator.clipboard.writeText(jsonStr).then(() => {
+                // 显示复制成功的提示
+                const copySuccess = document.getElementById('copy-success');
+                copySuccess.style.display = 'block';
+                setTimeout(() => {
+                    copySuccess.style.display = 'none';
+                }, 2000); // 2秒后隐藏提示
+            }).catch(err => {
+                console.error('复制失败: ', err);
+            });
+        }
+        
+        document.getElementById('playerAnswer').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                checkPlayerAnswer();
+            }
+        });
+
+        // 游戏结束函数
+        function endGame() {
+            // 停止所有计时器
+            clearInterval(playerTimer);
+            clearInterval(computerTimer);
+            clearInterval(countdownTimer);
+            computerThinkingTimers.forEach(timer => clearTimeout(timer));
+            computerThinkingTimers = [];
+            
+            // 更改游戏状态
+            gameInProgress = false;
+            
+            // 禁用玩家输入
+            document.getElementById('playerAnswer').disabled = true;
+            document.getElementById('playerSubmitBtn').disabled = true;
+            
+           // 仅在PK模式下显示游戏结果
+           if (gameMode === 'pk') {
+                let resultMessage = '';
+                let playerNetScore = playerCorrectCount - playerIncorrectCount;
+                let computerNetScore = computerCorrectCount - computerIncorrectCount;
+                
+                if (playerNetScore > computerNetScore) {
+                    resultMessage = `游戏结束! 玩家获胜! (${playerNetScore} : ${computerNetScore})`;
+                    document.getElementById('roundResult').className = 'winner-indicator player-win';
+                } else if (playerNetScore < computerNetScore) {
+                    resultMessage = `游戏结束! 计算机获胜! (${playerNetScore} : ${computerNetScore})`;
+                    document.getElementById('roundResult').className = 'winner-indicator computer-win';
+                } else {
+                    resultMessage = `游戏结束! 平局! (${playerNetScore} : ${computerNetScore})`;
+                    document.getElementById('roundResult').className = 'winner-indicator tie';
+                }
+                document.getElementById('roundResult').innerHTML = resultMessage;
+            } else {
+                // 自学练习模式
+                document.getElementById('roundResult').innerHTML = `练习结束! 共完成${playerTotalCount}题，正确${playerCorrectCount}题，得分: ${playerCorrectCount - playerIncorrectCount}`;
+                document.getElementById('roundResult').style.display = 'block';
+                document.getElementById('roundResult').className = 'winner-indicator';
+            }
+            
+            // 启用重置按钮
+            document.getElementById('resetGameBtn').disabled = false;
+        }
+
+       // 以下是生成题目的函数，与原有代码相同
+
+       function generateQuestion() {
+            switch(currentDifficulty) {
+                case 1: return generateLevel1Question();
+                case 2: return generateLevel2Question();
+                case 3: return generateLevel3Question();
+                case 4: return generateLevel4Question();
+                case 5: return generateLevel5Question();
+                case 6: return generateLevel6Question();
+                case 7: return generateLevel7Question();
+                case 8: return generateLevel8Question();
+                case 9: return generateLevel9Question();
+                default: return "";
+            }
+        }
+
+        function gcd(x, y) {
+            while (y != 0) {
+                let temp = y;
+                y = x % y;
+                x = temp;
+            }
+            return x;
+        }
+
+        // 格式化多项式显示
+        function formatPolynomial(coefficients, variables) {
+            // 确保coefficients和variables数组长度相同
+            if (coefficients.length !== variables.length) {
+                console.error("系数和变量数组长度不一致");
+                return "";
+            }
+            
+            let result = "";
+            
+            for (let i = 0; i < coefficients.length; i++) {
+                const coef = coefficients[i];
+                const variable = variables[i];
+                
+                // 系数为0，跳过该项
+                if (coef === 0) continue;
+                
+                // 处理第一项（首项）
+                if (result === "") {
+                    if (coef === 1 && variable !== "") {
+                        // 首项系数为1且不是常数项，不显示1
+                        result += variable;
+                    } else if (coef === -1 && variable !== "") {
+                        // 首项系数为-1且不是常数项，显示负号
+                        result += "-" + variable;
+                    } else {
+                        // 其他情况，显示系数
+                        result += coef + variable;
+                    }
+                } else {
+                    // 处理中间项和末项
+                    if (coef === 1) {
+                        // 系数为1，只显示+和变量
+                        result += "+" + variable;
+                    } else if (coef === -1) {
+                        // 系数为-1，只显示-和变量
+                        result += "-" + variable;
+                    } else if (coef > 0) {
+                        // 正系数，显示+和系数和变量
+                        result += "+" + coef + variable;
+                    } else {
+                        // 负系数，显示系数和变量（系数本身已带负号）
+                        result += coef + variable;
+                    }
+                }
+            }
+            
+            // 如果结果为空（所有系数都为0），则返回0
+            return result || "0";
+        }
+
+        // 格式化向量显示
+        function formatVector(components, variables) {
+            const coefficients = [];
+            const vars = [];
+            
+            for (let i = 0; i < components.length; i++) {
+                coefficients.push(components[i]);
+                vars.push(variables[i]);
+            }
+            
+            return formatPolynomial(coefficients, vars);
+        }
+
+        // 格式化复数显示
+        function formatComplex(real, imag) {
+            // 处理实部和虚部都为0的情况
+            if (real === 0 && imag === 0) {
+                return "0";
+            }
+            
+            // 当实部为0时
+            if (real === 0) {
+                if (imag === 1) return "i";
+                if (imag === -1) return "-i";
+                return imag + "i";
+            }
+            
+            // 当虚部为0时
+            if (imag === 0) {
+                return real.toString();
+            }
+            
+            // 处理实部不为0且虚部不为0的情况
+            let result = real.toString();
+            
+            if (imag === 1) {
+                result += "+i";
+            } else if (imag === -1) {
+                result += "-i";
+            } else if (imag > 0) {
+                result += "+" + imag + "i";
+            } else {
+                result += imag + "i";
+            }
+            
+            return result;
+        }
+
+        function generateLevel1aQuestion() {
+            const factorizationQuestions = [
+                { question: "x^2 + 5x + 6", answers: ["(x+2)(x+3)", "(x+3)(x+2)"] },
+                { question: "x^2 - x", answers: ["x(x-1)", "(x-1)x"] },
+                { question: "x^2 + 2x", answers: ["x(x+2)", "(x+2)x"] },
+                { question: "x^2 - 2x", answers: ["x(x-2)", "(x-2)x"] }
+            ];
+
+            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
+            const selectedQuestion = factorizationQuestions[randomIndex];
+
+            correctAnswer = selectedQuestion.answers;
+
+            return `\\(\\begin{gather}因式分解: ${selectedQuestion.question} \\\\ \\begin{array}{|c|c|c|} \\hline x & x^2 & ax \\\\ \\hline & x & a \\\\ \\hline \\end{array} \\end{gather}\\)`;
+        }
+
+        function generateLevel1bQuestion() {
+            let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let textm = m === 1 ? "+1" : (m === -1 ? "-1" : (m > 1 ? `+${m}` : `${m}`));
+            let textm2 = m === 1 ? "+" : (m === -1 ? "-" : (m > 1 ? `+${m}` : `${m}`));
+            correctAnswer = [`x(x${textm})`, `(x${textm})x`];
+            return `\\(\\begin{gather}因式分解:x^2${textm2}x \\\\ \\begin{array}{|c|c|c|} \\hline x & x^2 & ax \\\\ \\hline & x & a \\\\ \\hline \\end{array} \\end{gather}\\)`;
+        }
+
+        function generateLevel1Question() {
+            const levelFunctions = [generateLevel1aQuestion, generateLevel1bQuestion];
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            return levelFunctions[randomIndex]();
+        }
+
+        function generateLevel2aQuestion() {
+            let m = (Math.floor(Math.random() * 9) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let n = (Math.floor(Math.random() * 9) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let mn = m * n;
+            let textm = m === 1 ? "+1" : (m === -1 ? "-1" : (m > 1 ? `+${m}` : `${m}`));
+            let textn = n === 1 ? "" : (n === -1 ? "-" : (n > 1 ? `${n}` : `${n}`));
+            let textmn = mn === 1 ? "+" : (mn === -1 ? "-" : (mn > 1 ? `+${mn}` : `${mn}`));
+            correctAnswer = [`${textn}x(x${textm})`, `(x${textm})${textn}x`];
+            return `\\(\\begin{gather}因式分解:${textn}x^2${textmn}x \\\\ \\begin{array}{|c|c|c|} \\hline bx & x^2 & abx \\\\ \\hline & x & a \\\\ \\hline \\end{array} \\end{gather}\\)`;
+        }
+
+        function generateLevel2Question() {
+            return generateLevel2aQuestion();
+        }
+
+        function generateLevel3aQuestion() {
+            let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let textm = m > 0 ? `+${m}` : `${m}`;
+            let p = m + m;
+            let t = m * m;
+            let textp = p === 0 ? "" : (p === 1 ? "+x" : (p === -1 ? "-x" : (p > 1 ? `+${p}x` : `${p}x`)));
+            let textt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
+            correctAnswer = [`(x${textm})(x${textm})`, `(x${textm})^2`];
+            return `\\(\\begin{gather}因式分解:x^2${textp}${textt} \\\\ \\begin{array}{|c|c|c|} \\hline b&bx& ${textt}\\\\ \\hline x & x^2 &ax \\\\ \\hline  &x&a \\\\ \\hline  \\end{array} \\end{gather}\\)`;
+        }
+
+        function generateLevel3bQuestion() {
+            let m = (Math.floor(Math.random() * 9) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let n = -m;
+            let textm = m > 0 ? `+${m}` : `${m}`;
+            let textn = n > 0 ? `+${n}` : `${n}`;
+            let t = m * m;
+            let textt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
+            correctAnswer = [`(x${textm})(x${textn})`, `(x${textn})(x${textm})`];
+            return `\\(\\begin{gather}因式分解:x^2 - ${t}\\\\ \\begin{array}{|c|c|c|} \\hline b&bx& -${textt}\\\\ \\hline x & x^2 &ax \\\\ \\hline  &x&a \\\\ \\hline  \\end{array} \\end{gather}\\)`;
+        }
+
+        function generateLevel3Question() {
+            const levelFunctions = [generateLevel3aQuestion, generateLevel3bQuestion];
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            return levelFunctions[randomIndex]();
+        }
+
+        function generateLevel4aQuestion() {
+            let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let n = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let textm = m > 0 ? `+${m}` : `${m}`;
+            let textn = n > 0 ? `+${n}` : `${n}`;
+            let p = m + n;
+            let t = m * n;
+            let textp = p === 0 ? "" : (p === 1 ? "+x" : (p === -1 ? "-x" : (p > 1 ? `+${p}x` : `${p}x`)));
+            let textt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
+            correctAnswer = [`(x${textm})(x${textn})`, `(x${textn})(x${textm})`];
+            if (m === n) correctAnswer.push(`(x${textm})^2`);
+            return `\\(\\begin{gather}因式分解:x^2${textp}${textt} \\\\ \\begin{array}{|c|c|c|} \\hline b&bx& ${textt}\\\\ \\hline x & x^2 &ax \\\\ \\hline  &x&a \\\\ \\hline  \\end{array} \\end{gather}\\)`;
+        }
+
+        function generateLevel4Question() {
+            return generateLevel4aQuestion();
+        }
+
+        function generateLevel5cQuestion() {
+            let a, b, m, n;
+            do {
+                a = (Math.floor(Math.random() * 6) + 2);
+                b = (Math.floor(Math.random() * 6) + 2) * (Math.random() < 0.5 ? 1 : -1);
+            } while (gcd(a, Math.abs(b)) !== 1);
+            do {
+                m = (Math.floor(Math.random() * 6) + 2);
+                n = (Math.floor(Math.random() * 6) + 2) * (Math.random() < 0.5 ? 1 : -1);
+            } while (gcd(m, Math.abs(n)) !== 1);
+            while (a * n === b * m) {
+                m = (Math.floor(Math.random() * 8) + 2);
+                n = (Math.floor(Math.random() * 8) + 2) * (Math.random() < 0.5 ? 1 : -1);
+            }
+            const coeffA = a * m;
+            const coeffB = a * n + b * m;
+            const coeffC = b * n;
+            correctAnswer = [`(${a}x${b >= 0 ? '+' : ''}${b})(${m}x${n >= 0 ? '+' : ''}${n})`, `(${m}x${n >= 0 ? '+' : ''}${n})(${a}x${b >= 0 ? '+' : ''}${b})`];
+            let expression = `${coeffA}x^2`;
+            if (coeffB !== 0) expression += `${coeffB > 0 ? '+' : ''}${coeffB}x`;
+            expression += `${coeffC > 0 ? '+' : ''}${coeffC}`;
+            let table = `\\begin{array}{|c|c|c|}  
+\\hline 
+b & bmx & ${coeffC} \\\\ \\hline 
+ax & ${coeffA}x^2 & ${a}n x \\\\ \\hline 
+& mx & n \\\\ \\hline 
+\\end{array}`;
+            return `\\begin{gather}
+因式分解: ${expression} \\\\ 
+${table} 
+\\end{gather}`;
+        }
+
+        function generateLevel5Question() {
+            return generateLevel5cQuestion();
+        }
+
+        function generateLevel6aQuestion() {
+            let a = (Math.floor(Math.random() * 3) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let b = (Math.floor(Math.random() * 3) + 4);
+            let c = (Math.floor(Math.random() * 3) - 4);
+            let ta = a === 0 ? "" : (a > 0 ? `+${a}` : `${a}`);
+            let tb = b === 0 ? "" : (b > 0 ? `+${b}` : `${b}`);
+            let tc = c === 0 ? "" : (c > 0 ? `+${c}` : `${c}`);
+            let x1 = a + b + c;
+            let x2 = a * b + b * c + c * a;
+            let x3 = a * b * c;
+            let textx1 = x1 === 0 ? "" : (x1 === 1 ? "+x^2" : (x1 === -1 ? "-x^2" : (x1 > 0 ? `+${x1}x^2` : `${x1}x^2`)));
+            let textx2 = x2 === 0 ? "" : (x2 === 1 ? "+x" : (x2 === -1 ? "-x" : (x2 > 0 ? `+${x2}x` : `${x2}x`)));
+            let textx3 = x3 === 0 ? "" : (x3 > 0 ? `+${x3}` : `${x3}`);
+            correctAnswer = [
+                `(x${ta})(x${tb})(x${tc})`,
+                `(x${ta})(x${tc})(x${tb})`,
+                `(x${tb})(x${ta})(x${tc})`,
+                `(x${tb})(x${tc})(x${ta})`,
+                `(x${tc})(x${ta})(x${tb})`,
+                `(x${tc})(x${tb})(x${ta})`
+            ];
+            return `\\(\\begin{gather}因式分解:x^3${textx1}${textx2}${textx3} \\\\ \\begin{array}{|c|c|c|c|} \\hline x^3&x^2&x&1\\\\ \\hline 1 &${x1} &${x2}&${x3} \\\\ \\hline1& a+b+c & ab+bc+ac&abc\\\\ \\hline \\end{array}\\\\
+\\begin{cases}a+b+c=${x1}\\\\ab+bc+ac=${x2}\\\\abc=${x3}\\\\ \\end{cases}\\\\
+分组分解，拆添项，试根法......
+\\end{gather}\\)`;
+        }
+
+        function generateLevel6bQuestion() {
+            let a = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let b = a;
+            let c = a;
+            let ta = a === 0 ? "" : (a > 0 ? `+${a}` : `${a}`);
+            let x1 = a + b + c;
+            let x2 = a * b + b * c + c * a;
+            let x3 = a * b * c;
+            let textx1 = x1 === 0 ? "" : (x1 === 1 ? "+x^2" : (x1 === -1 ? "-x^2" : (x1 > 0 ? `+${x1}x^2` : `${x1}x^2`)));
+            let textx2 = x2 === 0 ? "" : (x2 === 1 ? "+x" : (x2 === -1 ? "-x" : (x2 > 0 ? `+${x2}x` : `${x2}x`)));
+            let textx3 = x3 === 0 ? "" : (x3 > 0 ? `+${x3}` : `${x3}`);
+            correctAnswer = [`(x${ta})^3`];
+            return `\\(\\begin{gather}因式分解:x^3${textx1}${textx2}${textx3} \\\\ \\begin{array}{|c|c|c|c|} \\hline x^3&x^2&x&1\\\\ \\hline 1 &${x1} &${x2}&${x3} \\\\ \\hline1& a+b+c & ab+bc+ac&abc\\\\ \\hline \\end{array}\\\\
+\\begin{cases}a+b+c=${x1}\\\\ab+bc+ac=${x2}\\\\abc=${x3}\\\\ \\end{cases}\\\\
+分组分解，拆添项，试根法......
+\\end{gather}\\)`;
+        }
+
+        function generateLevel6Question() {
+            const levelFunctions = [generateLevel6aQuestion, generateLevel6bQuestion];
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            return levelFunctions[randomIndex]();
+        }
+
+        function generateLevel7aQuestion() {
+            let km = (Math.floor(Math.random() * 10) + 0);
+            let kn = (Math.floor(Math.random() * 8) + 1);
+            let n = (km + kn) % 10 + 1;
+            let m = km + 1;
+            let p = -(m + n);
+            let t = m * n;
+            let tp = p === 0 ? "" : (p === 1 ? "+x" : (p === -1 ? "-x" : (p > 0 ? `+${p}x` : `${p}x`)));
+            let tt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
+            correctAnswer = [`${m},${n}`, `${n},${m}`, `${m};${n}`, `${n};${m}`];
+            return `\\(\\begin{gather}解方程: x^2 ${tp} ${tt} = 0 \\\\
+\\begin{array}{|c|c|c|}
+\\hline b & bx & ab \\\\ \\hline x & x^2 & ax \\\\ \\hline & x & a \\\\ \\hline 
+\\end{array}\\\\
+输入格式：a,b或a;b\\\\因式分解是解方程的一种常用方法，试试吧，\\\\当然你还可以用求根公式、配方法等......
+\\end{gather}\\)`;
+        }
+
+        function generateLevel7bQuestion() {
+            let km = (Math.floor(Math.random() * 10) + 0);
+            let kn = (Math.floor(Math.random() * 8) + 1);
+            let n = (km + kn) % 10 - 5;
+            let m = km - 5;
+            let p = -(m + n);
+            let t = m * n;
+            let tp = p === 0 ? "" : (p === 1 ? "+x" : (p === -1 ? "-x" : (p > 0 ? `+${p}x` : `${p}x`)));
+            let tt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
+            correctAnswer = [`${m},${n}`, `${n},${m}`, `${m};${n}`, `${n};${m}`];
+            return `\\(\\begin{gather}解方程: x^2 ${tp} ${tt} = 0 \\\\
+\\begin{array}{|c|c|c|}
+\\hline b & bx & ab \\\\ \\hline x & x^2 & ax \\\\ \\hline & x & a \\\\ \\hline 
+\\end{array}\\\\
+输入格式：x_1,x_2或x_1;x_2\\\\因式分解是解方程的一种常用方法，试试吧，\\\\当然你还可以用求根公式、配方法等......
+\\end{gather}\\)`;
+        }
+
+        function generateLevel7Question() {
+            const levelFunctions = [generateLevel7aQuestion, generateLevel7bQuestion];
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            return levelFunctions[randomIndex]();
+        }
+
+        function generateLevel8Question() {
+            const a = Math.floor(Math.random() * 3) + 1;
+            const c = Math.floor(Math.random() * 3) + 1;
+            const options = [-3, -2, -1, 1, 2, 3];
+            const b = options[Math.floor(Math.random() * options.length)];
+            const d = options[Math.floor(Math.random() * options.length)];
+            const e = options[Math.floor(Math.random() * options.length)];
+            const f = options[Math.floor(Math.random() * options.length)];
+
+            const coeffX2 = a * c;
+            const coeffXY = a * d + b * c;
+            const coeffY2 = b * d;
+            const coeffX = a * f + e * c;
+            const coeffY = b * f + e * d;
+            const constant = e * f;
+
+            let expression = '';
+            if (coeffX2 !== 0) expression += (coeffX2 === 1 ? '' : (coeffX2 === -1 ? '-' : coeffX2)) + 'x^2';
+            if (coeffXY !== 0) expression += (coeffXY > 0 ? '+' : '') + (coeffXY === 1 ? '' : (coeffXY === -1 ? '-' : coeffXY)) + 'xy';
+            if (coeffY2 !== 0) expression += (coeffY2 > 0 ? '+' : '') + (coeffY2 === 1 ? '' : (coeffY2 === -1 ? '-' : coeffY2)) + 'y^2';
+            if (coeffX !== 0) expression += (coeffX > 0 ? '+' : '') + (coeffX === 1 ? '' : (coeffX === -1 ? '-' : coeffX)) + 'x';
+            if (coeffY !== 0) expression += (coeffY > 0 ? '+' : '') + (coeffY === 1 ? '' : (coeffY === -1 ? '-' : coeffY)) + 'y';
+            if (constant !== 0) expression += (constant > 0 ? '+' : '') + constant;
+            if (expression === '') expression = '0';
+
+            const part1 = `${a === 1 ? '' : a}x${b > 0 ? '+' : ''}${b === 1 ? '' : (b === -1 ? '-' : b)}y${e >= 0 ? '+' : ''}${e}`;
+            const part2 = `${c === 1 ? '' : c}x${d > 0 ? '+' : ''}${d === 1 ? '' : (d === -1 ? '-' : d)}y${f >= 0 ? '+' : ''}${f}`;
+            correctAnswer = [`(${part1})(${part2})`, `(${part2})(${part1})`];
+
+            return `\\(\\begin{array} 请因式分解: ${expression} \\\\ \\text{提示：将表达式分解为两个线性因子的乘积，} \\\\例如 (ax+by+c)(dx+ey+f)\\end{array}\\)`;
+        }
+
+        function generateLevel9Question() {
+            const levelFunctions = [
+                generateLevel1Question,
+                generateLevel2Question,
+                generateLevel3Question,
+                generateLevel4Question,
+                generateLevel5Question,
+                generateLevel6Question,
+                generateLevel7Question,
+                generateLevel8Question,
+            ];
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            return levelFunctions[randomIndex]();
+        }
+
+
+
+        // 创建冲击波效果
+        function createShockwave(attacker) {
+            const shockwave = document.createElement('div');
+            shockwave.className = `shockwave ${attacker}-attack`;
+            
+            document.body.appendChild(shockwave);
+            
+            // 播放攻击音效
+            document.getElementById(`${attacker}AttackSound`).play();
+            
+            // 攻击动画结束后移除元素
+            setTimeout(() => {
+                document.body.removeChild(shockwave);
+            }, 1000);
+        }
+        
+        // 玩家和计算机的对诮语句
+        const playerTaunts = [
+            "算得太慢了！",
+            "这题太简单了！",
+            "接招吧！",
+            "看我的厉害！",
+            "数学很简单吧！"
+        ];
+        
+        const computerTaunts = [
+            "人类的计算速度真慢！",
+            "再快一点试试？",
+            "这就是我的实力！",
+            "你跟不上我的速度！",
+            "机器智能胜过人类！"
+        ];
+        
+        // 显示对诮语句
+        function showTaunt(source) {
+            // 创建对诮气泡
+            const taunt = document.createElement('div');
+            taunt.className = `taunt-bubble ${source}-taunt`;
+            
+            // 随机选择一条对诮语句
+            const taunts = source === 'player' ? playerTaunts : computerTaunts;
+            const randomIndex = Math.floor(Math.random() * taunts.length);
+            taunt.textContent = taunts[randomIndex];
+            
+            document.body.appendChild(taunt);
+            
+            // 对诮动画结束后移除元素
+            setTimeout(() => {
+                document.body.removeChild(taunt);
+            }, 2000);
+        }
+
+        // 更新通关模式UI
+        function updateConquestUI() {
+            if (!document.getElementById('levelProgress')) return;
+            
+            document.getElementById('levelProgress').innerHTML = `
+                <div class="level-indicator">当前关卡: ${conquestLevel}</div>
+                <div class="question-counter">完成题数: ${conquestCorrectCount}/3</div>
+                <div class="conquest-timer">总用时: ${Math.floor((new Date().getTime() - conquestStartTime) / 1000)}秒</div>
+            `;
+        }
+        
+        // 更新通关模式的难度按钮状态
+        function updateDifficultyButtonsForConquest() {
+            if (gameMode !== 'conquest') return;
+            
+            // 先移除所有难度按钮的active类和completed类
+            document.querySelectorAll('.difficulty-buttons button').forEach(btn => {
+                btn.classList.remove('active', 'completed', 'current');
+                
+                // 在通关模式中，所有按钮都应该被禁用，除了当前关卡
+                if (parseInt(btn.dataset.level) === conquestLevel) {
+                    btn.disabled = false;
+                } else {
+                    btn.disabled = true;
+                }
+            });
+            
+            // 标记已完成的关卡
+            for (let i = 1; i < conquestLevel; i++) {
+                const completedBtn = document.querySelector(`.difficulty-buttons button[data-level="${i}"]`);
+                if (completedBtn) {
+                    completedBtn.classList.add('completed');
+                }
+            }
+            
+            // 找到当前难度按钮并设为活跃
+            const currentBtn = document.querySelector(`.difficulty-buttons button[data-level="${conquestLevel}"]`);
+            if (currentBtn) {
+                currentBtn.classList.add('current');
+                currentBtn.classList.add('active');
+            }
+        }
+        
+        // 更新计时器显示 - 支持通关模式
+        function updateTimers() {
+            if (gameMode === 'conquest') {
+                const currentTime = Math.floor((new Date().getTime() - conquestStartTime) / 1000);
+                if (document.querySelector('.conquest-timer')) {
+                    document.querySelector('.conquest-timer').textContent = `总用时: ${currentTime}秒`;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
+

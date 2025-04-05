@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        // 定义题型名称变量 - 只需修改这里即可更改整个页面的题型名称
+        const exerciseType = "B0106三个多项式相乘";
+        // 设置页面标题
+        document.title = exerciseType;
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .header {
+            text-align: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .player-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 80%;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #f0f8ff;
+            position: relative;
+        }
+
+        .question-box {
+            min-height: 60px;
+            display: block;
+            text-align: center;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: white;
+            width: 90%;
+        }
+        
+        .question-content {
+            margin-bottom: 20px;
+        }
+        
+        .sample-indicator {
+            display: block;
+            margin-top: 20px;
+            color: #888;
+            font-style: italic;
+            text-align: center;
+            border-top: 1px dashed #ccc;
+            padding-top: 10px;
+        }
+
+        .answer-input {
+            padding: 10px;
+            font-size: 16px;
+            width: 80%;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .timer {
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .result {
+            min-height: 20px;
+            margin: 10px 0;
+        }
+
+        .score {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        .rendered-answer {
+            margin-top: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 80%;
+            min-height: 30px;
+            background-color: white;
+        }
+
+        .history-container {
+            margin-top: 30px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .copy-button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+        }
+
+        .copy-button:hover {
+            background-color: #218838;
+        }
+
+        #copy-success {
+            display: none;
+            margin-top: 10px;
+            color: green;
+            font-size: 14px;
+        }
+        
+        .winner-indicator {
+            font-weight: bold;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        
+        .player-row {
+            background-color: rgba(240, 248, 255, 0.3);
+        }
+
+        .timer-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .timer-display {
+            font-size: 18px;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .game-end-message {
+            font-size: 20px;
+            font-weight: bold;
+            color: #28a745;
+            margin: 15px 0;
+            padding: 10px;
+            border: 2px solid #28a745;
+            border-radius: 5px;
+            background-color: rgba(40, 167, 69, 0.1);
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    
+    <!-- 添加音效元素 -->
+    <audio id="correctSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="wrongSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2691/2691-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="successSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2005/2005-preview.mp3" type="audio/mpeg">
+    </audio>
+    
+
+    
+
+    
+    <div class="player-container" id="playerContainer">
+        <h3 id="exerciseTypeTitle">练习题</h3>
+        <div class="game-end-message" id="gameEndMessage"></div>
+        <div class="question-box" id="playerQuestion"></div>
+        <input type="text" id="playerAnswer" class="answer-input" placeholder="输入你的答案" oninput="updatePreview()" disabled autocomplete="off">
+        <div class="rendered-answer" id="playerRenderedAnswer"></div>
+        <button id="playerSubmitBtn" onclick="checkPlayerAnswer()" disabled>提交答案</button>
+
+
+        <div class="result" id="playerResult"></div>
+        <div class="score" id="playerScore">正确: 0 | 错误: 0 | 连续答对: 0 | 总题数: 0</div>
+        <div class="timer" id="playerTimer">时间: 0秒</div>
+        <div class="timer-display" id="countdownTimer" style="display: none;">剩余时间: 05:00</div>
+    </div>
+    <div class="timer-options">
+
+        <button id="five-min-btn" class="timer-btn" onclick="setTimerMode('five-min')">5分钟</button>
+        <button id="ten-min-btn" class="timer-btn" onclick="setTimerMode('ten-min')">10分钟</button>
+        <button id="no-limit-btn" class="timer-btn" onclick="setTimerMode('no-limit')">无限时间</button>
+        <button id="resetGameBtn" onclick="resetGame()" disabled>重新开始</button>
+        <button id="startGameBtn" onclick="startGame()">开始练习</button>
+    </div>
+    
+    <div class="history-container">
+        <button class="copy-button" onclick="copyHistory()">复制历史记录</button>
+        <div id="copy-success">历史记录已复制到剪贴板！</div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>题目</th>
+                    <th>答案</th>
+                    <th>正确答案</th>
+                    <th>结果</th>
+                    <th>用时(秒)</th>
+                </tr>
+            </thead>
+            <tbody id="history"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // 全局变量
+        let playerCorrectAnswer; // 玩家题目的正确答案
+        let correctAnswer; // 保留此变量用于兼容原有函数
+        let playerCorrectCount = 0;
+        let playerIncorrectCount = 0;
+        let playerTotalCount = 0;
+        let consecutiveCorrectCount = 0; // 连续答对的题目数
+        let gameInProgress = false;
+        let playerTime = 0;
+        let playerQuestionStartTime = 0;
+        let playerTimer;
+        let countdownTimer; // 倒计时计时器
+        let timerMode = 'five-min'; // 默认无限时间
+        let timeLimit = 300; // 时间限制（秒）
+        let remainingTime = 300; // 剩余时间（秒）
+        
+        // 初始化
+        document.addEventListener("DOMContentLoaded", () => {
+            // 更新页面标题元素
+            document.getElementById('exerciseTypeTitle').textContent = exerciseType;
+            
+            // 初始化页面
+            updateTimerButtons();
+            // 显示一个示例题目
+            displaySampleQuestion();
+        });
+
+        function setTimerMode(mode) {
+            timerMode = mode;
+            switch(mode) {
+                case 'five-min':
+                    timeLimit = 5 * 60; // 5分钟 = 300秒
+                    break;
+                case 'ten-min':
+                    timeLimit = 10 * 60; // 10分钟 = 600秒
+                    break;
+                default:
+                    timeLimit = 0; // 无限时间
+            }
+            updateTimerButtons();
+        }
+
+        function updateTimerButtons() {
+            document.querySelectorAll('.timer-btn').forEach(btn => {
+                btn.style.backgroundColor = '#007bff';
+            });
+            
+            if (timerMode !== 'no-limit') {
+                document.getElementById(`${timerMode}-btn`).style.backgroundColor = '#28a745';
+            } else {
+                document.getElementById('no-limit-btn').style.backgroundColor = '#28a745';
+            }
+        }
+
+        function startGame() {
+            // 重置状态
+            playerCorrectCount = 0;
+            playerIncorrectCount = 0;
+            playerTotalCount = 0;
+            consecutiveCorrectCount = 0;
+            playerTime = 0;
+            
+            // 设置剩余时间
+            remainingTime = timeLimit;
+            
+            // 更新UI
+            document.getElementById('playerScore').innerHTML = `正确: 0 | 错误: 0 | 连续答对: 0 | 总题数: 0`;
+            document.getElementById('playerTimer').innerHTML = `时间: 0秒`;
+            document.getElementById('history').innerHTML = '';
+            document.getElementById('gameEndMessage').style.display = 'none';
+            
+            // 显示或隐藏倒计时
+            if (timerMode !== 'no-limit') {
+                document.getElementById('countdownTimer').style.display = 'block';
+                updateCountdownDisplay();
+            } else {
+                document.getElementById('countdownTimer').style.display = 'none';
+            }
+            
+            // 启用/禁用相关按钮
+            document.getElementById('startGameBtn').disabled = true;
+            document.getElementById('resetGameBtn').disabled = false;
+            document.getElementById('playerAnswer').disabled = false;
+            document.getElementById('playerSubmitBtn').disabled = false;
+            document.querySelectorAll('.timer-btn').forEach(btn => btn.disabled = true);
+            
+            // 更改游戏状态
+            gameInProgress = true;
+            
+            // 为玩家生成题目
+            generatePlayerQuestion();
+            
+            // 开始计时器
+            startTimers();
+        }
+        
+        function resetGame() {
+            // 停止计时器
+            clearInterval(playerTimer);
+            if (countdownTimer) clearInterval(countdownTimer);
+            
+            // 重置状态
+            gameInProgress = false;
+            
+            // 更新UI
+            // 显示示例题目，而不是清空题目区域
+            displaySampleQuestion();
+            document.getElementById('playerAnswer').value = '';
+            document.getElementById('playerRenderedAnswer').innerHTML = '';
+            document.getElementById('playerResult').innerHTML = '';
+            document.getElementById('countdownTimer').style.display = 'none';
+            document.getElementById('gameEndMessage').style.display = 'none';
+            
+            // 启用/禁用相关按钮
+            updateButtonStates();
+            document.querySelectorAll('.timer-btn').forEach(btn => btn.disabled = false);
+        }
+        
+        // 更新按钮状态
+        function updateButtonStates() {
+            document.getElementById('startGameBtn').disabled = gameInProgress;
+            document.getElementById('resetGameBtn').disabled = !gameInProgress;
+            document.getElementById('playerAnswer').disabled = !gameInProgress;
+            document.getElementById('playerSubmitBtn').disabled = !gameInProgress;
+        }
+        
+        function startTimers() {
+            // 玩家计时器
+            playerTimer = setInterval(() => {
+                playerTime++;
+                document.getElementById('playerTimer').innerHTML = `时间: ${playerTime}秒`;
+            }, 1000);
+            
+            // 倒计时计时器（如果启用）
+            if (timerMode !== 'no-limit') {
+                countdownTimer = setInterval(() => {
+                    remainingTime--;
+                    updateCountdownDisplay();
+                    
+                    if (remainingTime <= 0) {
+                        endGame("时间到");
+                    }
+                }, 1000);
+            }
+            
+            // 记录开始时间
+            playerQuestionStartTime = playerTime;
+        }
+        
+        function updateCountdownDisplay() {
+            const minutes = Math.floor(remainingTime / 60).toString().padStart(2, '0');
+            const seconds = (remainingTime % 60).toString().padStart(2, '0');
+            document.getElementById('countdownTimer').innerHTML = `剩余时间: ${minutes}:${seconds}`;
+            
+            // 如果时间不多了，显示红色
+            if (remainingTime <= 30) {
+                document.getElementById('countdownTimer').style.color = 'red';
+            } else {
+                document.getElementById('countdownTimer').style.color = '#007bff';
+            }
+        }
+        
+        function generatePlayerQuestion() {
+            // 清空答案框和结果
+            document.getElementById('playerAnswer').value = '';
+            document.getElementById('playerRenderedAnswer').innerHTML = '';
+            document.getElementById('playerResult').innerHTML = '';
+            
+            // 生成新题目
+            const playerQuestion = generateQuestion();
+            // 保存玩家题目的正确答案
+            playerCorrectAnswer = [...correctAnswer];
+            
+            // 更新界面上的题目
+            document.getElementById('playerQuestion').innerHTML = playerQuestion;
+            
+            // 记录题目开始时间
+            playerQuestionStartTime = playerTime;
+            
+            // 重新渲染数学公式
+            MathJax.typesetPromise([document.getElementById('playerQuestion')])
+                .catch((err) => console.log(err));
+        }
+        
+        function checkPlayerAnswer() {
+            if (!gameInProgress) return;
+            
+            const userAnswer = document.getElementById('playerAnswer').value.trim();
+            
+            // 如果没有输入答案，不做处理
+            if (!userAnswer) return;
+            
+            const questionTime = playerTime - playerQuestionStartTime;
+            const isCorrect = playerCorrectAnswer.some(answer => 
+                userAnswer.replace(/\s+/g, '') === answer.replace(/\s+/g, ''));
+            
+            // 更新计数
+            playerTotalCount++;
+            if (isCorrect) {
+                playerCorrectCount++;
+                consecutiveCorrectCount++;
+                document.getElementById('correctSound').play();
+                document.getElementById('playerResult').innerHTML = '<span class="correct">回答正确！</span>';
+                
+
+            } else {
+                playerIncorrectCount++;
+                consecutiveCorrectCount = 0; // 重置连续答对计数
+                document.getElementById('wrongSound').play();
+                document.getElementById('playerResult').innerHTML = `<span class="incorrect">回答错误！正确答案是：${playerCorrectAnswer[0]}</span>`;
+            }
+            
+            // 更新分数显示
+            document.getElementById('playerScore').innerHTML = 
+                `正确: ${playerCorrectCount} | 错误: ${playerIncorrectCount} |连续答对: ${consecutiveCorrectCount} | 总题数: ${playerTotalCount}`;
+            
+            // 添加到历史记录
+            addToHistory(
+                document.getElementById('playerQuestion').innerHTML,
+                userAnswer, playerCorrectAnswer[0], isCorrect ? '正确' : '错误', questionTime);
+            // 检查是否连续答对10题 - 移到这里，确保先更新分数和历史记录
+            if (isCorrect && consecutiveCorrectCount >= 10) {
+                endGame("连续答对10题");
+                return;
+            }
+            // 游戏中 - 生成新题目
+            if (gameInProgress) {
+                // 延迟一秒后生成新题目，给用户时间看结果
+                setTimeout(() => {
+                    if (gameInProgress) {
+                        generatePlayerQuestion();
+                    }
+                }, 1000);
+            }
+        }
+        
+        function endGame(reason) {
+            // 停止计时器
+            clearInterval(playerTimer);
+            if (countdownTimer) clearInterval(countdownTimer);
+            
+            // 更改游戏状态
+            gameInProgress = false;
+            
+            // 禁用输入和提交按钮
+            document.getElementById('playerAnswer').disabled = true;
+            document.getElementById('playerSubmitBtn').disabled = true;
+            
+            // 显示游戏结束信息
+            const gameEndMessage = document.getElementById('gameEndMessage');
+            let message = '';
+            
+            if (reason === "连续答对10题") {
+                message = `恭喜！你连续答对了10题！<br>最终成绩：答对${playerCorrectCount}题，答错${playerIncorrectCount}题，总共${playerTotalCount}题。<br>继续保持！`;
+                document.getElementById('successSound').play();
+            } else if (reason === "时间到") {
+                message = `时间到！<br>最终成绩：答对${playerCorrectCount}题，答错${playerIncorrectCount}题，总共${playerTotalCount}题。`;
+            }
+            
+            gameEndMessage.innerHTML = message;
+            gameEndMessage.style.display = 'block';
+            
+            // 启用开始游戏按钮和计时器选择按钮
+            document.getElementById('startGameBtn').disabled = false;
+            document.querySelectorAll('.timer-btn').forEach(btn => btn.disabled = false);
+        }
+        
+        function addToHistory(question, answer, correctAnswer, result, time) {
+            const historyTable = document.getElementById('history');
+            const newRow = historyTable.insertRow(0);
+            
+            // 设置行的类
+            newRow.classList.add("player-row");
+            
+            // 填充单元格内容
+            newRow.insertCell(0).innerHTML = question;
+            newRow.insertCell(1).innerHTML = '\\(' + answer + '\\)';
+            newRow.insertCell(2).innerHTML = '\\(' + correctAnswer + '\\)';
+            
+            // 为正确和错误的结果设置不同颜色
+            const resultCell = newRow.insertCell(3);
+            if (result === '正确') {
+                resultCell.innerHTML = `<span class="correct">${result}</span>`;
+            } else {
+                resultCell.innerHTML = `<span class="incorrect">${result}</span>`;
+            }
+            
+            newRow.insertCell(4).innerHTML = time + '秒';
+            
+            // 重新渲染新添加的行中的数学公式
+            MathJax.typesetPromise([newRow]).catch((err) => console.log(err));
+        }
+        
+        function updatePreview() {
+            const input = document.getElementById('playerAnswer').value;
+            const renderedAnswer = document.getElementById('playerRenderedAnswer');
+            renderedAnswer.style.display = 'block';
+            renderedAnswer.innerHTML = '\\(' + input + '\\)';
+            MathJax.typesetPromise([renderedAnswer]).catch((err) => console.log(err));
+        }
+        
+        function copyHistory() {
+            // 创建历史记录的JSON对象，把最终结果放在前面
+            const historyData = {
+                result: {
+                    exerciseType: exerciseType,
+                    consecutiveCorrect: consecutiveCorrectCount,
+                    playerCorrect: playerCorrectCount,
+                    playerIncorrect: playerIncorrectCount,
+                    playerTotal: playerTotalCount,
+                    playerScore: playerCorrectCount - playerIncorrectCount,
+
+                },
+                records: []
+            };
+            
+            // 获取表格内容
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if(cells.length >= 5) {
+                    const record = {
+                        question: cells[0].innerText.replace(/\\\(|\\\)/g, ''),
+                        answer: cells[1].innerText.replace(/\\\(|\\\)/g, ''),
+                        correctAnswer: cells[2].innerText.replace(/\\\(|\\\)/g, ''),
+                        result: cells[3].innerText,
+                        time: parseInt(cells[4].innerText)
+                    };
+                    historyData.records.push(record);
+                }
+            });
+            
+            // 转换为JSON字符串
+            const jsonStr = JSON.stringify(historyData, null, 2);
+
+            // 复制到剪贴板
+            navigator.clipboard.writeText(jsonStr).then(() => {
+                // 显示复制成功的提示
+                const copySuccess = document.getElementById('copy-success');
+                copySuccess.style.display = 'block';
+                setTimeout(() => {
+                    copySuccess.style.display = 'none';
+                }, 2000); // 2秒后隐藏提示
+            }).catch(err => {
+                console.error('复制失败: ', err);
+            });
+        }
+        
+        document.getElementById('playerAnswer').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                checkPlayerAnswer();
+            }
+        });
+
+        // 题目生成函数
+        function generateQuestion() {
+            return generateLevel1Question();
+        }
+
+       function generateLevel6aQuestion() {
+            let a = (Math.floor(Math.random() * 3) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let b = (Math.floor(Math.random() * 3) + 4) ;
+            let c = (Math.floor(Math.random() * 3) - 4) ;
+            let ta   = a === 0 ? "" : (a > 0 ? `+${a}` : `${a}`);
+            let tb   = b === 0 ? "" : (b > 0 ? `+${b}` : `${b}`);
+            let tc   = c === 0 ? "" : (c > 0 ? `+${c}` : `${c}`);
+
+            let x1=a+b+c;
+            let x2=a*b+b*c+c*a;
+            let x3=a*b*c;
+
+            let textx1   = x1 === 0 ? "" : (x1 === 1 ? "+x^2" : (x1 === -1 ? "-x^2" :(x1 > 0 ? `+${x1}x^2` : `${x1}x^2`)));
+            let textx2   = x2 === 0 ? "" : (x2 === 1 ? "+x" : (x2 === -1 ? "-x" :(x2 > 0 ? `+${x2}x` : `${x2}x`)));
+            let textx3   = x3 === 0 ? "" : (x3 > 0 ? `+${x3}` : `${x3}`);
+
+
+            correctAnswer = [ `x^3${textx1}${textx2}${textx3}` ];
+           
+            return `\\(\\begin{gather}展开:(x${ta})(x${tb})(x${tc}) \\\\ \\begin{array}{|c|c|c|c|} \\hline x^3&x^2&x&1\\\\ \\hline  \\hline1& a+b+c &ab+bc+ac &abc\\\\ \\hline \\end{array}\\\\
+
+\\\\
+\\begin{cases}
+a+b+c=?x^2\\\\
+ab+bc+ac=?x\\\\
+abc=?\\\\
+
+\\end{cases}\\\\
+
+ \\end{gather}\\)`;
+        }
+
+        function generateLevel6bQuestion() {
+            let a = (Math.floor(Math.random() * 3) + 1) * (Math.random() < 0.5 ? 1 : -1);
+
+            let ta   = a === 0 ? "" : (a > 0 ? `+${a}` : `${a}`);
+
+            let x1=3*a;
+            let x2=3*a*a;
+            let x3=a*a*a;
+
+            let textx1   = x1 === 0 ? "" : (x1 === 1 ? "+x^2" : (x1 === -1 ? "-x^2" :(x1 > 0 ? `+${x1}x^2` : `${x1}x^2`)));
+            let textx2   = x2 === 0 ? "" : (x2 === 1 ? "+x" : (x2 === -1 ? "-x" :(x2 > 0 ? `+${x2}x` : `${x2}x`)));
+            let textx3   = x3 === 0 ? "" : (x3 > 0 ? `+${x3}` : `${x3}`);
+
+
+            correctAnswer = [ `x^3${textx1}${textx2}${textx3}` ];
+           
+            return `\\(\\begin{gather}展开:(x${ta})^3 \\\\ \\begin{array}{|c|c|c|c|} \\hline x^3&x^2&x&1\\\\ \\hline  \\hline1& a+b+c  &ab+bc+ac&abc\\\\ \\hline \\end{array}\\\\
+
+\\\\
+\\begin{cases}
+a+b+c=?x^2\\\\
+ab+bc+ca=?x\\\\
+abc=?\\\\
+
+\\end{cases}\\\\
+
+ \\end{gather}\\)`;
+        }
+
+        function generateLevel1Question() {
+            const levelFunctions = [
+                generateLevel6aQuestion,
+                generateLevel6bQuestion,
+            ];
+
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+
+            return selectedFunction();
+        }
+
+
+
+        function displaySampleQuestion() {
+            // 生成示例题目
+            const sampleQuestion = generateLevel1Question();
+            
+            // 更新界面上的题目，将题目包装在一个div中
+            document.getElementById('playerQuestion').innerHTML = `
+                <div class="question-content">${sampleQuestion}</div>
+                <div class="sample-indicator" style="width: 100%; text-align: center; margin-top: 20px; color: #888; font-style: italic;">
+                    ⬆️ 这是示例题目，开始练习后将生成新题目
+                </div>
+            `;
+            
+            // 重新渲染数学公式
+            MathJax.typesetPromise([document.getElementById('playerQuestion')])
+                .catch((err) => console.log(err));
+        }
+    </script>
+</body>
+</html>
