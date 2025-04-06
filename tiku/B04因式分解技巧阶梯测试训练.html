@@ -1075,10 +1075,12 @@
             
             // 如果没有输入答案，不做处理
             if (!userAnswer) return;
+                        // 使用 toHalfWidth 函数将用户输入转换为半角字符
+                        const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
             
             const questionTime = playerTime - playerQuestionStartTime;
             const isCorrect = playerCorrectAnswer.some(answer => 
-                userAnswer.replace(/\s+/g, '') === answer.replace(/\s+/g, ''));
+                normalizedUserAnswer === toHalfWidth(answer.replace(/\s/g, '').toLowerCase()));
             
             // 更新计数
             playerTotalCount++;

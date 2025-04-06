@@ -1076,10 +1076,12 @@
             
             // 如果没有输入答案，不做处理
             if (!userAnswer) return;
+                        // 使用 toHalfWidth 函数将用户输入转换为半角字符
+                        const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
             
             const questionTime = playerTime - playerQuestionStartTime;
             const isCorrect = playerCorrectAnswer.some(answer => 
-                userAnswer.replace(/\s+/g, '') === answer.replace(/\s+/g, ''));
+                normalizedUserAnswer === toHalfWidth(answer.replace(/\s/g, '').toLowerCase()));
             
             // 更新计数
             playerTotalCount++;
@@ -1454,126 +1456,132 @@
             return x;
         }
 
-        // 格式化多项式显示
-        function formatPolynomial(coefficients, variables) {
-            // 确保coefficients和variables数组长度相同
-            if (coefficients.length !== variables.length) {
-                console.error("系数和变量数组长度不一致");
-                return "";
+
+
+        function generateLevel1Question() {
+            let a = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+            let b = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+            let m = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+            let n = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+            // let k = (a * n) - (b * m); // k is unused
+
+            // --- Format vector1 (ai + bj) ---
+            let vector1 = "";
+            if (a === 1) {
+                vector1 = "i";
+            } else if (a === -1) {
+                vector1 = "-i";
+            } else if (a !== 0) {
+                vector1 = a + "i";
             }
-            
-            let result = "";
-            
-            for (let i = 0; i < coefficients.length; i++) {
-                const coef = coefficients[i];
-                const variable = variables[i];
-                
-                // 系数为0，跳过该项
-                if (coef === 0) continue;
-                
-                // 处理第一项（首项）
-                if (result === "") {
-                    if (coef === 1 && variable !== "") {
-                        // 首项系数为1且不是常数项，不显示1
-                        result += variable;
-                    } else if (coef === -1 && variable !== "") {
-                        // 首项系数为-1且不是常数项，显示负号
-                        result += "-" + variable;
-                    } else {
-                        // 其他情况，显示系数
-                        result += coef + variable;
+
+            if (b !== 0) {
+                if (vector1.length > 0) { // If a was not 0
+                    if (b === 1) {
+                        vector1 += "+j";
+                    } else if (b === -1) {
+                        vector1 += "-j";
+                    } else if (b > 0) {
+                        vector1 += "+" + b + "j";
+                    } else { // b < 0 and b !== -1
+                        vector1 += b + "j";
                     }
-                } else {
-                    // 处理中间项和末项
-                    if (coef === 1) {
-                        // 系数为1，只显示+和变量
-                        result += "+" + variable;
-                    } else if (coef === -1) {
-                        // 系数为-1，只显示-和变量
-                        result += "-" + variable;
-                    } else if (coef > 0) {
-                        // 正系数，显示+和系数和变量
-                        result += "+" + coef + variable;
-                    } else {
-                        // 负系数，显示系数和变量（系数本身已带负号）
-                        result += coef + variable;
+                } else { // If a was 0
+                    if (b === 1) {
+                        vector1 = "j";
+                    } else if (b === -1) {
+                        vector1 = "-j";
+                    } else { // b !== 0, b !== 1, b !== -1
+                        vector1 = b + "j";
                     }
                 }
             }
-            
-            // 如果结果为空（所有系数都为0），则返回0
-            return result || "0";
-        }
-
-        // 格式化向量显示
-        function formatVector(components, variables) {
-            const coefficients = [];
-            const vars = [];
-            
-            for (let i = 0; i < components.length; i++) {
-                coefficients.push(components[i]);
-                vars.push(variables[i]);
+            if (vector1.length === 0) { // If both a and b were 0
+                vector1 = "0";
             }
-            
-            return formatPolynomial(coefficients, vars);
-        }
 
-        // 格式化复数显示
-        function formatComplex(real, imag) {
-            // 处理实部和虚部都为0的情况
-            if (real === 0 && imag === 0) {
-                return "0";
+            // --- Format vector2 (mi + nj) ---
+            let vector2 = "";
+             if (m === 1) {
+                vector2 = "i";
+            } else if (m === -1) {
+                vector2 = "-i";
+            } else if (m !== 0) {
+                vector2 = m + "i";
             }
-            
-            // 当实部为0时
-            if (real === 0) {
-                if (imag === 1) return "i";
-                if (imag === -1) return "-i";
-                return imag + "i";
+
+            if (n !== 0) {
+                if (vector2.length > 0) { // If m was not 0
+                    if (n === 1) {
+                        vector2 += "+j";
+                    } else if (n === -1) {
+                        vector2 += "-j";
+                    } else if (n > 0) {
+                        vector2 += "+" + n + "j";
+                    } else { // n < 0 and n !== -1
+                        vector2 += n + "j";
+                    }
+                } else { // If m was 0
+                    if (n === 1) {
+                        vector2 = "j";
+                    } else if (n === -1) {
+                        vector2 = "-j";
+                    } else { // n !== 0, n !== 1, n !== -1
+                        vector2 = n + "j";
+                    }
+                }
             }
-            
-            // 当虚部为0时
-            if (imag === 0) {
-                return real.toString();
+            if (vector2.length === 0) { // If both m and n were 0
+                vector2 = "0";
             }
-            
-            // 处理实部不为0且虚部不为0的情况
-            let result = real.toString();
-            
-            if (imag === 1) {
-                result += "+i";
-            } else if (imag === -1) {
-                result += "-i";
-            } else if (imag > 0) {
-                result += "+" + imag + "i";
-            } else {
-                result += imag + "i";
+
+            // --- Format resultVector ((a+m)i + (b+n)j) ---
+            let res_a = a + m;
+            let res_b = b + n;
+            let resultVector = "";
+             if (res_a === 1) {
+                resultVector = "i";
+            } else if (res_a === -1) {
+                resultVector = "-i";
+            } else if (res_a !== 0) {
+                resultVector = res_a + "i";
             }
-            
-            return result;
-        }
 
-        function generateLevel1Question() {
-    let a = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let b = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let m = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let n = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
-    let k = (a * n) - (b * m);
+            if (res_b !== 0) {
+                if (resultVector.length > 0) { // If res_a was not 0
+                    if (res_b === 1) {
+                        resultVector += "+j";
+                    } else if (res_b === -1) {
+                        resultVector += "-j";
+                    } else if (res_b > 0) {
+                        resultVector += "+" + res_b + "j";
+                    } else { // res_b < 0 and res_b !== -1
+                        resultVector += res_b + "j";
+                    }
+                } else { // If res_a was 0
+                    if (res_b === 1) {
+                        resultVector = "j";
+                    } else if (res_b === -1) {
+                        resultVector = "-j";
+                    } else { // res_b !== 0, res_b !== 1, res_b !== -1
+                        resultVector = res_b + "j";
+                    }
+                }
+            }
+            if (resultVector.length === 0) { // If both res_a and res_b were 0
+                resultVector = "0";
+            }
 
-    // 格式化向量表示
-    let vector1 = formatVector([a, b], ["i", "j"]);
-    let vector2 = formatVector([m, n], ["i", "j"]);
-    let resultVector = formatVector([a+m, b+n], ["i", "j"]);
 
-    let textq = `\\(\\begin{array}{cc} \\huge (${vector1}) + (${vector2}) = ? \\end{array}\\)`;
+            let textq = `\\(\\begin{array}{cc} \\huge (${vector1}) + (${vector2}) = ? \\end{array}\\)`;
 
-    correctAnswer = [`${resultVector}`,`(${resultVector})`]; // 设置正确答案
-    
-    return `<div style="display: flex; flex-direction: column; align-items: center;">
-        <div style="margin-bottom: 20px;">
-            ${textq}
-        </div>
-    </div>`;
+            correctAnswer = [`${resultVector}`, `(${resultVector})`]; // Setting the correct answer
+
+            return `<div style="display: flex; flex-direction: column; align-items: center;">
+                <div style="margin-bottom: 20px;">
+                    ${textq}
+                </div>
+            </div>`;
 }
 
 
@@ -1584,7 +1592,7 @@
 
 
         function generateLevel2Question() {
-    let a = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+            let a = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
     let b = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
     let m = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
     let n = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
@@ -1602,10 +1610,60 @@
         imag = b - n;
     }
     
-    // 使用格式化函数显示复数
-    let complex1 = formatComplex(a, b);
-    let complex2 = formatComplex(m, n);
-    let resultComplex = formatComplex(real, imag);
+    // --- Format complex1 (a + bi) ---
+    let complex1 = "";
+    if (a === 0 && b === 0) {
+        complex1 = "0";
+    } else if (a === 0) {
+        if (b === 1) complex1 = "i";
+        else if (b === -1) complex1 = "-i";
+        else complex1 = b + "i";
+    } else if (b === 0) {
+        complex1 = a.toString();
+    } else {
+        complex1 = a.toString();
+        if (b === 1) complex1 += "+i";
+        else if (b === -1) complex1 += "-i";
+        else if (b > 0) complex1 += "+" + b + "i";
+        else complex1 += b + "i"; // Handles b < 0 and b !== -1
+    }
+
+    // --- Format complex2 (m + ni) ---
+    let complex2 = "";
+    if (m === 0 && n === 0) {
+        complex2 = "0";
+    } else if (m === 0) {
+        if (n === 1) complex2 = "i";
+        else if (n === -1) complex2 = "-i";
+        else complex2 = n + "i";
+    } else if (n === 0) {
+        complex2 = m.toString();
+    } else {
+        complex2 = m.toString();
+        if (n === 1) complex2 += "+i";
+        else if (n === -1) complex2 += "-i";
+        else if (n > 0) complex2 += "+" + n + "i";
+        else complex2 += n + "i"; // Handles n < 0 and n !== -1
+    }
+
+    // --- Format resultComplex (real + imag i) ---
+    // Ensure 'real' and 'imag' are defined before this point (e.g., real = a + m, imag = b + n)
+    let resultComplex = "";
+    if (real === 0 && imag === 0) {
+        resultComplex = "0";
+    } else if (real === 0) {
+        if (imag === 1) resultComplex = "i";
+        else if (imag === -1) resultComplex = "-i";
+        else resultComplex = imag + "i";
+    } else if (imag === 0) {
+        resultComplex = real.toString();
+    } else {
+        resultComplex = real.toString();
+        if (imag === 1) resultComplex += "+i";
+        else if (imag === -1) resultComplex += "-i";
+        else if (imag > 0) resultComplex += "+" + imag + "i";
+        else resultComplex += imag + "i"; // Handles imag < 0 and imag !== -1
+    }
     
     // 运算符号
     const operator = isAddition ? "+" : "-";
@@ -1701,8 +1759,8 @@
 
 
      function generateLevel3Question() {
-        // 生成向量分量
-        let a = (Math.floor(Math.random() * 4)+1)* (Math.random() > 0.5 ? 1 : -1);
+      // 生成向量分量
+      let a = (Math.floor(Math.random() * 4)+1)* (Math.random() > 0.5 ? 1 : -1);
         let b = (Math.floor(Math.random() * 4)+1)* (Math.random() > 0.5 ? 1 : -1);
         
         // 生成标量
@@ -1717,8 +1775,38 @@
         let resultB = scalar * b;
         
         // 格式化向量表示
-        let vector = formatVector([a, b], ["i", "j"]);
-        let resultVector = formatVector([resultA, resultB], ["i", "j"]);
+        let termsA = [];
+        if (a === 1) termsA.push("i");
+        else if (a === -1) termsA.push("-i");
+        else if (a !== 0) termsA.push(a + "i");
+        
+        if (b !== 0) {
+            if (b === 1) termsA.push("j");
+            else if (b === -1) termsA.push("-j");
+            else termsA.push((b > 0 ? "+" : "") + b + "j");
+        }
+        let vector = termsA.length === 0 ? "0" : termsA.join(termsA.length > 1 && termsA[1].startsWith('-') ? "" : "+");
+        if (termsA.length === 2 && !termsA[1].startsWith('-')) vector = termsA[0] + "+" + termsA[1];
+        else if (termsA.length === 2 && termsA[1].startsWith('-')) vector = termsA[0] + termsA[1];
+        else if (termsA.length === 1) vector = termsA[0];
+        if (vector.startsWith('+')) vector = vector.substring(1); // Remove leading '+' if b is positive and a is 0
+
+
+        let termsResult = [];
+        if (resultA === 1) termsResult.push("i");
+        else if (resultA === -1) termsResult.push("-i");
+        else if (resultA !== 0) termsResult.push(resultA + "i");
+
+        if (resultB !== 0) {
+            if (resultB === 1) termsResult.push("j");
+            else if (resultB === -1) termsResult.push("-j");
+             else termsResult.push((resultB > 0 ? "+" : "") + resultB + "j");
+        }
+        let resultVector = termsResult.length === 0 ? "0" : termsResult.join(termsResult.length > 1 && termsResult[1].startsWith('-') ? "" : "+");
+        if (termsResult.length === 2 && !termsResult[1].startsWith('-')) resultVector = termsResult[0] + "+" + termsResult[1];
+         else if (termsResult.length === 2 && termsResult[1].startsWith('-')) resultVector = termsResult[0] + termsResult[1];
+        else if (termsResult.length === 1) resultVector = termsResult[0];
+        if (resultVector.startsWith('+')) resultVector = resultVector.substring(1); // Remove leading '+' if resultB is positive and resultA is 0
         
         // 格式化标量显示
         let scalarDisplay = scalar;
@@ -1797,8 +1885,8 @@
 
 
     function generateLevel4Question() {
-    // 生成向量分量，确保投影坐标为整数
-    let a, b, m, n, k, lenSquared;
+     // 生成向量分量，确保投影坐标为整数
+     let a, b, m, n, k, lenSquared;
     do {
         a = (Math.floor(Math.random() * 10) + 4)* (Math.random() > 0.5 ? 1 : -1);
         b = (Math.floor(Math.random() * 10) + 4)* (Math.random() > 0.5 ? 1 : -1);
@@ -1907,8 +1995,8 @@ function gcd(a, b) {
 }
 
 function generateLevel5Question() {
-    // 生成复数的实部和虚部
-    let real = (Math.floor(Math.random() * 4)+1)* (Math.random() > 0.5 ? 1 : -1);
+  // 生成复数的实部和虚部
+  let real = (Math.floor(Math.random() * 4)+1)* (Math.random() > 0.5 ? 1 : -1);
     let imag = (Math.floor(Math.random() * 4)+1)* (Math.random() > 0.5 ? 1 : -1);
     
     // 生成标量
@@ -1925,7 +2013,12 @@ function generateLevel5Question() {
     // 格式化复数表示
     let complex = formatComplex(real, imag);
     let resultComplex = formatComplex(resultReal, resultImag);
-    
+    function formatComplex(re, im) {
+        if (im === 0) return `${re}`; // 实数
+        if (re === 0) return `${im}i`; // 虚数
+        if (im > 0) return `${re} + ${im}i`;
+        return `${re} - ${Math.abs(im)}i`;
+    }
     // 格式化标量显示
     let scalarDisplay = scalar;
     if (scalar === 1) scalarDisplay = "";
@@ -2012,8 +2105,8 @@ function generateLevel5Question() {
 
 
 function generateLevel6Question() {
-    // 生成两个向量的分量和组合系数
-    let a, b, c, d, m, n;
+   // 生成两个向量的分量和组合系数
+   let a, b, c, d, m, n;
     let resultX, resultY;
     
     do {
@@ -2036,16 +2129,62 @@ function generateLevel6Question() {
              Math.abs(resultX) > 16 || Math.abs(resultY) > 16||m+n===0);
     
     // 格式化向量显示
-    let vector1 = formatVector([a, b], ["i", "j"]);
-    let vector2 = formatVector([c, d], ["i", "j"]);
-    let resultVector = formatVector([resultX, resultY], ["i", "j"]);
+    // Inline formatting for vector1
+    let termA = '';
+    if (a === 1) termA = 'i';
+    else if (a === -1) termA = '-i';
+    else if (a !== 0) termA = a + 'i';
+
+    let termB = '';
+    if (b === 1) termB = '+j';
+    else if (b === -1) termB = '-j';
+    else if (b > 0) termB = '+' + b + 'j';
+    else if (b < 0) termB = b + 'j';
+
+    let vector1;
+    if (termA === '' && termB === '') vector1 = '0'; // Handle zero vector
+    else if (termA === '') vector1 = termB.startsWith('+') ? termB.substring(1) : termB;
+    else if (termB === '') vector1 = termA;
+    else vector1 = termA + termB;
+
+    // Inline formatting for vector2
+    let termC = '';
+    if (c === 1) termC = 'i';
+    else if (c === -1) termC = '-i';
+    else if (c !== 0) termC = c + 'i';
+
+    let termD = '';
+    if (d === 1) termD = '+j';
+    else if (d === -1) termD = '-j';
+    else if (d > 0) termD = '+' + d + 'j';
+    else if (d < 0) termD = d + 'j';
+
+    let vector2;
+    if (termC === '' && termD === '') vector2 = '0'; // Handle zero vector
+    else if (termC === '') vector2 = termD.startsWith('+') ? termD.substring(1) : termD;
+    else if (termD === '') vector2 = termC;
+    else vector2 = termC + termD;
     
-    // 格式化系数显示
-    let mDisplay = m === 1 ? "" : m === -1 ? "-" : m;
-    let nDisplay = n === 1 ? "+" : n === -1 ? "-" : n > 0 ? "+" + n : n;
+    // Inline formatting for resultVector
+    let termRX = '';
+    if (resultX === 1) termRX = 'i';
+    else if (resultX === -1) termRX = '-i';
+    else if (resultX !== 0) termRX = resultX + 'i';
+
+    let termRY = '';
+    if (resultY === 1) termRY = '+j';
+    else if (resultY === -1) termRY = '-j';
+    else if (resultY > 0) termRY = '+' + resultY + 'j';
+    else if (resultY < 0) termRY = resultY + 'j';
+
+    let resultVector;
+    if (termRX === '' && termRY === '') resultVector = '0'; // Handle zero vector
+    else if (termRX === '') resultVector = termRY.startsWith('+') ? termRY.substring(1) : termRY;
+    else if (termRY === '') resultVector = termRX;
+    else resultVector = termRX + termRY;
     
     // 修改题目文本，使其显示为加权平均数
-    let textq = `\\(\\begin{array}{cc}  ${mDisplay}(${vector1}) ${nDisplay}(${vector2}) = ? \\end{array}\\)`;
+    let textq = `\\(\\begin{array}{cc}  ${m}(${vector1}) ${n}(${vector2}) = ? \\end{array}\\)`;
     
     // 创建SVG坐标系
     const svgSize = 520;
@@ -2140,12 +2279,13 @@ function generateLevel6Question() {
             ${svg}
         </div>
     </div>`;
-}
+        }
+
 
 
 function generateLevel7Question() {
-    // 正交分解
-    let a, b, c, d, m, n;
+     // 正交分解
+     let a, b, c, d, m, n;
     let resultX, resultY;
     
     do {
@@ -2169,9 +2309,59 @@ function generateLevel7Question() {
              Math.abs(resultX) > 16 || Math.abs(resultY) > 16||m+n===0);
     
     // 格式化向量显示
-    let vector1 = formatVector([a, b], ["i", "j"]);
-    let vector2 = formatVector([c, d], ["i", "j"]);
-    let resultVector = formatVector([resultX, resultY], ["i", "j"]);
+    // Inline formatting for vector1
+    let termA = '';
+    if (a === 1) termA = 'i';
+    else if (a === -1) termA = '-i';
+    else if (a !== 0) termA = a + 'i';
+
+    let termB = '';
+    if (b === 1) termB = '+j';
+    else if (b === -1) termB = '-j';
+    else if (b > 0) termB = '+' + b + 'j';
+    else if (b < 0) termB = b + 'j';
+
+    let vector1;
+    if (termA === '' && termB === '') vector1 = '0'; // Handle zero vector
+    else if (termA === '') vector1 = termB.startsWith('+') ? termB.substring(1) : termB;
+    else if (termB === '') vector1 = termA;
+    else vector1 = termA + termB;
+
+    // Inline formatting for vector2
+    let termC = '';
+    if (c === 1) termC = 'i';
+    else if (c === -1) termC = '-i';
+    else if (c !== 0) termC = c + 'i';
+
+    let termD = '';
+    if (d === 1) termD = '+j';
+    else if (d === -1) termD = '-j';
+    else if (d > 0) termD = '+' + d + 'j';
+    else if (d < 0) termD = d + 'j';
+
+    let vector2;
+    if (termC === '' && termD === '') vector2 = '0'; // Handle zero vector
+    else if (termC === '') vector2 = termD.startsWith('+') ? termD.substring(1) : termD;
+    else if (termD === '') vector2 = termC;
+    else vector2 = termC + termD;
+
+    // Inline formatting for resultVector (projection)
+    let termRX = '';
+    if (resultX === 1) termRX = 'i';
+    else if (resultX === -1) termRX = '-i';
+    else if (resultX !== 0) termRX = resultX + 'i';
+
+    let termRY = '';
+    if (resultY === 1) termRY = '+j';
+    else if (resultY === -1) termRY = '-j';
+    else if (resultY > 0) termRY = '+' + resultY + 'j';
+    else if (resultY < 0) termRY = resultY + 'j';
+
+    let resultVector;
+    if (termRX === '' && termRY === '') resultVector = '0'; // Handle zero vector
+    else if (termRX === '') resultVector = termRY.startsWith('+') ? termRY.substring(1) : termRY;
+    else if (termRY === '') resultVector = termRX;
+    else resultVector = termRX + termRY;
     
     // 格式化系数显示
     let mDisplay = m === 1 ? "" : m === -1 ? "-" : m;
@@ -2275,12 +2465,12 @@ function generateLevel7Question() {
             ${svg}
         </div>
     </div>`;
-}
+        }
 
 function generateLevel8Question() {
 
-    //共线向量 生成两个向量的分量和组合系数
-    let a, b, c, d, m, n;
+     //共线向量 生成两个向量的分量和组合系数
+     let a, b, c, d, m, n;
     let resultX, resultY;
     
     do {
@@ -2304,13 +2494,59 @@ function generateLevel8Question() {
              !Number.isInteger(resultX) || !Number.isInteger(resultY));
     
     // 格式化向量显示
-    let vector1 = formatVector([a, b], ["i", "j"]);
-    let vector2 = formatVector([c, d], ["i", "j"]);
-    let resultVector = formatVector([resultX, resultY], ["i", "j"]);
+    // Inline formatting for vector1
+    let termA = '';
+    if (a === 1) termA = 'i';
+    else if (a === -1) termA = '-i';
+    else if (a !== 0) termA = a + 'i';
+
+    let termB = '';
+    if (b === 1) termB = '+j';
+    else if (b === -1) termB = '-j';
+    else if (b > 0) termB = '+' + b + 'j';
+    else if (b < 0) termB = b + 'j';
+
+    let vector1;
+    if (termA === '' && termB === '') vector1 = '0'; // Handle zero vector
+    else if (termA === '') vector1 = termB.startsWith('+') ? termB.substring(1) : termB;
+    else if (termB === '') vector1 = termA;
+    else vector1 = termA + termB;
+
+    // Inline formatting for vector2
+    let termC = '';
+    if (c === 1) termC = 'i';
+    else if (c === -1) termC = '-i';
+    else if (c !== 0) termC = c + 'i';
+
+    let termD = '';
+    if (d === 1) termD = '+j';
+    else if (d === -1) termD = '-j';
+    else if (d > 0) termD = '+' + d + 'j';
+    else if (d < 0) termD = d + 'j';
+
+    let vector2;
+    if (termC === '' && termD === '') vector2 = '0'; // Handle zero vector
+    else if (termC === '') vector2 = termD.startsWith('+') ? termD.substring(1) : termD;
+    else if (termD === '') vector2 = termC;
+    else vector2 = termC + termD;
     
-    // 格式化系数显示
-    let mDisplay = m === 1 ? "" : m === -1 ? "-" : m;
-    let nDisplay = n === 1 ? "+" : n === -1 ? "-" : n > 0 ? "+" + n : n;
+    // Inline formatting for resultVector
+    let termRX = '';
+    if (resultX === 1) termRX = 'i';
+    else if (resultX === -1) termRX = '-i';
+    else if (resultX !== 0) termRX = resultX + 'i';
+
+    let termRY = '';
+    if (resultY === 1) termRY = '+j';
+    else if (resultY === -1) termRY = '-j';
+    else if (resultY > 0) termRY = '+' + resultY + 'j';
+    else if (resultY < 0) termRY = resultY + 'j';
+
+    let resultVector;
+    if (termRX === '' && termRY === '') resultVector = '0'; // Handle zero vector
+    else if (termRX === '') resultVector = termRY.startsWith('+') ? termRY.substring(1) : termRY;
+    else if (termRY === '') resultVector = termRX;
+    else resultVector = termRX + termRY;
     
     // 修改题目文本，使其显示为加权平均数
     let textq = `\\(\\begin{array}{cc}  \\frac{${m}}{${m+n}}(${vector1})+ \\frac{${n}}{${m+n}}(${vector2}) = ? \\end{array}\\)`;
@@ -2397,8 +2633,7 @@ function generateLevel8Question() {
             ${svg}
         </div>
     </div>`;
-}
-
+        }
 
 
 

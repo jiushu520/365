@@ -1075,6 +1075,7 @@
             // 如果没有输入答案，不做处理
             if (!userAnswer) return;
             
+            
             const questionTime = playerTime - playerQuestionStartTime;
             const isCorrect = playerCorrectAnswer.some(answer => 
                 userAnswer.replace(/\s+/g, '') === answer.replace(/\s+/g, ''));

@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自招综评系统公式</title>
+    <!-- KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+    <!-- KaTeX JS -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "$", right: "$", display: false}
+                ]
+            });
+        });
+    </script>
+    <style>
+        body {
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        
+        /* 侧边栏导航样式 */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 240px;
+            height: 100%;
+            background: #f0f8ff;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            padding: 20px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar.collapsed {
+            width: 40px;
+        }
+        
+        .sidebar-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        
+        .sidebar-title {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 0 15px;
+            color: #2c3e50;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .sidebar li {
+            padding: 0;
+            margin: 0;
+        }
+        
+        .sidebar a {
+            display: block;
+            padding: 8px 15px;
+            text-decoration: none;
+            color: #333;
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .sidebar a:hover, .sidebar a.active {
+            background: #e6f2ff;
+            border-left-color: #3498db;
+            color: #3498db;
+        }
+        
+        /* 新增目录样式 */
+        .toc-root {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .toc-h1 {
+            margin-bottom: 5px;
+        }
+        
+        .toc-h1 > a {
+            font-weight: bold;
+            color: #2c3e50;
+            position: relative;
+        }
+        
+        .toc-h1 > a:after {
+            content: '▼';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 10px;
+            transition: transform 0.3s;
+        }
+        
+        .toc-h1 > a.collapsed:after {
+            transform: translateY(-50%) rotate(-90deg);
+        }
+        
+        .toc-sub {
+            padding-left: 15px;
+            list-style: none;
+            margin: 0;
+        }
+        
+        .toc-h2 {
+            margin: 0;
+        }
+        
+        .toc-h2 a {
+            font-size: 13px;
+            padding: 6px 15px;
+        }
+        
+        .sidebar .section {
+            font-weight: bold;
+            color: #2c3e50;
+            padding: 12px 15px 5px;
+            font-size: 15px;
+        }
+        
+        .sidebar .subsection {
+            padding-left: 25px;
+            font-size: 13px;
+        }
+        
+        /* 主要内容区域样式 */
+        .main-content {
+            margin-left: 240px;
+            padding: 20px;
+            max-width: 1200px;
+            transition: all 0.3s ease;
+        }
+        
+        .main-content.expanded {
+            margin-left: 40px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+        
+        h2 {
+            color: #3498db;
+            margin-top: 30px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+        }
+        
+        h3 {
+            color: #2980b9;
+            margin-top: 25px;
+        }
+        
+        .formula-block {
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            border-left: 3px solid #3498db;
+            overflow-x: auto;
+        }
+        
+        .note {
+            background-color: #fff8dc;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 3px solid #f1c40f;
+            margin: 15px 0;
+        }
+        
+        .important {
+            font-weight: bold;
+            color: #c0392b;
+        }
+        
+        /* 返回顶部按钮 */
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #3498db;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 999;
+        }
+        
+        .back-to-top.visible {
+            opacity: 1;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 0;
+                padding: 0;
+            }
+            
+            .sidebar.collapsed {
+                width: 240px;
+                padding: 20px 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .main-content.expanded {
+                margin-left: 0;
+            }
+            
+            .sidebar-toggle {
+                left: 10px;
+                right: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 侧边导航栏 -->
+    <div class="sidebar" id="sidebar">
+        <button class="sidebar-toggle" id="sidebarToggle">≡</button>
+        <div class="sidebar-title">目录导航</div>
+        <ul id="tocList">
+            <!-- 目录内容将由JavaScript动态生成 -->
+        </ul>
+    </div>
+    
+    <!-- 返回顶部按钮 -->
+    <div class="back-to-top" id="backToTop">↑</div>
+    
+    <!-- 主内容区域 -->
+    <div class="main-content" id="mainContent">
+        <h1>自招综评系统公式</h1>
+        
+        <div class="note important">
+            <p>重要提示：</p>
+            <p>单纯看了没用！！！</p>
+            <p>多种方法要推导证明！才能真正看清楚本质！！！</p>
+        </div>
+
+        <h1>1、基础公式</h1>
+
+        <h2>1、完全平方公式</h2>
+        <div class="formula-block">
+            <p>$(a+b)^2 = a^2 + 2ab + b^2$</p>
+            <p>$(a-b)^2 = a^2 - 2ab + b^2$</p>
+            <p>$(a+b+c)^2 = a^2 + b^2 + c^2 + 2ab + 2bc + 2ac$</p>
+        </div>
+
+        <h2>2、平方和恒等式(拉格朗日恒等式)</h2>
+        <div class="formula-block">
+            <p>$(a_1^2 + a_2^2)(b_1^2 + b_2^2) = (a_1b_1 + a_2b_2)^2 + (a_1b_2 - a_2b_1)^2$</p>
+            <p>$(a_1^2 + a_2^2 + a_3^2)(b_1^2 + b_2^2 + b_3^2) = (a_1b_1 + a_2b_2 + a_3b_3)^2 + (a_2b_3 - a_3b_2)^2 + (a_3b_1 - a_1b_3)^2 + (a_1b_2 - a_2b_1)^2$</p>
+        </div>
+
+        <h2>3、四元数</h2>
+        <div class="formula-block">
+            <p>四元数通常表示为：$q = a + bi + cj + dk$</p>
+            <p>其中 $i^2 = j^2 = k^2 = ijk = -1$</p>
+            <p>当 $a=0$ 时，$q = bi + cj + dk$ 可以表示三维向量</p>
+            <p>空间三维向量的点积、内积、投影可通过四元数表示</p>
+        </div>
+
+        <h2>4、常和公式</h2>
+        <div class="formula-block">
+            <p>$\sum_{i=1}^{n} i = \frac{n(n+1)}{2}$</p>
+            <p>$\sum_{i=1}^{n} i^2 = \frac{n(n+1)(2n+1)}{6}$</p>
+            <p>$\sum_{i=1}^{n} i^3 = \frac{n^2(n+1)^2}{4} = (\frac{n(n+1)}{2})^2$</p>
+            <p>$\sum_{i=1}^{n} i^4 = \frac{n(n+1)(2n+1)(3n^2+3n-1)}{30}$</p>
+            <p>$\sum_{i=1}^{n} i^5 = \frac{n^2(n+1)^2(2n^2+2n-1)}{12}$</p>
+        </div>
+
+        <h1>2、测量</h1>
+
+        <h2>1、定比分点（计算点的值）</h2>
+        <div class="formula-block">
+            <p>点 $P$ 把线段 $AB$ 分成比例 $\lambda$，则：</p>
+            <p>$\vec{P} = \frac{\lambda\vec{A} + \vec{B}}{1 + \lambda}$</p>
+            <p>在坐标形式中：$P(x, y) = (\frac{\lambda x_A + x_B}{1 + \lambda}, \frac{\lambda y_A + y_B}{1 + \lambda})$</p>
+        </div>
+
+        <h2>2、距离</h2>
+        
+        <h3>1、一维点点距</h3>
+        <div class="formula-block">
+            <p>$D = |a - b|$</p>
+        </div>
+
+        <h3>2、二维点点距</h3>
+        <div class="formula-block">
+            <p>$D = \sqrt{(x_1 - x_2)^2 + (y_1 - y_2)^2}$</p>
+        </div>
+
+        <h3>3、三维距离</h3>
+        <div class="formula-block">
+            <p>$D = \sqrt{(x_1 - x_2)^2 + (y_1 - y_2)^2 + (z_1 - z_2)^2}$</p>
+        </div>
+
+        <h2>3、角度</h2>
+        <div class="formula-block">
+            <p>两向量夹角：$\cos\theta = \frac{\vec{a} \cdot \vec{b}}{|\vec{a}||\vec{b}|} = \frac{a_x b_x + a_y b_y + a_z b_z}{|\vec{a}||\vec{b}|}$</p>
+            <p>叉积大小：$|\vec{a} \times \vec{b}| = |\vec{a}||\vec{b}|\sin\theta$</p>
+            <p>两向量的法向量：$\vec{n} = \vec{a} \times \vec{b}$</p>
+        </div>
+
+        <h2>4、旋转</h2>
+        <div class="formula-block">
+            <p>二维平面中，向量 $(x, y)$ 逆时针旋转 $\theta$ 角度后的坐标：</p>
+            <p>$x' = x\cos\theta - y\sin\theta$</p>
+            <p>$y' = x\sin\theta + y\cos\theta$</p>
+            <p>矩阵形式：$\begin{pmatrix} x' \\ y' \end{pmatrix} = \begin{pmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{pmatrix} \begin{pmatrix} x \\ y \end{pmatrix}$</p>
+        </div>
+
+        <h2>5、坐标系平移</h2>
+        <div class="formula-block">
+            <p>坐标原点平移到 $(x_0, y_0)$：</p>
+            <p>新坐标：$x' = x - x_0, y' = y - y_0$</p>
+            <p>图像平移 $(x_0, y_0)$：方程中的 $x$ 替换为 $x - x_0$，$y$ 替换为 $y - y_0$</p>
+        </div>
+
+        <h2>6、面积</h2>
+        <div class="formula-block">
+            <p>三角形面积（向量叉积）：$S = \frac{1}{2}|\vec{AB} \times \vec{AC}|$</p>
+            <p>三角形面积（行列式）：$S = \frac{1}{2} \begin{vmatrix} x_A & y_A & 1 \\ x_B & y_B & 1 \\ x_C & y_C & 1 \end{vmatrix}$</p>
+            <p>平行四边形面积：$S = |\vec{a} \times \vec{b}|$</p>
+        </div>
+
+        <h1>3、神级切线公式</h1>
+        <div class="formula-block">
+            <p>曲线 $f(x,y) = 0$ 在点 $(x_0, y_0)$ 处的切线方程：</p>
+            <p>$f_x(x_0, y_0)(x - x_0) + f_y(x_0, y_0)(y - y_0) = 0$</p>
+            <p>其中 $f_x$ 和 $f_y$ 是 $f$ 对 $x$ 和 $y$ 的偏导数</p>
+            <p>对于隐函数 $f(x,y) = 0$，可得 $\frac{dy}{dx} = -\frac{f_x}{f_y}$</p>
+        </div>
+
+        <h2>特殊曲线的切线</h2>
+        <div class="formula-block">
+            <p>圆 $x^2 + y^2 = r^2$ 在点 $(x_0, y_0)$ 处的切线：$xx_0 + yy_0 = r^2$</p>
+            <p>椭圆 $\frac{x^2}{a^2} + \frac{y^2}{b^2} = 1$ 在点 $(x_0, y_0)$ 处的切线：$\frac{xx_0}{a^2} + \frac{yy_0}{b^2} = 1$</p>
+            <p>双曲线 $\frac{x^2}{a^2} - \frac{y^2}{b^2} = 1$ 在点 $(x_0, y_0)$ 处的切线：$\frac{xx_0}{a^2} - \frac{yy_0}{b^2} = 1$</p>
+            <p>抛物线 $y^2 = 2px$ 在点 $(x_0, y_0)$ 处的切线：$yy_0 = p(x + x_0)$</p>
+        </div>
+
+        <h1>4、函数篇</h1>
+
+        <h2>1、拉格朗日插值法</h2>
+        <div class="formula-block">
+            <p>两点确定一条直线：</p>
+            <p>$f(x) = y_1\frac{x-x_2}{x_1-x_2} + y_2\frac{x-x_1}{x_2-x_1}$</p>
+            <p>三点确定二次函数：</p>
+            <p>$f(x) = y_1\frac{(x-x_2)(x-x_3)}{(x_1-x_2)(x_1-x_3)} + y_2\frac{(x-x_1)(x-x_3)}{(x_2-x_1)(x_2-x_3)} + y_3\frac{(x-x_1)(x-x_2)}{(x_3-x_1)(x_3-x_2)}$</p>
+        </div>
+
+        <h2>2、定比分点法</h2>
+        <div class="formula-block">
+            <p>点 $P$ 把线段 $AB$ 分成比例 $\lambda : \mu$，则：</p>
+            <p>$\vec{P} = \frac{\lambda \vec{A} + \mu \vec{B}}{\lambda + \mu}$</p>
+        </div>
+
+        <h2>3、两点截距式</h2>
+        <div class="formula-block">
+            <p>通过点 $(x_1, y_1)$ 和 $(x_2, y_2)$ 的直线：</p>
+            <p>$\frac{x-x_1}{x_2-x_1} + \frac{y-y_1}{y_2-y_1} = 1$</p>
+        </div>
+
+        <h2>4、两点式</h2>
+        <div class="formula-block">
+            <p>通过点 $(x_1, y_1)$ 和 $(x_2, y_2)$ 的直线：</p>
+            <p>$(y - y_1)(x_2 - x_1) = (y_2 - y_1)(x - x_1)$</p>
+        </div>
+
+        <h2>5、斜截式</h2>
+        <div class="formula-block">
+            <p>$y = kx + b$</p>
+            <p>其中 $k$ 是斜率，$b$ 是 $y$ 轴截距</p>
+        </div>
+
+        <h2>6、点斜式</h2>
+        <div class="formula-block">
+            <p>通过点 $(x_0, y_0)$ 且斜率为 $k$ 的直线：</p>
+            <p>$y - y_0 = k(x - x_0)$</p>
+        </div>
+
+        <h2>7、法线式</h2>
+        <div class="formula-block">
+            <p>$ax + by + c = 0$，其中 $a^2 + b^2 = 1$</p>
+            <p>原点到直线的距离：$D = |c|$</p>
+            <p>向量 $(a, b)$ 为单位圆上直线的法向量</p>
+            <p>直线上任意点 $(x_0, y_0)$ 到原点的垂足：$(-ac, -bc)$</p>
+        </div>
+        
+        <h2>8、行列式与向量等面积关联</h2>
+        <div class="formula-block">
+            <p>三角形面积：$S = \frac{1}{2} \begin{vmatrix} x_1 & y_1 & 1 \\ x_2 & y_2 & 1 \\ x_3 & y_3 & 1 \end{vmatrix}$</p>
+            <p>点乘法向量可求面积</p>
+        </div>
+
+        <h2>9、复合函数的求导</h2>
+        <div class="formula-block">
+            <p>链式法则：$\frac{dy}{dx} = \frac{dy}{du} \cdot \frac{du}{dx}$</p>
+            <p>若 $y = f(g(x))$，则 $y' = f'(g(x)) \cdot g'(x)$</p>
+        </div>
+
+        <h2>10、距离式</h2>
+        <div class="formula-block">
+            <p>点 $(x_0, y_0)$ 到直线 $ax + by + c = 0$ 的距离：</p>
+            <p>$d = \frac{|ax_0 + by_0 + c|}{\sqrt{a^2 + b^2}}$</p>
+        </div>
+
+        <h1>5、点与直线的三个重要数据</h1>
+        <div class="formula-block">
+            <p>直线方程：$ax + by + c = 0$</p>
+            <p>点 $P(x_0, y_0)$</p>
+            <p>1. 点到直线的距离：$d = \frac{|ax_0 + by_0 + c|}{\sqrt{a^2 + b^2}}$</p>
+            <p>2. 点关于直线的对称点：$(x', y') = (x_0, y_0) - 2d \cdot \frac{(a, b)}{\sqrt{a^2 + b^2}}$</p>
+            <p>3. 点到直线的垂足：$H = P - d \cdot \frac{(a, b)}{\sqrt{a^2 + b^2}}$</p>
+        </div>
+
+        <h1>6、泰勒级数</h1>
+
+        <h2>1、指数函数的泰勒级数</h2>
+        <div class="formula-block">
+            <p>$e^x = 1 + x + \frac{x^2}{2!} + \frac{x^3}{3!} + \frac{x^4}{4!} + \ldots = \sum_{n=0}^{\infty} \frac{x^n}{n!}$</p>
+        </div>
+
+        <h2>2、正弦函数的泰勒级数</h2>
+        <div class="formula-block">
+            <p>$\sin x = x - \frac{x^3}{3!} + \frac{x^5}{5!} - \frac{x^7}{7!} + \ldots = \sum_{n=0}^{\infty} \frac{(-1)^n x^{2n+1}}{(2n+1)!}$</p>
+        </div>
+
+        <h2>3、余弦函数的泰勒级数</h2>
+        <div class="formula-block">
+            <p>$\cos x = 1 - \frac{x^2}{2!} + \frac{x^4}{4!} - \frac{x^6}{6!} + \ldots = \sum_{n=0}^{\infty} \frac{(-1)^n x^{2n}}{(2n)!}$</p>
+        </div>
+
+        <h1>7、矩阵</h1>
+
+        <h2>1、行列式</h2>
+        <div class="formula-block">
+            <p>二阶行列式：$\begin{vmatrix} a & b \\ c & d \end{vmatrix} = ad - bc$</p>
+            <p>三阶行列式：</p>
+            <p>$\begin{vmatrix} a_{11} & a_{12} & a_{13} \\ a_{21} & a_{22} & a_{23} \\ a_{31} & a_{32} & a_{33} \end{vmatrix} = a_{11}a_{22}a_{33} + a_{12}a_{23}a_{31} + a_{13}a_{21}a_{32} - a_{13}a_{22}a_{31} - a_{11}a_{23}a_{32} - a_{12}a_{21}a_{33}$</p>
+        </div>
+
+        <h2>2、逆矩阵</h2>
+        <div class="formula-block">
+            <p>对于二阶矩阵 $A = \begin{pmatrix} a & b \\ c & d \end{pmatrix}$，其逆矩阵为：</p>
+            <p>$A^{-1} = \frac{1}{ad-bc} \begin{pmatrix} d & -b \\ -c & a \end{pmatrix}$</p>
+        </div>
+
+        <h2>3、特征向量、特征值</h2>
+        <div class="formula-block">
+            <p>矩阵 $A$ 的特征值 $\lambda$ 和特征向量 $\vec{v}$ 满足：$A\vec{v} = \lambda\vec{v}$</p>
+            <p>特征值计算：$\det(A - \lambda I) = 0$</p>
+            <p>对于对称矩阵，特征向量可用于确定二次型的主轴</p>
+        </div>
+
+        <h1>8、Nabla 算子</h1>
+        <div class="formula-block">
+            <p>Nabla算子：$\nabla = (\frac{\partial}{\partial x}, \frac{\partial}{\partial y}, \frac{\partial}{\partial z})$</p>
+            <p>梯度：$\nabla f = (\frac{\partial f}{\partial x}, \frac{\partial f}{\partial y}, \frac{\partial f}{\partial z})$</p>
+            <p>散度：$\nabla \cdot \vec{F} = \frac{\partial F_x}{\partial x} + \frac{\partial F_y}{\partial y} + \frac{\partial F_z}{\partial z}$</p>
+            <p>旋度：$\nabla \times \vec{F} = (\frac{\partial F_z}{\partial y} - \frac{\partial F_y}{\partial z}, \frac{\partial F_x}{\partial z} - \frac{\partial F_z}{\partial x}, \frac{\partial F_y}{\partial x} - \frac{\partial F_x}{\partial y})$</p>
+        </div>
+
+        <h2>1、雅可比矩阵</h2>
+        <div class="formula-block">
+            <p>对于向量函数 $\mathbf{F}: \mathbb{R}^n \to \mathbb{R}^m$，$\mathbf{F}(x) = (f_1(x), f_2(x), \ldots, f_m(x))$，其中 $x = (x_1, x_2, \ldots, x_n)$，雅可比矩阵定义为：</p>
+            <p>$J_\mathbf{F}(x) = \begin{pmatrix} 
+            \frac{\partial f_1}{\partial x_1} & \frac{\partial f_1}{\partial x_2} & \cdots & \frac{\partial f_1}{\partial x_n} \\
+            \frac{\partial f_2}{\partial x_1} & \frac{\partial f_2}{\partial x_2} & \cdots & \frac{\partial f_2}{\partial x_n} \\
+            \vdots & \vdots & \ddots & \vdots \\
+            \frac{\partial f_m}{\partial x_1} & \frac{\partial f_m}{\partial x_2} & \cdots & \frac{\partial f_m}{\partial x_n}
+            \end{pmatrix}$</p>
+            
+            <p><strong>特例：</strong> 当 $\mathbf{F}: \mathbb{R}^2 \to \mathbb{R}^2$，雅可比矩阵为：</p>
+            <p>$J_\mathbf{F}(x,y) = \begin{pmatrix} 
+            \frac{\partial f_1}{\partial x} & \frac{\partial f_1}{\partial y} \\
+            \frac{\partial f_2}{\partial x} & \frac{\partial f_2}{\partial y}
+            \end{pmatrix}$</p>
+            
+            <p><strong>雅可比行列式：</strong> 当 $m = n$ 时，雅可比行列式定义为雅可比矩阵的行列式：</p>
+            <p>$\det(J_\mathbf{F}(x)) = \begin{vmatrix} 
+            \frac{\partial f_1}{\partial x_1} & \frac{\partial f_1}{\partial x_2} & \cdots & \frac{\partial f_1}{\partial x_n} \\
+            \frac{\partial f_2}{\partial x_1} & \frac{\partial f_2}{\partial x_2} & \cdots & \frac{\partial f_2}{\partial x_n} \\
+            \vdots & \vdots & \ddots & \vdots \\
+            \frac{\partial f_n}{\partial x_1} & \frac{\partial f_n}{\partial x_2} & \cdots & \frac{\partial f_n}{\partial x_n}
+            \end{vmatrix}$</p>
+            
+            <p><strong>应用：</strong></p>
+            <p>1. 多元函数的线性近似: $\mathbf{F}(x+h) \approx \mathbf{F}(x) + J_\mathbf{F}(x) \cdot h$</p>
+            <p>2. 坐标变换: 若 $y = \mathbf{F}(x)$，则 $dx_1 \wedge dx_2 \wedge \cdots \wedge dx_n$ 变换为 $|\det(J_\mathbf{F}(x))| \cdot dy_1 \wedge dy_2 \wedge \cdots \wedge dy_n$</p>
+            <p>3. 多重积分变量替换: $\int_D f(y) dy = \int_{\mathbf{F}^{-1}(D)} f(\mathbf{F}(x)) |\det(J_\mathbf{F}(x))| dx$</p>
+            <p>4. 隐函数定理: 若 $\det(J_\mathbf{F}(a)) \neq 0$，则方程 $\mathbf{F}(x) = \mathbf{F}(a)$ 在 $a$ 点附近隐式地定义了 $x$ 作为某个变量的函数</p>
+            <p>5. 变分法和优化: 计算多元函数极值的必要条件是 $J_\mathbf{F}(x) = 0$</p>
+            
+            <p><strong>极坐标变换示例：</strong></p>
+            <p>对于从极坐标 $(r, \theta)$ 到直角坐标 $(x, y)$ 的转换：</p>
+            <p>$x = r\cos\theta, y = r\sin\theta$</p>
+            <p>雅可比矩阵为：</p>
+            <p>$J = \begin{pmatrix} 
+            \frac{\partial x}{\partial r} & \frac{\partial x}{\partial \theta} \\
+            \frac{\partial y}{\partial r} & \frac{\partial y}{\partial \theta}
+            \end{pmatrix} = \begin{pmatrix} 
+            \cos\theta & -r\sin\theta \\
+            \sin\theta & r\cos\theta
+            \end{pmatrix}$</p>
+            <p>雅可比行列式为：</p>
+            <p>$\det(J) = r\cos^2\theta + r\sin^2\theta = r$</p>
+            <p>这就是为什么极坐标下的面积元素是 $dA = r \, dr \, d\theta$</p>
+        </div>
+
+        <h1>9、椭圆的主轴与特征值</h1>
+        <div class="formula-block">
+            <p>二次型 $Ax^2 + Bxy + Cy^2 = 1$ 对应的矩阵：</p>
+            <p>$M = \begin{pmatrix} A & \frac{B}{2} \\ \frac{B}{2} & C \end{pmatrix}$</p>
+            <p>矩阵 $M$ 的特征值为 $\lambda_1$ 和 $\lambda_2$</p>
+            <p>椭圆的长轴长度为 $2/\sqrt{\lambda_1}$，短轴长度为 $2/\sqrt{\lambda_2}$</p>
+            <p>主轴方向由对应的特征向量确定</p>
+        </div>
+
+
+        <h2>因式分解例子</h2>
+        <div class="formula-block">
+            <p>$x^2 + 6x + 9 = (x + 3)^2$</p>
+            <p>$x^2 - 4x + 4 = (x - 2)^2$</p>
+            <p>$x^2 - 9 = (x + 3)(x - 3)$</p>
+            <p>$x^3 - 8 = (x - 2)(x^2 + 2x + 4)$</p>
+            <p>$x^4 - 16 = (x^2 + 4)(x^2 - 4) = (x^2 + 4)(x + 2)(x - 2)$</p>
+        </div>
+
+        <h1>11、微积分重要公式</h1>
+        
+        <h2>1、常见导数公式</h2>
+        <div class="formula-block">
+            <p>$(x^n)' = nx^{n-1}$</p>
+            <p>$(\sin x)' = \cos x$</p>
+            <p>$(\cos x)' = -\sin x$</p>
+            <p>$(\tan x)' = \sec^2 x$</p>
+            <p>$(e^x)' = e^x$</p>
+            <p>$(\ln x)' = \frac{1}{x}$</p>
+            <p>$(\log_a x)' = \frac{1}{x \ln a}$</p>
+        </div>
+        
+        <h2>2、导数运算法则</h2>
+        <div class="formula-block">
+            <p><strong>加减法则：</strong> $(f(x) \pm g(x))' = f'(x) \pm g'(x)$</p>
+            <p><strong>乘法法则：</strong> $(f(x) \cdot g(x))' = f'(x) \cdot g(x) + f(x) \cdot g'(x)$</p>
+            <p><strong>除法法则：</strong> $(\frac{f(x)}{g(x)})' = \frac{f'(x) \cdot g(x) - f(x) \cdot g'(x)}{g(x)^2}$</p>
+            <p><strong>复合函数链式法则：</strong> 若$y = f(u)$，$u = g(x)$，则$\frac{dy}{dx} = \frac{dy}{du} \cdot \frac{du}{dx} = f'(g(x)) \cdot g'(x)$</p>
+            <p><strong>幂函数复合：</strong> $(g(x)^n)' = n \cdot g(x)^{n-1} \cdot g'(x)$</p>
+            <p><strong>常见复合导数：</strong></p>
+            <p>$(\sin g(x))' = \cos g(x) \cdot g'(x)$</p>
+            <p>$(\cos g(x))' = -\sin g(x) \cdot g'(x)$</p>
+            <p>$(e^{g(x)})' = e^{g(x)} \cdot g'(x)$</p>
+            <p>$(\ln g(x))' = \frac{g'(x)}{g(x)}$</p>
+        </div>
+        
+        <h2>3、积分公式</h2>
+        <div class="formula-block">
+            <p>$\int x^n dx = \frac{x^{n+1}}{n+1} + C, (n \neq -1)$</p>
+            <p>$\int \frac{1}{x} dx = \ln |x| + C$</p>
+            <p>$\int e^x dx = e^x + C$</p>
+            <p>$\int \sin x dx = -\cos x + C$</p>
+            <p>$\int \cos x dx = \sin x + C$</p>
+            <p>$\int \sec^2 x dx = \tan x + C$</p>
+            <p>$\int \frac{1}{1+x^2} dx = \arctan x + C$</p>
+            <p>$\int \frac{1}{\sqrt{1-x^2}} dx = \arcsin x + C$</p>
+        </div>
+        
+        <h2>3、定积分特殊计算</h2>
+        <div class="formula-block">
+            <p>$\int_{0}^{\pi} \sin x dx = 2$</p>
+            <p>$\int_{0}^{\pi} \sin^2 x dx = \frac{\pi}{2}$</p>
+            <p>$\int_{0}^{\pi} \cos^2 x dx = \frac{\pi}{2}$</p>
+            <p>$\int_{0}^{\pi/2} \sin^n x dx = \int_{0}^{\pi/2} \cos^n x dx = \frac{(n-1)!!}{n!!} \cdot \frac{\pi}{2}$ (n为偶数)</p>
+            <p>$\int_{0}^{\pi/2} \sin^n x dx = \int_{0}^{\pi/2} \cos^n x dx = \frac{(n-1)!!}{n!!}$ (n为奇数)</p>
+        </div>
+        
+        <h2>4、常见级数和</h2>
+        <div class="formula-block">
+            <p>$\sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}$</p>
+            <p>$\sum_{n=1}^{\infty} \frac{1}{n^4} = \frac{\pi^4}{90}$</p>
+            <p>$\sum_{n=0}^{\infty} x^n = \frac{1}{1-x}, (|x| < 1)$</p>
+            <p>$\sum_{n=0}^{\infty} \frac{x^n}{n!} = e^x$</p>
+        </div>
+
+        <h1>12、多项式运算详解</h1>
+        
+        <h2>1、多项式加减法示例</h2>
+        <div class="formula-block">
+            <p><strong>示例1：</strong> $(x^2 + 3x - 5) + (2x^2 - x + 7) = 3x^2 + 2x + 2$</p>
+            <p><strong>示例2：</strong> $(x^3 - 2x + 1) - (2x^3 + x^2 - 4) = -x^3 - x^2 - 2x + 5$</p>
+            <p><strong>示例3：</strong> $(x^4 + x^2 - 3) + (-x^4 + 2x^3 + 5) = 2x^3 + x^2 + 2$</p>
+        </div>
+        
+        <h2>2、多项式乘法展开</h2>
+        <div class="formula-block">
+            <p><strong>二项式乘法：</strong> $(x + 3)(x - 2) = x^2 + 3x - 2x - 6 = x^2 + x - 6$</p>
+            <p><strong>三项式乘法：</strong> $(x^2 + x - 1)(x - 2) = x^3 - 2x^2 + x^2 - 2x - x + 2 = x^3 - x^2 - 3x + 2$</p>
+            <p><strong>二次多项式平方：</strong> $(2x^2 - 3x + 1)^2 = 4x^4 - 12x^3 + 13x^2 - 6x + 1$</p>
+        </div>
+        
+        <h2>3、因式分解进阶示例</h2>
+        <div class="formula-block">
+            <p><strong>提公因式：</strong> $3x^3 - 6x^2 + 9x = 3x(x^2 - 2x + 3)$</p>
+            <p><strong>分组分解：</strong> $x^3 + x^2 - 9x - 9 = x^2(x + 1) - 9(x + 1) = (x + 1)(x^2 - 9) = (x + 1)(x + 3)(x - 3)$</p>
+            <p><strong>十字相乘法：</strong> $x^2 + 5x + 6 = (x + 2)(x + 3)$</p>
+            <p><strong>完全平方式：</strong> $x^2 + 6x + 8 = (x + 3)^2 - 1 = (x + 3 + 1)(x + 3 - 1) = (x + 4)(x + 2)$</p>
+        </div>
+        
+        <h2>4、多项式除法</h2>
+        <div class="formula-block">
+            <p><strong>简单除法：</strong> $(x^3 - 1) ÷ (x - 1) = x^2 + x + 1$</p>
+            <p><strong>带余数除法：</strong> $(x^3 + 2x^2 - 5) ÷ (x + 3) = x^2 - x + 3 - \frac{14}{x+3}$</p>
+            <p><strong>综合除法：</strong> $(2x^4 - 3x^3 + x - 5) ÷ (x - 2) = 2x^3 + x^2 + 2x + 5 + \frac{5}{x-2}$</p>
+        </div>
+        
+        <h2>5、多项式求值</h2>
+        <div class="formula-block">
+            <p>对于多项式 $P(x) = x^3 - 2x^2 + 4x - 7$</p>
+            <p>计算 $P(2) = 2^3 - 2(2^2) + 4(2) - 7 = 8 - 8 + 8 - 7 = 1$</p>
+            <p>计算 $P(-1) = (-1)^3 - 2(-1)^2 + 4(-1) - 7 = -1 - 2 - 4 - 7 = -14$</p>
+        </div>
+        
+        <h2>6、多项式微积分</h2>
+        <div class="formula-block">
+            <p><strong>求导：</strong> 若 $P(x) = 3x^4 - 2x^3 + 5x - 1$，则 $P'(x) = 12x^3 - 6x^2 + 5$</p>
+            <p><strong>积分：</strong> $\int (2x^3 - x + 4) dx = \frac{1}{2}x^4 - \frac{1}{2}x^2 + 4x + C$</p>
+            <p><strong>定积分：</strong> $\int_{0}^{1} (x^2 + x) dx = [\frac{1}{3}x^3 + \frac{1}{2}x^2]_{0}^{1} = \frac{1}{3} + \frac{1}{2} = \frac{5}{6}$</p>
+        </div>
+        
+        <h2>7、韦达定理应用</h2>
+        <div class="formula-block">
+            <p>对于一元二次方程 $ax^2 + bx + c = 0$ 的两根 $x_1$ 和 $x_2$：</p>
+            <p>$x_1 + x_2 = -\frac{b}{a}$</p>
+            <p>$x_1 \cdot x_2 = \frac{c}{a}$</p>
+            <p><strong>应用示例：</strong> 若方程 $x^2 - 5x + k = 0$ 的两根之积为4，则 $k = 4$</p>
+            <p><strong>应用示例：</strong> 若方程 $2x^2 + mx + 3 = 0$ 的两根之和为2，则 $m = -4$</p>
+        </div>
+        
+        <h2>8、根式多项式运算</h2>
+        <div class="formula-block">
+            <p><strong>有理化：</strong> $\frac{3}{\sqrt{5} - 2} = \frac{3(\sqrt{5} + 2)}{(\sqrt{5} - 2)(\sqrt{5} + 2)} = \frac{3(\sqrt{5} + 2)}{5 - 4} = 3\sqrt{5} + 6$</p>
+            <p><strong>根式乘法：</strong> $\sqrt{12} \cdot \sqrt{18} = \sqrt{12 \cdot 18} = \sqrt{216} = \sqrt{36 \cdot 6} = 6\sqrt{6}$</p>
+            <p><strong>根式加减：</strong> $\sqrt{20} - \sqrt{45} = \sqrt{4 \cdot 5} - \sqrt{9 \cdot 5} = 2\sqrt{5} - 3\sqrt{5} = -\sqrt{5}$</p>
+        </div>
+
+        <h1>13、几何变换交互可视化</h1>
+        
+        <h2>1、二维旋转变换</h2>
+        <div class="formula-block">
+            <p>二维向量 $(x, y)$ 绕原点逆时针旋转 $\theta$ 角度后的坐标：</p>
+            <p>$x' = x\cos\theta - y\sin\theta$</p>
+            <p>$y' = x\sin\theta + y\cos\theta$</p>
+            
+            <div style="width: 100%; height: 300px; position: relative; margin: 20px 0;">
+                <svg id="rotationSvg" width="100%" height="100%" viewBox="-150 -150 300 300" style="border: 1px solid #ddd; background-color: #f9f9f9;">
+                    <!-- 坐标轴 -->
+                    <g transform="scale(1, -1)">
+                    <line x1="-140" y1="0" x2="140" y2="0" stroke="#999" stroke-width="1"></line>
+                    <line x1="0" y1="-140" x2="0" y2="140" stroke="#999" stroke-width="1"></line>
+                    
+                    <!-- 坐标标记 -->
+                    <text x="135" y="-15" font-size="12" transform="scale(1, -1)">x</text>
+                    <text x="-15" y="135" font-size="12" transform="scale(1, -1)">y</text>
+                    
+                    <!-- 原始向量 -->
+                    <line id="originalVector" x1="0" y1="0" x2="100" y2="0" stroke="blue" stroke-width="2"></line>
+                    <circle id="originalPoint" cx="100" cy="0" r="4" fill="blue"></circle>
+                    
+                    <!-- 旋转后的向量 -->
+                    <line id="rotatedVector" x1="0" y1="0" x2="100" y2="0" stroke="red" stroke-width="2"></line>
+                    <circle id="rotatedPoint" cx="100" cy="0" r="4" fill="red"></circle>
+                    
+                    <!-- 旋转角度的弧线 -->
+                    <path id="anglePath" d="M 20,0 A 20,20 0 0,1 19.696,3.478" fill="none" stroke="green" stroke-width="1"></path>
+                    <text id="angleText" x="25" y="-10" font-size="12" transform="scale(1, -1)">0°</text>
+                    </g>
+                </svg>
+                
+                <div style="margin-top: 10px; text-align: center;">
+                    <label for="rotationAngle">旋转角度: <span id="angleValue">0</span>°</label>
+                    <input type="range" id="rotationAngle" min="0" max="360" value="0" style="width: 80%;">
+                </div>
+            </div>
+            
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const rotationAngle = document.getElementById('rotationAngle');
+                    const angleValue = document.getElementById('angleValue');
+                    const rotatedVector = document.getElementById('rotatedVector');
+                    const rotatedPoint = document.getElementById('rotatedPoint');
+                    const anglePath = document.getElementById('anglePath');
+                    const angleText = document.getElementById('angleText');
+                    
+                    function updateRotation() {
+                        const angle = parseInt(rotationAngle.value);
+                        angleValue.textContent = angle;
+                        
+                        // 旋转公式计算
+                        const radian = angle * Math.PI / 180;
+                        const x = 100;
+                        const y = 0;
+                        
+                        const newX = x * Math.cos(radian) - y * Math.sin(radian);
+                        const newY = x * Math.sin(radian) + y * Math.cos(radian);
+                        
+                        // 更新旋转后的向量
+                        rotatedVector.setAttribute('x2', newX);
+                        rotatedVector.setAttribute('y2', newY);
+                        rotatedPoint.setAttribute('cx', newX);
+                        rotatedPoint.setAttribute('cy', newY);
+                        
+                        // 更新角度弧线
+                        const startAngle = 0;
+                        const endAngle = radian;
+                        const r = 20;
+                        
+                        const x1 = r * Math.cos(startAngle);
+                        const y1 = r * Math.sin(startAngle);
+                        const x2 = r * Math.cos(endAngle);
+                        const y2 = r * Math.sin(endAngle);
+                        
+                        const largeArcFlag = endAngle - startAngle <= Math.PI ? 0 : 1;
+                        
+                        anglePath.setAttribute('d', `M ${x1},${y1} A ${r},${r} 0 ${largeArcFlag},1 ${x2},${y2}`);
+                        
+                        // 放置角度文本
+                        const textR = r + 10;
+                        const textAngle = endAngle / 2;
+                        const textX = textR * Math.cos(textAngle);
+                        const textY = textR * Math.sin(textAngle);
+                        
+                        angleText.setAttribute('x', textX);
+                        angleText.setAttribute('y', textY);
+                        angleText.textContent = `${angle}°`;
+                    }
+                    
+                    rotationAngle.addEventListener('input', updateRotation);
+                    updateRotation(); // 初始化
+                });
+            </script>
+        </div>
+        
+        <h2>2、仿射变换与矩阵</h2>
+        <div class="formula-block">
+            <p>仿射变换可以通过矩阵乘法实现:</p>
+            <p>$\begin{pmatrix} x' \\ y' \end{pmatrix} = \begin{pmatrix} a & b \\ c & d \end{pmatrix} \begin{pmatrix} x \\ y \end{pmatrix} + \begin{pmatrix} e \\ f \end{pmatrix}$</p>
+            
+            <div style="width: 100%; height: 400px; position: relative; margin: 20px 0;">
+                <svg id="transformSvg" width="100%" height="300px" viewBox="-150 -150 300 300" style="border: 1px solid #ddd; background-color: #f9f9f9;">
+                    <!-- 坐标轴 -->
+                    <g transform="scale(1, -1)">
+                    <line x1="-140" y1="0" x2="140" y2="0" stroke="#999" stroke-width="1"></line>
+                    <line x1="0" y1="-140" x2="0" y2="140" stroke="#999" stroke-width="1"></line>
+                    
+                    <!-- 坐标标记 -->
+                    <text x="135" y="-15" font-size="12" transform="scale(1, -1)">x</text>
+                    <text x="-15" y="135" font-size="12" transform="scale(1, -1)">y</text>
+                    
+                    <!-- 原始正方形 -->
+                    <polygon id="originalShape" points="50,50 50,-50 -50,-50 -50,50" fill="rgba(0,0,255,0.2)" stroke="blue" stroke-width="1"></polygon>
+                    
+                    <!-- 变换后的形状 -->
+                    <polygon id="transformedShape" points="50,50 50,-50 -50,-50 -50,50" fill="rgba(255,0,0,0.2)" stroke="red" stroke-width="1"></polygon>
+                    </g>
+                </svg>
+                
+                <div style="margin-top: 10px; text-align: center;">
+                    <div style="display: flex; justify-content: center; margin-bottom: 10px;">
+                        <div style="margin: 0 10px;">
+                            <label for="matrixA">a:</label>
+                            <input type="number" id="matrixA" value="1" step="0.1" style="width: 60px;">
+                        </div>
+                        <div style="margin: 0 10px;">
+                            <label for="matrixB">b:</label>
+                            <input type="number" id="matrixB" value="0" step="0.1" style="width: 60px;">
+                        </div>
+                        <div style="margin: 0 10px;">
+                            <label for="matrixE">e:</label>
+                            <input type="number" id="matrixE" value="0" step="1" style="width: 60px;">
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: center; margin-bottom: 10px;">
+                        <div style="margin: 0 10px;">
+                            <label for="matrixC">c:</label>
+                            <input type="number" id="matrixC" value="0" step="0.1" style="width: 60px;">
+                        </div>
+                        <div style="margin: 0 10px;">
+                            <label for="matrixD">d:</label>
+                            <input type="number" id="matrixD" value="1" step="0.1" style="width: 60px;">
+                        </div>
+                        <div style="margin: 0 10px;">
+                            <label for="matrixF">f:</label>
+                            <input type="number" id="matrixF" value="0" step="1" style="width: 60px;">
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <button id="resetTransform" style="padding: 5px 10px;">重置变换</button>
+                        <div style="margin-top: 10px; font-size: 14px;">
+                            常见变换: 
+                            <button class="transformBtn" data-transform="scale">缩放</button>
+                            <button class="transformBtn" data-transform="rotate">旋转</button>
+                            <button class="transformBtn" data-transform="shear">剪切</button>
+                            <button class="transformBtn" data-transform="reflect">反射</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const matrixA = document.getElementById('matrixA');
+                    const matrixB = document.getElementById('matrixB');
+                    const matrixC = document.getElementById('matrixC');
+                    const matrixD = document.getElementById('matrixD');
+                    const matrixE = document.getElementById('matrixE');
+                    const matrixF = document.getElementById('matrixF');
+                    const originalShape = document.getElementById('originalShape');
+                    const transformedShape = document.getElementById('transformedShape');
+                    const resetBtn = document.getElementById('resetTransform');
+                    const transformBtns = document.querySelectorAll('.transformBtn');
+                    
+                    // 原始点坐标
+                    const originalPoints = [
+                        {x: 50, y: 50},
+                        {x: 50, y: -50},
+                        {x: -50, y: -50},
+                        {x: -50, y: 50}
+                    ];
+                    
+                    function updateTransform() {
+                        const a = parseFloat(matrixA.value);
+                        const b = parseFloat(matrixB.value);
+                        const c = parseFloat(matrixC.value);
+                        const d = parseFloat(matrixD.value);
+                        const e = parseFloat(matrixE.value);
+                        const f = parseFloat(matrixF.value);
+                        
+                        // 应用仿射变换
+                        const transformedPoints = originalPoints.map(point => {
+                            return {
+                                x: a * point.x + b * point.y + e,
+                                y: c * point.x + d * point.y + f
+                            };
+                        });
+                        
+                        // 更新SVG多边形属性
+                        const pointsStr = transformedPoints.map(p => `${p.x},${p.y}`).join(' ');
+                        transformedShape.setAttribute('points', pointsStr);
+                    }
+                    
+                    // 初始化监听器
+                    [matrixA, matrixB, matrixC, matrixD, matrixE, matrixF].forEach(input => {
+                        input.addEventListener('input', updateTransform);
+                    });
+                    
+                    // 重置变换
+                    resetBtn.addEventListener('click', function() {
+                        matrixA.value = 1;
+                        matrixB.value = 0;
+                        matrixC.value = 0;
+                        matrixD.value = 1;
+                        matrixE.value = 0;
+                        matrixF.value = 0;
+                        updateTransform();
+                    });
+                    
+                    // 预设变换
+                    transformBtns.forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const transform = this.getAttribute('data-transform');
+                            
+                            switch(transform) {
+                                case 'scale':
+                                    matrixA.value = 1.5;
+                                    matrixB.value = 0;
+                                    matrixC.value = 0;
+                                    matrixD.value = 0.5;
+                                    matrixE.value = 0;
+                                    matrixF.value = 0;
+                                    break;
+                                    
+                                case 'rotate':
+                                    // 旋转45度
+                                    const cos45 = Math.cos(Math.PI/4).toFixed(3);
+                                    const sin45 = Math.sin(Math.PI/4).toFixed(3);
+                                    matrixA.value = cos45;
+                                    matrixB.value = -sin45;
+                                    matrixC.value = sin45;
+                                    matrixD.value = cos45;
+                                    matrixE.value = 0;
+                                    matrixF.value = 0;
+                                    break;
+                                    
+                                case 'shear':
+                                    matrixA.value = 1;
+                                    matrixB.value = 0.5;
+                                    matrixC.value = 0;
+                                    matrixD.value = 1;
+                                    matrixE.value = 0;
+                                    matrixF.value = 0;
+                                    break;
+                                    
+                                case 'reflect':
+                                    // 沿y轴反射
+                                    matrixA.value = -1;
+                                    matrixB.value = 0;
+                                    matrixC.value = 0;
+                                    matrixD.value = 1;
+                                    matrixE.value = 0;
+                                    matrixF.value = 0;
+                                    break;
+                            }
+                            
+                            updateTransform();
+                        });
+                    });
+                    
+                    updateTransform(); // 初始化
+                });
+            </script>
+        </div>
+        
+        <h2>3、函数图形与多项式可视化</h2>
+        <div class="formula-block">
+            <p>多项式函数 $f(x) = ax^3 + bx^2 + cx + d$ 的图像：</p>
+            
+            <div style="width: 100%; height: 800px; position: relative; margin: 20px 0;">
+                <svg id="functionSvg" width="100%" height="600px" viewBox="-5 -5 10 10" style="border: 1px solid #ddd; background-color: #f9f9f9;">
+                    <!-- 坐标轴 -->
+                    <g transform="scale(1, -1)">
+                    <line x1="-5" y1="0" x2="5" y2="0" stroke="#999" stroke-width="0.05"></line>
+                    <line x1="0" y1="-5" x2="0" y2="5" stroke="#999" stroke-width="0.05"></line>
+                    
+                    <!-- x轴刻度 -->
+                    <line x1="1" y1="-0.1" x2="1" y2="0.1" stroke="#999" stroke-width="0.02"></line>
+                    <text x="0.9" y="-0.3" font-size="0.2" transform="scale(1, -1)">1</text>
+                    <line x1="2" y1="-0.1" x2="2" y2="0.1" stroke="#999" stroke-width="0.02"></line>
+                    <text x="1.9" y="-0.3" font-size="0.2" transform="scale(1, -1)">2</text>
+                    <line x1="-1" y1="-0.1" x2="-1" y2="0.1" stroke="#999" stroke-width="0.02"></line>
+                    <text x="-1.1" y="-0.3" font-size="0.2" transform="scale(1, -1)">-1</text>
+                    <line x1="-2" y1="-0.1" x2="-2" y2="0.1" stroke="#999" stroke-width="0.02"></line>
+                    <text x="-2.1" y="-0.3" font-size="0.2" transform="scale(1, -1)">-2</text>
+                    
+                    <!-- y轴刻度 -->
+                    <line x1="-0.1" y1="1" x2="0.1" y2="1" stroke="#999" stroke-width="0.02"></line>
+                    <text x="-0.35" y="1.05" font-size="0.2" transform="scale(1, -1)">1</text>
+                    <line x1="-0.1" y1="2" x2="0.1" y2="2" stroke="#999" stroke-width="0.02"></line>
+                    <text x="-0.35" y="2.05" font-size="0.2" transform="scale(1, -1)">2</text>
+                    <line x1="-0.1" y1="-1" x2="0.1" y2="-1" stroke="#999" stroke-width="0.02"></line>
+                    <text x="-0.35" y="-0.95" font-size="0.2" transform="scale(1, -1)">-1</text>
+                    <line x1="-0.1" y1="-2" x2="0.1" y2="-2" stroke="#999" stroke-width="0.02"></line>
+                    <text x="-0.35" y="-1.95" font-size="0.2" transform="scale(1, -1)">-2</text>
+                    
+                    <!-- 函数曲线 -->
+                    <path id="functionPath" d="" fill="none" stroke="blue" stroke-width="0.05"></path>
+                    </g>
+                </svg>
+                
+                <div style="margin-top: 10px; text-align: center;">
+                    <div style="margin-bottom: 5px;">
+                        <span style="font-weight: bold;">$f(x) = $</span>
+                        <input type="number" id="coefA" value="0" step="0.1" style="width: 50px;"> $x^3 +$
+                        <input type="number" id="coefB" value="1" step="0.1" style="width: 50px;"> $x^2 +$
+                        <input type="number" id="coefC" value="0" step="0.1" style="width: 50px;"> $x +$
+                        <input type="number" id="coefD" value="0" step="0.1" style="width: 50px;">
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <button id="updateFunction" style="padding: 5px 10px;">更新函数图像</button>
+                        
+                        <div style="margin-top: 10px; font-size: 14px;">
+                            预设函数:
+                            <button class="functionBtn" data-func="cubic">$x^3$</button>
+                            <button class="functionBtn" data-func="quadratic">$x^2$</button>
+                            <button class="functionBtn" data-func="linear">$x$</button>
+                            <button class="functionBtn" data-func="complex">$x^3-2x^2+x-1$</button>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 14px;">
+                        <p id="polynomialDisplay" style="font-weight: bold;">标准形式：$x^2$</p>
+                    </div>
+                </div>
+            </div>
+            
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const coefA = document.getElementById('coefA');
+                    const coefB = document.getElementById('coefB');
+                    const coefC = document.getElementById('coefC');
+                    const coefD = document.getElementById('coefD');
+                    const functionPath = document.getElementById('functionPath');
+                    const updateBtn = document.getElementById('updateFunction');
+                    const functionBtns = document.querySelectorAll('.functionBtn');
+                    const polynomialDisplay = document.getElementById('polynomialDisplay');
+                    
+                    // 添加输入事件监听器，使函数图像自动更新
+                    coefA.addEventListener('input', updateFunction);
+                    coefB.addEventListener('input', updateFunction);
+                    coefC.addEventListener('input', updateFunction);
+                    coefD.addEventListener('input', updateFunction);
+                    
+                    function updateFunction() {
+                        const a = parseFloat(coefA.value);
+                        const b = parseFloat(coefB.value);
+                        const c = parseFloat(coefC.value);
+                        const d = parseFloat(coefD.value);
+                        
+                        // 生成函数曲线点
+                        const points = [];
+                        for (let x = -5; x <= 5; x += 0.1) {
+                            const y = a * Math.pow(x, 3) + b * Math.pow(x, 2) + c * x + d;
+                            if (y >= -5 && y <= 5) {
+                                points.push([x, y]);
+                            }
+                        }
+                        
+                        // 构建SVG路径
+                        let pathData = '';
+                        points.forEach((point, i) => {
+                            if (i === 0) {
+                                pathData += `M ${point[0]},${point[1]}`;
+                            } else {
+                                pathData += ` L ${point[0]},${point[1]}`;
+                            }
+                        });
+                        
+                        functionPath.setAttribute('d', pathData);
+                        
+                        // 更新多项式显示
+                        updatePolynomialDisplay(a, b, c, d);
+                    }
+                    
+                    // 按照规范格式化多项式显示
+                    function updatePolynomialDisplay(a, b, c, d) {
+                        let formula = '标准形式：$';
+                        
+                        // 处理a系数（x^3项）
+                        if (a !== 0) {
+                            if (a === 1) {
+                                formula += 'x^3';
+                            } else if (a === -1) {
+                                formula += '-x^3';
+                            } else {
+                                formula += a + 'x^3';
+                            }
+                        }
+                        
+                        // 处理b系数（x^2项）
+                        if (b !== 0) {
+                            if (formula !== '标准形式：$') {  // 不是第一项
+                                if (b > 0) {
+                                    formula += '+';
+                                    if (b === 1) {
+                                        formula += 'x^2';
+                                    } else {
+                                        formula += b + 'x^2';
+                                    }
+                                } else {
+                                    if (b === -1) {
+                                        formula += '-x^2';
+                                    } else {
+                                        formula += b + 'x^2';
+                                    }
+                                }
+                            } else {  // 是第一项
+                                if (b === 1) {
+                                    formula += 'x^2';
+                                } else if (b === -1) {
+                                    formula += '-x^2';
+                                } else {
+                                    formula += b + 'x^2';
+                                }
+                            }
+                        }
+                        
+                        // 处理c系数（x项）
+                        if (c !== 0) {
+                            if (formula !== '标准形式：$') {  // 不是第一项
+                                if (c > 0) {
+                                    formula += '+';
+                                    if (c === 1) {
+                                        formula += 'x';
+                                    } else {
+                                        formula += c + 'x';
+                                    }
+                                } else {
+                                    if (c === -1) {
+                                        formula += '-x';
+                                    } else {
+                                        formula += c + 'x';
+                                    }
+                                }
+                            } else {  // 是第一项
+                                if (c === 1) {
+                                    formula += 'x';
+                                } else if (c === -1) {
+                                    formula += '-x';
+                                } else {
+                                    formula += c + 'x';
+                                }
+                            }
+                        }
+                        
+                        // 处理d系数（常数项）
+                        if (d !== 0) {
+                            if (formula !== '标准形式：$') {  // 不是第一项
+                                if (d > 0) {
+                                    formula += '+' + d;
+                                } else {
+                                    formula += d;
+                                }
+                            } else {  // 是第一项
+                                formula += d;
+                            }
+                        }
+                        
+                        // 如果没有任何项
+                        if (formula === '标准形式：$') {
+                            formula += '0';
+                        }
+                        
+                        formula += '$';
+                        polynomialDisplay.innerHTML = formula;
+                        
+                        // 重新渲染KaTeX
+                        if (typeof renderMathInElement === 'function') {
+                            renderMathInElement(polynomialDisplay);
+                        }
+                    }
+                    
+                    // 更新函数按钮
+                    updateBtn.addEventListener('click', updateFunction);
+                    
+                    // 预设函数
+                    functionBtns.forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const func = this.getAttribute('data-func');
+                            
+                            switch(func) {
+                                case 'cubic':
+                                    coefA.value = 1;
+                                    coefB.value = 0;
+                                    coefC.value = 0;
+                                    coefD.value = 0;
+                                    break;
+                                    
+                                case 'quadratic':
+                                    coefA.value = 0;
+                                    coefB.value = 1;
+                                    coefC.value = 0;
+                                    coefD.value = 0;
+                                    break;
+                                    
+                                case 'linear':
+                                    coefA.value = 0;
+                                    coefB.value = 0;
+                                    coefC.value = 1;
+                                    coefD.value = 0;
+                                    break;
+                                    
+                                case 'complex':
+                                    coefA.value = 1;
+                                    coefB.value = -2;
+                                    coefC.value = 1;
+                                    coefD.value = -1;
+                                    break;
+                            }
+                            
+                            updateFunction();
+                        });
+                    });
+                    
+                    updateFunction(); // 初始化
+                    
+                    // 确保KaTeX已渲染
+                    if (typeof renderMathInElement === 'function') {
+                        renderMathInElement(document.body);
+                    }
+                });
+            </script>
+        </div>
+
+        <h1>14、扩展公式和特殊技巧</h1>
+
+        <h2>1、三角恒等式</h2>
+        <div class="formula-block">
+            <p>和角公式：</p>
+            <p>$\sin(A + B) = \sin A \cos B + \cos A \sin B$</p>
+            <p>$\cos(A + B) = \cos A \cos B - \sin A \sin B$</p>
+            <p>$\tan(A + B) = \frac{\tan A + \tan B}{1 - \tan A \tan B}$</p>
+            
+            <p>倍角公式：</p>
+            <p>$\sin 2A = 2\sin A \cos A$</p>
+            <p>$\cos 2A = \cos^2 A - \sin^2 A = 2\cos^2 A - 1 = 1 - 2\sin^2 A$</p>
+            <p>$\tan 2A = \frac{2\tan A}{1 - \tan^2 A}$</p>
+            
+            <p>半角公式：</p>
+            <p>$\sin^2 \frac{A}{2} = \frac{1 - \cos A}{2}$</p>
+            <p>$\cos^2 \frac{A}{2} = \frac{1 + \cos A}{2}$</p>
+            <p>$\tan^2 \frac{A}{2} = \frac{1 - \cos A}{1 + \cos A} = \frac{\sin A}{1 + \cos A} = \frac{1 - \cos A}{\sin A}$</p>
+        </div>
+
+        <h2>2、复数代数</h2>
+        <div class="formula-block">
+            <p>复数的三角形式：$z = r(\cos\theta + i\sin\theta) = re^{i\theta}$</p>
+            <p>欧拉公式：$e^{i\theta} = \cos\theta + i\sin\theta$</p>
+            <p>复数的乘法：$z_1 \cdot z_2 = r_1r_2e^{i(\theta_1 + \theta_2)}$</p>
+            <p>复数的幂：$z^n = r^n e^{in\theta} = r^n(\cos n\theta + i\sin n\theta)$</p>
+            <p>复数的方根：$\sqrt[n]{z} = \sqrt[n]{r} \cdot e^{i(\theta/n + 2k\pi/n)}$, 其中 $k = 0, 1, 2, ..., n-1$</p>
+        </div>
+
+        <h2>3、向量积的应用</h2>
+        <div class="formula-block">
+            <p>三角形面积公式：$S = \frac{1}{2}|\vec{a} \times \vec{b}| = \frac{1}{2}ab\sin\theta$</p>
+            <p>平行四边形面积公式：$S = |\vec{a} \times \vec{b}| = ab\sin\theta$</p>
+            <p>四面体体积公式：$V = \frac{1}{6}|(\vec{a} \times \vec{b}) \cdot \vec{c}|$</p>
+            <p>平行六面体体积公式：$V = |(\vec{a} \times \vec{b}) \cdot \vec{c}|$</p>
+        </div>
+
+        <h2>4、二项式定理拓展</h2>
+        <div class="formula-block">
+            <p>$(x+y)^n = \sum_{k=0}^{n} \binom{n}{k} x^{n-k} y^k$</p>
+            <p>其中 $\binom{n}{k} = \frac{n!}{k!(n-k)!}$</p>
+            <p>特殊情况：$(1+x)^n = \sum_{k=0}^{n} \binom{n}{k} x^k$</p>
+            <p>二项式系数性质：$\binom{n}{k} = \binom{n}{n-k}$</p>
+            <p>帕斯卡恒等式：$\binom{n}{k} = \binom{n-1}{k-1} + \binom{n-1}{k}$</p>
+        </div>
+
+        <h2>5、多项式常见运算技巧</h2>
+        <div class="formula-block">
+            <p>因式拆解：$a^3 + b^3 = (a+b)(a^2-ab+b^2)$</p>
+            <p>因式拆解：$a^3 - b^3 = (a-b)(a^2+ab+b^2)$</p>
+            <p>平方和公式：$a^2 + b^2 = (a+b)^2 - 2ab$</p>
+            <p>立方和公式：$a^3 + b^3 = (a+b)^3 - 3ab(a+b)$</p>
+            <p>差分公式：$\sum_{i=1}^{n}f(i) = \sum_{i=1}^{n}\sum_{j=1}^{i}[f(j) - f(j-1)]$</p>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const mainContent = document.getElementById('mainContent');
+            const backToTop = document.getElementById('backToTop');
+            const tocList = document.getElementById('tocList');
+            
+            // 侧边栏切换功能
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+                
+                // 更新切换按钮文本
+                if (sidebar.classList.contains('collapsed')) {
+                    sidebarToggle.textContent = '≡';
+                } else {
+                    sidebarToggle.textContent = '×';
+                }
+            });
+            
+            // 返回顶部按钮
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 300) {
+                    backToTop.classList.add('visible');
+                } else {
+                    backToTop.classList.remove('visible');
+                }
+            });
+            
+            backToTop.addEventListener('click', function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+            
+            // 动态生成目录
+            function generateTOC() {
+                const headers = document.querySelectorAll('h1, h2');
+                let tocHtml = '';
+                let currentH1 = null;
+                let h1Counter = 0;
+                let h2Counter = 0;
+                
+                for (let i = 0; i < headers.length; i++) {
+                    const header = headers[i];
+                    
+                    // 跳过页面标题
+                    if (i === 0) continue;
+                    
+                    const id = 'section-' + i;
+                    header.id = id;
+                    
+                    if (header.tagName === 'H1') {
+                        h1Counter++;
+                        h2Counter = 0; // 重置h2计数器
+                        currentH1 = header;
+                        
+                        // 提取标题文本，移除可能存在的数字前缀
+                        const titleText = header.textContent.replace(/^\d+[、\.]\s*/, '');
+                        tocHtml += `<li><a class="section" href="#${id}">${h1Counter}、${titleText}</a></li>`;
+                    } else if (header.tagName === 'H2' && currentH1) {
+                        h2Counter++;
+                        // 对于h2，添加层级编号
+                        const titleText = header.textContent.replace(/^\d+[、\.]\s*/, '');
+                        tocHtml += `<li><a class="subsection" href="#${id}">${h1Counter}.${h2Counter} ${titleText}</a></li>`;
+                    }
+                }
+                
+                tocList.innerHTML = tocHtml;
+                
+                // 为目录项添加点击事件
+                const tocLinks = document.querySelectorAll('#tocList a');
+                tocLinks.forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const targetId = this.getAttribute('href').substring(1);
+                        const targetElement = document.getElementById(targetId);
+                        
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 20,
+                            behavior: 'smooth'
+                        });
+                        
+                        // 在移动端自动收起侧边栏
+                        if (window.innerWidth <= 768) {
+                            sidebar.classList.add('collapsed');
+                            mainContent.classList.add('expanded');
+                            sidebarToggle.textContent = '≡';
+                        }
+                    });
+                });
+            }
+            
+            // 高亮当前章节
+            function highlightCurrentSection() {
+                const scrollPosition = window.scrollY;
+                const headerElements = document.querySelectorAll('h1[id], h2[id]');
+                const tocLinks = document.querySelectorAll('#tocList a');
+                
+                let currentSection = null;
+                let currentH1Section = null;
+                
+                // 找出当前滚动位置所在的章节
+                for (let i = 0; i < headerElements.length; i++) {
+                    const element = headerElements[i];
+                    const nextElement = headerElements[i + 1] || null;
+                    
+                    if (element.tagName === 'H1') {
+                        currentH1Section = element.id;
+                    }
+                    
+                    if (
+                        element.offsetTop - 50 <= scrollPosition && 
+                        (!nextElement || nextElement.offsetTop - 50 > scrollPosition)
+                    ) {
+                        currentSection = element.id;
+                        break;
+                    }
+                }
+                
+                // 移除所有的active类
+                tocLinks.forEach(link => {
+                    link.classList.remove('active');
+                });
+                
+                // 给当前章节添加active类
+                if (currentSection) {
+                    const activeLink = document.querySelector(`#tocList a[href="#${currentSection}"]`);
+                    if (activeLink) {
+                        activeLink.classList.add('active');
+                        
+                        // 如果当前高亮的是h2，也高亮它所属的h1
+                        if (activeLink.classList.contains('subsection') && currentH1Section) {
+                            const h1Link = document.querySelector(`#tocList a[href="#${currentH1Section}"]`);
+                            if (h1Link) {
+                                h1Link.classList.add('active');
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // 初始化
+            generateTOC();
+            
+            // 滚动时高亮当前章节
+            window.addEventListener('scroll', highlightCurrentSection);
+            
+            // 初始高亮
+            setTimeout(highlightCurrentSection, 100);
+        });
+    </script>
+</body>
+</html>
