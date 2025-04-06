@@ -1,0 +1,70 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+
+# Your rule content
+
+- You can @ files here
+- You can use markdown but dont have to
+        function checkPlayerAnswer() {
+            if (!gameInProgress) return;
+
+            const userAnswerInput = document.getElementById('playerAnswer').value.trim();
+
+            // 如果没有输入答案，不做处理
+            if (!userAnswerInput) return;
+
+            // 新增：将用户输入的全角字符转换为半角字符
+            const normalizedUserAnswer = userAnswerInput.normalize('NFKC');
+
+            const questionTime = playerTime - playerQuestionStartTime;
+            // 修改：使用 normalize 后的 userAnswer 进行比较
+            const isCorrect = playerCorrectAnswer.some(answer =>
+                normalizedUserAnswer.replace(/\s+/g, '') === answer.replace(/\s+/g, ''));
+
+            // 更新计数
+            playerTotalCount++;
+            if (isCorrect) {
+                playerCorrectCount++;
+                consecutiveCorrectCount++;
+                document.getElementById('correctSound').play();
+                document.getElementById('playerResult').innerHTML = '<span class="correct">回答正确！</span>';
+            } else {
+                playerIncorrectCount++;
+                consecutiveCorrectCount = 0; // 重置连续答对计数
+                document.getElementById('wrongSound').play();
+                // 修改：显示用户原始输入和正确答案，方便调试
+                document.getElementById('playerResult').innerHTML = `<span class="incorrect">回答错误！你的输入: ${userAnswerInput}。正确答案是：${playerCorrectAnswer[0]}</span>`;
+            }
+
+            // 更新分数显示
+            document.getElementById('playerScore').innerHTML =
+                `正确: ${playerCorrectCount} | 错误: ${playerIncorrectCount} |连续答对: ${consecutiveCorrectCount} | 总题数: ${playerTotalCount}`;
+
+            // 添加到历史记录
+            addToHistory(
+                document.getElementById('playerQuestion').innerHTML,
+                userAnswerInput, // 历史记录中仍然显示用户原始输入
+                playerCorrectAnswer[0],
+                isCorrect ? '正确' : '错误',
+                questionTime
+            );
+
+            // 检查是否连续答对10题 - 移到这里，确保先更新分数和历史记录
+            if (isCorrect && consecutiveCorrectCount >= 10) {
+                endGame("连续答对10题");
+                return;
+            }
+
+            // 游戏中 - 生成新题目
+            if (gameInProgress) {
+                // 延迟一秒后生成新题目，给用户时间看结果
+                setTimeout(() => {
+                    if (gameInProgress) {
+                        generatePlayerQuestion();
+                    }
+                }, 1000);
+            }
+        }

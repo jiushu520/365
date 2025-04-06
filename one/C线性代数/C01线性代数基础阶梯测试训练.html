@@ -1,0 +1,2915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C01线性代数基础阶梯测试训练</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .header {
+            text-align: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .pk-container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            justify-content: space-between;
+        }
+
+        .player-container, .computer-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 48%;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .player-container {
+            background-color: #f0f8ff; /* Light blue for player */
+        }
+
+        .computer-container {
+            background-color: #fff0f0; /* Light red for computer */
+        }
+
+        .vs-indicator {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            background-color: #ffcc00;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        .difficulty-buttons {
+            margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .difficulty-buttons button {
+            margin: 5px;
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+        }
+
+        .difficulty-buttons button.active {
+            background-color: #45a049;
+            color: white;
+        }
+
+        .question-box {
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: white;
+            width: 90%;
+        }
+
+        .answer-input {
+            padding: 10px;
+            font-size: 16px;
+            width: 80%;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .timer {
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .computer-status {
+            margin: 10px 0;
+            font-style: italic;
+            min-height: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .result {
+            min-height: 20px;
+            margin: 10px 0;
+        }
+
+        .score {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        .rendered-answer {
+            margin-top: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 80%;
+            min-height: 30px;
+            background-color: white;
+        }
+
+        .history-container {
+            margin-top: 30px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .copy-button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+        }
+
+        .copy-button:hover {
+            background-color: #218838;
+        }
+
+        #copy-success {
+            display: none;
+            margin-top: 10px;
+            color: green;
+            font-size: 14px;
+        }
+        
+        .winner-indicator {
+            font-weight: bold;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        
+        .player-win {
+            color: blue;
+        }
+        
+        .computer-win {
+            color: red;
+        }
+        
+        .tie {
+            color: purple;
+        }
+        
+        .player-row {
+            background-color: rgba(240, 248, 255, 0.3);
+        }
+        
+        .computer-row {
+            background-color: rgba(255, 240, 240, 0.3);
+        }
+        
+        /* 新增攻击效果相关样式 */
+        .shockwave {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(0.1);
+            box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.7);
+        }
+        
+        .player-attack {
+            animation: shockwave-player 1s ease-out forwards;
+        }
+        
+        .computer-attack {
+            animation: shockwave-computer 1s ease-out forwards;
+        }
+        
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shockwave-player {
+            0% {
+                opacity: 1;
+                transform: scale(0.1);
+                background: radial-gradient(circle, rgba(0,100,255,0.8) 0%, rgba(0,100,255,0) 70%);
+                box-shadow: 0 0 20px 10px rgba(0, 100, 255, 0.7);
+                left: 35%;
+                top: 50%;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(2);
+                background: radial-gradient(circle, rgba(0,100,255,0.2) 0%, rgba(0,100,255,0) 70%);
+                box-shadow: 0 0 40px 20px rgba(0, 100, 255, 0.3);
+                left: 80%;
+                top: 50%;
+            }
+        }
+        
+        @keyframes shockwave-computer {
+            0% {
+                opacity: 1;
+                transform: scale(0.1);
+                background: radial-gradient(circle, rgba(255,0,0,0.8) 0%, rgba(255,0,0,0) 70%);
+                box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.7);
+                left: 65%;
+                top: 50%;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(2);
+                background: radial-gradient(circle, rgba(255,0,0,0.2) 0%, rgba(255,0,0,0) 70%);
+                box-shadow: 0 0 40px 20px rgba(255, 0, 0, 0.3);
+                left: 20%;
+                top: 50%;
+            }
+        }
+        
+        @keyframes shake {
+            0%, 100% {transform: translateX(0);}
+            10%, 30%, 50%, 70%, 90% {transform: translateX(-5px);}
+            20%, 40%, 60%, 80% {transform: translateX(5px);}
+        }
+        
+        /* 显示对诮语句的样式 */
+        .taunt-bubble {
+            position: absolute;
+            background-color: white;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 101;
+            opacity: 0;
+            animation: show-taunt 2s ease-out forwards;
+            min-width: 120px;
+            text-align: center;
+        }
+        
+        .taunt-bubble::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border: 10px solid transparent;
+        }
+        
+        .player-taunt {
+            top: 20%;
+            left: 25%;
+        }
+        
+        .player-taunt::before {
+            border-left-color: #333;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .computer-taunt {
+            top: 20%;
+            right: 25%;
+        }
+        
+        .computer-taunt::before {
+            border-right-color: #333;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        @keyframes show-taunt {
+            0% {opacity: 0; transform: translateY(20px);}
+            20% {opacity: 1; transform: translateY(0);}
+            80% {opacity: 1; transform: translateY(0);}
+            100% {opacity: 0; transform: translateY(-20px);}
+        }
+        
+        @media (max-width: 768px) {
+            .pk-container {
+                flex-direction: column;
+            }
+            
+            .player-container, .computer-container {
+                width: 90%;
+                margin-bottom: 30px;
+            }
+        }
+
+        .timer-btn {
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+            color: white;
+            margin: 0 5px;
+        }
+        
+        .timer-btn.active {
+            background-color: #45a049;
+        }
+
+        /* 模式切换按钮样式 */
+        .mode-switch {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        
+        .mode-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #668B8B;
+            color: white;
+            margin: 0 10px;
+        }
+        
+        .mode-btn.active {
+            background-color: #45a049;
+        }
+        
+        /* 自学模式下的全宽玩家容器 */
+        .player-container.full-width {
+            width: 100%;
+        }
+        
+        /* 历史记录上方按钮行 */
+        .history-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        
+        /* 响应式布局下的历史记录按钮 */
+        @media (max-width: 768px) {
+            .history-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .mode-switch {
+                margin-top: 10px;
+            }
+        }
+        
+        /* 通关模式相关样式 */
+        .level-progress {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        
+        .level-indicator {
+            font-size: 16px;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        
+        .question-counter {
+            font-size: 14px;
+        }
+        
+        .conquest-timer {
+            font-size: 14px;
+            margin-left: 15px;
+            color: #007bff;
+        }
+        
+        /* 已通关的关卡高亮样式 */
+        .difficulty-buttons button.completed {
+            background-color: #28a745;
+            color: white;
+            position: relative;
+        }
+        
+        .difficulty-buttons button.completed::after {
+            content: "✓";
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ffc107;
+            color: #000;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .difficulty-buttons button.current {
+            background-color: #007bff;
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 123, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h3>C01线性代数基础阶梯测试训练<h3>
+    </div>
+    
+    <!-- 添加音效元素 -->
+    <audio id="playerAttackSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2073/2073-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="computerAttackSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/1293/1293-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="correctSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="wrongSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2691/2691-preview.mp3" type="audio/mpeg">
+    </audio>
+    
+    <div class="difficulty-buttons" id="difficultyButtons"></div>
+    
+    <!-- 游戏选项布局修改为一行 -->
+    <div class="game-options" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin: 10px 0;">
+        <div style="display: flex; align-items: center; margin: 0 10px;">
+
+            <button id="timer5min" class="timer-btn" onclick="selectGameDuration(5)">5分钟</button>
+            <button id="timer10min" class="timer-btn active" onclick="selectGameDuration(10)">10分钟</button>
+        </div>
+        
+        <div style="display: flex; align-items: center; margin: 0 10px;">
+            <span style="margin-right: 10px;">计算机思考难度:</span>
+            <button id="thinkingEasy" class="timer-btn active" onclick="selectThinkingDifficulty('easy')">快</button>
+            <button id="thinkingMedium" class="timer-btn" onclick="selectThinkingDifficulty('medium')">中</button>
+            <button id="thinkingHard" class="timer-btn" onclick="selectThinkingDifficulty('hard')">慢</button>
+        </div>
+    </div>
+    <div style="display: flex; justify-content: center; align-items: center; margin: 10px 0; gap: 15px;">
+        <div id="countdownDisplay" style="font-size: 20px; font-weight: bold; color: #007bff;">剩余时间: 05:00</div>
+        <button id="startGameBtn" onclick="startGame()">开始游戏</button>
+        <button id="resetGameBtn" onclick="resetGame()" disabled>重新开始</button>
+    </div>
+    
+    <div class="pk-container">
+        <div class="player-container" id="playerContainer">
+            <h3>玩家</h3>
+            <div class="timer" id="playerTimer">时间: 0秒</div>
+            <div class="question-box" id="playerQuestion"></div>
+            <input type="text" id="playerAnswer" class="answer-input" placeholder="输入你的答案" oninput="updatePreview('player')" disabled autocomplete="off">
+            <div class="rendered-answer" id="playerRenderedAnswer"></div>
+            <button id="playerSubmitBtn" onclick="checkPlayerAnswer()" disabled>提交答案</button>
+            <div class="result" id="playerResult"></div>
+            <div class="score" id="playerScore">正确: 0 | 错误: 0 | 总题数: 0</div>
+        </div>
+        
+        <div class="computer-container" id="computerContainer">
+            <h3>计算机</h3>
+            <div class="timer" id="computerTimer">时间: 0秒</div>
+            <div class="question-box" id="computerQuestion"></div>
+            <div class="computer-status" id="computerStatus">等待开始...</div>
+            <input type="text" id="computerAnswer" class="answer-input" placeholder="计算机的答案" disabled autocomplete="off">
+            <div class="rendered-answer" id="computerRenderedAnswer"></div>
+            <div class="result" id="computerResult"></div>
+            <div class="score" id="computerScore">正确: 0 | 错误: 0 | 总题数: 0</div>
+        </div>
+    </div>
+    
+    <div class="winner-indicator" id="roundResult"></div>
+    
+    <div class="history-container">
+        <div class="history-controls">
+            <button class="copy-button" onclick="copyHistory()">复制历史记录</button>
+            
+            <!-- 模式切换按钮移到这里 -->
+            <div class="mode-switch">
+                <button id="selfPracticeBtn" class="mode-btn" onclick="switchMode('self')">自学练习</button>
+                <button id="pkModeBtn" class="mode-btn active" onclick="switchMode('pk')">PK模式</button>
+                <button id="conquestModeBtn" class="mode-btn" onclick="switchMode('conquest')">通关模式</button>
+            </div>
+        </div>
+        
+        <div id="copy-success">历史记录已复制到剪贴板！</div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>参与者</th>
+                    <th>级别</th>
+                    <th>题目</th>
+                    <th>答案</th>
+                    <th>正确答案</th>
+                    <th>结果</th>
+                    <th>用时(秒)</th>
+                </tr>
+            </thead>
+            <tbody id="history"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // 全局变量
+        let playerCorrectAnswer; // 玩家题目的正确答案
+        let computerCorrectAnswer; // 计算机题目的正确答案
+        let correctAnswer; // 保留此变量用于兼容原有函数
+        let playerCorrectCount = 0;
+        let playerIncorrectCount = 0;
+        let computerCorrectCount = 0;
+        let computerIncorrectCount = 0;
+        let playerTotalCount = 0;
+        let computerTotalCount = 0;
+        let currentDifficulty = 1;
+        let gameInProgress = false;
+        let playerTime = 0;
+        let computerTime = 0;
+        let playerQuestionStartTime = 0;
+        let computerQuestionStartTime = 0;
+        let playerTimer;
+        let computerTimer;
+        let computerThinkingTimers = [];
+        
+        // 新增倒计时变量
+        let gameDuration = 10; // 默认10分钟
+        let countdownTime = 10 * 60; // 默认10分钟，单位为秒
+        let countdownTimer;
+        
+        // 新增思考时间难度变量
+        let computerThinkingDifficulty = 'easy'; // 默认为容易，可选值: 'easy'(容易)、'medium'(中等)、'hard'(困难)
+        
+        // 新增游戏模式变量
+        let gameMode = 'pk'; // 默认为PK模式，可选值: 'self'(自学练习)、'pk'(PK模式)、'conquest'(通关模式)
+
+        // 通关模式变量
+        let conquestLevel = 1; // 当前关卡
+        let conquestCorrectCount = 0; // 当前关卡已答对的题目数
+        let conquestStartTime = 0; // 通关模式开始时间
+        let conquestTotalTime = 0; // 通关模式总用时
+
+        const difficultyNames = [
+            "01向量加减法",
+            "02复数加减法", 
+            "03数乘向量",
+            "04复数点乘",
+            "05数乘复数",
+            "06向量的线性组合",
+            "07正交分解",
+            "08共线向量",
+            "09复数乘法",
+            "10综合"
+        ];
+
+        // 初始化
+        document.addEventListener("DOMContentLoaded", () => {
+            generateDifficultyButtons();
+            setDifficulty(1);
+            updateCountdownDisplay();
+            switchMode('self'); // 默认PK模式
+            selectThinkingDifficulty('easy'); // 默认为容易难度
+        });
+
+        // 切换游戏模式
+        function switchMode(mode) {
+            if (gameInProgress) {
+                alert('游戏进行中无法切换模式，请先重置游戏');
+                return;
+            }
+            
+            gameMode = mode;
+            
+            // 重置UI元素
+            document.getElementById('selfPracticeBtn').classList.remove('active');
+            document.getElementById('pkModeBtn').classList.remove('active');
+            document.getElementById('conquestModeBtn').classList.remove('active');
+            
+            // 根据不同模式设置UI
+            if (mode === 'self') {
+                document.getElementById('selfPracticeBtn').classList.add('active');
+                document.getElementById('playerContainer').classList.add('full-width');
+                document.getElementById('computerContainer').style.display = 'none';
+                document.getElementById('roundResult').style.display = 'none';
+                // 隐藏计时器选择，自学模式不需要计时限制
+                document.getElementById('timer5min').parentElement.style.display = 'none';
+                document.getElementById('countdownDisplay').style.display = 'none';
+                
+                // 恢复所有难度按钮的可点击状态
+                document.querySelectorAll('.difficulty-buttons button').forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('completed', 'current');
+                });
+                
+                // 显示当前选中的难度
+                setDifficulty(currentDifficulty);
+            } else if (mode === 'pk') {
+                document.getElementById('pkModeBtn').classList.add('active');
+                document.getElementById('playerContainer').classList.remove('full-width');
+                document.getElementById('computerContainer').style.display = 'block';
+                document.getElementById('roundResult').style.display = 'block';
+                // 显示计时器选择
+                document.getElementById('timer5min').parentElement.style.display = 'flex';
+                document.getElementById('countdownDisplay').style.display = 'block';
+                
+                // 恢复所有难度按钮的可点击状态
+                document.querySelectorAll('.difficulty-buttons button').forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('completed', 'current');
+                });
+                
+                // 显示当前选中的难度
+                setDifficulty(currentDifficulty);
+            } else if (mode === 'conquest') {
+                document.getElementById('conquestModeBtn').classList.add('active');
+                document.getElementById('playerContainer').classList.add('full-width');
+                document.getElementById('computerContainer').style.display = 'none';
+                document.getElementById('roundResult').style.display = 'none';
+                // 隐藏计时器选择，通关模式不限时但计时
+                document.getElementById('timer5min').parentElement.style.display = 'none';
+                document.getElementById('countdownDisplay').style.display = 'none';
+                
+                // 添加关卡进度显示
+                if (!document.getElementById('levelProgress')) {
+                    const levelProgress = document.createElement('div');
+                    levelProgress.id = 'levelProgress';
+                    levelProgress.className = 'level-progress';
+                    levelProgress.innerHTML = `
+                        <div class="level-indicator">当前关卡: 1</div>
+                        <div class="question-counter">完成题数: 0/3</div>
+                        <div class="conquest-timer">总用时: 0秒</div>
+                    `;
+                    document.querySelector('.player-container').insertBefore(
+                        levelProgress, 
+                        document.querySelector('.player-container .timer')
+                    );
+                }
+                
+                // 重置通关模式状态
+                conquestLevel = 1;
+                conquestCorrectCount = 0;
+                setDifficulty(conquestLevel);
+                
+                // 更新难度按钮禁用状态
+                updateDifficultyButtonsForConquest();
+            }
+            
+            // 更新界面按钮状态
+            updateButtonStates();
+        }
+
+        // 生成难度按钮
+        function generateDifficultyButtons() {
+            const buttonsContainer = document.getElementById('difficultyButtons');
+            buttonsContainer.innerHTML = '';
+            
+            difficultyNames.forEach((name, index) => {
+                const button = document.createElement('button');
+                button.textContent = name;
+                button.dataset.level = index + 1;  // 使用dataset存储难度级别
+                button.onclick = () => setDifficulty(index + 1);
+                buttonsContainer.appendChild(button);
+            });
+        }
+        
+        // 设置难度
+        function setDifficulty(level) {
+            if (gameInProgress && gameMode !== 'conquest') {
+                alert('游戏进行中无法更改难度，请先重置游戏');
+                return;
+            }
+            
+            currentDifficulty = level;
+            
+            // 更新按钮样式
+            document.querySelectorAll('.difficulty-buttons button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const selectedBtn = document.querySelector(`.difficulty-buttons button[data-level="${level}"]`);
+            if (selectedBtn) {
+                selectedBtn.classList.add('active');
+            }
+            
+            // 如果在通关模式下，更新通关模式UI
+            if (gameMode === 'conquest' && gameInProgress) {
+                updateDifficultyButtonsForConquest();
+            }
+        }
+
+        // 选择游戏时长
+        function selectGameDuration(minutes) {
+            if (gameInProgress) return; // 游戏进行中不能更改时长
+            
+            gameDuration = minutes;
+            countdownTime = minutes * 60;
+            
+            // 更新UI - 先移除所有timer-btn的active类
+            document.querySelectorAll('.timer-btn').forEach(btn => {
+                // 只处理时间选择按钮，不影响思考难度按钮
+                if (btn.id.startsWith('timer')) {
+                    btn.classList.remove('active');
+                }
+            });
+            // 只给当前选择的按钮添加active类
+            document.getElementById(`timer${minutes}min`).classList.add('active');
+            
+            updateCountdownDisplay();
+        }
+        
+        // 选择计算机思考难度
+        function selectThinkingDifficulty(difficulty) {
+            if (gameInProgress) return; // 游戏进行中不能更改难度
+            
+            computerThinkingDifficulty = difficulty;
+            
+            // 更新UI - 只操作思考难度按钮
+            document.querySelectorAll('.timer-btn').forEach(btn => {
+                // 只处理思考难度按钮，不影响时间选择按钮
+                if (btn.id.startsWith('thinking')) {
+                    btn.classList.remove('active');
+                }
+            });
+            document.getElementById(`thinking${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}`).classList.add('active');
+        }
+        
+        // 更新倒计时显示
+        function updateCountdownDisplay() {
+            const minutes = Math.floor(countdownTime / 60);
+            const seconds = countdownTime % 60;
+            document.getElementById('countdownDisplay').textContent = 
+                `剩余时间: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        // 开始倒计时
+        function startCountdown() {
+            countdownTime = gameDuration * 60;
+            updateCountdownDisplay();
+            
+            countdownTimer = setInterval(() => {
+                countdownTime--;
+                updateCountdownDisplay();
+                
+                if (countdownTime <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function startGame() {
+            // 重置状态
+            playerCorrectCount = 0;
+            playerIncorrectCount = 0;
+            computerCorrectCount = 0;
+            computerIncorrectCount = 0;
+            playerTotalCount = 0;
+            computerTotalCount = 0;
+            playerTime = 0;
+            computerTime = 0;
+            
+            // 通关模式特殊处理
+            if (gameMode === 'conquest') {
+                conquestStartTime = new Date().getTime();
+                conquestTotalTime = 0;
+                conquestLevel = 1;
+                conquestCorrectCount = 0;
+                setDifficulty(conquestLevel);
+                updateConquestUI();
+            }
+            
+            // 更新UI
+            document.getElementById('playerScore').innerHTML = `正确: 0 | 错误: 0 | 总题数: 0`;
+            if (gameMode === 'pk') {
+                document.getElementById('computerScore').innerHTML = `正确: 0 | 错误: 0 | 总题数: 0`;
+                document.getElementById('computerTimer').innerHTML = `时间: 0秒`;
+                document.getElementById('roundResult').innerHTML = '';
+            }
+            document.getElementById('playerTimer').innerHTML = `时间: 0秒`;
+            document.getElementById('history').innerHTML = '';
+            
+            // 启用/禁用相关按钮
+            document.getElementById('startGameBtn').disabled = true;
+            document.getElementById('resetGameBtn').disabled = false;
+            document.getElementById('playerAnswer').disabled = false;
+            document.getElementById('playerSubmitBtn').disabled = false;
+            
+            // 更改游戏状态
+            gameInProgress = true;
+            
+            // 为玩家生成题目
+            generatePlayerQuestion();
+            
+            // 开始计时器
+            startTimers();
+            
+            // 只在PK和自学模式下启动倒计时
+            if (gameMode !== 'conquest') {
+                startCountdown();
+            }
+            
+            // 仅在PK模式下才生成计算机题目
+            if (gameMode === 'pk') {
+                generateComputerQuestion();
+            }
+            
+            // 通关模式下禁用难度按钮
+            if (gameMode === 'conquest') {
+                updateDifficultyButtonsForConquest();
+            }
+        }
+        
+        function resetGame() {
+            // 停止计时器
+            clearInterval(playerTimer);
+            clearInterval(computerTimer);
+            clearInterval(countdownTimer);
+            computerThinkingTimers.forEach(timer => clearTimeout(timer));
+            computerThinkingTimers = [];
+            
+            // 重置状态
+            gameInProgress = false;
+            
+            // 非通关模式重置倒计时
+            if (gameMode !== 'conquest') {
+                countdownTime = gameDuration * 60;
+                updateCountdownDisplay();
+            }
+            
+            // 通关模式重置
+            if (gameMode === 'conquest') {
+                conquestLevel = 1;
+                conquestCorrectCount = 0;
+                setDifficulty(conquestLevel);
+                updateConquestUI();
+                updateDifficultyButtonsForConquest();
+            }
+            
+            // 更新UI
+            document.getElementById('playerQuestion').innerHTML = '';
+            document.getElementById('playerAnswer').value = '';
+            document.getElementById('playerRenderedAnswer').innerHTML = '';
+            document.getElementById('playerResult').innerHTML = '';
+            
+            if (gameMode === 'pk') {
+                document.getElementById('computerQuestion').innerHTML = '';
+                document.getElementById('computerAnswer').value = '';
+                document.getElementById('computerRenderedAnswer').innerHTML = '';
+                document.getElementById('computerResult').innerHTML = '';
+                document.getElementById('computerStatus').innerHTML = '等待开始...';
+                document.getElementById('roundResult').innerHTML = '';
+            }
+            
+            // 启用/禁用相关按钮
+            updateButtonStates();
+        }
+        
+        // 更新按钮状态
+        function updateButtonStates() {
+            document.getElementById('startGameBtn').disabled = gameInProgress;
+            document.getElementById('resetGameBtn').disabled = !gameInProgress;
+            document.getElementById('playerAnswer').disabled = !gameInProgress;
+            document.getElementById('playerSubmitBtn').disabled = !gameInProgress;
+        }
+        
+        function startTimers() {
+            // 玩家计时器
+            playerTimer = setInterval(() => {
+                playerTime++;
+                document.getElementById('playerTimer').innerHTML = `时间: ${playerTime}秒`;
+                
+                // 通关模式特殊处理
+                if (gameMode === 'conquest') {
+                    updateTimers();
+                }
+            }, 1000);
+            
+            // 仅在PK模式下启动计算机计时器
+            if (gameMode === 'pk') {
+                computerTimer = setInterval(() => {
+                    computerTime++;
+                    document.getElementById('computerTimer').innerHTML = `时间: ${computerTime}秒`;
+                }, 1000);
+            }
+            
+            // 记录开始时间
+            playerQuestionStartTime = playerTime;
+            if (gameMode === 'pk') {
+                computerQuestionStartTime = computerTime;
+            }
+        }
+        
+        function generatePlayerQuestion() {
+            // 清空答案框和结果
+            document.getElementById('playerAnswer').value = '';
+            document.getElementById('playerRenderedAnswer').innerHTML = '';
+            document.getElementById('playerResult').innerHTML = '';
+            
+            // 生成新题目
+            const playerQuestion = generateQuestion();
+            // 保存玩家题目的正确答案
+            playerCorrectAnswer = [...correctAnswer];
+            
+            // 更新界面上的题目
+            document.getElementById('playerQuestion').innerHTML = playerQuestion;
+            
+            // 记录题目开始时间
+            playerQuestionStartTime = playerTime;
+            
+            // 重新渲染数学公式
+            MathJax.typesetPromise([document.getElementById('playerQuestion')])
+                .catch((err) => console.log(err));
+        }
+        
+        function generateComputerQuestion() {
+            if (gameMode !== 'pk') return;
+            
+            // 清空答案框和结果
+            document.getElementById('computerAnswer').value = '';
+            document.getElementById('computerRenderedAnswer').innerHTML = '';
+            document.getElementById('computerResult').innerHTML = '';
+            
+            // 生成新题目
+            const computerQuestion = generateQuestion();
+            // 保存计算机题目的正确答案
+            computerCorrectAnswer = [...correctAnswer];
+            
+            // 更新界面上的题目
+            document.getElementById('computerQuestion').innerHTML = computerQuestion;
+            
+            // 更新计算机状态
+            document.getElementById('computerStatus').innerHTML = `正在思考...`;
+            
+            // 记录题目开始时间
+            computerQuestionStartTime = computerTime;
+            
+            // 重新渲染数学公式
+            MathJax.typesetPromise([document.getElementById('computerQuestion')])
+                .catch((err) => console.log(err));
+            
+            // 设置计算机自动答题
+            scheduleComputerAnswer();
+        }
+        
+        function scheduleComputerAnswer() {
+            if (!gameInProgress || gameMode !== 'pk') return;
+            
+            // 根据难度设置计算机思考时间
+            let minTime = 10;
+            let maxTime = 20;
+            
+            switch(computerThinkingDifficulty) {
+                case 'easy': // 容易：10-20秒
+                    minTime = 10;
+                    maxTime = 20;
+                    break;
+                case 'medium': // 中等：20-40秒
+                    minTime = 20;
+                    maxTime = 40;
+                    break;
+                case 'hard': // 困难：30-45秒
+                    minTime = 30;
+                    maxTime = 45;
+                    break;
+            }
+            
+            // 生成指定范围内的随机思考时间
+            const thinkingTime = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
+            
+            // 设置计算机自动答题定时器
+            const timer = setTimeout(() => {
+                if (gameInProgress && gameMode === 'pk') {
+                    submitComputerAnswer();
+                }
+            }, thinkingTime * 1000);
+            
+            // 添加到定时器列表以便重置游戏时清除
+            computerThinkingTimers.push(timer);
+        }
+        
+        function checkPlayerAnswer() {
+            if (!gameInProgress) return;
+            
+            const userAnswer = document.getElementById('playerAnswer').value.trim();
+            
+            // 如果没有输入答案，不做处理
+            if (!userAnswer) return;
+            
+            const questionTime = playerTime - playerQuestionStartTime;
+            const isCorrect = playerCorrectAnswer.some(answer => 
+                userAnswer.replace(/\s+/g, '') === answer.replace(/\s+/g, ''));
+            
+            // 更新计数
+            playerTotalCount++;
+            if (isCorrect) {
+                playerCorrectCount++;
+                document.getElementById('correctSound').play();
+                document.getElementById('playerResult').innerHTML = '<span class="correct">回答正确！</span>';
+                
+                // 通关模式特殊处理
+                if (gameMode === 'conquest') {
+                    conquestCorrectCount++;
+                    
+                    // 检查是否完成当前关卡(3题)
+                    if (conquestCorrectCount >= 3) {
+                        // 检查是否通关所有10个级别
+                        if (conquestLevel >= difficultyNames.length) {
+                            // 游戏胜利
+                            const totalTime = Math.floor((new Date().getTime() - conquestStartTime) / 1000);
+                            alert(`恭喜！你已通关所有级别！\n总用时: ${totalTime}秒`);
+                            
+                            // 最后一次更新所有按钮状态，使所有关卡都显示为已完成
+                            document.querySelectorAll('.difficulty-buttons button').forEach((btn, index) => {
+                                btn.classList.remove('active', 'current');
+                                btn.classList.add('completed');
+                            });
+                            
+                            resetGame();
+                            return;
+                        } else {
+                            // 晋级到下一关
+                            conquestLevel++;
+                            conquestCorrectCount = 0;
+                            setDifficulty(conquestLevel);
+                            
+                            // 清空输入框和结果显示
+                            document.getElementById('playerAnswer').value = '';
+                            document.getElementById('playerRenderedAnswer').innerHTML = '';
+                            
+                            updateDifficultyButtonsForConquest();
+                            alert(`恭喜！你已晋级到第${conquestLevel}关！`);
+                        }
+                    }
+                    
+                    updateConquestUI();
+                }
+            } else {
+                playerIncorrectCount++;
+                document.getElementById('wrongSound').play();
+                document.getElementById('playerResult').innerHTML = `<span class="incorrect">回答错误！正确答案是：${playerCorrectAnswer[0]}</span>`;
+                
+                // 通关模式特殊处理 - 错一题就重新开始
+                if (gameMode === 'conquest') {
+                    setTimeout(() => {
+                        alert(`很遗憾，答错了，需要重新开始第1关！`);
+                        conquestLevel = 1;
+                        conquestCorrectCount = 0;
+                        setDifficulty(conquestLevel);
+                        updateConquestUI();
+                    }, 1000);
+                }
+            }
+            
+            // 更新分数显示
+            document.getElementById('playerScore').innerHTML = 
+                `正确: ${playerCorrectCount} | 错误: ${playerIncorrectCount} | 总题数: ${playerTotalCount}`;
+            
+            // 添加到历史记录
+            addToHistory('玩家', currentDifficulty, 
+                document.getElementById('playerQuestion').innerHTML,
+                userAnswer, playerCorrectAnswer[0], isCorrect, questionTime);
+            
+            // 游戏中 - 生成新题目
+            if (gameInProgress) {
+                // 延迟一秒后生成新题目，给用户时间看结果
+                setTimeout(() => {
+                    if (gameInProgress) {
+                        generatePlayerQuestion();
+                    }
+                }, 1000);
+            }
+            
+            // 在PK模式中，如果双方都已回答，判断此轮胜负
+            if (gameMode === 'pk' && document.getElementById('computerResult').innerHTML !== '') {
+                determineRoundWinner();
+            }
+            
+            // 攻击特效 - 仅在PK模式下显示
+            if (gameMode === 'pk' && isCorrect) {
+                showAttackEffect('player');
+            }
+        }
+        
+        function submitComputerAnswer() {
+    if (!gameInProgress || gameMode !== 'pk') return;
+    
+    // 计算答题用时
+    const questionTime = computerTime - computerQuestionStartTime;
+    
+    // 使用计算机题目的正确答案
+    const computerAnswer = computerCorrectAnswer[0];
+    
+    // 随机决定计算机是否答对（90%的概率答对）
+    const isCorrect = Math.random() < 0.9;
+    
+    let displayAnswer;
+    if (isCorrect) {
+        displayAnswer = computerAnswer;
+    } else {
+        // 如果要错，则显示一个稍微不同的答案
+        displayAnswer = parseInt(computerAnswer) + (Math.random() > 0.5 ? 1 : -1);
+    }
+    
+    // 更新状态为"正在输入"
+    document.getElementById('computerStatus').innerHTML = '正在输入...';
+    
+    // 清空计算机答案框
+    document.getElementById('computerAnswer').value = '';
+    document.getElementById('computerRenderedAnswer').innerHTML = '';
+    
+    // 使用打字机效果显示答案
+    let currentIndex = 0;
+    const typingInterval = setInterval(() => {
+        if (currentIndex < displayAnswer.toString().length) {
+            // 每次添加一个字符
+            document.getElementById('computerAnswer').value += displayAnswer.toString().charAt(currentIndex);
+            document.getElementById('computerRenderedAnswer').innerHTML = '\\(' + document.getElementById('computerAnswer').value + '\\)';
+            
+            // 重新渲染数学公式
+            MathJax.typesetPromise([document.getElementById('computerRenderedAnswer')])
+                .catch((err) => console.log(err));
+                
+            currentIndex++;
+        } else {
+            // 打字完成，清除定时器
+            clearInterval(typingInterval);
+            
+            // 显示结果
+            if (isCorrect) {
+                document.getElementById('computerResult').innerHTML = '正确!';
+                document.getElementById('computerResult').className = 'result correct';
+                computerCorrectCount++;
+                
+                // 播放正确音效
+                document.getElementById('correctSound').play();
+                
+                // 创建并添加冲击波元素
+                createShockwave('computer');
+                
+                // 让玩家容器抖动
+                document.getElementById('playerContainer').classList.add('shake');
+                setTimeout(() => {
+                    document.getElementById('playerContainer').classList.remove('shake');
+                }, 500);
+                
+                // 显示对诮语句
+                showTaunt('computer');
+            } else {
+                document.getElementById('computerResult').innerHTML = '错误';
+                document.getElementById('computerResult').className = 'result incorrect';
+                computerIncorrectCount++;
+                
+                // 播放错误音效
+                document.getElementById('wrongSound').play();
+            }
+            
+            // 更新状态
+            document.getElementById('computerStatus').innerHTML = '已作答';
+            
+            // 更新总题数
+            computerTotalCount++;
+            
+            // 更新分数
+            updateComputerScore();
+            
+            // 添加到历史记录
+            addToHistory('计算机', difficultyNames[currentDifficulty - 1], 
+                        document.getElementById('computerQuestion').innerHTML, 
+                        displayAnswer, computerCorrectAnswer.join(' 或 '), 
+                        isCorrect ? '正确' : '错误', questionTime);
+            
+            // 短暂延迟后生成新题目
+            setTimeout(() => {
+                if (gameInProgress && gameMode === 'pk') {
+                    generateComputerQuestion();
+                }
+                    }, 8000);
+                }
+            }, 500); // 每500毫秒显示一个字符，相当于每秒显示2个字符
+        }
+        
+        function updatePlayerScore() {
+            document.getElementById('playerScore').innerHTML = `正确: ${playerCorrectCount} | 错误: ${playerIncorrectCount} | 总题数: ${playerTotalCount}| 得分: ${playerCorrectCount - playerIncorrectCount} `;
+        }
+        
+        function updateComputerScore() {
+            document.getElementById('computerScore').innerHTML = `正确: ${computerCorrectCount} | 错误: ${computerIncorrectCount} | 总题数: ${computerTotalCount}| 得分: ${computerCorrectCount - computerIncorrectCount} `;
+        }
+        
+        function addToHistory(participant, level, question, answer, correctAnswer, result, time) {
+            const historyTable = document.getElementById('history');
+            const newRow = historyTable.insertRow(0);
+            
+            // 设置行的类
+            if (participant === '玩家') {
+                newRow.classList.add("player-row");
+            } else {
+                newRow.classList.add("computer-row");
+            }
+            
+            // 添加结果类
+            if (result === '正确') {
+                newRow.classList.add(participant === '玩家' ? "player-win" : "computer-win");
+            }
+            
+            // 填充单元格内容
+            newRow.insertCell(0).innerHTML = participant;
+            newRow.insertCell(1).innerHTML = level;
+            newRow.insertCell(2).innerHTML = question;
+            newRow.insertCell(3).innerHTML = '\\(' + answer + '\\)';
+            newRow.insertCell(4).innerHTML = '\\(' + correctAnswer + '\\)';
+            newRow.insertCell(5).innerHTML = result;
+            newRow.insertCell(6).innerHTML = time + '秒';
+            
+            // 重新渲染新添加的行中的数学公式
+            MathJax.typesetPromise([newRow]).catch((err) => console.log(err));
+        }
+        
+        function updatePreview(player) {
+            const input = document.getElementById('playerAnswer').value;
+            const renderedAnswer = document.getElementById('playerRenderedAnswer');
+            renderedAnswer.style.display = 'block';
+            renderedAnswer.innerHTML = '\\(' + input + '\\)';
+            MathJax.typesetPromise([renderedAnswer]).catch((err) => console.log(err));
+        }
+        
+        function toHalfWidth(str) {
+            return str.replace(/[\uFF01-\uFF5E]/g, function(char) {
+                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            }).replace(/\u3000/g, ' ');
+        }
+        
+        function copyHistory() {
+            // 创建历史记录的JSON对象
+            const historyData = {
+                records: [],
+                result: {}
+            };
+            
+            // 获取表格内容
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if(cells.length >= 7) {
+                    const record = {
+                        participant: cells[0].innerText,
+                        level: cells[1].innerText,
+                        question: cells[2].innerText.replace(/\\\(|\\\)/g, ''), // 移除\( \)标记
+                        answer: cells[3].innerText.replace(/\\\(|\\\)/g, ''),
+                        correctAnswer: cells[4].innerText.replace(/\\\(|\\\)/g, ''),
+                        result: cells[5].innerText,
+                        time: parseInt(cells[6].innerText)
+                    };
+                    historyData.records.push(record);
+                }
+            });
+            
+            // 添加最终结果
+            historyData.result = {
+                playerCorrect: playerCorrectCount,
+                playerIncorrect: playerIncorrectCount,
+                playerTotal: playerTotalCount,
+                playerScore: playerCorrectCount - playerIncorrectCount,
+                computerCorrect: computerCorrectCount,
+                computerIncorrect: computerIncorrectCount,
+                computerTotal: computerTotalCount,
+                computerScore: computerCorrectCount - computerIncorrectCount,
+                gameMode: gameMode,
+                gameDuration: gameDuration,
+                difficulty: difficultyNames[currentDifficulty - 1]
+            };
+
+            // 转换为JSON字符串
+            const jsonStr = JSON.stringify(historyData, null, 2);
+
+            // 复制到剪贴板
+            navigator.clipboard.writeText(jsonStr).then(() => {
+                // 显示复制成功的提示
+                const copySuccess = document.getElementById('copy-success');
+                copySuccess.style.display = 'block';
+                setTimeout(() => {
+                    copySuccess.style.display = 'none';
+                }, 2000); // 2秒后隐藏提示
+            }).catch(err => {
+                console.error('复制失败: ', err);
+            });
+        }
+        
+        document.getElementById('playerAnswer').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                checkPlayerAnswer();
+            }
+        });
+
+        // 游戏结束函数
+        function endGame() {
+            // 停止所有计时器
+            clearInterval(playerTimer);
+            clearInterval(computerTimer);
+            clearInterval(countdownTimer);
+            computerThinkingTimers.forEach(timer => clearTimeout(timer));
+            computerThinkingTimers = [];
+            
+            // 更改游戏状态
+            gameInProgress = false;
+            
+            // 禁用玩家输入
+            document.getElementById('playerAnswer').disabled = true;
+            document.getElementById('playerSubmitBtn').disabled = true;
+            
+           // 仅在PK模式下显示游戏结果
+           if (gameMode === 'pk') {
+                let resultMessage = '';
+                let playerNetScore = playerCorrectCount - playerIncorrectCount;
+                let computerNetScore = computerCorrectCount - computerIncorrectCount;
+                
+                if (playerNetScore > computerNetScore) {
+                    resultMessage = `游戏结束! 玩家获胜! (${playerNetScore} : ${computerNetScore})`;
+                    document.getElementById('roundResult').className = 'winner-indicator player-win';
+                } else if (playerNetScore < computerNetScore) {
+                    resultMessage = `游戏结束! 计算机获胜! (${playerNetScore} : ${computerNetScore})`;
+                    document.getElementById('roundResult').className = 'winner-indicator computer-win';
+                } else {
+                    resultMessage = `游戏结束! 平局! (${playerNetScore} : ${computerNetScore})`;
+                    document.getElementById('roundResult').className = 'winner-indicator tie';
+                }
+                document.getElementById('roundResult').innerHTML = resultMessage;
+            } else {
+                // 自学练习模式
+                document.getElementById('roundResult').innerHTML = `练习结束! 共完成${playerTotalCount}题，正确${playerCorrectCount}题，得分: ${playerCorrectCount - playerIncorrectCount}`;
+                document.getElementById('roundResult').style.display = 'block';
+                document.getElementById('roundResult').className = 'winner-indicator';
+            }
+            
+            // 启用重置按钮
+            document.getElementById('resetGameBtn').disabled = false;
+        }
+
+       // 以下是生成题目的函数，与原有代码相同
+
+       function generateQuestion() {
+            switch(currentDifficulty) {
+                case 1: return generateLevel1Question();
+                case 2: return generateLevel2Question();
+                case 3: return generateLevel3Question();
+                case 4: return generateLevel4Question();
+                case 5: return generateLevel5Question();
+                case 6: return generateLevel6Question();
+                case 7: return generateLevel7Question();
+                case 8: return generateLevel8Question();
+                case 9: return generateLevel9Question();
+                case 10: return generateLevel10Question();
+                default: return "";
+            }
+        }
+
+        function gcd(x, y) {
+            while (y != 0) {
+                let temp = y;
+                y = x % y;
+                x = temp;
+            }
+            return x;
+        }
+
+
+
+        function generateLevel1Question() {
+            let a = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+            let b = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+            let m = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+            let n = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+            // let k = (a * n) - (b * m); // k is unused
+
+            // --- Format vector1 (ai + bj) ---
+            let vector1 = "";
+            if (a === 1) {
+                vector1 = "i";
+            } else if (a === -1) {
+                vector1 = "-i";
+            } else if (a !== 0) {
+                vector1 = a + "i";
+            }
+
+            if (b !== 0) {
+                if (vector1.length > 0) { // If a was not 0
+                    if (b === 1) {
+                        vector1 += "+j";
+                    } else if (b === -1) {
+                        vector1 += "-j";
+                    } else if (b > 0) {
+                        vector1 += "+" + b + "j";
+                    } else { // b < 0 and b !== -1
+                        vector1 += b + "j";
+                    }
+                } else { // If a was 0
+                    if (b === 1) {
+                        vector1 = "j";
+                    } else if (b === -1) {
+                        vector1 = "-j";
+                    } else { // b !== 0, b !== 1, b !== -1
+                        vector1 = b + "j";
+                    }
+                }
+            }
+            if (vector1.length === 0) { // If both a and b were 0
+                vector1 = "0";
+            }
+
+            // --- Format vector2 (mi + nj) ---
+            let vector2 = "";
+             if (m === 1) {
+                vector2 = "i";
+            } else if (m === -1) {
+                vector2 = "-i";
+            } else if (m !== 0) {
+                vector2 = m + "i";
+            }
+
+            if (n !== 0) {
+                if (vector2.length > 0) { // If m was not 0
+                    if (n === 1) {
+                        vector2 += "+j";
+                    } else if (n === -1) {
+                        vector2 += "-j";
+                    } else if (n > 0) {
+                        vector2 += "+" + n + "j";
+                    } else { // n < 0 and n !== -1
+                        vector2 += n + "j";
+                    }
+                } else { // If m was 0
+                    if (n === 1) {
+                        vector2 = "j";
+                    } else if (n === -1) {
+                        vector2 = "-j";
+                    } else { // n !== 0, n !== 1, n !== -1
+                        vector2 = n + "j";
+                    }
+                }
+            }
+            if (vector2.length === 0) { // If both m and n were 0
+                vector2 = "0";
+            }
+
+            // --- Format resultVector ((a+m)i + (b+n)j) ---
+            let res_a = a + m;
+            let res_b = b + n;
+            let resultVector = "";
+             if (res_a === 1) {
+                resultVector = "i";
+            } else if (res_a === -1) {
+                resultVector = "-i";
+            } else if (res_a !== 0) {
+                resultVector = res_a + "i";
+            }
+
+            if (res_b !== 0) {
+                if (resultVector.length > 0) { // If res_a was not 0
+                    if (res_b === 1) {
+                        resultVector += "+j";
+                    } else if (res_b === -1) {
+                        resultVector += "-j";
+                    } else if (res_b > 0) {
+                        resultVector += "+" + res_b + "j";
+                    } else { // res_b < 0 and res_b !== -1
+                        resultVector += res_b + "j";
+                    }
+                } else { // If res_a was 0
+                    if (res_b === 1) {
+                        resultVector = "j";
+                    } else if (res_b === -1) {
+                        resultVector = "-j";
+                    } else { // res_b !== 0, res_b !== 1, res_b !== -1
+                        resultVector = res_b + "j";
+                    }
+                }
+            }
+            if (resultVector.length === 0) { // If both res_a and res_b were 0
+                resultVector = "0";
+            }
+
+
+            let textq = `\\(\\begin{array}{cc} \\huge (${vector1}) + (${vector2}) = ? \\end{array}\\)`;
+
+            correctAnswer = [`${resultVector}`, `(${resultVector})`]; // Setting the correct answer
+
+            return `<div style="display: flex; flex-direction: column; align-items: center;">
+                <div style="margin-bottom: 20px;">
+                    ${textq}
+                </div>
+            </div>`;
+}
+
+
+
+
+
+
+
+
+        function generateLevel2Question() {
+            let a = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let b = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let m = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    let n = Math.floor(Math.random() * 8) * (Math.random() > 0.5 ? 1 : -1);
+    
+    // 随机选择加法或减法
+    const isAddition = Math.random() > 0.5;
+    
+    // 计算结果
+    let real, imag;
+    if (isAddition) {
+        real = a + m;
+        imag = b + n;
+    } else {
+        real = a - m;
+        imag = b - n;
+    }
+    
+    // --- Format complex1 (a + bi) ---
+    let complex1 = "";
+    if (a === 0 && b === 0) {
+        complex1 = "0";
+    } else if (a === 0) {
+        if (b === 1) complex1 = "i";
+        else if (b === -1) complex1 = "-i";
+        else complex1 = b + "i";
+    } else if (b === 0) {
+        complex1 = a.toString();
+    } else {
+        complex1 = a.toString();
+        if (b === 1) complex1 += "+i";
+        else if (b === -1) complex1 += "-i";
+        else if (b > 0) complex1 += "+" + b + "i";
+        else complex1 += b + "i"; // Handles b < 0 and b !== -1
+    }
+
+    // --- Format complex2 (m + ni) ---
+    let complex2 = "";
+    if (m === 0 && n === 0) {
+        complex2 = "0";
+    } else if (m === 0) {
+        if (n === 1) complex2 = "i";
+        else if (n === -1) complex2 = "-i";
+        else complex2 = n + "i";
+    } else if (n === 0) {
+        complex2 = m.toString();
+    } else {
+        complex2 = m.toString();
+        if (n === 1) complex2 += "+i";
+        else if (n === -1) complex2 += "-i";
+        else if (n > 0) complex2 += "+" + n + "i";
+        else complex2 += n + "i"; // Handles n < 0 and n !== -1
+    }
+
+    // --- Format resultComplex (real + imag i) ---
+    // Ensure 'real' and 'imag' are defined before this point (e.g., real = a + m, imag = b + n)
+    let resultComplex = "";
+    if (real === 0 && imag === 0) {
+        resultComplex = "0";
+    } else if (real === 0) {
+        if (imag === 1) resultComplex = "i";
+        else if (imag === -1) resultComplex = "-i";
+        else resultComplex = imag + "i";
+    } else if (imag === 0) {
+        resultComplex = real.toString();
+    } else {
+        resultComplex = real.toString();
+        if (imag === 1) resultComplex += "+i";
+        else if (imag === -1) resultComplex += "-i";
+        else if (imag > 0) resultComplex += "+" + imag + "i";
+        else resultComplex += imag + "i"; // Handles imag < 0 and imag !== -1
+    }
+    
+    // 运算符号
+    const operator = isAddition ? "+" : "-";
+
+    let textq = `\\(\\begin{array}{cc} \\huge (${complex1}) ${operator} (${complex2}) = ? \\end{array}\\)`;
+
+    // 创建SVG坐标系
+    const svgSize = 400;
+    const center = svgSize / 2;
+    const scale = 15;
+    
+    // 计算复数点坐标
+    const pointO = {x: 0, y: 0};
+    const point1 = {x: a, y: b};
+    const point2 = {x: m, y: n};
+    const pointResult = {x: real, y: imag};
+    
+    // 转换为SVG坐标系
+    const svgO = {x: center + pointO.x * scale, y: center - pointO.y * scale};
+    const svg1 = {x: center + point1.x * scale, y: center - point1.y * scale};
+    const svg2 = {x: center + point2.x * scale, y: center - point2.y * scale};
+    const svgResult = {x: center + pointResult.x * scale, y: center - pointResult.y * scale};
+    
+    // 创建SVG元素
+    const svg = `
+    <svg width="${svgSize}" height="${svgSize}" style="background-color: #f9f9f9; margin: 0 auto; display: block;">
+        <!-- 绘制坐标轴 -->
+        <line x1="0" y1="${center}" x2="${svgSize}" y2="${center}" stroke="black" stroke-width="1" />
+        <line x1="${center}" y1="0" x2="${center}" y2="${svgSize}" stroke="black" stroke-width="1" />
+        
+        <!-- 坐标轴标签 -->
+        <text x="${svgSize - 15}" y="${center - 5}" fill="black" font-size="14">Re</text>
+        <text x="${center + 5}" y="15" fill="black" font-size="14">Im</text>
+        
+        <!-- 绘制刻度 -->
+        ${Array.from({length: 37}, (_, i) => i - 18).map(i => 
+            `<line x1="${center + i * scale}" y1="${center - 3}" x2="${center + i * scale}" y2="${center + 3}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center + i * scale}" y="${center + 15}" text-anchor="middle" font-size="10">${i}</text>` : ''}
+             <line x1="${center - 3}" y1="${center - i * scale}" x2="${center + 3}" y2="${center - i * scale}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center - 15}" y="${center - i * scale + 3}" text-anchor="end" font-size="10">${i}</text>` : ''}`
+        ).join('')}
+        
+        <!-- 绘制从原点到复数点的向量 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svg1.x}" y2="${svg1.y}" stroke="blue" stroke-width="2" marker-end="url(#arrowhead)" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svg2.x}" y2="${svg2.y}" stroke="green" stroke-width="2" marker-end="url(#arrowhead)" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgResult.x}" y2="${svgResult.y}" stroke="red" stroke-width="2" marker-end="url(#arrowhead)" />
+        
+        <!-- 标记结果 -->
+        <text x="${center}" y="${center - 100}" text-anchor="middle" font-size="18" fill="red">${resultComplex}</text>
+
+        <!-- 标记点 -->
+        <circle cx="${svgO.x}" cy="${svgO.y}" r="5" fill="black" />
+        <text x="${svgO.x + 10}" y="${svgO.y - 10}" font-size="14">O</text>
+        
+        <circle cx="${svg1.x}" cy="${svg1.y}" r="5" fill="blue" />
+        <text x="${svg1.x + 10}" y="${svg1.y - 10}" font-size="14">${complex1}</text>
+        
+        <circle cx="${svg2.x}" cy="${svg2.y}" r="5" fill="green" />
+        <text x="${svg2.x + 10}" y="${svg2.y - 10}" font-size="14">${complex2}</text>
+        
+        <circle cx="${svgResult.x}" cy="${svgResult.y}" r="5" fill="red" />
+        <text x="${svgResult.x + 10}" y="${svgResult.y - 10}" font-size="14">${resultComplex}</text>
+        
+        <!-- 箭头定义 -->
+        <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" />
+            </marker>
+        </defs>
+    </svg>`;
+
+    correctAnswer = [`${resultComplex}`];
+    return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+    </div>`;
+}
+
+
+
+     
+
+
+
+
+
+
+
+
+
+     function generateLevel3Question() {
+      // 生成向量分量
+      let a = (Math.floor(Math.random() * 4)+1)* (Math.random() > 0.5 ? 1 : -1);
+        let b = (Math.floor(Math.random() * 4)+1)* (Math.random() > 0.5 ? 1 : -1);
+        
+        // 生成标量
+        let scalar;
+        do {
+            scalar = Math.floor(Math.random() * 4) + 1;
+        } while (scalar === 1);
+        if (Math.random() > 0.5) scalar *= -1;
+        
+        // 计算结果向量
+        let resultA = scalar * a;
+        let resultB = scalar * b;
+        
+        // 格式化向量表示
+        let termsA = [];
+        if (a === 1) termsA.push("i");
+        else if (a === -1) termsA.push("-i");
+        else if (a !== 0) termsA.push(a + "i");
+        
+        if (b !== 0) {
+            if (b === 1) termsA.push("j");
+            else if (b === -1) termsA.push("-j");
+            else termsA.push((b > 0 ? "+" : "") + b + "j");
+        }
+        let vector = termsA.length === 0 ? "0" : termsA.join(termsA.length > 1 && termsA[1].startsWith('-') ? "" : "+");
+        if (termsA.length === 2 && !termsA[1].startsWith('-')) vector = termsA[0] + "+" + termsA[1];
+        else if (termsA.length === 2 && termsA[1].startsWith('-')) vector = termsA[0] + termsA[1];
+        else if (termsA.length === 1) vector = termsA[0];
+        if (vector.startsWith('+')) vector = vector.substring(1); // Remove leading '+' if b is positive and a is 0
+
+
+        let termsResult = [];
+        if (resultA === 1) termsResult.push("i");
+        else if (resultA === -1) termsResult.push("-i");
+        else if (resultA !== 0) termsResult.push(resultA + "i");
+
+        if (resultB !== 0) {
+            if (resultB === 1) termsResult.push("j");
+            else if (resultB === -1) termsResult.push("-j");
+             else termsResult.push((resultB > 0 ? "+" : "") + resultB + "j");
+        }
+        let resultVector = termsResult.length === 0 ? "0" : termsResult.join(termsResult.length > 1 && termsResult[1].startsWith('-') ? "" : "+");
+        if (termsResult.length === 2 && !termsResult[1].startsWith('-')) resultVector = termsResult[0] + "+" + termsResult[1];
+         else if (termsResult.length === 2 && termsResult[1].startsWith('-')) resultVector = termsResult[0] + termsResult[1];
+        else if (termsResult.length === 1) resultVector = termsResult[0];
+        if (resultVector.startsWith('+')) resultVector = resultVector.substring(1); // Remove leading '+' if resultB is positive and resultA is 0
+        
+        // 格式化标量显示
+        let scalarDisplay = scalar;
+        if (scalar === 1) scalarDisplay = "";
+        else if (scalar === -1) scalarDisplay = "-";
+        
+        let textq = `\\(\\begin{array}{cc} \\huge ${scalarDisplay}(${vector}) = ? \\end{array}\\)`;
+
+        // 创建SVG坐标系
+        const svgSize = 520;
+        const center = svgSize / 2;
+        const scale = 15;
+        
+        // 计算向量点坐标
+        const pointO = {x: 0, y: 0};
+        const pointV = {x: a, y: b};
+        const pointResult = {x: resultA, y: resultB};
+        
+        // 转换为SVG坐标系
+        const svgO = {x: center + pointO.x * scale, y: center - pointO.y * scale};
+        const svgV = {x: center + pointV.x * scale, y: center - pointV.y * scale};
+        const svgResult = {x: center + pointResult.x * scale, y: center - pointResult.y * scale};
+        
+        // 创建SVG元素
+        const svg = `
+        <svg width="${svgSize}" height="${svgSize}" style="background-color: #f9f9f9; margin: 0 auto; display: block;">
+            <!-- 绘制坐标轴 -->
+            <line x1="0" y1="${center}" x2="${svgSize}" y2="${center}" stroke="black" stroke-width="1" />
+            <line x1="${center}" y1="0" x2="${center}" y2="${svgSize}" stroke="black" stroke-width="1" />
+            
+            <!-- 绘制刻度，范围从-18到18 -->
+            ${Array.from({length: 37}, (_, i) => i - 18).map(i => 
+                `<line x1="${center + i * scale}" y1="${center - 3}" x2="${center + i * scale}" y2="${center + 3}" stroke="black" stroke-width="1" />
+                 ${i % 3 === 0 ? `<text x="${center + i * scale}" y="${center + 15}" text-anchor="middle" font-size="10">${i}</text>` : ''}
+                 <line x1="${center - 3}" y1="${center - i * scale}" x2="${center + 3}" y2="${center - i * scale}" stroke="black" stroke-width="1" />
+                 ${i % 3 === 0 ? `<text x="${center - 15}" y="${center - i * scale + 3}" text-anchor="end" font-size="10">${i}</text>` : ''}`
+            ).join('')}
+            
+            <!-- 绘制向量 -->
+            <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgV.x}" y2="${svgV.y}" stroke="blue" stroke-width="2" marker-end="url(#arrowhead)" />
+            <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgResult.x}" y2="${svgResult.y}" stroke="red" stroke-width="2" marker-end="url(#arrowhead)" />
+            
+            <!-- 标记结果 -->
+            <text x="${center}" y="${center - 100}" text-anchor="middle" font-size="18" fill="red">${resultVector}</text>
+            
+            <!-- 标记点 -->
+            <circle cx="${svgO.x}" cy="${svgO.y}" r="5" fill="black" />
+            <text x="${svgO.x + 8}" y="${svgO.y - 8}" font-size="14">O(0,0)</text>
+            
+            <circle cx="${svgV.x}" cy="${svgV.y}" r="5" fill="blue" />
+            <text x="${svgV.x + 8}" y="${svgV.y - 8}" font-size="14">${vector}</text>
+            
+            <circle cx="${svgResult.x}" cy="${svgResult.y}" r="5" fill="red" />
+            <text x="${svgResult.x + 8}" y="${svgResult.y - 8}" font-size="14">${scalarDisplay}(${vector})=${resultVector}</text>
+            
+            <!-- 箭头定义 -->
+            <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" />
+                </marker>
+            </defs>
+        </svg>`;
+
+        correctAnswer = [`${resultVector}`];
+        
+        return `<div style="display: flex; flex-direction: column; align-items: center;">
+            <div style="margin-bottom: 20px;">
+                ${textq}
+            </div>
+            <div>
+                ${svg}
+            </div>
+        </div>`;
+    }
+
+
+
+    function generateLevel4Question() {
+     // 生成向量分量，确保投影坐标为整数
+     let a, b, m, n, k, lenSquared;
+    do {
+        a = (Math.floor(Math.random() * 10) + 4)* (Math.random() > 0.5 ? 1 : -1);
+        b = (Math.floor(Math.random() * 10) + 4)* (Math.random() > 0.5 ? 1 : -1);
+        m = (Math.floor(Math.random() * 10) + 4)* (Math.random() > 0.5 ? 1 : -1);
+        n = (Math.floor(Math.random() * 10) + 4)* (Math.random() > 0.5 ? 1 : -1);
+        k = (a * m) + (b * n);
+        lenSquared = m * m + n * n;
+    } while (k % lenSquared !== 0||a*n-b*m===0);
+
+    // 投影坐标（此时必为整数）
+    const projX = (k / lenSquared) * m;
+    const projY = (k / lenSquared) * n;
+
+    // 题目文本：求投影坐标
+    let textq = `\\(\\begin{array}{cc}  求向量 OA(${a},${b}) 在向量 OB(${m},${n}) 上的投影坐标。\\\\
+                     输入格式 (x,y)                                                                                   
+                    \\end{array}\\)`;
+
+    // 创建SVG坐标系
+    const svgSize = 480;
+    const center = svgSize / 2;
+    const scale = 15;
+    
+    // 计算点坐标
+    const pointO = {x: 0, y: 0};
+    const pointA = {x: a, y: b};
+    const pointB = {x: m, y: n};
+    const pointD = {x: projX, y: projY}; // 直接使用投影坐标
+    
+    // 转换为SVG坐标系
+    const svgO = {x: center + pointO.x * scale, y: center - pointO.y * scale};
+    const svgA = {x: center + pointA.x * scale, y: center - pointA.y * scale};
+    const svgB = {x: center + pointB.x * scale, y: center - pointB.y * scale};
+    const svgD = {x: center + pointD.x * scale, y: center - pointD.y * scale};
+    
+    // 创建SVG元素
+    const svg = `
+    <svg width="${svgSize}" height="${svgSize}" style="background-color: #f9f9f9; margin: 0 auto; display: block;">
+        <!-- 绘制坐标轴 -->
+        <line x1="0" y1="${center}" x2="${svgSize}" y2="${center}" stroke="black" stroke-width="1" />
+        <line x1="${center}" y1="0" x2="${center}" y2="${svgSize}" stroke="black" stroke-width="1" />
+        
+        <!-- 绘制刻度 -->
+        ${Array.from({length: 37}, (_, i) => i - 18).map(i => 
+            `<line x1="${center + i * scale}" y1="${center - 3}" x2="${center + i * scale}" y2="${center + 3}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center + i * scale}" y="${center + 15}" text-anchor="middle" font-size="10">${i}</text>` : ''}
+             <line x1="${center - 3}" y1="${center - i * scale}" x2="${center + 3}" y2="${center - i * scale}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center - 15}" y="${center - i * scale + 3}" text-anchor="end" font-size="10">${i}</text>` : ''}`
+        ).join('')}
+        
+        <!-- 绘制向量和直线 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgA.x}" y2="${svgA.y}" stroke="green" stroke-width="2" marker-end="url(#arrowhead)" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgB.x}" y2="${svgB.y}" stroke="blue" stroke-width="2" marker-end="url(#arrowhead)" />
+        <line x1="${svgA.x}" y1="${svgA.y}" x2="${svgD.x}" y2="${svgD.y}" stroke="purple" stroke-width="2" stroke-dasharray="5,5" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgD.x}" y2="${svgD.y}" stroke="purple" stroke-width="2" stroke-dasharray="5,5" />
+        
+        <!-- 标记点 -->
+        <circle cx="${svgO.x}" cy="${svgO.y}" r="5" fill="red" />
+        <text x="${svgO.x + 8}" y="${svgO.y - 8}" font-size="14">O(0,0)</text>
+        
+        <circle cx="${svgA.x}" cy="${svgA.y}" r="5" fill="green" />
+        <text x="${svgA.x + 8}" y="${svgA.y - 8}" font-size="14">A(${a},${b})</text>
+        
+        <circle cx="${svgB.x}" cy="${svgB.y}" r="5" fill="blue" />
+        <text x="${svgB.x + 8}" y="${svgB.y - 8}" font-size="14">B(${m},${n})</text>
+        
+        <circle cx="${svgD.x}" cy="${svgD.y}" r="5" fill="purple" />
+        <text x="${svgD.x + 12}" y="${svgD.y - 12}" font-size="14"></text>
+        
+        <!-- 箭头定义 -->
+        <defs>
+            <marker id="arrowhead" markerWidth="5" markerHeight="5" refX="5" refY="2.5" orient="auto">
+                <polygon points="0 0, 5 2.5, 0 5" />
+            </marker>
+        </defs>
+    </svg>`;
+
+    // 正确答案：投影坐标
+    correctAnswer = [`(${projX},${projY})`,`${projX},${projY}`];
+    return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+    </div>`;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+function gcd(a, b) {
+    if (!b) {
+        return a;
+    }
+    return gcd(b, a % b);
+}
+
+function generateLevel5Question() {
+  // 生成复数的实部和虚部
+  let real = (Math.floor(Math.random() * 4)+1)* (Math.random() > 0.5 ? 1 : -1);
+    let imag = (Math.floor(Math.random() * 4)+1)* (Math.random() > 0.5 ? 1 : -1);
+    
+    // 生成标量
+    let scalar;
+    do {
+        scalar = Math.floor(Math.random() * 4) + 1;
+    } while (scalar === 1);
+    if (Math.random() > 0.5) scalar *= -1;
+    
+    // 计算结果复数
+    let resultReal = scalar * real;
+    let resultImag = scalar * imag;
+    
+    // 格式化复数表示
+    let complex = formatComplex(real, imag);
+    let resultComplex = formatComplex(resultReal, resultImag);
+    function formatComplex(re, im) {
+        if (im === 0) return `${re}`; // 实数
+        if (re === 0) return `${im}i`; // 虚数
+        if (im > 0) return `${re} + ${im}i`;
+        return `${re} - ${Math.abs(im)}i`;
+    }
+    // 格式化标量显示
+    let scalarDisplay = scalar;
+    if (scalar === 1) scalarDisplay = "";
+    else if (scalar === -1) scalarDisplay = "-";
+    
+    let textq = `\\(\\begin{array}{cc} \\huge ${scalarDisplay}(${complex}) = ? \\end{array}\\)`;
+
+    // 创建SVG坐标系
+    const svgSize = 520;
+    const center = svgSize / 2;
+    const scale = 15;
+    
+    // 计算复数点坐标
+    const pointO = {x: 0, y: 0};
+    const pointC = {x: real, y: imag};
+    const pointResult = {x: resultReal, y: resultImag};
+    
+    // 转换为SVG坐标系
+    const svgO = {x: center + pointO.x * scale, y: center - pointO.y * scale};
+    const svgC = {x: center + pointC.x * scale, y: center - pointC.y * scale};
+    const svgResult = {x: center + pointResult.x * scale, y: center - pointResult.y * scale};
+    
+    // 创建SVG元素
+    const svg = `
+    <svg width="${svgSize}" height="${svgSize}" style="background-color: #f9f9f9; margin: 0 auto; display: block;">
+        <!-- 绘制坐标轴 -->
+        <line x1="0" y1="${center}" x2="${svgSize}" y2="${center}" stroke="black" stroke-width="1" />
+        <line x1="${center}" y1="0" x2="${center}" y2="${svgSize}" stroke="black" stroke-width="1" />
+        
+        <!-- 坐标轴标签 -->
+        <text x="${svgSize - 15}" y="${center - 5}" fill="black" font-size="14">Re</text>
+        <text x="${center + 5}" y="15" fill="black" font-size="14">Im</text>
+        
+        <!-- 绘制刻度 -->
+        ${Array.from({length: 37}, (_, i) => i - 18).map(i => 
+            `<line x1="${center + i * scale}" y1="${center - 3}" x2="${center + i * scale}" y2="${center + 3}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center + i * scale}" y="${center + 15}" text-anchor="middle" font-size="10">${i}</text>` : ''}
+             <line x1="${center - 3}" y1="${center - i * scale}" x2="${center + 3}" y2="${center - i * scale}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center - 15}" y="${center - i * scale + 3}" text-anchor="end" font-size="10">${i}</text>` : ''}`
+        ).join('')}
+        
+        <!-- 绘制从原点到复数点的向量 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgC.x}" y2="${svgC.y}" stroke="blue" stroke-width="2" marker-end="url(#arrowhead)" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgResult.x}" y2="${svgResult.y}" stroke="red" stroke-width="2" marker-end="url(#arrowhead)" />
+        
+        <!-- 标记结果 -->
+        <text x="${center}" y="${center - 100}" text-anchor="middle" font-size="18" fill="red">${resultComplex}</text>
+
+        <!-- 标记点 -->
+        <circle cx="${svgO.x}" cy="${svgO.y}" r="5" fill="black" />
+        <text x="${svgO.x + 10}" y="${svgO.y - 10}" font-size="14">O</text>
+        
+        <circle cx="${svgC.x}" cy="${svgC.y}" r="5" fill="blue" />
+        <text x="${svgC.x + 10}" y="${svgC.y - 10}" font-size="14">${complex}</text>
+        
+        <circle cx="${svgResult.x}" cy="${svgResult.y}" r="5" fill="red" />
+        <text x="${svgResult.x + 10}" y="${svgResult.y - 10}" font-size="14">${resultComplex}</text>
+        
+        <!-- 箭头定义 -->
+        <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" />
+            </marker>
+        </defs>
+    </svg>`;
+
+    correctAnswer = [`${resultComplex}`];
+    
+    return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+    </div>`;
+}
+
+
+
+
+
+
+
+
+function generateLevel6Question() {
+   // 生成两个向量的分量和组合系数
+   let a, b, c, d, m, n;
+    let resultX, resultY;
+    
+    do {
+        // 生成向量分量，范围在-4到4之间
+        a = Math.floor(Math.random() * 9) - 4;
+        b = Math.floor(Math.random() * 9) - 4;
+        c = Math.floor(Math.random() * 9) - 4;
+        d = Math.floor(Math.random() * 9) - 4;
+        
+        // 生成组合系数，范围在-3到3之间，但不包括0
+        m = (Math.floor(Math.random() * 3) + 1) * (Math.random() > 0.5 ? 1 : -1);
+        n = (Math.floor(Math.random() * 3) + 1) * (Math.random() > 0.5 ? 1 : -1);
+        
+        // 计算结果向量分量
+        resultX = m * a + n * c;
+        resultY = m * b + n * d;
+        
+        // 确保向量不全为零，且结果分量不超过16
+    } while ((a === 0 && b === 0) || (c === 0 && d === 0) || 
+             Math.abs(resultX) > 16 || Math.abs(resultY) > 16||m+n===0);
+    
+    // 格式化向量显示
+    // Inline formatting for vector1
+    let termA = '';
+    if (a === 1) termA = 'i';
+    else if (a === -1) termA = '-i';
+    else if (a !== 0) termA = a + 'i';
+
+    let termB = '';
+    if (b === 1) termB = '+j';
+    else if (b === -1) termB = '-j';
+    else if (b > 0) termB = '+' + b + 'j';
+    else if (b < 0) termB = b + 'j';
+
+    let vector1;
+    if (termA === '' && termB === '') vector1 = '0'; // Handle zero vector
+    else if (termA === '') vector1 = termB.startsWith('+') ? termB.substring(1) : termB;
+    else if (termB === '') vector1 = termA;
+    else vector1 = termA + termB;
+
+    // Inline formatting for vector2
+    let termC = '';
+    if (c === 1) termC = 'i';
+    else if (c === -1) termC = '-i';
+    else if (c !== 0) termC = c + 'i';
+
+    let termD = '';
+    if (d === 1) termD = '+j';
+    else if (d === -1) termD = '-j';
+    else if (d > 0) termD = '+' + d + 'j';
+    else if (d < 0) termD = d + 'j';
+
+    let vector2;
+    if (termC === '' && termD === '') vector2 = '0'; // Handle zero vector
+    else if (termC === '') vector2 = termD.startsWith('+') ? termD.substring(1) : termD;
+    else if (termD === '') vector2 = termC;
+    else vector2 = termC + termD;
+    
+    // Inline formatting for resultVector
+    let termRX = '';
+    if (resultX === 1) termRX = 'i';
+    else if (resultX === -1) termRX = '-i';
+    else if (resultX !== 0) termRX = resultX + 'i';
+
+    let termRY = '';
+    if (resultY === 1) termRY = '+j';
+    else if (resultY === -1) termRY = '-j';
+    else if (resultY > 0) termRY = '+' + resultY + 'j';
+    else if (resultY < 0) termRY = resultY + 'j';
+
+    let resultVector;
+    if (termRX === '' && termRY === '') resultVector = '0'; // Handle zero vector
+    else if (termRX === '') resultVector = termRY.startsWith('+') ? termRY.substring(1) : termRY;
+    else if (termRY === '') resultVector = termRX;
+    else resultVector = termRX + termRY;
+    
+    // 修改题目文本，使其显示为加权平均数
+    let textq = `\\(\\begin{array}{cc}  ${m}(${vector1}) ${n}(${vector2}) = ? \\end{array}\\)`;
+    
+    // 创建SVG坐标系
+    const svgSize = 520;
+    const center = svgSize / 2;
+    const scale = 15;
+    
+    // 计算各个点的坐标
+    const pointO = {x: 0, y: 0};
+    const pointV1 = {x: a, y: b};
+    const pointV2 = {x: c, y: d};
+    const pointMV1 = {x: m * a, y: m * b};
+    const pointNV2 = {x: n * c, y: n * d};
+    const pointResult = {x: resultX, y: resultY};
+    
+    // 转换为SVG坐标系
+    const svgO = {x: center + pointO.x * scale, y: center - pointO.y * scale};
+    const svgV1 = {x: center + pointV1.x * scale, y: center - pointV1.y * scale};
+    const svgV2 = {x: center + pointV2.x * scale, y: center - pointV2.y * scale};
+    const svgMV1 = {x: center + pointMV1.x * scale, y: center - pointMV1.y * scale};
+    const svgNV2 = {x: center + pointNV2.x * scale, y: center - pointNV2.y * scale};
+    const svgResult = {x: center + pointResult.x * scale, y: center - pointResult.y * scale};
+    
+    // 创建SVG元素
+    const svg = `
+    <svg width="${svgSize}" height="${svgSize}" style="background-color: #f9f9f9; margin: 0 auto; display: block;">
+        <!-- 绘制坐标轴 -->
+        <line x1="0" y1="${center}" x2="${svgSize}" y2="${center}" stroke="black" stroke-width="1" />
+        <line x1="${center}" y1="0" x2="${center}" y2="${svgSize}" stroke="black" stroke-width="1" />
+        
+        <!-- 绘制刻度，范围从-18到18 -->
+        ${Array.from({length: 37}, (_, i) => i - 18).map(i => 
+            `<line x1="${center + i * scale}" y1="${center - 3}" x2="${center + i * scale}" y2="${center + 3}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center + i * scale}" y="${center + 15}" text-anchor="middle" font-size="10">${i}</text>` : ''}
+             <line x1="${center - 3}" y1="${center - i * scale}" x2="${center + 3}" y2="${center - i * scale}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center - 15}" y="${center - i * scale + 3}" text-anchor="end" font-size="10">${i}</text>` : ''}`
+        ).join('')}
+        
+        <!-- 绘制原始向量 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgV1.x}" y2="${svgV1.y}" stroke="blue" stroke-width="1" marker-end="url(#arrowhead)" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgV2.x}" y2="${svgV2.y}" stroke="green" stroke-width="1" marker-end="url(#arrowhead)" />
+        
+        <!-- 绘制缩放后的向量 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgMV1.x}" y2="${svgMV1.y}" stroke="blue" stroke-width="2" marker-end="url(#arrowhead)" stroke-dasharray="5,3" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgNV2.x}" y2="${svgNV2.y}" stroke="green" stroke-width="2" marker-end="url(#arrowhead)" stroke-dasharray="5,3" />
+        
+        <!-- 绘制平行四边形 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgMV1.x}" y2="${svgMV1.y}" stroke="blue" stroke-width="1" />
+        <line x1="${svgMV1.x}" y1="${svgMV1.y}" x2="${svgResult.x}" y2="${svgResult.y}" stroke="green" stroke-width="1" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgNV2.x}" y2="${svgNV2.y}" stroke="green" stroke-width="1" />
+        <line x1="${svgNV2.x}" y1="${svgNV2.y}" x2="${svgResult.x}" y2="${svgResult.y}" stroke="blue" stroke-width="1" />
+        
+        <!-- 绘制结果向量 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgResult.x}" y2="${svgResult.y}" stroke="red" stroke-width="2" marker-end="url(#arrowhead)" />
+        
+        <!-- 标记结果 -->
+        <text x="${center}" y="${center - 100}" text-anchor="middle" font-size="18" fill="red">${resultVector}</text>
+        
+        <!-- 标记点 -->
+        <circle cx="${svgO.x}" cy="${svgO.y}" r="5" fill="black" />
+        <text x="${svgO.x + 8}" y="${svgO.y - 8}" font-size="14">O(0,0)</text>
+        
+        <circle cx="${svgV1.x}" cy="${svgV1.y}" r="3" fill="blue" />
+        <text x="${svgV1.x + 8}" y="${svgV1.y - 8}" font-size="12">${vector1}</text>
+        
+        <circle cx="${svgV2.x}" cy="${svgV2.y}" r="3" fill="green" />
+        <text x="${svgV2.x + 8}" y="${svgV2.y - 8}" font-size="12">${vector2}</text>
+        
+        <circle cx="${svgMV1.x}" cy="${svgMV1.y}" r="3" fill="blue" />
+        <text x="${svgMV1.x + 8}" y="${svgMV1.y - 8}" font-size="12">${m}(${vector1})</text>
+        
+        <circle cx="${svgNV2.x}" cy="${svgNV2.y}" r="3" fill="green" />
+        <text x="${svgNV2.x + 8}" y="${svgNV2.y - 8}" font-size="12">${n}(${vector2})</text>
+        
+        <circle cx="${svgResult.x}" cy="${svgResult.y}" r="5" fill="red" />
+        <text x="${svgResult.x + 8}" y="${svgResult.y - 8}" font-size="14">${resultVector}</text>
+        
+        <!-- 箭头定义 -->
+        <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" />
+            </marker>
+        </defs>
+    </svg>`;
+
+    correctAnswer = [`${resultVector}`];
+    
+    return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+    </div>`;
+        }
+
+
+
+function generateLevel7Question() {
+     // 正交分解
+     let a, b, c, d, m, n;
+    let resultX, resultY;
+    
+    do {
+        // 生成向量分量，范围在-4到4之间
+        a = Math.floor(Math.random() * 9) - 4;
+        b = Math.floor(Math.random() * 9) - 4;
+        c = -b;
+        d = a;
+        
+        // 生成组合系数，范围在-3到3之间，但不包括0
+        m = (Math.floor(Math.random() * 3) + 1) * (Math.random() > 0.5 ? 1 : -1);
+        n = (Math.floor(Math.random() * 3) + 1) * (Math.random() > 0.5 ? 1 : -1);
+        
+        // 计算结果向量分量
+        resultX = m * a + n * c;
+        resultY = m * b + n * d;
+        r=Math.sqrt(resultX*resultX+resultY*resultY);
+        
+        // 确保向量不全为零，且结果分量不超过16
+    } while ((a*b === 0) || (c *d === 0) || 
+             Math.abs(resultX) > 16 || Math.abs(resultY) > 16||m+n===0);
+    
+    // 格式化向量显示
+    // Inline formatting for vector1
+    let termA = '';
+    if (a === 1) termA = 'i';
+    else if (a === -1) termA = '-i';
+    else if (a !== 0) termA = a + 'i';
+
+    let termB = '';
+    if (b === 1) termB = '+j';
+    else if (b === -1) termB = '-j';
+    else if (b > 0) termB = '+' + b + 'j';
+    else if (b < 0) termB = b + 'j';
+
+    let vector1;
+    if (termA === '' && termB === '') vector1 = '0'; // Handle zero vector
+    else if (termA === '') vector1 = termB.startsWith('+') ? termB.substring(1) : termB;
+    else if (termB === '') vector1 = termA;
+    else vector1 = termA + termB;
+
+    // Inline formatting for vector2
+    let termC = '';
+    if (c === 1) termC = 'i';
+    else if (c === -1) termC = '-i';
+    else if (c !== 0) termC = c + 'i';
+
+    let termD = '';
+    if (d === 1) termD = '+j';
+    else if (d === -1) termD = '-j';
+    else if (d > 0) termD = '+' + d + 'j';
+    else if (d < 0) termD = d + 'j';
+
+    let vector2;
+    if (termC === '' && termD === '') vector2 = '0'; // Handle zero vector
+    else if (termC === '') vector2 = termD.startsWith('+') ? termD.substring(1) : termD;
+    else if (termD === '') vector2 = termC;
+    else vector2 = termC + termD;
+
+    // Inline formatting for resultVector (projection)
+    let termRX = '';
+    if (resultX === 1) termRX = 'i';
+    else if (resultX === -1) termRX = '-i';
+    else if (resultX !== 0) termRX = resultX + 'i';
+
+    let termRY = '';
+    if (resultY === 1) termRY = '+j';
+    else if (resultY === -1) termRY = '-j';
+    else if (resultY > 0) termRY = '+' + resultY + 'j';
+    else if (resultY < 0) termRY = resultY + 'j';
+
+    let resultVector;
+    if (termRX === '' && termRY === '') resultVector = '0'; // Handle zero vector
+    else if (termRX === '') resultVector = termRY.startsWith('+') ? termRY.substring(1) : termRY;
+    else if (termRY === '') resultVector = termRX;
+    else resultVector = termRX + termRY;
+    
+    // 格式化系数显示
+    let mDisplay = m === 1 ? "" : m === -1 ? "-" : m;
+    let nDisplay = n === 1 ? "+" : n === -1 ? "-" : n > 0 ? "+" + n : n;
+    
+    // 修改题目文本，使其显示为加权平均数
+    let textq = `\\(\\begin{array}{cc}  m(${vector1}) + n(${vector2}) = ${resultVector} \\\\
+               (m,n)=?
+       \\end{array}\\)`;
+    
+    // 创建SVG坐标系
+    const svgSize = 520;
+    const center = svgSize / 2;
+    const scale = 2/r*100;
+    
+    // 计算各个点的坐标
+    const pointO = {x: 0, y: 0};
+    const pointV1 = {x: a, y: b};
+    const pointV2 = {x: c, y: d};
+    const pointMV1 = {x: m * a, y: m * b};
+    const pointNV2 = {x: n * c, y: n * d};
+    const pointResult = {x: resultX, y: resultY};
+    
+    // 转换为SVG坐标系
+    const svgO = {x: center + pointO.x * scale, y: center - pointO.y * scale};
+    const svgV1 = {x: center + pointV1.x * scale, y: center - pointV1.y * scale};
+    const svgV2 = {x: center + pointV2.x * scale, y: center - pointV2.y * scale};
+    const svgMV1 = {x: center + pointMV1.x * scale, y: center - pointMV1.y * scale};
+    const svgNV2 = {x: center + pointNV2.x * scale, y: center - pointNV2.y * scale};
+    const svgResult = {x: center + pointResult.x * scale, y: center - pointResult.y * scale};
+    
+    // 创建SVG元素
+    const svg = `
+    <svg width="${svgSize}" height="${svgSize}" style="background-color: #f9f9f9; margin: 0 auto; display: block;">
+        <!-- 绘制坐标轴 -->
+        <line x1="0" y1="${center}" x2="${svgSize}" y2="${center}" stroke="black" stroke-width="1" />
+        <line x1="${center}" y1="0" x2="${center}" y2="${svgSize}" stroke="black" stroke-width="1" />
+        
+        <!-- 绘制刻度，范围从-18到18 -->
+        ${Array.from({length: 37}, (_, i) => i - 18).map(i => 
+            `<line x1="${center + i * scale}" y1="${center - 3}" x2="${center + i * scale}" y2="${center + 3}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center + i * scale}" y="${center + 15}" text-anchor="middle" font-size="10">${i}</text>` : ''}
+             <line x1="${center - 3}" y1="${center - i * scale}" x2="${center + 3}" y2="${center - i * scale}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center - 15}" y="${center - i * scale + 3}" text-anchor="end" font-size="10">${i}</text>` : ''}`
+        ).join('')}
+        
+        <!-- 绘制原始向量 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgV1.x}" y2="${svgV1.y}" stroke="blue" stroke-width="1" marker-end="url(#arrowhead)" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgV2.x}" y2="${svgV2.y}" stroke="green" stroke-width="1" marker-end="url(#arrowhead)" />
+        
+        <!-- 绘制缩放后的向量 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgMV1.x}" y2="${svgMV1.y}" stroke="blue" stroke-width="2" marker-end="url(#arrowhead)" stroke-dasharray="5,3" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgNV2.x}" y2="${svgNV2.y}" stroke="green" stroke-width="2" marker-end="url(#arrowhead)" stroke-dasharray="5,3" />
+        
+        <!-- 绘制平行四边形 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgMV1.x}" y2="${svgMV1.y}" stroke="blue" stroke-width="1" />
+        <line x1="${svgMV1.x}" y1="${svgMV1.y}" x2="${svgResult.x}" y2="${svgResult.y}" stroke="green" stroke-width="1" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgNV2.x}" y2="${svgNV2.y}" stroke="green" stroke-width="1" />
+        <line x1="${svgNV2.x}" y1="${svgNV2.y}" x2="${svgResult.x}" y2="${svgResult.y}" stroke="blue" stroke-width="1" />
+        
+        <!-- 绘制结果向量 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgResult.x}" y2="${svgResult.y}" stroke="red" stroke-width="2" marker-end="url(#arrowhead)" />
+        
+        <!-- 标记结果 -->
+        <text x="${center}" y="${center - 100}" text-anchor="middle" font-size="18" fill="red">${resultVector}</text>
+        
+        <!-- 标记点 -->
+        <circle cx="${svgO.x}" cy="${svgO.y}" r="5" fill="black" />
+        <text x="${svgO.x + 8}" y="${svgO.y - 8}" font-size="14">O(0,0)</text>
+        
+        <circle cx="${svgV1.x}" cy="${svgV1.y}" r="3" fill="blue" />
+        <text x="${svgV1.x + 8}" y="${svgV1.y - 8}" font-size="12">${vector1}</text>
+        
+        <circle cx="${svgV2.x}" cy="${svgV2.y}" r="3" fill="green" />
+        <text x="${svgV2.x + 8}" y="${svgV2.y - 8}" font-size="12">${vector2}</text>
+        
+        <circle cx="${svgMV1.x}" cy="${svgMV1.y}" r="3" fill="blue" />
+        <text x="${svgMV1.x + 8}" y="${svgMV1.y - 8}" font-size="12">${m}(${vector1})</text>
+        
+        <circle cx="${svgNV2.x}" cy="${svgNV2.y}" r="3" fill="green" />
+        <text x="${svgNV2.x + 8}" y="${svgNV2.y - 8}" font-size="12">${n}(${vector2})</text>
+        
+        <circle cx="${svgResult.x}" cy="${svgResult.y}" r="5" fill="red" />
+        <text x="${svgResult.x + 8}" y="${svgResult.y - 8}" font-size="14">${resultVector}</text>
+        
+        <!-- 箭头定义 -->
+        <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" />
+            </marker>
+        </defs>
+    </svg>`;
+
+    correctAnswer = [`(${m},${n})`,`m=${m},n=${n}`,`${m},${n}`];
+    
+    return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+    </div>`;
+        }
+
+function generateLevel8Question() {
+
+     //共线向量 生成两个向量的分量和组合系数
+     let a, b, c, d, m, n;
+    let resultX, resultY;
+    
+    do {
+        // 生成向量分量，范围在-15到15之间
+        a = Math.floor(Math.random() * 31) - 15;
+        b = Math.floor(Math.random() * 31) - 15;
+        c = Math.floor(Math.random() * 31) - 15;
+        d = Math.floor(Math.random() * 31) - 15;
+        
+        // 生成组合系数，范围在1到5之间
+        m = Math.floor(Math.random() * 5) + 1;
+        n = Math.floor(Math.random() * 5) + 1;
+        
+        // 计算结果向量分量
+        resultX = (m * a + n * c) / (m + n);
+        resultY = (m * b + n * d) / (m + n);
+        
+        // 确保向量不全为零，结果分量不超过16，且结果是整数
+    } while ((a === 0 && b === 0) || (c === 0 && d === 0) || 
+             Math.abs(resultX) > 16 || Math.abs(resultY) > 16 ||
+             !Number.isInteger(resultX) || !Number.isInteger(resultY));
+    
+    // 格式化向量显示
+    // Inline formatting for vector1
+    let termA = '';
+    if (a === 1) termA = 'i';
+    else if (a === -1) termA = '-i';
+    else if (a !== 0) termA = a + 'i';
+
+    let termB = '';
+    if (b === 1) termB = '+j';
+    else if (b === -1) termB = '-j';
+    else if (b > 0) termB = '+' + b + 'j';
+    else if (b < 0) termB = b + 'j';
+
+    let vector1;
+    if (termA === '' && termB === '') vector1 = '0'; // Handle zero vector
+    else if (termA === '') vector1 = termB.startsWith('+') ? termB.substring(1) : termB;
+    else if (termB === '') vector1 = termA;
+    else vector1 = termA + termB;
+
+    // Inline formatting for vector2
+    let termC = '';
+    if (c === 1) termC = 'i';
+    else if (c === -1) termC = '-i';
+    else if (c !== 0) termC = c + 'i';
+
+    let termD = '';
+    if (d === 1) termD = '+j';
+    else if (d === -1) termD = '-j';
+    else if (d > 0) termD = '+' + d + 'j';
+    else if (d < 0) termD = d + 'j';
+
+    let vector2;
+    if (termC === '' && termD === '') vector2 = '0'; // Handle zero vector
+    else if (termC === '') vector2 = termD.startsWith('+') ? termD.substring(1) : termD;
+    else if (termD === '') vector2 = termC;
+    else vector2 = termC + termD;
+    
+    // Inline formatting for resultVector
+    let termRX = '';
+    if (resultX === 1) termRX = 'i';
+    else if (resultX === -1) termRX = '-i';
+    else if (resultX !== 0) termRX = resultX + 'i';
+
+    let termRY = '';
+    if (resultY === 1) termRY = '+j';
+    else if (resultY === -1) termRY = '-j';
+    else if (resultY > 0) termRY = '+' + resultY + 'j';
+    else if (resultY < 0) termRY = resultY + 'j';
+
+    let resultVector;
+    if (termRX === '' && termRY === '') resultVector = '0'; // Handle zero vector
+    else if (termRX === '') resultVector = termRY.startsWith('+') ? termRY.substring(1) : termRY;
+    else if (termRY === '') resultVector = termRX;
+    else resultVector = termRX + termRY;
+    
+    // 修改题目文本，使其显示为加权平均数
+    let textq = `\\(\\begin{array}{cc}  \\frac{${m}}{${m+n}}(${vector1})+ \\frac{${n}}{${m+n}}(${vector2}) = ? \\end{array}\\)`;
+    
+    // 创建SVG坐标系
+    const svgSize = 520;
+    const center = svgSize / 2;
+    const scale = 15;
+    
+    // 计算各个点的坐标
+    const pointO = {x: 0, y: 0};
+    const pointV1 = {x: a, y: b};
+    const pointV2 = {x: c, y: d};
+    const pointMV1 = {x: m * a, y: m * b};
+    const pointNV2 = {x: n * c, y: n * d};
+    const pointResult = {x: resultX, y: resultY};
+    
+    // 转换为SVG坐标系
+    const svgO = {x: center + pointO.x * scale, y: center - pointO.y * scale};
+    const svgV1 = {x: center + pointV1.x * scale, y: center - pointV1.y * scale};
+    const svgV2 = {x: center + pointV2.x * scale, y: center - pointV2.y * scale};
+    const svgMV1 = {x: center + pointMV1.x * scale, y: center - pointMV1.y * scale};
+    const svgNV2 = {x: center + pointNV2.x * scale, y: center - pointNV2.y * scale};
+    const svgResult = {x: center + pointResult.x * scale, y: center - pointResult.y * scale};
+    
+    // 创建SVG元素
+    const svg = `
+    <svg width="${svgSize}" height="${svgSize}" style="background-color: #f9f9f9; margin: 0 auto; display: block;">
+        <!-- 绘制坐标轴 -->
+        <line x1="0" y1="${center}" x2="${svgSize}" y2="${center}" stroke="black" stroke-width="1" />
+        <line x1="${center}" y1="0" x2="${center}" y2="${svgSize}" stroke="black" stroke-width="1" />
+        
+        <!-- 绘制刻度，范围从-18到18 -->
+        ${Array.from({length: 37}, (_, i) => i - 18).map(i => 
+            `<line x1="${center + i * scale}" y1="${center - 3}" x2="${center + i * scale}" y2="${center + 3}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center + i * scale}" y="${center + 15}" text-anchor="middle" font-size="10">${i}</text>` : ''}
+             <line x1="${center - 3}" y1="${center - i * scale}" x2="${center + 3}" y2="${center - i * scale}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center - 15}" y="${center - i * scale + 3}" text-anchor="end" font-size="10">${i}</text>` : ''}`
+        ).join('')}
+        
+        <!-- 绘制原始向量 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgV1.x}" y2="${svgV1.y}" stroke="blue" stroke-width="1" marker-end="url(#arrowhead)" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgV2.x}" y2="${svgV2.y}" stroke="green" stroke-width="1" marker-end="url(#arrowhead)" />
+        
+     
+        
+        <!-- 绘制平行四边形 -->
+
+        <line x1="${svgV1.x}" y1="${svgV1.y}" x2="${svgV2.x}" y2="${svgV2.y}" stroke="green" stroke-width="1" />
+        
+        <!-- 绘制结果向量 -->
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgResult.x}" y2="${svgResult.y}" stroke="red" stroke-width="2" marker-end="url(#arrowhead)" />
+        
+        
+        <!-- 标记点 -->
+        <circle cx="${svgO.x}" cy="${svgO.y}" r="5" fill="black" />
+        <text x="${svgO.x + 8}" y="${svgO.y - 8}" font-size="14">O(0,0)</text>
+        
+        <circle cx="${svgV1.x}" cy="${svgV1.y}" r="3" fill="blue" />
+        <text x="${svgV1.x + 8}" y="${svgV1.y - 8}" font-size="12">(${a},${b})</text>
+        
+        <circle cx="${svgV2.x}" cy="${svgV2.y}" r="3" fill="green" />
+        <text x="${svgV2.x + 8}" y="${svgV2.y - 8}" font-size="12">(${c},${d})</text>
+        
+        
+        <circle cx="${svgResult.x}" cy="${svgResult.y}" r="5" fill="red" />
+        <text x="${svgResult.x + 8}" y="${svgResult.y - 8}" font-size="14">(?,?)</text>
+        
+        <!-- 箭头定义 -->
+        <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" />
+            </marker>
+        </defs>
+    </svg>`;
+
+    correctAnswer = [`${resultVector}`];
+    
+    return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+    </div>`;
+        }
+
+
+
+
+
+
+
+
+function generateLevel9Question() {
+    // 生成复数乘法所需的随机系数
+    let a, b, c, d;
+    
+    do {
+        // 生成-4到4的随机整数
+        a = (Math.floor(Math.random() * 9) + 2)*(Math.random()<0.5?1:-1);
+        b = (Math.floor(Math.random() * 9) + 2)*(Math.random()<0.5?1:-1);
+        c = (Math.floor(Math.random() * 9) + 2)*(Math.random()<0.5?1:-1);
+        d = (Math.floor(Math.random() * 9) + 2)*(Math.random()<0.5?1:-1);
+        
+        // 确保至少一个复数不为0
+    } while ((a === 0 && b === 0) || (c === 0 && d === 0)||Math.abs( a * c - b * d)>=16||Math.abs( a * d + b * c)>=16);
+    
+    // 计算复数乘法结果
+    // (a + bi) * (c + di) = (ac - bd) + (ad + bc)i
+    const resultReal = a * c - b * d;
+    const resultImag = a * d + b * c;
+    
+    const r=Math.sqrt(resultReal*resultReal+resultImag*resultImag);
+    // 格式化复数显示
+    const formatComplex = (real, imag) => {
+        if (real === 0 && imag === 0) return "0";
+        
+        let result = "";
+        
+        // 处理实部
+        if (real !== 0) {
+            result += real;
+        }
+        
+        // 处理虚部
+        if (imag !== 0) {
+            if (imag === 1) {
+                result += (real !== 0) ? "+i" : "i";
+            } else if (imag === -1) {
+                result += "-i";
+            } else {
+                if (real !== 0) {
+                    result += (imag > 0) ? `+${imag}i` : `${imag}i`;
+                } else {
+                    result += `${imag}i`;
+                }
+            }
+        }
+        
+        return result;
+    };
+    
+    const complex1 = formatComplex(a, b);
+    const complex2 = formatComplex(c, d);
+    const complex3 = formatComplex(a*c, a*d);
+    const complex4 = formatComplex(b*-d, b*c);
+    const resultComplex = formatComplex(resultReal, resultImag);
+    
+    // 创建问题文本
+    const textq = `\\(\\begin{array}{cc} (${complex1}) \\cdot (${complex2}) = ? \\end{array}\\)`;
+    
+    // 创建SVG坐标系用于可视化复数乘法
+    const svgSize = 520;
+    const center = svgSize / 2;
+    const scale = r;
+    
+    // 计算各个点的坐标
+    const pointO = {x: 0, y: 0};
+    const point1 = {x: a, y: b};
+    const point2 = {x: c, y: d};
+    const point3 = {x: a*c, y: a*d};
+    const point4 = {x: b*-d, y: b*c};
+    const pointResult = {x: resultReal, y: resultImag};
+    
+    // 转换为SVG坐标系
+    const svgO = {x: center + pointO.x * scale, y: center - pointO.y * scale};
+    const svg1 = {x: center + point1.x * scale, y: center - point1.y * scale};
+    const svg2 = {x: center + point2.x * scale, y: center - point2.y * scale};
+    const svg3 = {x: center + point3.x * scale, y: center - point3.y * scale};
+    const svg4 = {x: center + point4.x * scale, y: center - point4.y * scale};
+    const svgResult = {x: center + pointResult.x * scale, y: center - pointResult.y * scale};
+    
+    // 创建SVG元素
+    const svg = `
+    <svg width="${svgSize}" height="${svgSize}" style="background-color: #f9f9f9; margin: 0 auto; display: block;">
+        <!-- 绘制坐标轴 -->
+        <line x1="0" y1="${center}" x2="${svgSize}" y2="${center}" stroke="black" stroke-width="1" />
+        <line x1="${center}" y1="0" x2="${center}" y2="${svgSize}" stroke="black" stroke-width="1" />
+        
+        <!-- 绘制刻度，范围从-18到18 -->
+        ${Array.from({length: 2*r}, (_, i) => i - r).map(i => 
+            `<line x1="${center + i * scale}" y1="${center - 1}" x2="${center + i * scale}" y2="${center + 1}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center + i * scale}" y="${center + r}" text-anchor="middle" font-size="10">${i}</text>` : ''}
+             <line x1="${center - 1}" y1="${center - i * scale}" x2="${center + 1}" y2="${center - i * scale}" stroke="black" stroke-width="1" />
+             ${i % 3 === 0 ? `<text x="${center - r/2}" y="${center - i * scale +  1}" text-anchor="end" font-size="10">${i}</text>` : ''}`
+        ).join('')}
+        
+        <!-- 绘制复数点 -->
+        <circle cx="${svgO.x}" cy="${svgO.y}" r="5" fill="black" />
+        <text x="${svgO.x + 8}" y="${svgO.y - 8}" font-size="14">O(0,0)</text>
+        
+        <circle cx="${svg1.x}" cy="${svg1.y}" r="3" fill="blue" />
+        <text x="${svg1.x + 8}" y="${svg1.y - 8}" font-size="12">${complex1}</text>
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svg1.x}" y2="${svg1.y}" stroke="blue" stroke-width="1" marker-end="url(#arrowhead)" />
+        
+        <circle cx="${svg2.x}" cy="${svg2.y}" r="3" fill="green" />
+        <text x="${svg2.x + 8}" y="${svg2.y - 8}" font-size="12">${complex2}</text>
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svg2.x}" y2="${svg2.y}" stroke="green" stroke-width="1" marker-end="url(#arrowhead)" />
+     
+        <circle cx="${svg3.x}" cy="${svg3.y}" r="3" fill="green" />
+        <text x="${svg3.x + 8}" y="${svg3.y - 8}" font-size="12">${complex3}</text>
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svg3.x}" y2="${svg3.y}" stroke="green" stroke-width="1" marker-end="url(#arrowhead)" />
+
+        <circle cx="${svg4.x}" cy="${svg4.y}" r="3" fill="green" />
+        <text x="${svg4.x + 8}" y="${svg4.y - 8}" font-size="12">${complex4}</text>
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svg4.x}" y2="${svg4.y}" stroke="green" stroke-width="1" marker-end="url(#arrowhead)" />
+        <line x1="${svg3.x}" y1="${svg3.y}" x2="${svgResult.x}" y2="${svgResult.y}" stroke="green" stroke-width="1" marker-end="url(#arrowhead)" />
+
+
+        
+
+        <circle cx="${svgResult.x}" cy="${svgResult.y}" r="5" fill="red" />
+        <line x1="${svgO.x}" y1="${svgO.y}" x2="${svgResult.x}" y2="${svgResult.y}" stroke="red" stroke-width="2" marker-end="url(#arrowhead)" />
+        
+
+ 
+        <!-- 箭头定义 -->
+        <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" />
+            </marker>
+        </defs>
+    </svg>`;
+    
+    correctAnswer = [`${resultComplex}`,`${resultReal},${resultImag}`,`(${resultReal},${resultImag})`];
+    
+    return `<div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="margin-bottom: 20px;">
+            ${textq}
+        </div>
+        <div>
+            ${svg}
+        </div>
+     </div>`;
+}
+
+
+        function generateLevel10Question() {
+            const levelFunctions = [
+                generateLevel1Question,
+                generateLevel2Question,
+                generateLevel3Question,
+                generateLevel4Question,
+                generateLevel5Question,
+                generateLevel6Question,
+                generateLevel7Question,
+                generateLevel8Question,
+                generateLevel9Question,
+            ];
+
+            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+            const selectedFunction = levelFunctions[randomIndex];
+
+            return selectedFunction();
+        }
+
+
+
+        // 创建冲击波效果
+        function createShockwave(attacker) {
+            const shockwave = document.createElement('div');
+            shockwave.className = `shockwave ${attacker}-attack`;
+            
+            document.body.appendChild(shockwave);
+            
+            // 播放攻击音效
+            document.getElementById(`${attacker}AttackSound`).play();
+            
+            // 攻击动画结束后移除元素
+            setTimeout(() => {
+                document.body.removeChild(shockwave);
+            }, 1000);
+        }
+        
+        // 玩家和计算机的对诮语句
+        const playerTaunts = [
+            "算得太慢了！",
+            "这题太简单了！",
+            "接招吧！",
+            "看我的厉害！",
+            "数学很简单吧！"
+        ];
+        
+        const computerTaunts = [
+            "人类的计算速度真慢！",
+            "再快一点试试？",
+            "这就是我的实力！",
+            "你跟不上我的速度！",
+            "机器智能胜过人类！"
+        ];
+        
+        // 显示对诮语句
+        function showTaunt(source) {
+            // 创建对诮气泡
+            const taunt = document.createElement('div');
+            taunt.className = `taunt-bubble ${source}-taunt`;
+            
+            // 随机选择一条对诮语句
+            const taunts = source === 'player' ? playerTaunts : computerTaunts;
+            const randomIndex = Math.floor(Math.random() * taunts.length);
+            taunt.textContent = taunts[randomIndex];
+            
+            document.body.appendChild(taunt);
+            
+            // 对诮动画结束后移除元素
+            setTimeout(() => {
+                document.body.removeChild(taunt);
+            }, 2000);
+        }
+
+        // 更新通关模式UI
+        function updateConquestUI() {
+            if (!document.getElementById('levelProgress')) return;
+            
+            document.getElementById('levelProgress').innerHTML = `
+                <div class="level-indicator">当前关卡: ${conquestLevel}</div>
+                <div class="question-counter">完成题数: ${conquestCorrectCount}/3</div>
+                <div class="conquest-timer">总用时: ${Math.floor((new Date().getTime() - conquestStartTime) / 1000)}秒</div>
+            `;
+        }
+        
+        // 更新通关模式的难度按钮状态
+        function updateDifficultyButtonsForConquest() {
+            if (gameMode !== 'conquest') return;
+            
+            // 先移除所有难度按钮的active类和completed类
+            document.querySelectorAll('.difficulty-buttons button').forEach(btn => {
+                btn.classList.remove('active', 'completed', 'current');
+                
+                // 在通关模式中，所有按钮都应该被禁用，除了当前关卡
+                if (parseInt(btn.dataset.level) === conquestLevel) {
+                    btn.disabled = false;
+                } else {
+                    btn.disabled = true;
+                }
+            });
+            
+            // 标记已完成的关卡
+            for (let i = 1; i < conquestLevel; i++) {
+                const completedBtn = document.querySelector(`.difficulty-buttons button[data-level="${i}"]`);
+                if (completedBtn) {
+                    completedBtn.classList.add('completed');
+                }
+            }
+            
+            // 找到当前难度按钮并设为活跃
+            const currentBtn = document.querySelector(`.difficulty-buttons button[data-level="${conquestLevel}"]`);
+            if (currentBtn) {
+                currentBtn.classList.add('current');
+                currentBtn.classList.add('active');
+            }
+        }
+        
+        // 更新计时器显示 - 支持通关模式
+        function updateTimers() {
+            if (gameMode === 'conquest') {
+                const currentTime = Math.floor((new Date().getTime() - conquestStartTime) / 1000);
+                if (document.querySelector('.conquest-timer')) {
+                    document.querySelector('.conquest-timer').textContent = `总用时: ${currentTime}秒`;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
+
