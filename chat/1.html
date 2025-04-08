@@ -3,6 +3,44 @@
 <head>
   <link rel="icon" href="icon.ico" type="image/x-icon">
   <meta charset="UTF-8">
+
+  <!-- Attempt to load MathJax from CDN -->
+  <script id="MathJax-CDN-script" async 
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+          onerror="loadLocalMathJax()"></script>
+
+  <!-- Local MathJax loader function (called on CDN error or as fallback) -->
+  <script>
+    let localMathJaxLoaded = false;
+    function loadLocalMathJax() {
+      // Check if MathJax object exists or if we've already tried loading locally
+      if (typeof MathJax === 'undefined' && !localMathJaxLoaded) {
+        localMathJaxLoaded = true; // Set flag to prevent multiple attempts
+        console.warn('MathJax CDN failed or unavailable. Loading local version from ./mathjax/ ...');
+        const script = document.createElement('script');
+        script.id = 'MathJax-Local-script'; // Unique ID for the local script
+        script.async = true;
+        // Path relative to 1.html (in chat folder), assuming mathjax folder is inside chat or web root
+        // Adjust './mathjax/...' if the mathjax folder location is different
+        script.src = './mathjax/mathjax/es5/tex-mml-chtml.js'; 
+        script.onerror = () => {
+          console.error('Local MathJax failed to load from ./mathjax/mathjax/es5/tex-mml-chtml.js. Check path?');
+        };
+        document.head.appendChild(script);
+      }
+    }
+
+    // Additional fallback check after page load, in case 'onerror' didn't catch all CDN issues (e.g., timeouts)
+    window.addEventListener('load', () => {
+      setTimeout(() => { // Short delay to give async CDN script a chance
+         if (typeof MathJax === 'undefined' && !localMathJaxLoaded) {
+            console.warn('MathJax CDN likely timed out or blocked. Triggering local load.');
+            loadLocalMathJax();
+         }
+      }, 1500); // Increased timeout slightly
+    });
+  </script>
+
   <style>
     body {
       margin: 0;
