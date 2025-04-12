@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>声控飞行小鸟</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            overflow-y: auto; /* 允许页面滚动 */
+        }
+        
+        /* 添加一个包裹所有内容的容器 */
+        .game-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border: 2px solid #333;
+            overflow: hidden;
+            background-color: #87CEEB;
+            margin: 20px 0;
+            z-index: 1; /* 确保游戏画面在上层 */
+        }
+        
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        #volumeMeter {
+            width: 300px;
+            height: 20px;
+            border: 1px solid #333;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        #volumeBar {
+            height: 100%;
+            width: 0%;
+            background-color: #4CAF50;
+            transition: width 0.1s;
+        }
+        
+        #controls {
+            margin: 20px 0;
+        }
+        
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        #gameStatus {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        #score {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        
+        #instructions {
+            margin: 20px 0;
+            text-align: center;
+            font-size: 16px;
+            max-width: 600px;
+        }
+        
+        #audioVisualization {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            margin: 20px 0;
+        }
+        
+        #oscilloscopeContainer {
+            width: 100%;
+            max-width: 800px;
+            height: 150px;
+            background-color: #000;
+            border: 1px solid #333;
+            margin-bottom: 15px;
+        }
+        
+        #audioStats {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 800px;
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .stat-container {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 8px 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-wrapper">
+        <h1>声控飞行小鸟</h1>
+        
+        <div id="gameStatus">准备开始</div>
+        <div id="score">分数: 0</div>
+        
+        <div id="gameContainer">
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+        </div>
+        
+        <div id="volumeMeter">
+            <div id="volumeBar"></div>
+        </div>
+        
+        <div id="audioVisualization">
+            <div id="oscilloscopeContainer">
+                <canvas id="oscilloscope" width="800" height="150"></canvas>
+            </div>
+            <div id="audioStats">
+                <div class="stat-container">
+                    <div>响度: <span id="loudness">0 dB</span></div>
+                </div>
+                <div class="stat-container">
+                    <div>主频率: <span id="dominantFrequency">0 Hz</span></div>
+                </div>
+                <div class="stat-container">
+                    <div>音量: <span id="volumeValue">0%</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="controls">
+            <button id="startButton">开始游戏</button>
+            <button id="resetButton" disabled>重新开始</button>
+        </div>
+        
+        <div id="instructions">
+            <p>游戏说明: 使用麦克风声音控制小鸟飞行。声音越大，小鸟上升越快；没有声音时，小鸟会下落。</p>
+            <p>躲避障碍物，通过障碍物得分。碰到障碍物或碰到地面/天空边界游戏结束。</p>
+        </div>
+    </div>
+    
+    <script>
+        // 游戏变量
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startButton = document.getElementById('startButton');
+        const resetButton = document.getElementById('resetButton');
+        const statusElement = document.getElementById('gameStatus');
+        const scoreElement = document.getElementById('score');
+        const volumeBar = document.getElementById('volumeBar');
+        
+        // 新增示波器和声音分析相关变量
+        const oscilloscope = document.getElementById('oscilloscope');
+        const oscilloscopeCtx = oscilloscope.getContext('2d');
+        const loudnessElement = document.getElementById('loudness');
+        const dominantFrequencyElement = document.getElementById('dominantFrequency');
+        const volumeValueElement = document.getElementById('volumeValue');
+        
+        let gameRunning = false;
+        let score = 0;
+        let audioContext;
+        let microphone;
+        let analyser;
+        let dataArray;
+        let timeDataArray; // 时域数据
+        
+        // 小鸟变量
+        const bird = {
+            x: 150,
+            y: canvas.height / 2,
+            radius: 20,
+            velocity: 0,
+            gravity: 0.04,
+            lift: -0.4
+        };
+        
+        // 障碍物数组
+        let pipes = [];
+        const pipeWidth = 80;
+        const pipeGap = 200;
+        const pipeSpacing = 300;
+        
+        // 游戏速度
+        let gameSpeed = 1;
+        
+        // 游戏状态
+        let gameState = 'start';
+        
+        // 小鸟上下抖动计数器
+        let birdFlapCounter = 0;
+        
+        // 控制游戏开始
+        startButton.addEventListener('click', () => {
+            if (gameState === 'start' || gameState === 'over') {
+                startGame();
+            }
+        });
+        
+        // 控制游戏重新开始
+        resetButton.addEventListener('click', () => {
+            resetGame();
+        });
+        
+        // 初始化音频处理
+        async function setupAudio() {
+            try {
+                // 获取麦克风权限
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                // 创建音频上下文
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                microphone = audioContext.createMediaStreamSource(stream);
+                analyser = audioContext.createAnalyser();
+                
+                // 设置音频分析参数 - 增加精度
+                analyser.fftSize = 2048; // 增加到2048以提高频率分析精度
+                const bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+                timeDataArray = new Uint8Array(bufferLength); // 用于示波器的时域数据
+                
+                // 连接节点
+                microphone.connect(analyser);
+                
+                // 启动示波器更新
+                updateOscilloscope();
+                
+                return true;
+            } catch (error) {
+                console.error('无法访问麦克风:', error);
+                statusElement.textContent = '无法访问麦克风，请检查您的设备设置';
+                return false;
+            }
+        }
+        
+        // 获取音量级别
+        function getVolumeLevel() {
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            
+            // 计算平均音量
+            for (let i = 0; i < dataArray.length; i++) {
+                sum += dataArray[i];
+            }
+            
+            const average = sum / dataArray.length;
+            return average / 256; // 归一化为0-1
+        }
+        
+        // 更新音量显示
+        function updateVolumeMeter(volume) {
+            volumeBar.style.width = `${volume * 100}%`;
+            volumeValueElement.textContent = `${Math.round(volume * 100)}%`;
+        }
+        
+        // 计算主导频率
+        function getDominantFrequency() {
+            analyser.getByteFrequencyData(dataArray);
+            
+            // 找到能量最高的频率bin
+            let maxValue = 0;
+            let maxIndex = 0;
+            
+            // 只考虑人声范围的频率 (大约80Hz到1100Hz)
+            const minIndex = Math.floor(80 * analyser.fftSize / audioContext.sampleRate);
+            const maxIndexLimit = Math.floor(1100 * analyser.fftSize / audioContext.sampleRate);
+            
+            for(let i = minIndex; i < Math.min(maxIndexLimit, dataArray.length); i++) {
+                if(dataArray[i] > maxValue) {
+                    maxValue = dataArray[i];
+                    maxIndex = i;
+                }
+            }
+            
+            // 如果音量太低，认为没有明显频率
+            if(maxValue < 30) return 0;
+            
+            // 将bin索引转换为频率
+            const frequency = maxIndex * audioContext.sampleRate / analyser.fftSize;
+            return Math.round(frequency);
+        }
+        
+        // 计算分贝响度 (使用RMS)
+        function calculateLoudness() {
+            analyser.getByteTimeDomainData(timeDataArray);
+            
+            let sumOfSquares = 0;
+            for(let i = 0; i < timeDataArray.length; i++) {
+                // 将0-255范围转换为-1到1
+                const amplitude = (timeDataArray[i] / 128) - 1;
+                sumOfSquares += amplitude * amplitude;
+            }
+            
+            const rms = Math.sqrt(sumOfSquares / timeDataArray.length);
+            
+            // 将RMS转换为分贝 (避免log(0))
+            const db = rms > 0 ? 20 * Math.log10(rms) : -100;
+            
+            // 分贝值通常为负数，0dB是最大值
+            return Math.max(-100, Math.round(db));
+        }
+        
+        // 绘制示波器
+        function updateOscilloscope() {
+            if(!analyser) return;
+            
+            // 获取音频时域数据
+            analyser.getByteTimeDomainData(timeDataArray);
+            
+            // 清除示波器
+            oscilloscopeCtx.fillStyle = 'black';
+            oscilloscopeCtx.fillRect(0, 0, oscilloscope.width, oscilloscope.height);
+            
+            // 绘制波形
+            oscilloscopeCtx.lineWidth = 2;
+            oscilloscopeCtx.strokeStyle = '#00FFFF';
+            oscilloscopeCtx.beginPath();
+            
+            const sliceWidth = oscilloscope.width / timeDataArray.length;
+            let x = 0;
+            
+            for(let i = 0; i < timeDataArray.length; i++) {
+                const v = timeDataArray[i] / 128.0;
+                const y = v * oscilloscope.height/2;
+                
+                if(i === 0) {
+                    oscilloscopeCtx.moveTo(x, y);
+                } else {
+                    oscilloscopeCtx.lineTo(x, y);
+                }
+                
+                x += sliceWidth;
+            }
+            
+            oscilloscopeCtx.lineTo(oscilloscope.width, oscilloscope.height/2);
+            oscilloscopeCtx.stroke();
+            
+            // 更新音频状态信息
+            const volume = getVolumeLevel();
+            const dominantFreq = getDominantFrequency();
+            const loudness = calculateLoudness();
+            
+            // 更新显示
+            updateVolumeMeter(volume);
+            loudnessElement.textContent = `${loudness} dB`;
+            dominantFrequencyElement.textContent = `${dominantFreq} Hz`;
+            
+            // 使用在游戏循环外的requestAnimationFrame以获得更流畅的更新
+            requestAnimationFrame(updateOscilloscope);
+        }
+        
+        // 生成新的障碍物
+        function createPipe() {
+            const minHeight = 50;
+            const maxHeight = canvas.height - pipeGap - minHeight;
+            const topHeight = Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
+            
+            pipes.push({
+                x: canvas.width,
+                topHeight: topHeight,
+                bottomY: topHeight + pipeGap,
+                scored: false
+            });
+        }
+        
+        // 游戏逻辑更新
+        function update() {
+            if (!gameRunning) return;
+            
+            // 获取当前音量并更新指示器
+            const volume = getVolumeLevel();
+            updateVolumeMeter(volume);
+            
+            // 根据音量更新小鸟速度
+            bird.velocity += bird.gravity;
+            
+            // 声音控制 - 将阈值从0.02(2%)降低到0.01(1%)
+            if (volume > 0.01) { // 修改为0.01，使1%的声音也能被检测到
+                bird.velocity += (volume * -1.25);
+            }
+            
+            // 限制最大下落和上升速度
+            if (bird.velocity > 1.2) {
+                bird.velocity = 1.2;
+            }
+            
+            if (bird.velocity < -0.8) {
+                bird.velocity = -0.8;
+            }
+            
+            // 更新小鸟位置
+            bird.y += bird.velocity;
+            
+            // 边界检查
+            if (bird.y < bird.radius) {
+                bird.y = bird.radius;
+                bird.velocity = 0;
+                gameOver();
+            }
+            
+            if (bird.y > canvas.height - bird.radius) {
+                bird.y = canvas.height - bird.radius;
+                bird.velocity = 0;
+                gameOver();
+            }
+            
+            // 更新障碍物位置
+            pipes.forEach((pipe, index) => {
+                pipe.x -= gameSpeed;
+                
+                // 检测通过障碍物
+                if (!pipe.scored && pipe.x + pipeWidth < bird.x) {
+                    pipe.scored = true;
+                    score++;
+                    scoreElement.textContent = `分数: ${score}`;
+                }
+                
+                // 移除屏幕外的障碍物
+                if (pipe.x + pipeWidth < 0) {
+                    pipes.splice(index, 1);
+                }
+                
+                // 碰撞检测
+                if (
+                    bird.x + bird.radius > pipe.x && 
+                    bird.x - bird.radius < pipe.x + pipeWidth && 
+                    (bird.y - bird.radius < pipe.topHeight || bird.y + bird.radius > pipe.bottomY)
+                ) {
+                    gameOver();
+                }
+            });
+            
+            // 根据时间创建新的障碍物
+            if (pipes.length === 0 || canvas.width - pipes[pipes.length - 1].x >= pipeSpacing) {
+                createPipe();
+            }
+            
+            // 小鸟抖动动画
+            birdFlapCounter = (birdFlapCounter + 1) % 15;
+        }
+        
+        // 绘制游戏元素
+        function draw() {
+            // 清除画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制背景
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制云朵
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.arc(100, 100, 30, 0, Math.PI * 2);
+            ctx.arc(130, 90, 25, 0, Math.PI * 2);
+            ctx.arc(160, 100, 20, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(400, 70, 35, 0, Math.PI * 2);
+            ctx.arc(430, 60, 30, 0, Math.PI * 2);
+            ctx.arc(460, 70, 25, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(700, 120, 25, 0, Math.PI * 2);
+            ctx.arc(730, 110, 20, 0, Math.PI * 2);
+            ctx.arc(760, 120, 15, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 绘制障碍物
+            ctx.fillStyle = '#228B22';
+            pipes.forEach(pipe => {
+                // 上方障碍物
+                ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
+                
+                // 下方障碍物
+                ctx.fillRect(pipe.x, pipe.bottomY, pipeWidth, canvas.height - pipe.bottomY);
+                
+                // 障碍物边缘装饰
+                ctx.fillStyle = '#32CD32';
+                ctx.fillRect(pipe.x - 5, pipe.topHeight - 20, pipeWidth + 10, 20);
+                ctx.fillRect(pipe.x - 5, pipe.bottomY, pipeWidth + 10, 20);
+                ctx.fillStyle = '#228B22';
+            });
+            
+            // 绘制小鸟
+            const birdFlapOffset = Math.sin(birdFlapCounter * 0.4) * 3;
+            
+            // 绘制小鸟身体
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 绘制小鸟眼睛
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(bird.x + 8, bird.y - 8, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.arc(bird.x + 10, bird.y - 8, 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 绘制小鸟嘴巴
+            ctx.fillStyle = '#FF6347';
+            ctx.beginPath();
+            ctx.moveTo(bird.x + 18, bird.y);
+            ctx.lineTo(bird.x + 30, bird.y);
+            ctx.lineTo(bird.x + 18, bird.y + 5);
+            ctx.fill();
+            
+            // 绘制小鸟翅膀
+            ctx.fillStyle = '#FFA500';
+            ctx.beginPath();
+            ctx.ellipse(
+                bird.x - 5, 
+                bird.y + 5 + birdFlapOffset, 
+                15, 8, 
+                0.5, 0, Math.PI * 2
+            );
+            ctx.fill();
+            
+            // 游戏状态显示
+            if (!gameRunning) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = 'white';
+                ctx.font = '48px Arial';
+                ctx.textAlign = 'center';
+                
+                if (gameState === 'start') {
+                    ctx.fillText('准备开始', canvas.width / 2, canvas.height / 2);
+                } else if (gameState === 'over') {
+                    ctx.fillText('游戏结束', canvas.width / 2, canvas.height / 2);
+                    ctx.font = '24px Arial';
+                    ctx.fillText(`最终得分: ${score}`, canvas.width / 2, canvas.height / 2 + 50);
+                    ctx.fillText('点击"重新开始"按钮再试一次', canvas.width / 2, canvas.height / 2 + 90);
+                }
+            }
+        }
+        
+        // 游戏主循环
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 开始游戏
+        async function startGame() {
+            if (!audioContext) {
+                const audioReady = await setupAudio();
+                if (!audioReady) return;
+            }
+            
+            // 恢复可能被暂停的音频上下文
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+            
+            // 重置游戏状态
+            bird.y = canvas.height / 2;
+            bird.velocity = 0;
+            pipes = [];
+            score = 0;
+            scoreElement.textContent = `分数: 0`;
+            
+            // 更新按钮状态
+            startButton.disabled = true;
+            resetButton.disabled = false;
+            
+            // 更新游戏状态
+            gameState = 'playing';
+            gameRunning = true;
+            statusElement.textContent = '游戏进行中';
+            
+            // 创建初始障碍物
+            createPipe();
+        }
+        
+        // 游戏结束
+        function gameOver() {
+            gameRunning = false;
+            gameState = 'over';
+            statusElement.textContent = '游戏结束';
+            
+            // 更新按钮状态
+            startButton.disabled = true;
+            resetButton.disabled = false;
+        }
+        
+        // 重置游戏
+        function resetGame() {
+            gameRunning = false;
+            gameState = 'start';
+            statusElement.textContent = '准备开始';
+            
+            // 更新按钮状态
+            startButton.disabled = false;
+            resetButton.disabled = true;
+        }
+        
+        // 开始游戏循环
+        gameLoop();
+    </script>
+</body>
+</html>

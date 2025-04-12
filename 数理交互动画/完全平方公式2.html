@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>完全平方公式交互理解</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .formula {
+            font-size: 24px;
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .visualization {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 30px 0;
+        }
+        .square {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            border: 2px solid #333;
+            margin-bottom: 20px;
+        }
+        .part {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            box-sizing: border-box;
+        }
+        .part-a2 {
+            background-color: #3498db;
+            color: white;
+        }
+        .part-b2 {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .part-ab {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        label {
+            min-width: 80px;
+        }
+        input[type="range"] {
+            flex-grow: 1;
+        }
+        .value-display {
+            min-width: 40px;
+            text-align: right;
+        }
+        .explanation {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>完全平方公式交互理解</h1>
+    
+    <div class="formula">
+        (a + b)² = a² + 2ab + b²
+    </div>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label for="a-value">a 的值:</label>
+            <input type="range" id="a-value" min="1" max="9" value="3" step="0.1">
+            <span id="a-display" class="value-display">3</span>
+        </div>
+        
+        <div class="control-group">
+            <label for="b-value">b 的值:</label>
+            <input type="range" id="b-value" min="1" max="9" value="2" step="0.1">
+            <span id="b-display" class="value-display">2</span>
+        </div>
+    </div>
+    
+    <div class="visualization">
+        <div class="square" id="square">
+            <!-- 各部分将通过JavaScript动态生成 -->
+        </div>
+    </div>
+    
+    <div class="explanation">
+        <h3>完全平方公式解释:</h3>
+        <p>完全平方公式展示了 (a + b)² 的几何意义：</p>
+        <p>1. 大正方形的边长为 (a + b)，因此面积为 (a + b)²</p>
+        <p>2. 大正方形可以分割为：</p>
+        <ul>
+            <li>一个边长为 a 的小正方形（蓝色区域），面积为 a²</li>
+            <li>两个长为 a、宽为 b 的矩形（绿色区域），每个面积为 ab，总共 2ab</li>
+            <li>一个边长为 b 的小正方形（红色区域），面积为 b²</li>
+        </ul>
+        <p>因此，(a + b)² = a² + 2ab + b²</p>
+    </div>
+    
+    <script>
+        const aSlider = document.getElementById('a-value');
+        const bSlider = document.getElementById('b-value');
+        const aDisplay = document.getElementById('a-display');
+        const bDisplay = document.getElementById('b-display');
+        const square = document.getElementById('square');
+        
+        // 初始值
+        let a = parseFloat(aSlider.value);
+        let b = parseFloat(bSlider.value);
+        
+        // 更新显示和可视化
+        function updateVisualization() {
+            aDisplay.textContent = a.toFixed(1);
+            bDisplay.textContent = b.toFixed(1);
+            
+            // 计算各部分尺寸（比例缩放以适应300px的容器）
+            const total = a + b;
+            const scale = 300 / total;
+            
+            const aScaled = a * scale;
+            const bScaled = b * scale;
+            
+            // 清除之前的可视化
+            square.innerHTML = '';
+            
+            // 创建a²部分（左上角）
+            const a2 = document.createElement('div');
+            a2.className = 'part part-a2';
+            a2.style.width = `${aScaled}px`;
+            a2.style.height = `${aScaled}px`;
+            a2.style.left = '0';
+            a2.style.top = '0';
+            a2.textContent = `a² = ${(a*a).toFixed(2)}`;
+            square.appendChild(a2);
+            
+            // 创建ab部分（右上角）
+            const ab1 = document.createElement('div');
+            ab1.className = 'part part-ab';
+            ab1.style.width = `${bScaled}px`;
+            ab1.style.height = `${aScaled}px`;
+            ab1.style.left = `${aScaled}px`;
+            ab1.style.top = '0';
+            ab1.textContent = `ab = ${(a*b).toFixed(2)}`;
+            square.appendChild(ab1);
+            
+            // 创建ab部分（左下角）
+            const ab2 = document.createElement('div');
+            ab2.className = 'part part-ab';
+            ab2.style.width = `${aScaled}px`;
+            ab2.style.height = `${bScaled}px`;
+            ab2.style.left = '0';
+            ab2.style.top = `${aScaled}px`;
+            ab2.textContent = `ab = ${(a*b).toFixed(2)}`;
+            square.appendChild(ab2);
+            
+            // 创建b²部分（右下角）
+            const b2 = document.createElement('div');
+            b2.className = 'part part-b2';
+            b2.style.width = `${bScaled}px`;
+            b2.style.height = `${bScaled}px`;
+            b2.style.left = `${aScaled}px`;
+            b2.style.top = `${aScaled}px`;
+            b2.textContent = `b² = ${(b*b).toFixed(2)}`;
+            square.appendChild(b2);
+            
+            // 更新公式显示
+            const leftSide = (a + b) * (a + b);
+            const rightSide = a*a + 2*a*b + b*b;
+            document.querySelector('.formula').innerHTML = 
+                `(a + b)² = (${a.toFixed(1)} + ${b.toFixed(1)})² = ${leftSide.toFixed(2)}<br>
+                a² + 2ab + b² = ${(a*a).toFixed(2)} + 2×${(a*b).toFixed(2)} + ${(b*b).toFixed(2)} = ${rightSide.toFixed(2)}`;
+        }
+        
+        // 事件监听器
+        aSlider.addEventListener('input', function() {
+            a = parseFloat(this.value);
+            updateVisualization();
+        });
+        
+        bSlider.addEventListener('input', function() {
+            b = parseFloat(this.value);
+            updateVisualization();
+        });
+        
+        // 初始渲染
+        updateVisualization();
+    </script>
+</body>
+</html>

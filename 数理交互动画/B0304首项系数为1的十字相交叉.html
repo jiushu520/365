@@ -3,7 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>二次式因式分解可视化</title>
+    <title>B0304首项系数为1的十字相交叉</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            }
+        };
+    </script>
     <style>
         body {
             font-family: 'Microsoft YaHei', 'Arial', sans-serif;
@@ -182,49 +196,50 @@
     </style>
 </head>
 <body>
-    <h1>二次式因式分解与展开可视化</h1>
-    <div class="explanation">
-        <div class="result-display">
-            <div id="factored-form">(x+a)(x+b) = (x+2)(x+3)</div>
-            <div id="expanded-form">= x² + (a+b)x + ab = x² + 5x + 6</div>
-        </div>
+    <h3>B0304首项系数为1的十字相交叉</h3>
+
 
     
-    <div class="controls">
-        <h3>调整参数</h3>
-        <div class="x-input-container">
-            <label for="value-x">x 的值:</label>
-            <input type="range" id="value-x" min="1" max="10" value="5" step="1">
-            <span class="value-display" id="x-display">5</span>
-            <span>（这是用于几何可视化的正值）</span>
-        </div>
-        <div class="slider-container">
-            <label for="value-a">a 的值:</label>
-            <input type="range" id="value-a" min="-9" max="9" value="2" step="1">
-            <span class="value-display" id="a-display">2</span>
-        </div>
-        <div class="slider-container">
-            <label for="value-b">b 的值:</label>
-            <input type="range" id="value-b" min="-9" max="9" value="3" step="1">
-            <span class="value-display" id="b-display">3</span>
-        </div>
-        
-
-        
-
-
     <div class="tab-container">
+        <div class="explanation">
+
+ <div class="controls" style="margin-top: 15px; margin-bottom: 15px;">
+                <div class="x-input-container">
+                    <label for="value-x">x 的值:</label>
+                    <input type="range" id="value-x" min="1" max="10" value="5" step="1">
+                    <span class="value-display" id="x-display">5</span>
+                </div>
+                <div class="slider-container">
+                    <label for="value-a">a 的值:</label>
+                    <input type="range" id="value-a" min="-9" max="9" value="2" step="1">
+                    <span class="value-display" id="a-display">2</span>
+                </div>
+                <div class="slider-container">
+                    <label for="value-b">b 的值:</label>
+                    <input type="range" id="value-b" min="-9" max="9" value="3" step="1">
+                    <span class="value-display" id="b-display">3</span>
+                </div>
+            </div>
+
         <div class="tab">
             <button class="tablinks active" onclick="openTab(event, 'VisualTab')">几何可视化</button>
             <button class="tablinks" onclick="openTab(event, 'AlgebraTab')">代数分析</button>
         </div>
 
         <div id="VisualTab" class="tabcontent" style="display:block;">
-            <h3>几何解释: (x+a)(x+b) = x² + (a+b)x + ab</h3>
+
+            <h3>几何解释: \((x+a)(x+b) = x^2 + (a+b)x + ab\)</h3>
+
+            <div class="result-display">
+                <div><span id="factored-form">\((x+a)(x+b) = (x+2)(x+3)\)</span> <span id="expanded-form">\(= x^2 + (a+b)x + ab = x^2 + 5x + 6\)</span></div>
 
             <div class="svg-container" id="geometry-visualization">
                 <!-- SVG 将通过 JavaScript 生成 -->
             </div>
+
+            </div>
+           
+     
             <div class="legend">
                 <div class="legend-item">
                     <div class="legend-color" style="background-color: #3498db;"></div>
@@ -253,34 +268,34 @@
 
         <div id="AlgebraTab" class="tabcontent">
             <h3>代数分析: 二次式的因式分解</h3>
-            <p>对于二次式 ax² + bx + c，当 a = 1 时，我们寻找满足以下条件的数 p 和 q：</p>
+            <p>对于二次式 \(ax^2 + bx + c\)，当 \(a = 1\) 时，我们寻找满足以下条件的数 \(p\) 和 \(q\)：</p>
             <ul>
-                <li>p + q = b（即二次式中一次项的系数）</li>
-                <li>p × q = c（即二次式中常数项）</li>
+                <li>\(p + q = b\)（即二次式中一次项的系数）</li>
+                <li>\(p \times q = c\)（即二次式中常数项）</li>
             </ul>
-            <p>如果能找到满足条件的 p 和 q，那么 x² + bx + c = (x + p)(x + q)</p>
+            <p>如果能找到满足条件的 \(p\) 和 \(q\)，那么 \(x^2 + bx + c = (x + p)(x + q)\)</p>
             
             <div id="algebra-analysis">
                 <h4>对当前参数的分析：</h4>
                 <div class="formula-steps" id="steps-display">
-                    对于 x² + 5x + 6:
+                    对于 \(x^2 + 5x + 6\):
                     <ol>
-                        <li>我们需要找到两个数 p 和 q，使得 p + q = 5 且 p × q = 6</li>
+                        <li>我们需要找到两个数 \(p\) 和 \(q\)，使得 \(p + q = 5\) 且 \(p \times q = 6</li>
                         <li>尝试可能的因子对: (1, 6), (2, 3)</li>
-                        <li>2 + 3 = 5 且 2 × 3 = 6，所以 p = 2, q = 3</li>
-                        <li>因此 x² + 5x + 6 = (x + 2)(x + 3)</li>
+                        <li>2 + 3 = 5 且 2 \times 3 = 6，所以 \(p = 2\), \(q = 3</li>
+                        <li>因此 \(x^2 + 5x + 6 = (x + 2)(x + 3)\)</li>
                     </ol>
                 </div>
             </div>
             
             <div id="zero-analysis">
-                <h4>方程 x² + (a+b)x + ab = 0 的解:</h4>
-                <p>当我们把 x² + (a+b)x + ab = 0 因式分解为 (x+a)(x+b) = 0 时，我们可以直接得出方程的解:</p>
+                <h4>方程 \(x^2 + (a+b)x + ab = 0\) 的解:</h4>
+                <p>当我们把 \(x^2 + (a+b)x + ab = 0\) 因式分解为 \((x+a)(x+b) = 0\) 时，我们可以直接得出方程的解:</p>
                 <ul>
-                    <li>x = -a</li>
-                    <li>x = -b</li>
+                    <li>\(x = -a\)</li>
+                    <li>\(x = -b\)</li>
                 </ul>
-                <p id="roots-display">当前方程 x² + 5x + 6 = 0 的解为 x = -2 和 x = -3</p>
+                <p id="roots-display">当前方程 \(x^2 + 5x + 6 = 0\) 的解为 \(x = -2\) 和 \(x = -3\)</p>
             </div>
         </div>
     </div>
@@ -298,10 +313,10 @@
         
         <h2>因式分解的方法</h2>
         <ol>
-            <li><strong>提取公因式：</strong> 如 2x² + 6x = 2x(x + 3)</li>
-            <li><strong>完全平方公式：</strong> 如 x² + 6x + 9 = (x + 3)²</li>
-            <li><strong>十字相乘法：</strong> 对于 x² + (a+b)x + ab，寻找和为一次项系数、积为常数项的两个数</li>
-            <li><strong>公式法：</strong> 利用公式如 a² - b² = (a+b)(a-b) 等</li>
+            <li><strong>提取公因式：</strong> 如 \(2x^2 + 6x = 2x(x + 3)\)</li>
+            <li><strong>完全平方公式：</strong> 如 \(x^2 + 6x + 9 = (x + 3)^2\)</li>
+            <li><strong>十字相乘法：</strong> 对于 \(x^2 + (a+b)x + ab\)，寻找和为一次项系数、积为常数项的两个数</li>
+            <li><strong>公式法：</strong> 利用公式如 \(a^2 - b^2 = (a+b)(a-b)\) 等</li>
         </ol>
     </div>
 
@@ -355,39 +370,64 @@
             const product = a * b;
             
             // 更新显示的表达式
-            const aSign = a >= 0 ? `+${a}` : a;
-            const bSign = b >= 0 ? `+${b}` : b;
-            const sumSign = sum >= 0 ? `+${sum}` : sum;
-            const productSign = product >= 0 ? `+${product}` : product;
+            factoredForm.innerHTML = `\\((x${formatFactorCoefficient(a)})(x${formatFactorCoefficient(b)})\\)`;
             
-            factoredForm.textContent = `(x+a)(x+b) = (x${aSign})(x${bSign})`;
-            expandedForm.textContent = `= x² + (a+b)x + ab = x² ${sumSign}x ${productSign}`;
+            // 处理展开式 - 需要特殊处理系数为0的情况
+            let expandedFormText = '= x^2';
+            
+            if (sum !== 0) {
+                expandedFormText += ` ${formatCoefficient(sum)}x`;
+            }
+            
+            if (product !== 0 || (sum === 0 && product === 0)) {
+                // 如果常数项不为0，或者二次项、一次项都为0，则显示常数项
+                expandedFormText += ` ${formatCoefficient(product)}`;
+            }
+            
+            expandedForm.innerHTML = `\\(${expandedFormText}\\)`;
             
             // 绘制几何可视化
             drawGeometryVisualization(x, a, b);
             
             // 更新代数分析
             updateAlgebraAnalysis(a, b);
+            
+            // 更新后重新渲染数学公式
+            MathJax.typesetPromise && MathJax.typesetPromise();
+        }
+        
+        // 格式化系数显示
+        function formatCoefficient(value) {
+            if (value === 0) return '';  // 如果系数为0，返回空字符串
+            if (value === 1) return '+';
+            if (value === -1) return '-';
+            return value > 0 ? `+${value}` : `${value}`;
+        }
+        
+        // 格式化因式分解形式的系数显示（显示完整数字）
+        function formatFactorCoefficient(value) {
+            if (value === 0) return '';  // 如果系数为0，返回空字符串
+            return value > 0 ? `+${value}` : `${value}`;
+        }
+        
+        // 格式化带变量的项
+        function formatTerm(coefficient, variable) {
+            if (coefficient === 0) return '';  // 系数为0时不显示整个项
+            const formattedCoef = formatCoefficient(coefficient);
+            return `${formattedCoef}${variable}`;
         }
         
         // 绘制几何可视化
         function drawGeometryVisualization(x, a, b) {
             const svg = document.getElementById('geometry-svg');
             
-            // 设置缩放系数和偏移量 - 调整这些值使图形居中
+            // 设置缩放系数和固定偏移量 - 使原点位置固定
             const scale = 25;
-            const margin = 120;
+            const offsetX = 150; // 固定原点X坐标位置
+            const offsetY = 350; // 固定原点Y坐标位置
             
-            // 根据x, a, b的值计算合适的偏移量以居中显示
-            const maxDimension = Math.max(Math.abs(x), Math.abs(x + a), Math.abs(x + b));
-            const svgSize = 600;
-            const contentSize = (maxDimension + 5) * scale;
-            const offsetX = (svgSize - contentSize) / 2 + margin;
-            // 向上移动图形，特别是当x值较大时
-            const offsetY = (svgSize - contentSize) / 2 + margin + 100;
-            
-            // 设置适当的viewBox来确保内容居中
-            svg.setAttribute('viewBox', `0 0 ${svgSize} ${svgSize}`);
+            // 设置适当的viewBox
+            svg.setAttribute('viewBox', `0 0 600 600`);
             
             // 清空SVG
             svg.innerHTML = '';
@@ -650,6 +690,10 @@
         
         // 添加公式标注
         function addFormulaAnnotation(svg, x, a, b, offsetX, offsetY, scale) {
+            // 删除整个函数内容，或者直接返回，不执行添加公式的逻辑
+            return; // 添加这行即可阻止函数执行，不会显示公式
+            
+            // 下面的代码将不会执行
             const aVal = a;
             const bVal = b;
             const sumVal = a + b;
@@ -671,12 +715,23 @@
             const tspan1 = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
             tspan1.setAttribute('x', formulaX);
             tspan1.setAttribute('dy', '0');
-            tspan1.textContent = `(x+${aVal})(x+${bVal}) =`;
+            tspan1.textContent = `\\((x${formatFactorCoefficient(aVal)})(x${formatFactorCoefficient(bVal)})\\) =`;
+            
+            // 处理展开式，与上面相同的逻辑
+            let expandedFormText = 'x^2';
+            
+            if (sumVal !== 0) {
+                expandedFormText += ` ${formatCoefficient(sumVal)}x`;
+            }
+            
+            if (productVal !== 0 || (sumVal === 0 && productVal === 0)) {
+                expandedFormText += ` ${formatCoefficient(productVal)}`;
+            }
             
             const tspan2 = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
             tspan2.setAttribute('x', formulaX);
             tspan2.setAttribute('dy', '25');
-            tspan2.textContent = `x² + ${sumVal}x + ${productVal}`;
+            tspan2.textContent = expandedFormText;
             
             // 添加背景矩形使公式更易读
             const bbox = {
@@ -708,18 +763,30 @@
             const sum = a + b;
             const product = a * b;
             
+            // 构建多项式表达式字符串
+            let polyExpression = 'x^2';
+            if (sum !== 0) {
+                polyExpression += ` ${formatCoefficient(sum)}x`;
+            }
+            if (product !== 0 || (sum === 0 && product === 0)) {
+                polyExpression += ` ${formatCoefficient(product)}`;
+            }
+            
             // 更新代数步骤显示
             stepsDisplay.innerHTML = `
-                对于 x² + ${sum}x + ${product}:
+                对于 \\(${polyExpression}\\):
                 <ol>
-                    <li>我们需要找到两个数 p 和 q，使得 p + q = ${sum} 且 p × q = ${product}</li>
-                    <li>通过十字相乘法或尝试因子，我们可以确定 p = ${a}, q = ${b}</li>
-                    <li>因此 x² + ${sum}x + ${product} = (x + ${a})(x + ${b})</li>
+                    <li>我们需要找到两个数 \\(p\\) 和 \\(q\\)，使得 \\(p + q = ${sum}\\) 且 \\(p \\times q = ${product}\\)</li>
+                    <li>通过十字相乘法或尝试因子，我们可以确定 \\(p = ${a}, q = ${b}\\)</li>
+                    <li>因此 \\(${polyExpression} = (x${formatCoefficient(a)})(x${formatCoefficient(b)})\\)</li>
                 </ol>
             `;
             
             // 更新方程根的显示
-            rootsDisplay.textContent = `当前方程 x² + ${sum}x + ${product} = 0 的解为 x = ${-a} 和 x = ${-b}`;
+            rootsDisplay.innerHTML = `当前方程 \\(${polyExpression} = 0\\) 的解为 \\(x = ${-a}\\) 和 \\(x = ${-b}\\)`;
+            
+            // 更新后重新渲染数学公式
+            MathJax.typesetPromise && MathJax.typesetPromise();
         }
         
         // 切换标签页

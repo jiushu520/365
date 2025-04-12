@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>计算二阶行列式</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src=".\\mathjax\\mathjax\\es5\\tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .step {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>计算二阶行列式</h1>
+
+<p>为了找出如下行列式的值：</p>
+<p>
+$$
+\\begin{vmatrix}
+6 & 2 \\\\
+3 & 4
+\\end{vmatrix}
+$$
+</p>
+
+<p>我们需要执行以下步骤：</p>
+
+<div class="step">
+    <strong>步骤 1:</strong> 将左上角的数字与右下角的数字相乘。
+    <p>\( 6 \times 4 = 24 \)</p>
+</div>
+
+<div class="step">
+    <strong>步骤 2:</strong> 将右上角的数字与左下角的数字相乘。
+    <p>\( 2 \times 3 = 6 \)</p>
+</div>
+
+<div class="step">
+    <strong>步骤 3:</strong> 从步骤 1 的结果中减去步骤 2 的结果。
+    <p>\( 24 - 6 = 18 \)</p>
+</div>
+
+<p>所以，行列式的值是 18。</p>
+
+<p>计算过程可以总结为：</p>
+<p>
+$$
+\\begin{vmatrix}
+6 & 2 \\\\
+3 & 4
+\\end{vmatrix}
+= (6 \\times 4) - (2 \\times 3) = 24 - 6 = 18
+$$
+</p>
+
+</body>
+</html>

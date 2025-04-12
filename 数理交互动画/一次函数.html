@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一次函数交互式学习</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .canvas-container {
+            border: 1px solid #ddd;
+            margin: 20px 0;
+        }
+        .controls {
+            width: 100%;
+            max-width: 500px;
+        }
+        .control-group {
+            margin: 15px 0;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+        }
+        label {
+            width: 120px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        input[type="range"] {
+            flex: 1;
+            margin: 0 10px;
+        }
+        .value-display {
+            width: 50px;
+            text-align: center;
+        }
+        .explanation {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #4caf50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>一次函数: y = kx + b</h1>
+        
+        <div class="canvas-container">
+            <canvas id="functionCanvas" width="800" height="500"></canvas>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <div class="slider-container">
+                    <label for="slope">斜率 (k):</label>
+                    <input type="range" id="slope" min="-5" max="5" step="0.1" value="1">
+                    <span id="slopeValue" class="value-display">1</span>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="slider-container">
+                    <label for="intercept">y轴截距 (b):</label>
+                    <input type="range" id="intercept" min="-10" max="10" step="0.5" value="0">
+                    <span id="interceptValue" class="value-display">0</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="explanation">
+            <h3>参数对一次函数图像的影响:</h3>
+            <ul>
+                <li><strong>斜率 k:</strong> 控制直线的倾斜程度。k为正时，直线向右上方倾斜；k为负时，直线向右下方倾斜；k值越大，直线越陡峭。</li>
+                <li><strong>y轴截距 b:</strong> 控制直线与y轴的交点。当b为正时，直线与y轴交于(0,b)点；当b为负时，直线与y轴交于(0,b)点。</li>
+            </ul>
+            <p>尝试拖动滑块改变参数值，观察一次函数图像如何变化。</p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('functionCanvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+        
+        // 参数控制
+        const slopeSlider = document.getElementById('slope');
+        const interceptSlider = document.getElementById('intercept');
+        const slopeValue = document.getElementById('slopeValue');
+        const interceptValue = document.getElementById('interceptValue');
+        
+        // 坐标系参数
+        const xAxis = height / 2;
+        const yAxis = width / 2;
+        const xScale = 40; // 每40像素代表x轴上的1个单位
+        const yScale = 40; // 每40像素代表y轴上的1个单位
+        
+        // 绘制坐标系和函数
+        function draw() {
+            // 清空画布
+            ctx.clearRect(0, 0, width, height);
+            
+            // 获取当前参数值
+            const k = parseFloat(slopeSlider.value);
+            const b = parseFloat(interceptSlider.value);
+            
+            // 更新显示
+            slopeValue.textContent = k;
+            interceptValue.textContent = b;
+            
+            // 绘制坐标系
+            drawCoordinateSystem();
+            
+            // 绘制函数 y = kx + b
+            drawFunction(k, b);
+            
+            // 显示函数表达式
+            ctx.fillStyle = '#000';
+            ctx.font = '16px Arial';
+            ctx.fillText(`y = ${k}x + ${b}`, 20, 30);
+        }
+        
+        // 绘制坐标系
+        function drawCoordinateSystem() {
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 1;
+            
+            // 绘制网格
+            for (let x = yAxis % xScale; x < width; x += xScale) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+            
+            for (let y = xAxis % yScale; y < height; y += yScale) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+            
+            // 绘制坐标轴
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            
+            // x轴
+            ctx.beginPath();
+            ctx.moveTo(0, xAxis);
+            ctx.lineTo(width, xAxis);
+            ctx.stroke();
+            
+            // y轴
+            ctx.beginPath();
+            ctx.moveTo(yAxis, 0);
+            ctx.lineTo(yAxis, height);
+            ctx.stroke();
+            
+            // 标记坐标
+            ctx.fillStyle = '#000';
+            ctx.font = '12px Arial';
+            
+            // x轴标记
+            for (let x = xScale; x < width / 2; x += xScale) {
+                ctx.fillText((x / xScale).toString(), yAxis + x, xAxis + 20);
+                ctx.fillText((-x / xScale).toString(), yAxis - x, xAxis + 20);
+            }
+            
+            // y轴标记
+            for (let y = yScale; y < height / 2; y += yScale) {
+                ctx.fillText((-y / yScale).toString(), yAxis - 25, xAxis + y);
+                ctx.fillText((y / yScale).toString(), yAxis - 25, xAxis - y);
+            }
+            
+            // 原点
+            ctx.fillText('O', yAxis - 15, xAxis + 15);
+        }
+        
+        // 绘制函数图像
+        function drawFunction(k, b) {
+            ctx.strokeStyle = '#f00';
+            ctx.lineWidth = 2;
+            
+            ctx.beginPath();
+            
+            // 计算x的范围（从canvas的左边缘到右边缘）
+            const xMin = -yAxis / xScale;
+            const xMax = (width - yAxis) / xScale;
+            
+            // 画出函数图像
+            for (let pixelX = 0; pixelX < width; pixelX++) {
+                const x = (pixelX - yAxis) / xScale;
+                const y = k * x + b;
+                const pixelY = xAxis - y * yScale;
+                
+                if (pixelX === 0) {
+                    ctx.moveTo(pixelX, pixelY);
+                } else {
+                    ctx.lineTo(pixelX, pixelY);
+                }
+            }
+            
+            ctx.stroke();
+            
+            // 标记y轴截距
+            if (b >= -height/(2*yScale) && b <= height/(2*yScale)) {
+                ctx.fillStyle = '#f00';
+                ctx.beginPath();
+                ctx.arc(yAxis, xAxis - b * yScale, 5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillText(`(0, ${b})`, yAxis + 10, xAxis - b * yScale);
+            }
+        }
+        
+        // 监听参数变化
+        slopeSlider.addEventListener('input', draw);
+        interceptSlider.addEventListener('input', draw);
+        
+        // 初始绘制
+        draw();
+    </script>
+</body>
+</html>

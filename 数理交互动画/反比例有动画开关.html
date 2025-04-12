@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>反比例与正比例函数可视化与分析</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Microsoft YaHei', 'Arial', sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #eee;
+            background-color: #111;
+        }
+        h1, h2, h3, h4 {
+            color: #f0f0f0;
+            margin: 16px 0;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 24px;
+        }
+        h2 {
+            font-size: 1.6rem;
+            margin-top: 32px;
+        }
+        h3 {
+            font-size: 1.4rem;
+        }
+        h4 {
+            font-size: 1.2rem;
+            text-align: left;
+            margin-top: 24px;
+        }
+        p {
+            margin: 12px 0;
+        }
+        ul, ol {
+            padding-left: 24px;
+            margin: 12px 0;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 24px;
+            margin: 32px 0;
+        }
+        .card {
+            width: 100%;
+            background-color: #222;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            border: 1px solid #333;
+        }
+        .explanation {
+            margin-top: 30px;
+            padding: 20px;
+            background: #222;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            text-align: center;
+            border: 1px solid #333;
+        }
+        .controls {
+            width: 100%;
+            background: #222;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 24px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            border: 1px solid #333;
+            text-align: center;
+        }
+        .controls h3 {
+            margin-top: 0;
+        }
+        .slider-container {
+            margin: 20px auto;
+            max-width: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .slider-container label {
+            display: inline-block;
+            width: 80px;
+            font-weight: bold;
+            text-align: right;
+            margin-right: 15px;
+        }
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: #444;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #e74c3c;
+            cursor: pointer;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #e74c3c;
+            cursor: pointer;
+        }
+        .value-display {
+            display: inline-block;
+            width: 50px;
+            text-align: center;
+            font-weight: bold;
+            background: #333;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-left: 15px;
+        }
+        .formula {
+            font-size: 1.2em;
+            text-align: center;
+            margin: 16px 0;
+            font-weight: bold;
+        }
+        svg {
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            border-radius: 4px;
+            border: 1px solid #333;
+        }
+        .legend {
+            margin: 20px auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            border: 1px solid #fff;
+            border-radius: 3px;
+        }
+        .svg-container {
+            width: 100%;
+            height: 500px;
+            margin: 24px auto;
+        }
+        .label {
+            font-size: 14px;
+            font-weight: bold;
+            fill: #fff;
+        }
+        .formula-steps {
+            font-size: 1.1em;
+            margin: 20px 0;
+            line-height: 1.8;
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        .result-display {
+            margin: 16px 0;
+            font-size: 1.4em;
+            color: #f0f0f0;
+            background: rgba(231, 76, 60, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+        }
+        .tab-container {
+            width: 100%;
+            margin: 24px 0;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #444;
+            background-color: #222;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+        }
+        .tab button {
+            flex: 1;
+            background-color: inherit;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 20px;
+            transition: 0.3s;
+            font-size: 16px;
+            color: #eee;
+            border-right: 1px solid #444;
+        }
+        .tab button:last-child {
+            border-right: none;
+        }
+        .tab button:hover {
+            background-color: #333;
+        }
+        .tab button.active {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .tabcontent {
+            display: none;
+            padding: 24px;
+            border: 1px solid #444;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            animation: fadeEffect 0.5s;
+            background-color: #222;
+        }
+        @keyframes fadeEffect {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+        .comparison {
+            margin-top: 36px;
+            padding: 24px;
+            background: #222;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            border: 1px solid #333;
+        }
+        .comparison h2 {
+            margin-top: 0;
+            margin-bottom: 24px;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px auto;
+            border: 1px solid #444;
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #444;
+            padding: 12px 16px;
+            text-align: left;
+        }
+        .comparison-table th {
+            background-color: #333;
+            color: #f0f0f0;
+            text-align: center;
+        }
+        .comparison-table tr:nth-child(even) {
+            background-color: #2a2a2a;
+        }
+        .comparison-table tr:hover {
+            background-color: #303030;
+        }
+        /* MathJax styling */
+        .mjx-chtml {
+            color: #eee !important;
+        }
+        
+        /* Responsive design for smaller screens */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+            .slider-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .slider-container label {
+                width: 100%;
+                text-align: left;
+                margin-bottom: 8px;
+            }
+            .value-display {
+                margin-top: 8px;
+                margin-left: 0;
+            }
+            .svg-container {
+                height: 400px;
+            }
+            .tab button {
+                padding: 10px;
+                font-size: 14px;
+            }
+            .comparison-table th, .comparison-table td {
+                padding: 8px;
+                font-size: 0.9em;
+            }
+        }
+        
+        .auto-play-container {
+            margin: 16px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+        
+        .auto-play-label {
+            margin-left: 8px;
+            user-select: none;
+            cursor: pointer;
+        }
+        
+        #playback-speed {
+            background-color: #333;
+            color: #eee;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 6px 10px;
+            cursor: pointer;
+        }
+        
+        #playback-speed:focus {
+            outline: none;
+            border-color: #e74c3c;
+        }
+        
+        @media screen and (max-width: 768px) {
+            .auto-play-container {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>反比例与正比例函数可视化与分析</h1>
+    <div class="explanation">
+        <div class="result-display">
+            <div id="function-form">
+                反比例: \(y = \frac{k}{x} = \frac{1}{x}\), 正比例: \(y = kx = 1x\)
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <h3>调整参数</h3>
+        <div class="slider-container">
+            <label for="value-k">k 的值:</label>
+            <input type="range" id="value-k" min="-5" max="5" value="1" step="0.1">
+            <span class="value-display" id="k-display">1</span>
+        </div>
+        <div class="auto-play-container">
+            <label for="auto-play">
+                <input type="checkbox" id="auto-play">
+                <span class="auto-play-label">自动播放</span>
+            </label>
+            <select id="playback-speed">
+                <option value="slow">慢速</option>
+                <option value="medium" selected>中速</option>
+                <option value="fast">快速</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="tab-container">
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'VisualTab')">几何可视化</button>
+            <button class="tablinks" onclick="openTab(event, 'AlgebraTab')">代数分析</button>
+        </div>
+
+        <div id="VisualTab" class="tabcontent" style="display:block;">
+            <h3>几何解释: 反比例与正比例函数的图像</h3>
+            <div class="svg-container" id="geometry-visualization">
+                <!-- SVG 将通过 JavaScript 生成 -->
+            </div>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #e74c3c;"></div>
+                    <span>反比例函数 (红色)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #f1c40f;"></div>
+                    <span>正比例函数 (黄色)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #fff; border: 1px solid #fff;"></div>
+                    <span>坐标轴 (白色)</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="AlgebraTab" class="tabcontent">
+            <h3>代数分析: 反比例与正比例函数的性质</h3>
+            <p>对于反比例函数 \(f(x) = \frac{k}{x}\)，其主要性质包括：</p>
+            <ul>
+                <li>定义域：\(x \neq 0\)</li>
+                <li>值域：\(y \neq 0\)</li>
+                <li>奇偶性：当 \(k \neq 0\) 时，是奇函数</li>
+                <li>单调性：在 \(x > 0\) 时，\(k > 0\) 时单调递减；\(k < 0\) 时单调递增</li>
+                <li>渐近线：\(x = 0\)(y轴)和 \(y = 0\)(x轴)</li>
+            </ul>
+            <p>对于正比例函数 \(g(x) = kx\)，其主要性质包括：</p>
+            <ul>
+                <li>定义域：所有实数 \(\mathbb{R}\)</li>
+                <li>值域：所有实数 \(\mathbb{R}\)</li>
+                <li>奇偶性：当 \(k \neq 0\) 时，是奇函数</li>
+                <li>单调性：\(k > 0\) 时单调递增；\(k < 0\) 时单调递减</li>
+                <li>过原点 \((0, 0)\)</li>
+            </ul>
+            <div id="algebra-analysis">
+                <h4>对当前参数的分析：</h4>
+                <div class="formula-steps" id="analysis-display">
+                    <!-- 分析将通过 JavaScript 更新 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="comparison">
+        <h2>反比例与正比例函数的异同点分析</h2>
+        <table class="comparison-table">
+            <tr>
+                <th>比较项</th>
+                <th>反比例函数 \(y = \frac{k}{x}\)</th>
+                <th>正比例函数 \(y = kx\)</th>
+            </tr>
+            <tr>
+                <td>定义域</td>
+                <td>\(x \neq 0\)</td>
+                <td>\(\mathbb{R}\)（所有实数）</td>
+            </tr>
+            <tr>
+                <td>值域</td>
+                <td>\(y \neq 0\)</td>
+                <td>\(\mathbb{R}\)（所有实数）</td>
+            </tr>
+            <tr>
+                <td>图像特点</td>
+                <td>双曲线，在第一、三象限(\(k > 0\))或第二、四象限(\(k < 0\))</td>
+                <td>直线，过原点</td>
+            </tr>
+            <tr>
+                <td>奇偶性</td>
+                <td>奇函数（当 \(k \neq 0\)）</td>
+                <td>奇函数（当 \(k \neq 0\)）</td>
+            </tr>
+            <tr>
+                <td>单调性</td>
+                <td>在正半轴和负半轴分别单调</td>
+                <td>在整个定义域上单调</td>
+            </tr>
+            <tr>
+                <td>特殊点</td>
+                <td>无(但有渐近线 \(x = 0\) 和 \(y = 0\))</td>
+                <td>原点 \((0, 0)\)</td>
+            </tr>
+            <tr>
+                <td>k 的作用</td>
+                <td>k 的绝对值决定曲线的"紧密度"，符号决定象限</td>
+                <td>k 的绝对值决定斜率，符号决定增减性</td>
+            </tr>
+            <tr>
+                <td>导数</td>
+                <td>\(f'(x) = -\frac{k}{x^2}\)</td>
+                <td>\(g'(x) = k\)</td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const valueK = document.getElementById('value-k');
+        const kDisplay = document.getElementById('k-display');
+        const functionForm = document.getElementById('function-form');
+        const geometryVisualization = document.getElementById('geometry-visualization');
+        const analysisDisplay = document.getElementById('analysis-display');
+
+        // 初始化SVG
+        geometryVisualization.innerHTML = `<svg id="geometry-svg" viewBox="0 0 600 500"></svg>`;
+
+        // 定义颜色
+        const colors = {
+            inverse: '#e74c3c',    // 红色 - 反比例函数
+            direct: '#f1c40f',     // 黄色 - 正比例函数
+            axis: '#ffffff',       // 白色 - 坐标轴
+            text: '#ffffff'        // 白色 - 文本
+        };
+
+        // 自动播放相关变量
+        let autoPlayInterval = null;
+        let direction = 1; // 1 表示增加，-1 表示减少
+        
+        // 获取自动播放相关DOM元素
+        const autoPlayCheckbox = document.getElementById('auto-play');
+        const playbackSpeed = document.getElementById('playback-speed');
+        
+        // 自动播放函数
+        function toggleAutoPlay() {
+            if (autoPlayCheckbox.checked) {
+                startAutoPlay();
+            } else {
+                stopAutoPlay();
+            }
+        }
+        
+        // 开始自动播放
+        function startAutoPlay() {
+            if (autoPlayInterval) clearInterval(autoPlayInterval);
+            
+            // 根据速度选择确定时间间隔
+            let interval;
+            switch (playbackSpeed.value) {
+                case 'slow': interval = 100; break;
+                case 'fast': interval = 30; break;
+                default: interval = 50; // medium
+            }
+            
+            autoPlayInterval = setInterval(() => {
+                let currentValue = parseFloat(valueK.value);
+                let step = 0.1 * direction;
+                let newValue = currentValue + step;
+                
+                // 检查是否需要改变方向
+                if (newValue > 5) {
+                    direction = -1;
+                    newValue = 5;
+                } else if (newValue < -5) {
+                    direction = 1;
+                    newValue = -5;
+                }
+                
+                // 更新滑动条的值
+                valueK.value = newValue;
+                updateVisualization();
+            }, interval);
+        }
+        
+        // 停止自动播放
+        function stopAutoPlay() {
+            if (autoPlayInterval) {
+                clearInterval(autoPlayInterval);
+                autoPlayInterval = null;
+            }
+        }
+        
+        // 更新可视化和结果
+        function updateVisualization() {
+            const k = parseFloat(valueK.value);
+
+            // 更新显示的值
+            kDisplay.textContent = k;
+
+            // 更新函数表达式
+            functionForm.innerHTML = `反比例: \\(y = \\frac{k}{x} = \\frac{${k}}{x}\\), 正比例: \\(y = kx = ${k}x\\)`;
+            
+            // 重新渲染数学公式
+            if (window.MathJax) {
+                MathJax.typeset();
+            }
+
+            // 绘制几何可视化
+            drawGeometryVisualization(k);
+
+            // 更新代数分析
+            updateAlgebraAnalysis(k);
+        }
+
+        // 绘制几何可视化
+        function drawGeometryVisualization(k) {
+            const svg = document.getElementById('geometry-svg');
+            svg.innerHTML = '';
+
+            // 设置坐标系参数
+            const scaleX = 40; // x轴缩放
+            const scaleY = 40; // y轴缩放
+            const svgWidth = 600;
+            const svgHeight = 500;
+            const originX = svgWidth / 2;
+            const originY = svgHeight / 2;
+
+            // 添加坐标系
+            addCoordinateSystem(svg, originX, originY, scaleX, scaleY, svgWidth, svgHeight);
+
+            // 绘制反比例函数 y = k/x
+            const inversePointsRight = [];
+            const inversePointsLeft = [];
+            
+            // 右半部分 (x > 0)
+            for (let x = 0.1; x <= 10; x += 0.05) {
+                const y = k / x;
+                if (Math.abs(y) <= 10) {
+                    inversePointsRight.push(`${originX + x * scaleX},${originY - y * scaleY}`);
+                }
+            }
+            
+            // 左半部分 (x < 0)
+            for (let x = -10; x <= -0.1; x += 0.05) {
+                const y = k / x;
+                if (Math.abs(y) <= 10) {
+                    inversePointsLeft.push(`${originX + x * scaleX},${originY - y * scaleY}`);
+                }
+            }
+
+            // 绘制反比例函数 - 右半部分
+            const inversePath1 = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+            inversePath1.setAttribute('points', inversePointsRight.join(' '));
+            inversePath1.setAttribute('fill', 'none');
+            inversePath1.setAttribute('stroke', colors.inverse);
+            inversePath1.setAttribute('stroke-width', '2');
+            svg.appendChild(inversePath1);
+            
+            // 绘制反比例函数 - 左半部分
+            const inversePath2 = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+            inversePath2.setAttribute('points', inversePointsLeft.join(' '));
+            inversePath2.setAttribute('fill', 'none');
+            inversePath2.setAttribute('stroke', colors.inverse);
+            inversePath2.setAttribute('stroke-width', '2');
+            svg.appendChild(inversePath2);
+
+            // 添加反比例函数解析式标签（使用foreignObject以支持LaTeX渲染）
+            const labelX = (k > 0) ? 3 : -3;
+            const labelY = k / labelX;
+            
+            const inverseForeignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+            inverseForeignObject.setAttribute('x', originX + (labelX + 0.3) * scaleX);
+            inverseForeignObject.setAttribute('y', originY - labelY * scaleY - 20); // 微调位置以适应公式
+            inverseForeignObject.setAttribute('width', '80');
+            inverseForeignObject.setAttribute('height', '40');
+            
+            const inverseDiv = document.createElement('div');
+            inverseDiv.style.color = colors.inverse;
+            inverseDiv.style.fontSize = '14px';
+            inverseDiv.innerHTML = `\\(y = \\frac{${k}}{x}\\)`;
+            inverseForeignObject.appendChild(inverseDiv);
+            svg.appendChild(inverseForeignObject);
+
+            // 绘制正比例函数 y = kx
+            const directPoints = [];
+            for (let x = -10; x <= 10; x += 0.5) {
+                const y = k * x;
+                if (Math.abs(y) <= 10) {
+                    directPoints.push(`${originX + x * scaleX},${originY - y * scaleY}`);
+                }
+            }
+            
+            // 绘制正比例函数
+            const directPath = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+            directPath.setAttribute('points', directPoints.join(' '));
+            directPath.setAttribute('fill', 'none');
+            directPath.setAttribute('stroke', colors.direct);
+            directPath.setAttribute('stroke-width', '2');
+            svg.appendChild(directPath);
+
+            // 添加正比例函数解析式标签（使用foreignObject以支持LaTeX渲染）
+            const directLabelX = 4;
+            const directLabelY = k * directLabelX;
+            
+            if (Math.abs(directLabelY) <= 8) { // 确保标签在可见区域内
+                const directForeignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+                directForeignObject.setAttribute('x', originX + (directLabelX + 0.3) * scaleX);
+                directForeignObject.setAttribute('y', originY - directLabelY * scaleY - 30); // 微调位置以适应公式
+                directForeignObject.setAttribute('width', '80');
+                directForeignObject.setAttribute('height', '40');
+                
+                const directDiv = document.createElement('div');
+                directDiv.style.color = colors.direct;
+                directDiv.style.fontSize = '14px';
+                directDiv.innerHTML = `\\(y = ${k}x\\)`;
+                directForeignObject.appendChild(directDiv);
+                svg.appendChild(directForeignObject);
+            }
+            
+            // 重新渲染添加到SVG中的LaTeX公式
+            if (window.MathJax) {
+                MathJax.typeset();
+            }
+        }
+
+        // 添加坐标系
+        function addCoordinateSystem(svg, originX, originY, scaleX, scaleY, svgWidth, svgHeight) {
+            // X轴
+            const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            xAxis.setAttribute('x1', 0);
+            xAxis.setAttribute('y1', originY);
+            xAxis.setAttribute('x2', svgWidth);
+            xAxis.setAttribute('y2', originY);
+            xAxis.setAttribute('stroke', colors.axis);
+            xAxis.setAttribute('stroke-width', '1');
+            svg.appendChild(xAxis);
+
+            // Y轴
+            const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            yAxis.setAttribute('x1', originX);
+            yAxis.setAttribute('y1', 0);
+            yAxis.setAttribute('x2', originX);
+            yAxis.setAttribute('y2', svgHeight);
+            yAxis.setAttribute('stroke', colors.axis);
+            yAxis.setAttribute('stroke-width', '1');
+            svg.appendChild(yAxis);
+
+            // 标签
+            const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            xLabel.setAttribute('x', svgWidth - 15);
+            xLabel.setAttribute('y', originY + 15);
+            xLabel.setAttribute('fill', colors.text);
+            xLabel.textContent = 'x';
+            svg.appendChild(xLabel);
+
+            const yLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            yLabel.setAttribute('x', originX - 15);
+            yLabel.setAttribute('y', 15);
+            yLabel.setAttribute('fill', colors.text);
+            yLabel.textContent = 'y';
+            svg.appendChild(yLabel);
+
+            // 刻度
+            for (let i = -5; i <= 5; i++) {
+                if (i === 0) continue;
+                
+                // X轴刻度
+                const xTick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                xTick.setAttribute('x1', originX + i * scaleX);
+                xTick.setAttribute('y1', originY - 5);
+                xTick.setAttribute('x2', originX + i * scaleX);
+                xTick.setAttribute('y2', originY + 5);
+                xTick.setAttribute('stroke', colors.axis);
+                xTick.setAttribute('stroke-width', '1');
+                svg.appendChild(xTick);
+                
+                const xTickLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                xTickLabel.setAttribute('x', originX + i * scaleX - 5);
+                xTickLabel.setAttribute('y', originY + 20);
+                xTickLabel.setAttribute('fill', colors.text);
+                xTickLabel.setAttribute('font-size', '12px');
+                xTickLabel.textContent = i;
+                svg.appendChild(xTickLabel);
+                
+                // Y轴刻度
+                const yTick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                yTick.setAttribute('x1', originX - 5);
+                yTick.setAttribute('y1', originY - i * scaleY);
+                yTick.setAttribute('x2', originX + 5);
+                yTick.setAttribute('y2', originY - i * scaleY);
+                yTick.setAttribute('stroke', colors.axis);
+                yTick.setAttribute('stroke-width', '1');
+                svg.appendChild(yTick);
+                
+                const yTickLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                yTickLabel.setAttribute('x', originX - 25);
+                yTickLabel.setAttribute('y', originY - i * scaleY + 5);
+                yTickLabel.setAttribute('fill', colors.text);
+                yTickLabel.setAttribute('font-size', '12px');
+                yTickLabel.textContent = i;
+                svg.appendChild(yTickLabel);
+            }
+        }
+
+        // 更新代数分析
+        function updateAlgebraAnalysis(k) {
+            let inverseAnalysis = '';
+            let directAnalysis = '';
+
+            // 反比例函数分析
+            if (k > 0) {
+                inverseAnalysis = `
+                    <ul>
+                        <li>函数公式: \\(y = \\frac{${k}}{x}\\)</li>
+                        <li>图像位于第一、三象限</li>
+                        <li>单调性: 在\\(x > 0\\)时单调递减; 在\\(x < 0\\)时单调递增</li>
+                        <li>渐近线: \\(x = 0\\)(y轴)和 \\(y = 0\\)(x轴)</li>
+                    </ul>
+                `;
+            } else if (k < 0) {
+                inverseAnalysis = `
+                    <ul>
+                        <li>函数公式: \\(y = \\frac{${k}}{x}\\)</li>
+                        <li>图像位于第二、四象限</li>
+                        <li>单调性: 在\\(x > 0\\)时单调递增; 在\\(x < 0\\)时单调递减</li>
+                        <li>渐近线: \\(x = 0\\)(y轴)和 \\(y = 0\\)(x轴)</li>
+                    </ul>
+                `;
+            } else {
+                inverseAnalysis = `
+                    <ul>
+                        <li>函数公式: \\(y = \\frac{0}{x} = 0\\)(变为常数函数)</li>
+                        <li>\\(k = 0\\) 时反比例函数退化为常数函数 \\(y = 0\\)(\\(x \\neq 0\\))</li>
+                    </ul>
+                `;
+            }
+
+            // 正比例函数分析
+            if (k > 0) {
+                directAnalysis = `
+                    <ul>
+                        <li>函数公式: \\(y = ${k}x\\)</li>
+                        <li>图像是过原点的直线，斜率为 \\(${k}\\)</li>
+                        <li>在整个定义域上单调递增</li>
+                        <li>图像位于第一、三象限</li>
+                    </ul>
+                `;
+            } else if (k < 0) {
+                directAnalysis = `
+                    <ul>
+                        <li>函数公式: \\(y = ${k}x\\)</li>
+                        <li>图像是过原点的直线，斜率为 \\(${k}\\)</li>
+                        <li>在整个定义域上单调递减</li>
+                        <li>图像位于第二、四象限</li>
+                    </ul>
+                `;
+            } else {
+                directAnalysis = `
+                    <ul>
+                        <li>函数公式: \\(y = 0x = 0\\)</li>
+                        <li>\\(k = 0\\) 时正比例函数退化为常数函数 \\(y = 0\\)</li>
+                    </ul>
+                `;
+            }
+
+            analysisDisplay.innerHTML = `
+                <h4>反比例函数分析</h4>
+                ${inverseAnalysis}
+                <h4>正比例函数分析</h4>
+                ${directAnalysis}
+            `;
+            
+            // 重新渲染数学公式
+            if (window.MathJax) {
+                MathJax.typeset();
+            }
+        }
+
+        // 切换标签页
+        function openTab(evt, tabName) {
+            const tabcontent = document.getElementsByClassName("tabcontent");
+            for (let i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+
+            const tablinks = document.getElementsByClassName("tablinks");
+            for (let i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+            
+            // 在切换标签页后重新渲染公式
+            if (window.MathJax) {
+                MathJax.typeset();
+            }
+        }
+
+        // 初始化页面
+        updateVisualization();
+
+        // 添加事件监听器
+        valueK.addEventListener('input', updateVisualization);
+        
+        // 确保页面加载后渲染所有数学公式
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.MathJax) {
+                MathJax.typeset();
+            }
+        });
+        
+        // 添加事件监听器
+        autoPlayCheckbox.addEventListener('change', toggleAutoPlay);
+        playbackSpeed.addEventListener('change', () => {
+            if (autoPlayCheckbox.checked) {
+                startAutoPlay(); // 重新启动以应用新速度
+            }
+        });
+        
+        // 在页面卸载时停止自动播放
+        window.addEventListener('beforeunload', stopAutoPlay);
+    </script>
+</body>
+</html>

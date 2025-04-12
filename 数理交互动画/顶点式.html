@@ -136,25 +136,6 @@
         <p>配方法是将二次函数 f(x) = ax² + bx + c 转换为顶点式 f(x) = a(x-h)² + k 的代数方法。这种形式直接显示了抛物线的顶点坐标 (h, k)，便于分析函数性质。</p>
     </div>
 
-    <div class="controls">
-        <h3>调整参数</h3>
-        <div class="slider-container">
-            <label for="value-a">a 的值:</label>
-            <input type="range" id="value-a" min="-5" max="5" value="1" step="0.1">
-            <span class="value-display" id="a-display">1</span>
-        </div>
-        <div class="slider-container">
-            <label for="value-b">b 的值:</label>
-            <input type="range" id="value-b" min="-10" max="10" value="6" step="0.1">
-            <span class="value-display" id="b-display">6</span>
-        </div>
-        <div class="slider-container">
-            <label for="value-c">c 的值:</label>
-            <input type="range" id="value-c" min="-10" max="10" value="8" step="0.1">
-            <span class="value-display" id="c-display">8</span>
-        </div>
-    </div>
-
     <div class="formula-container">
         <div class="problem-display" id="problem-display">
             <!-- The formula will be dynamically updated -->
@@ -162,7 +143,9 @@
     </div>
 
     <div class="svg-container">
-        <svg id="parabola-svg" viewBox="0 0 600 400"></svg>
+        <svg id="parabola-svg" viewBox="0 0 600 400">
+            <!-- 控制条将在这里动态添加 -->
+        </svg>
     </div>
 
     <div class="btn-container">
@@ -186,12 +169,37 @@
 
     <script>
         // 获取DOM元素
-        const valueA = document.getElementById('value-a');
-        const valueB = document.getElementById('value-b');
-        const valueC = document.getElementById('value-c');
-        const aDisplay = document.getElementById('a-display');
-        const bDisplay = document.getElementById('b-display');
-        const cDisplay = document.getElementById('c-display');
+        const valueA = document.createElement('input');
+        valueA.type = 'range';
+        valueA.min = '-5';
+        valueA.max = '5';
+        valueA.value = '1';
+        valueA.step = '0.1';
+        valueA.style.display = 'none';
+        document.body.appendChild(valueA);
+        
+        const valueB = document.createElement('input');
+        valueB.type = 'range';
+        valueB.min = '-10';
+        valueB.max = '10';
+        valueB.value = '6';
+        valueB.step = '0.1';
+        valueB.style.display = 'none';
+        document.body.appendChild(valueB);
+        
+        const valueC = document.createElement('input');
+        valueC.type = 'range';
+        valueC.min = '-10';
+        valueC.max = '10';
+        valueC.value = '8';
+        valueC.step = '0.1';
+        valueC.style.display = 'none';
+        document.body.appendChild(valueC);
+        
+        const aDisplay = document.createElement('span');
+        const bDisplay = document.createElement('span');
+        const cDisplay = document.createElement('span');
+        
         const problemDisplay = document.getElementById('problem-display');
         const stepsContainer = document.getElementById('steps-container');
         const solutionContainer = document.getElementById('solution-container');
@@ -204,16 +212,221 @@
         const step5 = document.getElementById('step5');
         const parabolaSvg = document.getElementById('parabola-svg');
 
+        // 创建SVG中的控制条
+        function createSVGControls() {
+            const svgWidth = 600;
+            const svgHeight = 400;
+            const controlsY = svgHeight - 80; // 控制条距离底部的位置
+            
+            // 创建控制条背景
+            const controlsBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            controlsBg.setAttribute('x', 10);
+            controlsBg.setAttribute('y', controlsY - 10);
+            controlsBg.setAttribute('width', svgWidth - 20);
+            controlsBg.setAttribute('height', 70);
+            controlsBg.setAttribute('fill', 'rgba(240, 240, 240, 0.8)');
+            controlsBg.setAttribute('rx', '5');
+            parabolaSvg.appendChild(controlsBg);
+            
+            // 创建参数标签
+            createSVGText('参数 a:', 20, controlsY + 5);
+            createSVGText('参数 b:', 20, controlsY + 25);
+            createSVGText('参数 c:', 20, controlsY + 45);
+            
+            // 创建参数值显示
+            const aValueText = createSVGText(valueA.value, 180, controlsY + 5, 'param-a-text');
+            const bValueText = createSVGText(valueB.value, 180, controlsY + 25, 'param-b-text');
+            const cValueText = createSVGText(valueC.value, 180, controlsY + 45, 'param-c-text');
+            
+            // 创建滑块
+            createSVGSlider('a-slider', 80, controlsY + 5, updateA);
+            createSVGSlider('b-slider', 80, controlsY + 25, updateB);
+            createSVGSlider('c-slider', 80, controlsY + 45, updateC);
+            
+            // 更新滑块位置
+            updateSliderPosition('a-slider', (parseFloat(valueA.value) + 5) / 10);
+            updateSliderPosition('b-slider', (parseFloat(valueB.value) + 10) / 20);
+            updateSliderPosition('c-slider', (parseFloat(valueC.value) + 10) / 20);
+        }
+        
+        // 创建SVG文本
+        function createSVGText(text, x, y, id = null) {
+            const textElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            textElement.setAttribute('x', x);
+            textElement.setAttribute('y', y);
+            textElement.setAttribute('fill', '#333');
+            textElement.textContent = text;
+            if (id) textElement.setAttribute('id', id);
+            parabolaSvg.appendChild(textElement);
+            return textElement;
+        }
+        
+        // 创建SVG滑块
+        function createSVGSlider(id, x, y, updateFunction) {
+            // 滑块轨道
+            const track = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            track.setAttribute('x1', x);
+            track.setAttribute('y1', y);
+            track.setAttribute('x2', x + 90);
+            track.setAttribute('y2', y);
+            track.setAttribute('stroke', '#aaa');
+            track.setAttribute('stroke-width', '2');
+            parabolaSvg.appendChild(track);
+            
+            // 滑块手柄
+            const handle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            handle.setAttribute('id', id);
+            handle.setAttribute('cx', x);
+            handle.setAttribute('cy', y);
+            handle.setAttribute('r', '6');
+            handle.setAttribute('fill', '#3498db');
+            handle.setAttribute('cursor', 'pointer');
+            parabolaSvg.appendChild(handle);
+            
+            // 添加拖动事件
+            let isDragging = false;
+            
+            // 修复滑块拖动功能
+            function startDrag(e) {
+                isDragging = true;
+                e.preventDefault();
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('mouseup', endDrag);
+            }
+            
+            function drag(e) {
+                if (!isDragging) return;
+                
+                const svgRect = parabolaSvg.getBoundingClientRect();
+                const svgWidth = svgRect.width;
+                const viewBoxWidth = 600; // SVG viewBox宽度
+                
+                // 计算鼠标在SVG坐标系中的位置
+                const mouseX = ((e.clientX - svgRect.left) / svgWidth) * viewBoxWidth;
+                
+                let newX = mouseX;
+                if (newX < x) newX = x;
+                if (newX > x + 90) newX = x + 90;
+                
+                handle.setAttribute('cx', newX);
+                
+                // 计算滑块值并更新
+                const ratio = (newX - x) / 90;
+                updateFunction(ratio);
+            }
+            
+            function endDrag() {
+                isDragging = false;
+                document.removeEventListener('mousemove', drag);
+                document.removeEventListener('mouseup', endDrag);
+            }
+            
+            // 添加触摸事件支持
+            function startTouchDrag(e) {
+                isDragging = true;
+                e.preventDefault();
+                document.addEventListener('touchmove', touchDrag);
+                document.addEventListener('touchend', endTouchDrag);
+            }
+            
+            function touchDrag(e) {
+                if (!isDragging || !e.touches[0]) return;
+                
+                const svgRect = parabolaSvg.getBoundingClientRect();
+                const svgWidth = svgRect.width;
+                const viewBoxWidth = 600; // SVG viewBox宽度
+                
+                // 计算触摸点在SVG坐标系中的位置
+                const touchX = ((e.touches[0].clientX - svgRect.left) / svgWidth) * viewBoxWidth;
+                
+                let newX = touchX;
+                if (newX < x) newX = x;
+                if (newX > x + 90) newX = x + 90;
+                
+                handle.setAttribute('cx', newX);
+                
+                // 计算滑块值并更新
+                const ratio = (newX - x) / 90;
+                updateFunction(ratio);
+            }
+            
+            function endTouchDrag() {
+                isDragging = false;
+                document.removeEventListener('touchmove', touchDrag);
+                document.removeEventListener('touchend', endTouchDrag);
+            }
+            
+            // 添加事件监听器
+            handle.addEventListener('mousedown', startDrag);
+            handle.addEventListener('touchstart', startTouchDrag);
+            
+            // 点击轨道也可以移动滑块
+            track.addEventListener('click', function(e) {
+                const svgRect = parabolaSvg.getBoundingClientRect();
+                const svgWidth = svgRect.width;
+                const viewBoxWidth = 600;
+                
+                const clickX = ((e.clientX - svgRect.left) / svgWidth) * viewBoxWidth;
+                
+                let newX = clickX;
+                if (newX < x) newX = x;
+                if (newX > x + 90) newX = x + 90;
+                
+                handle.setAttribute('cx', newX);
+                
+                const ratio = (newX - x) / 90;
+                updateFunction(ratio);
+            });
+            
+            return handle;
+        }
+        
+        // 更新滑块位置
+        function updateSliderPosition(id, ratio) {
+            const slider = document.getElementById(id);
+            if (!slider) return;
+            
+            const x = 80; // 滑块起始位置
+            const newX = x + ratio * 90;
+            slider.setAttribute('cx', newX);
+        }
+        
+        // 更新参数a
+        function updateA(ratio) {
+            const newValue = -5 + ratio * 10;
+            valueA.value = newValue.toFixed(1);
+            document.getElementById('param-a-text').textContent = newValue.toFixed(1);
+            updateFormulaAndSteps();
+        }
+        
+        // 更新参数b
+        function updateB(ratio) {
+            const newValue = -10 + ratio * 20;
+            valueB.value = newValue.toFixed(1);
+            document.getElementById('param-b-text').textContent = newValue.toFixed(1);
+            updateFormulaAndSteps();
+        }
+        
+        // 更新参数c
+        function updateC(ratio) {
+            const newValue = -10 + ratio * 20;
+            valueC.value = newValue.toFixed(1);
+            document.getElementById('param-c-text').textContent = newValue.toFixed(1);
+            updateFormulaAndSteps();
+        }
+
         // 更新公式和步骤
         function updateFormulaAndSteps() {
             const a = parseFloat(valueA.value);
             const b = parseFloat(valueB.value);
             const c = parseFloat(valueC.value);
 
-            // 更新显示的值
-            aDisplay.textContent = a;
-            bDisplay.textContent = b;
-            cDisplay.textContent = c;
+            // 更新SVG中的参数值显示
+            if (document.getElementById('param-a-text')) {
+                document.getElementById('param-a-text').textContent = a.toFixed(1);
+                document.getElementById('param-b-text').textContent = b.toFixed(1);
+                document.getElementById('param-c-text').textContent = c.toFixed(1);
+            }
 
             // 计算顶点形式
             const m = b / (2 * a);
@@ -248,7 +461,10 @@
             const originX = svgWidth / 2;
             const originY = svgHeight / 2;
 
-            parabolaSvg.innerHTML = ''; // 清空SVG内容
+            // 清空SVG内容，但保留控制条
+            while (parabolaSvg.firstChild) {
+                parabolaSvg.removeChild(parabolaSvg.firstChild);
+            }
 
             // 添加坐标系
             addCoordinateSystem(parabolaSvg, originX, originY, svgWidth, svgHeight);
@@ -270,6 +486,9 @@
             const vertexX = -b / (2 * a);
             const vertexY = a * vertexX * vertexX + b * vertexX + c;
             addPoint(parabolaSvg, vertexX, vertexY, '#e74c3c', originX, originY, scaleX, scaleY, '顶点');
+            
+            // 重新添加控制条
+            createSVGControls();
         }
 
         // 添加坐标系
@@ -314,6 +533,7 @@
 
         // 初始化页面
         updateFormulaAndSteps();
+        createSVGControls();
 
         // 添加事件监听器
         valueA.addEventListener('input', updateFormulaAndSteps);

@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>玖数学训练游戏</title>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 10px 10px 60px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            overflow: hidden;
+            min-height: 100vh;
+            touch-action: manipulation;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            width: 100%;
+            margin-bottom: 10px;
+            background-color: #fff;
+            padding: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .header h2 {
+            margin: 5px 0;
+            font-size: 1.2em;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 800px;
+            height: 70vh;
+            max-height: 400px;
+            background-color: #fff;
+            position: relative;
+            border: 2px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+
+        .question {
+            position: absolute;
+            background-color: #fff;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: top 0.05s linear;
+            font-size: 0.9em;
+            max-width: 90%;
+            z-index: 1;
+        }
+
+        .info-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .score-display, .level-display, .timer {
+            flex: 1;
+            background-color: #fff;
+            padding: 8px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        .input-container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+
+        .answer-input {
+            flex: 1;
+            padding: 8px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            -webkit-appearance: none;
+        }
+
+        .submit-btn {
+            padding: 8px 16px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .submit-btn:hover {
+            background-color: #45a049;
+        }
+
+        .game-over {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0,0,0,0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            width: 90%;
+            max-width: 300px;
+            z-index: 1000;
+        }
+
+        .start-btn {
+            padding: 12px 24px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            touch-action: manipulation;
+        }
+
+        .start-btn:hover {
+            background-color: #45a049;
+        }
+
+        @media (max-width: 480px) {
+            .header h2 {
+                font-size: 1.1em;
+            }
+
+            .question {
+                font-size: 0.8em;
+                padding: 6px;
+            }
+
+            .score-display, .level-display, .timer {
+                font-size: 0.8em;
+                padding: 6px;
+            }
+
+            .answer-input {
+                font-size: 14px;
+            }
+
+            .submit-btn {
+                font-size: 14px;
+                padding: 6px 12px;
+            }
+
+            .game-container {
+                max-height: 350px;
+            }
+
+            body {
+                padding-bottom: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>玖数学训练游戏之因式分解</h2>
+    </div>
+
+    <div class="info-container">
+        <div class="level-display">
+            等级: <span id="level">1</span>
+        </div>
+        <div class="timer">
+            剩余时间: <span id="timeLeft">10</span>秒
+        </div>
+        <div class="score-display">
+            得分: <span id="score">0</span>
+        </div>
+    </div>
+
+    <div class="game-container" id="gameContainer"></div>
+
+    <div class="input-container">
+        <input type="text" id="answerInput" class="answer-input" placeholder="输入答案" autocomplete="off" disabled inputmode="numeric">
+        <button class="submit-btn" onclick="checkAnswer()">提交</button>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <h2>游戏结束</h2>
+        <p>最终得分: <span id="finalScore">0</span></p>
+        <p>达到等级: <span id="finalLevel">1</span></p>
+        <button class="start-btn" onclick="startGame()">重新开始</button>
+    </div>
+
+    <button class="start-btn" id="initialStartBtn" onclick="startGame()">开始游戏</button>
+
+    <script>
+        let currentScore = 0;
+        let currentLevel = 1;
+        let timeLeft = 10;
+        let timer;
+        let currentQuestion;
+        let questions = [];
+        let gameActive = false;
+
+        const difficultyNames = ["01因式分解01", "02因式分解02", "03因式分解03"];
+
+        function startGame() {
+            currentScore = 0;
+            currentLevel = 1;
+            timeLeft = 10;
+            questions = [];
+            gameActive = true;
+            
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('gameContainer').innerHTML = '';
+            document.getElementById('answerInput').value = '';
+            document.getElementById('answerInput').disabled = false;
+            document.getElementById('score').textContent = currentScore;
+            document.getElementById('level').textContent = currentLevel;
+            document.getElementById('timeLeft').textContent = timeLeft;
+            document.getElementById('initialStartBtn').style.display = 'none';
+            
+            generateQuestion();
+            startTimer();
+        }
+
+        function generateQuestion() {
+            if (!gameActive) return;
+
+            const question = document.createElement('div');
+            question.className = 'question';
+            question.style.top = '0px';
+            const containerWidth = document.getElementById('gameContainer').offsetWidth;
+            question.style.left = Math.random() * (containerWidth - 150) + 'px';
+            question.style.position = 'absolute';
+            question.style.transition = 'top 0.05s linear';
+            question.style.backgroundColor = '#fff';
+            question.style.padding = '10px';
+            question.style.borderRadius = '5px';
+            question.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
+            
+            currentQuestion = generateQuestionByLevel(currentLevel);
+            question.innerHTML = currentQuestion.question;
+            
+            document.getElementById('gameContainer').appendChild(question);
+            questions.push(question);
+            
+            // 重新渲染数学公式
+            MathJax.typesetPromise([question]).catch((err) => console.log(err));
+        }
+
+        function startTimer() {
+            if (timer) clearInterval(timer);
+            
+            timer = setInterval(() => {
+                if (!gameActive) return;
+                
+                // 移动所有问题
+                questions.forEach((q, index) => {
+                    const currentTop = parseFloat(q.style.top);
+                    const newTop = currentTop + 0.3;  // 更慢的下落速度
+                    q.style.top = newTop + 'px';
+                    
+                    // 如果问题到达底部
+                    if (newTop > 350) {  // 适应新的容器高度
+                        q.remove();
+                        questions.splice(index, 1);
+                        currentScore--;
+                        document.getElementById('score').textContent = currentScore;
+                        checkGameStatus();
+                    }
+                });
+            }, 20);
+
+            // 单独处理倒计时
+            const countdownTimer = setInterval(() => {
+                if (!gameActive) {
+                    clearInterval(countdownTimer);
+                    return;
+                }
+                
+                timeLeft--;
+                document.getElementById('timeLeft').textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    currentScore--;
+                    document.getElementById('score').textContent = currentScore;
+                    checkGameStatus();
+                    timeLeft = 10;
+                    document.getElementById('timeLeft').textContent = timeLeft;
+                    generateQuestion();
+                }
+            }, 1000);
+        }
+
+        function checkAnswer() {
+            if (!gameActive) return;
+            
+            const userAnswer = document.getElementById('answerInput').value.trim();
+            if (!userAnswer) return;
+            
+            // 标准化用户输入的答案
+            const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
+            
+            // 标准化正确答案
+            const normalizedCorrectAnswers = currentQuestion.correctAnswer.map(answer => 
+                toHalfWidth(answer.replace(/\s/g, '').toLowerCase()));
+            
+            // 检查答案是否匹配
+            const isCorrect = normalizedCorrectAnswers.some(correctAnswer => {
+                // 移除所有空格和括号
+                const cleanUserAnswer = normalizedUserAnswer.replace(/[\s()]/g, '');
+                const cleanCorrectAnswer = correctAnswer.replace(/[\s()]/g, '');
+                
+                // 检查是否完全匹配
+                return cleanUserAnswer === cleanCorrectAnswer;
+            });
+            
+            if (isCorrect) {
+                currentScore++;
+                document.getElementById('score').textContent = currentScore;
+                checkGameStatus();
+            } else {
+                currentScore--;
+                document.getElementById('score').textContent = currentScore;
+                checkGameStatus();
+            }
+            
+            // 移除当前问题
+            const currentQuestionElement = questions[0];
+            if (currentQuestionElement) {
+                currentQuestionElement.remove();
+                questions.shift();
+            }
+            
+            document.getElementById('answerInput').value = '';
+            timeLeft = 10;
+            document.getElementById('timeLeft').textContent = timeLeft;
+            generateQuestion();
+        }
+
+        function checkGameStatus() {
+            if (currentScore >= currentLevel * 10) {
+                currentLevel++;
+                document.getElementById('level').textContent = currentLevel;
+            } else if (currentScore <= -10) {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(timer);
+            document.getElementById('answerInput').disabled = true;
+            document.getElementById('finalScore').textContent = currentScore;
+            document.getElementById('finalLevel').textContent = currentLevel;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+
+        function toHalfWidth(str) {
+            return str.replace(/[\uFF01-\uFF5E]/g, function(char) {
+                return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            }).replace(/\u3000/g, ' ');
+        }
+
+        // 添加回车键提交答案的功能
+        document.getElementById('answerInput').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        // 修改generateQuestion函数
+        function generateQuestionByLevel(level) {
+            let question;
+            switch(level) {
+                case 1: question = generateLevel1Question(); break;
+                case 2: question = generateLevel2Question(); break;
+                case 3: question = generateLevel3Question(); break;
+
+            }
+            return question;
+        }
+
+        // 修改题目生成函数，使用更标准的LaTeX格式
+        function generateLevel1Question() {
+            let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let textm = m > 0 ? `+${m}` : `${m}`;
+            let p = m + m;
+            let t = m * m;
+            let textp = p === 0 ? "" : (p === 1 ? "+x" : (p === -1 ? "-x" : (p > 1 ? `+${p}x` : `${p}x`)));
+            let textt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
+            let correctAnswer = [`(x${textm})(x${textm})`, `(x${textm})^2`];
+            
+            return {
+                question: `\\begin{gather}因式分解:x^2${textp}${textt} \\\\ \\begin{array}{|c|c|c|} \\hline b&bx& ${textt}\\\\ \\hline x & x^2 &ax \\\\ \\hline  &x&a \\\\ \\hline  \\end{array} \\end{gather}`,
+                correctAnswer: correctAnswer
+            };
+        }
+
+        function generateLevel2Question() {
+            let m = (Math.floor(Math.random() * 9) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let n = -m;
+            let textm = m > 0 ? `+${m}` : `${m}`;
+            let textn = n > 0 ? `+${n}` : `${n}`;
+            let t = m * m;
+            let textt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
+            let correctAnswer = [`(x${textm})(x${textn})`, `(x${textn})(x${textm})`];
+            
+            return {
+                question: `\\begin{gather}因式分解:x^2 - ${t}\\\\ \\begin{array}{|c|c|c|} \\hline b&bx& -${textt}\\\\ \\hline x & x^2 &ax \\\\ \\hline  &x&a \\\\ \\hline  \\end{array} \\end{gather}`,
+                correctAnswer: correctAnswer
+            };
+        }
+
+        function generateLevel3Question() {
+            let m = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let n = (Math.floor(Math.random() * 5) + 1) * (Math.random() < 0.5 ? 1 : -1);
+            let textm = m > 0 ? `+${m}` : `${m}`;
+            let textn = n > 0 ? `+${n}` : `${n}`;
+            let p = m + n;
+            let t = m * n;
+            let textp = p === 0 ? "" : (p === 1 ? "+x" : (p === -1 ? "-x" : (p > 1 ? `+${p}x` : `${p}x`)));
+            let textt = t === 0 ? "" : (t > 0 ? `+${t}` : `${t}`);
+            let correctAnswer = [`(x${textm})(x${textn})`, `(x${textn})(x${textm})`];
+            if (m === n) correctAnswer.push(`(x${textm})^2`);
+            
+            return {
+                question: `\\begin{gather}因式分解:x^2${textp}${textt} \\\\ \\begin{array}{|c|c|c|} \\hline b&bx& ${textt}\\\\ \\hline x & x^2 &ax \\\\ \\hline  &x&a \\\\ \\hline  \\end{array} \\end{gather}`,
+                correctAnswer: correctAnswer
+            };
+        }
+
+ 
+
+        // 修改初始化代码
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化时禁用输入框
+            document.getElementById('answerInput').disabled = true;
+        });
+    </script>
+</body>
+</html> 

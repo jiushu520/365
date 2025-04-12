@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>声控数学方程游戏</title>
+    <script>
+    MathJax = {
+        tex: {
+            inlineMath: [['\\(', '\\)']]
+        },
+        startup: {
+            pageReady() {
+                return MathJax.startup.defaultPageReady();
+            }
+        }
+    };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .game-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border: 2px solid #333;
+            overflow: hidden;
+            background-color: #e6f7ff;
+            margin: 20px 0;
+            z-index: 1;
+        }
+        
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        #volumeMeter {
+            width: 300px;
+            height: 20px;
+            border: 1px solid #333;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        #volumeBar {
+            height: 100%;
+            width: 0%;
+            background-color: #4CAF50;
+            transition: width 0.1s;
+        }
+        
+        #controls {
+            margin: 20px 0;
+        }
+        
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        #gameStatus {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        #score {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        
+        #instructions {
+            margin: 20px 0;
+            text-align: center;
+            font-size: 16px;
+            max-width: 600px;
+        }
+        
+        #audioVisualization {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            margin: 20px 0;
+        }
+        
+        #oscilloscopeContainer {
+            width: 100%;
+            max-width: 800px;
+            height: 150px;
+            background-color: #000;
+            border: 1px solid #333;
+            margin-bottom: 15px;
+        }
+        
+        #audioStats {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 800px;
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .stat-container {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 8px 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .note-guide {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 800px;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .note-item {
+            text-align: center;
+            padding: 5px 10px;
+            border-radius: 5px;
+            background-color: #e9f5e9;
+        }
+        
+        .equation {
+            position: absolute;
+            padding: 10px 15px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            font-size: 24px;
+            font-weight: bold;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 150px;
+            text-align: center;
+            z-index: 5;
+            transform: translate(-50%, 0);
+            left: 50%;
+            margin: 0 auto;
+        }
+        
+        /* 添加MathJax样式调整 */
+        .MathJax {
+            font-size: 24px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        .note-visual {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.7;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            user-select: none;
+        }
+        
+        #countdownDisplay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 80px;
+            font-weight: bold;
+            color: rgba(255, 0, 0, 0.7);
+            display: none;
+            z-index: 10;
+        }
+        
+        .detected-note {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-wrapper">
+        <h1>声控数学方程游戏</h1>
+        
+        <div id="gameStatus">准备开始</div>
+        <div id="score">分数: 0</div>
+        
+        <div id="gameContainer">
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+            <div class="detected-note" id="detectedNote"></div>
+            <div id="countdownDisplay">3</div>
+        </div>
+        
+        <div class="note-guide">
+            <div class="note-item">x=1：Do (F ~349Hz)</div>
+            <div class="note-item">x=2：Re (G ~392Hz)</div>
+            <div class="note-item">x=3：Mi (A ~440Hz)</div>
+            <div class="note-item">x=4：Fa (Bb ~466Hz)</div>
+            <div class="note-item">x=5：Sol (C ~523Hz)</div>
+            <div class="note-item">x=6：La (D ~587Hz)</div>
+            <div class="note-item">x=7：Si (E ~659Hz)</div>
+            <div class="note-item">x=8：Do' (F2 ~698Hz)</div>
+        </div>
+        <div id="audioStats">
+            <div class="stat-container">
+                <div>响度: <span id="loudness">0 dB</span></div>
+            </div>
+            <div class="stat-container">
+                <div>主频率: <span id="dominantFrequency">0 Hz</span></div>
+            </div>
+            <div class="stat-container">
+                <div>识别到的音符: <span id="detectedNoteText">无</span></div>
+            </div>
+        </div>
+        <div id="controls">
+            <button id="startButton">开始游戏</button>
+            <button id="resetButton" disabled>重新开始</button>
+        </div>
+        
+        <div id="volumeMeter">
+            <div id="volumeBar"></div>
+        </div>
+        
+        <div id="audioVisualization">
+            <div id="oscilloscopeContainer">
+                <canvas id="oscilloscope" width="800" height="150"></canvas>
+            </div>
+
+
+        </div>
+        
+        <div id="instructions">
+            <p>游戏说明: 用声音解决方程!</p>
+            <p>- 方程 ax+b=c 会从屏幕上方下落</p>
+            <p>- 唱出与方程解(x的值)对应的音符可以消除方程</p>
+            <p>- x=1 对应 Do，x=2 对应 Re，依此类推</p>
+            <p>- 让方程落到底部会扣分</p>
+            <p>- 正确解决方程加分</p>
+        </div>
+    </div>
+    
+    <script>
+        // 游戏变量
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startButton = document.getElementById('startButton');
+        const resetButton = document.getElementById('resetButton');
+        const statusElement = document.getElementById('gameStatus');
+        const scoreElement = document.getElementById('score');
+        const volumeBar = document.getElementById('volumeBar');
+        const detectedNoteElement = document.getElementById('detectedNote');
+        const detectedNoteTextElement = document.getElementById('detectedNoteText');
+        const countdownDisplay = document.getElementById('countdownDisplay');
+        
+        // 音频分析相关变量
+        const oscilloscope = document.getElementById('oscilloscope');
+        const oscilloscopeCtx = oscilloscope.getContext('2d');
+        const loudnessElement = document.getElementById('loudness');
+        const dominantFrequencyElement = document.getElementById('dominantFrequency');
+        
+        let gameRunning = false;
+        let score = 0;
+        let audioContext;
+        let microphone;
+        let analyser;
+        let dataArray;
+        let timeDataArray;
+        
+        // 添加声音检测变量
+        let lastSoundDetectedTime = 0;
+        let soundDetectionThreshold = 0.01; // 声音检测阈值
+        let lastDetectedNote = null;
+        
+        // 游戏状态
+        let gameState = 'start';
+        
+        // 方程数组
+        let equations = [];
+        
+        // 倒计时变量
+        let countdown = 3;
+        let countdownInterval;
+        
+        // 游戏难度变量
+        let spawnInterval = 8000; // 生成方程的时间间隔（毫秒）
+        let equationSpeed = 0.2; // 方程下落速度
+        let lastSpawnTime = 0;
+        
+        // 音符和频率映射
+        const noteFrequencies = [
+            { note: "Do", name: "1", minFreq: 310, maxFreq: 369, x: 1, color: "#FF5252" },
+            { note: "Re", name: "2", minFreq: 370, maxFreq: 425, x: 2, color: "#FF9800" },
+            { note: "Mi", name: "3", minFreq: 426, maxFreq: 455, x: 3, color: "#FFEB3B" },
+            { note: "Fa", name: "4", minFreq: 456, maxFreq: 500, x: 4, color: "#4CAF50" },
+            { note: "Sol", name: "5", minFreq: 500, maxFreq: 550, x: 5, color: "#2196F3" },
+            { note: "La", name: "6", minFreq: 551, maxFreq: 620, x: 6, color: "#673AB7" },
+            { note: "Si", name: "7", minFreq: 621, maxFreq: 675, x: 7, color: "#9C27B0" },
+            { note: "Do'", name: "8", minFreq: 676, maxFreq: 725, x: 8, color: "#E91E63" }
+        ];
+        
+        // 控制游戏开始
+        startButton.addEventListener('click', () => {
+            if (gameState === 'start' || gameState === 'over') {
+                startCountdown();
+            }
+        });
+        
+        // 控制游戏重新开始
+        resetButton.addEventListener('click', () => {
+            resetGame();
+        });
+        
+        // 开始倒计时
+        function startCountdown() {
+            countdown = 3;
+            countdownDisplay.style.display = 'block';
+            countdownDisplay.textContent = countdown;
+            
+            countdownInterval = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    countdownDisplay.textContent = countdown;
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownDisplay.style.display = 'none';
+                    startGame();
+                }
+            }, 1000);
+        }
+        
+        // 初始化音频处理
+        async function setupAudio() {
+            try {
+                // 获取麦克风权限
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                // 创建音频上下文
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                microphone = audioContext.createMediaStreamSource(stream);
+                analyser = audioContext.createAnalyser();
+                
+                // 设置音频分析参数
+                analyser.fftSize = 2048;
+                const bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+                timeDataArray = new Uint8Array(bufferLength);
+                
+                // 连接节点
+                microphone.connect(analyser);
+                
+                // 启动示波器更新
+                updateOscilloscope();
+                
+                return true;
+            } catch (error) {
+                console.error('无法访问麦克风:', error);
+                statusElement.textContent = '无法访问麦克风，请检查您的设备设置';
+                return false;
+            }
+        }
+        
+        // 获取音量级别
+        function getVolumeLevel() {
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            
+            // 计算平均音量
+            for (let i = 0; i < dataArray.length; i++) {
+                sum += dataArray[i];
+            }
+            
+            const average = sum / dataArray.length;
+            return average / 256; // 归一化为0-1
+        }
+        
+        // 更新音量显示
+        function updateVolumeMeter(volume) {
+            volumeBar.style.width = `${volume * 100}%`;
+        }
+        
+        // 计算主导频率
+        function getDominantFrequency() {
+            analyser.getByteFrequencyData(dataArray);
+            
+            // 找到能量最高的频率bin
+            let maxValue = 0;
+            let maxIndex = 0;
+            
+            // 只考虑人声范围的频率 (大约80Hz到1100Hz)
+            const minIndex = Math.floor(80 * analyser.fftSize / audioContext.sampleRate);
+            const maxIndexLimit = Math.floor(1100 * analyser.fftSize / audioContext.sampleRate);
+            
+            for(let i = minIndex; i < Math.min(maxIndexLimit, dataArray.length); i++) {
+                if(dataArray[i] > maxValue) {
+                    maxValue = dataArray[i];
+                    maxIndex = i;
+                }
+            }
+            
+            // 如果音量太低，认为没有明显频率
+            if(maxValue < 30) return 0;
+            
+            // 将bin索引转换为频率
+            const frequency = maxIndex * audioContext.sampleRate / analyser.fftSize;
+            return Math.round(frequency);
+        }
+        
+        // 识别音符
+        function detectNote(frequency) {
+            if (frequency < 200) return null;
+            
+            for (const noteData of noteFrequencies) {
+                if (frequency >= noteData.minFreq && frequency <= noteData.maxFreq) {
+                    return noteData;
+                }
+            }
+            
+            return null;
+        }
+        
+        // 计算分贝响度
+        function calculateLoudness() {
+            analyser.getByteTimeDomainData(timeDataArray);
+            
+            let sumOfSquares = 0;
+            for(let i = 0; i < timeDataArray.length; i++) {
+                const amplitude = (timeDataArray[i] / 128) - 1;
+                sumOfSquares += amplitude * amplitude;
+            }
+            
+            const rms = Math.sqrt(sumOfSquares / timeDataArray.length);
+            const db = rms > 0 ? 20 * Math.log10(rms) : -100;
+            
+            return Math.max(-100, Math.round(db));
+        }
+        
+        // 绘制示波器
+        function updateOscilloscope() {
+            if(!analyser) return;
+            
+            // 获取音频时域数据
+            analyser.getByteTimeDomainData(timeDataArray);
+            
+            // 获取当前主导频率并据此计算颜色
+            const dominantFreq = getDominantFrequency();
+            const detectedNote = detectNote(dominantFreq);
+            
+            // 保存上一次检测到的音符
+            const volume = getVolumeLevel();
+            if (volume > soundDetectionThreshold && detectedNote) {
+                lastDetectedNote = detectedNote;
+                lastSoundDetectedTime = Date.now();
+                
+                // 更新显示检测到的音符
+                detectedNoteElement.textContent = `${detectedNote.note} (${detectedNote.name})`;
+                detectedNoteElement.style.backgroundColor = detectedNote.color + "AA"; // 添加透明度
+                detectedNoteTextElement.textContent = `${detectedNote.note} (x=${detectedNote.x})`;
+            } else if (Date.now() - lastSoundDetectedTime > 800) { // 0.8秒无声音则清除
+                lastDetectedNote = null;
+                detectedNoteElement.textContent = "";
+                detectedNoteTextElement.textContent = "无";
+            }
+            
+            // 颜色计算
+            let waveColor;
+            if (detectedNote) {
+                waveColor = detectedNote.color;
+            } else {
+                waveColor = '#FFFFFF';
+            }
+            
+            // 清除示波器
+            oscilloscopeCtx.fillStyle = 'black';
+            oscilloscopeCtx.fillRect(0, 0, oscilloscope.width, oscilloscope.height);
+            
+            // 绘制波形
+            oscilloscopeCtx.lineWidth = 3;
+            oscilloscopeCtx.strokeStyle = waveColor;
+            oscilloscopeCtx.beginPath();
+            
+            const sliceWidth = oscilloscope.width / timeDataArray.length;
+            let x = 0;
+            
+            for(let i = 0; i < timeDataArray.length; i++) {
+                const v = timeDataArray[i] / 128.0;
+                const y = v * oscilloscope.height/2;
+                
+                if(i === 0) {
+                    oscilloscopeCtx.moveTo(x, y);
+                } else {
+                    oscilloscopeCtx.lineTo(x, y);
+                }
+                
+                x += sliceWidth;
+            }
+            
+            oscilloscopeCtx.lineTo(oscilloscope.width, oscilloscope.height/2);
+            oscilloscopeCtx.stroke();
+            
+            // 更新音频状态信息
+            const loudness = calculateLoudness();
+            
+            // 更新显示
+            updateVolumeMeter(volume);
+            loudnessElement.textContent = `${loudness} dB`;
+            dominantFrequencyElement.textContent = `${dominantFreq} Hz`;
+            
+            // 使用requestAnimationFrame以获得更流畅的更新
+            requestAnimationFrame(updateOscilloscope);
+        }
+        
+        // 生成一个新方程
+        function generateEquation() {
+            // 随机生成方程系数，确保结果是1-8的整数
+            const x = Math.floor(Math.random() * 8) + 1; // x的解在1-8之间
+            const a = Math.floor(Math.random() * 5) + 2; // a在2-6之间
+            const b = Math.floor(Math.random() * 5) + 2; // b在2-6之间
+            const c = a * x + b; // 计算c
+            
+            // 创建方程对象
+            const equation = {
+                a: a,
+                b: b,
+                c: c,
+                x: x, // 方程的解
+                position: {
+                    x: Math.random() * (canvas.width - 200) + 100,
+                    y: -50
+                },
+                width: 180,
+                height: 60,
+                speed: equationSpeed * (0.8 + Math.random() * 0.4), // 随机速度变化
+                solved: false,
+                solveEffect: {
+                    active: false,
+                    radius: 0,
+                    maxRadius: 100,
+                    color: ""
+                },
+                element: null // 用于存储方程的DOM元素
+            };
+            
+            // 创建方程的DOM元素
+            const eqElement = document.createElement('div');
+            eqElement.className = 'equation';
+            eqElement.style.top = `${equation.position.y}px`;
+            // left设置为屏幕中间，transform会处理居中
+            equation.position.x = canvas.width / 2;
+            
+            // 格式化方程文本
+            let latexEquation;
+            if (equation.a === 1) {
+                // 系数为1不显示系数
+                if (equation.b > 0) {
+                    latexEquation = `x+${equation.b}=${equation.c}`;
+                } else if (equation.b < 0) {
+                    latexEquation = `x${equation.b}=${equation.c}`;
+                } else {
+                    latexEquation = `x=${equation.c}`;
+                }
+            } else if (equation.a === -1) {
+                // 系数为-1显示负号
+                if (equation.b > 0) {
+                    latexEquation = `-x+${equation.b}=${equation.c}`;
+                } else if (equation.b < 0) {
+                    latexEquation = `-x${equation.b}=${equation.c}`;
+                } else {
+                    latexEquation = `-x=${equation.c}`;
+                }
+            } else {
+                // 其他系数正常显示
+                if (equation.b > 0) {
+                    latexEquation = `${equation.a}x+${equation.b}=${equation.c}`;
+                } else if (equation.b < 0) {
+                    latexEquation = `${equation.a}x${equation.b}=${equation.c}`;
+                } else {
+                    latexEquation = `${equation.a}x=${equation.c}`;
+                }
+            }
+            
+            // 使用MathJax格式设置方程，移除不必要的空格
+            eqElement.innerHTML = `\\(${latexEquation.replace(/\s+/g, '')}\\)`;
+            document.getElementById('gameContainer').appendChild(eqElement);
+            
+            // 将DOM元素存储到方程对象中
+            equation.element = eqElement;
+            
+            // 调用MathJax渲染
+            if (window.MathJax) {
+                try {
+                    MathJax.typesetPromise([eqElement]).catch((err) => {
+                        console.error('MathJax渲染错误:', err);
+                    });
+                } catch (e) {
+                    console.error('MathJax调用错误:', e);
+                    // 尝试使用另一种方式调用MathJax
+                    if (typeof MathJax.typeset === 'function') {
+                        MathJax.typeset([eqElement]);
+                    } else if (typeof MathJax.Hub !== 'undefined') {
+                        MathJax.Hub.Queue(["Typeset", MathJax.Hub, eqElement]);
+                    }
+                }
+            }
+            
+            equations.push(equation);
+        }
+        
+        // 游戏逻辑更新
+        function update() {
+            if (!gameRunning) return;
+            
+            const currentTime = Date.now();
+            
+            // 根据时间间隔生成新的方程
+            if (currentTime - lastSpawnTime > spawnInterval) {
+                generateEquation();
+                lastSpawnTime = currentTime;
+                
+                // 随着游戏进行，逐渐增加难度
+                if (spawnInterval > 1500) {
+                    spawnInterval -= 30; // 降低生成间隔时间
+                }
+                if (equationSpeed < 2) {
+                    equationSpeed += 0.02; // 增加下落速度
+                }
+            }
+            
+            // 更新方程位置
+            for (let i = equations.length - 1; i >= 0; i--) {
+                const eq = equations[i];
+                
+                // 如果方程已被解决，更新解决效果
+                if (eq.solveEffect.active) {
+                    eq.solveEffect.radius += 5;
+                    if (eq.solveEffect.radius > eq.solveEffect.maxRadius) {
+                        // 效果结束，移除方程
+                        equations.splice(i, 1);
+                    }
+                } else if (eq.solved) {
+                    // 已解决但效果尚未激活
+                    eq.solveEffect.active = true;
+                    eq.solveEffect.color = noteFrequencies[eq.x - 1].color;
+                } else {
+                    // 方程下落
+                    eq.position.y += eq.speed;
+                    
+                    // 检查是否超出底部边界
+                    if (eq.position.y > canvas.height) {
+                        // 方程未被解决，扣分
+                        score -= 50;
+                        if (score < 0) score = 0;
+                        scoreElement.textContent = `分数: ${score}`;
+                        
+                        // 移除方程
+                        equations.splice(i, 1);
+                    }
+                    
+                    // 检查是否被正确的音符解决
+                    if (lastDetectedNote && lastDetectedNote.x === eq.x && Date.now() - lastSoundDetectedTime < 800) {
+                        // 正确解决方程，加分
+                        score += 100;
+                        scoreElement.textContent = `分数: ${score}`;
+                        
+                        // 标记为已解决
+                        eq.solved = true;
+                        
+                        // 播放解决音效
+                        playSuccessSound(lastDetectedNote.x);
+                    }
+                }
+            }
+        }
+        
+        // 播放成功音效
+        function playSuccessSound(noteIndex) {
+            try {
+                // 使用Web Audio API创建简单的成功音效
+                const successOsc = audioContext.createOscillator();
+                const successGain = audioContext.createGain();
+                
+                // 获取对应音符的频率
+                const noteData = noteFrequencies[noteIndex - 1];
+                const baseFreq = (noteData.minFreq + noteData.maxFreq) / 2;
+                
+                // 设置参数
+                successOsc.type = 'sine';
+                successOsc.frequency.setValueAtTime(baseFreq, audioContext.currentTime);
+                successGain.gain.setValueAtTime(0.5, audioContext.currentTime);
+                successGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
+                
+                // 连接节点
+                successOsc.connect(successGain);
+                successGain.connect(audioContext.destination);
+                
+                // 播放音效
+                successOsc.start();
+                successOsc.stop(audioContext.currentTime + 0.5);
+            } catch (e) {
+                console.error("播放成功音效失败:", e);
+            }
+        }
+        
+        // 绘制游戏元素
+        function draw() {
+            // 清除画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制背景
+            ctx.fillStyle = '#e6f7ff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制方程
+            for (let i = 0; i < equations.length; i++) {
+                const eq = equations[i];
+                
+                if (eq.solveEffect.active) {
+                    // 绘制解决效果（扩散圆）
+                    ctx.beginPath();
+                    ctx.arc(eq.position.x + eq.width/2, eq.position.y + eq.height/2, 
+                           eq.solveEffect.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = eq.solveEffect.color + Math.max(0, 1 - eq.solveEffect.radius/eq.solveEffect.maxRadius).toFixed(1);
+                    ctx.fill();
+                    
+                    // 隐藏方程DOM元素
+                    if (eq.element) {
+                        eq.element.style.display = 'none';
+                    }
+                } else {
+                    // 更新方程DOM元素位置
+                    if (eq.element) {
+                        eq.element.style.top = `${eq.position.y}px`;
+                        eq.element.style.display = 'flex';
+                        
+                        // 根据状态更新样式
+                        if (eq.solved) {
+                            eq.element.style.backgroundColor = 'rgba(100, 255, 100, 0.7)';
+                        } else {
+                            eq.element.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+                        }
+                    }
+                }
+            }
+            
+            // 绘制底部区域
+            ctx.fillStyle = 'rgba(200, 200, 200, 0.5)';
+            ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+            
+            // 游戏状态显示
+            if (!gameRunning) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = 'white';
+                ctx.font = '48px Arial';
+                ctx.textAlign = 'center';
+                
+                if (gameState === 'start') {
+                    ctx.fillText('准备开始', canvas.width / 2, canvas.height / 2);
+                } else if (gameState === 'over') {
+                    ctx.fillText('游戏结束', canvas.width / 2, canvas.height / 2);
+                    ctx.font = '24px Arial';
+                    ctx.fillText(`最终得分: ${score}`, canvas.width / 2, canvas.height / 2 + 50);
+                    ctx.fillText('点击"重新开始"按钮再试一次', canvas.width / 2, canvas.height / 2 + 90);
+                }
+                
+                // 游戏未运行时隐藏所有方程
+                for (const eq of equations) {
+                    if (eq.element) {
+                        eq.element.style.display = 'none';
+                    }
+                }
+            }
+        }
+        
+        // 游戏主循环
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 开始游戏
+        async function startGame() {
+            if (!audioContext) {
+                const audioReady = await setupAudio();
+                if (!audioReady) return;
+            }
+            
+            // 恢复可能被暂停的音频上下文
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+            
+            // 重置游戏状态
+            equations = [];
+            score = 0;
+            scoreElement.textContent = `分数: 0`;
+            spawnInterval = 4000;
+            equationSpeed = 0.4;
+            lastSpawnTime = Date.now();
+            
+            // 更新按钮状态
+            startButton.disabled = true;
+            resetButton.disabled = false;
+            
+            // 更新游戏状态
+            gameState = 'playing';
+            gameRunning = true;
+            statusElement.textContent = '游戏进行中';
+        }
+        
+        // 重置游戏
+        function resetGame() {
+            // 取消倒计时
+            clearInterval(countdownInterval);
+            countdownDisplay.style.display = 'none';
+            
+            gameRunning = false;
+            gameState = 'start';
+            statusElement.textContent = '准备开始';
+            
+            // 更新按钮状态
+            startButton.disabled = false;
+            resetButton.disabled = true;
+            
+            // 清空方程
+            for (const eq of equations) {
+                if (eq.element && eq.element.parentNode) {
+                    eq.element.parentNode.removeChild(eq.element);
+                }
+            }
+            equations = [];
+        }
+        
+        // 开始游戏循环
+        gameLoop();
+    </script>
+</body>
+</html> 

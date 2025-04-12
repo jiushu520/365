@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sound Wave Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .music-keys {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .music-key {
+            width: 60px;
+            height: 120px;
+            background-color: white;
+            border: 1px solid #000;
+            margin: 0 2px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 10px;
+            cursor: pointer;
+        }
+        .music-key:hover {
+            background-color: #f0f0f0;
+        }
+        .current-note {
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 20px;
+            height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sound Wave Generator</h1>
+    
+    <div class="controls">
+        <button id="btn500Hz">Generate 500Hz</button>
+        <button id="btn700Hz">Generate 700Hz</button>
+        <button id="btnStop">Stop Sound</button>
+    </div>
+    
+    <h2>Musical Notes</h2>
+    <div class="music-keys">
+        <div class="music-key" data-note="F" data-freq="349.23">Do</div>
+        <div class="music-key" data-note="G" data-freq="392.00">Re</div>
+        <div class="music-key" data-note="A" data-freq="440.00">Mi</div>
+        <div class="music-key" data-note="Bb" data-freq="466.16">Fa</div>
+        <div class="music-key" data-note="C" data-freq="523.25">Sol</div>
+        <div class="music-key" data-note="D" data-freq="587.33">La</div>
+        <div class="music-key" data-note="E" data-freq="659.26">Si</div>
+        <div class="music-key" data-note="F2" data-freq="698.46">Do'</div>
+    </div>
+    
+    <div class="current-note" id="currentNote"></div>
+    
+    <script>
+        let audioContext;
+        let oscillator;
+        let gainNode;
+        
+        // Initialize audio context
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                gainNode = audioContext.createGain();
+            }
+            
+            if (oscillator) {
+                oscillator.stop();
+                oscillator.disconnect();
+            }
+            
+            oscillator = audioContext.createOscillator();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Set gain to double the amplitude
+            gainNode.gain.value = 2.0;
+            
+            return oscillator;
+        }
+        
+        // Generate sound at specified frequency
+        function generateSound(frequency) {
+            try {
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        console.log("AudioContext resumed successfully");
+                    }).catch(error => {
+                        console.error("Error resuming AudioContext:", error);
+                        alert("无法启动音频系统，请确保您的浏览器允许播放声音。");
+                    });
+                }
+                
+                const osc = initAudio();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(frequency, audioContext.currentTime);
+                osc.start();
+                
+                // Show frequency on page
+                const noteDisplay = document.getElementById('currentNote');
+                if (noteDisplay) {
+                    noteDisplay.textContent = `当前频率: ${frequency}Hz`;
+                }
+            } catch (error) {
+                console.error("Error generating sound:", error);
+                alert("生成声音时出错: " + error.message);
+            }
+        }
+        
+        // Stop sound
+        function stopSound() {
+            if (oscillator) {
+                oscillator.stop();
+                oscillator.disconnect();
+                oscillator = null;
+            }
+            
+            // Clear note display
+            const noteDisplay = document.getElementById('currentNote');
+            if (noteDisplay) {
+                noteDisplay.textContent = "";
+            }
+        }
+        
+        // Initialize
+        window.addEventListener('load', () => {
+            document.getElementById('btn500Hz').addEventListener('click', () => {
+                generateSound(500);
+            });
+            
+            document.getElementById('btn700Hz').addEventListener('click', () => {
+                generateSound(700);
+            });
+            
+            document.getElementById('btnStop').addEventListener('click', stopSound);
+            
+            // Add event listeners for music keys
+            const musicKeys = document.querySelectorAll('.music-key');
+            musicKeys.forEach(key => {
+                key.addEventListener('click', () => {
+                    const freq = parseFloat(key.getAttribute('data-freq'));
+                    generateSound(freq);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

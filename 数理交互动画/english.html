@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Text-to-Speech (GLM-4-Voice)</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- Assuming local MathJax is one level up in a 'mathjax' folder -->
+    <!-- <script id="MathJax-script" async src="../mathjax/es5/tex-mml-chtml.js"></script> -->
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; padding: 20px; max-width: 600px; margin: auto; }
+        textarea { width: 100%; min-height: 100px; margin-bottom: 10px; padding: 8px; box-sizing: border-box; }
+        button { padding: 10px 15px; cursor: pointer; margin-right: 10px; }
+        audio { width: 100%; margin-top: 15px; }
+        #downloadLink { display: none; margin-top: 10px; }
+        #status { margin-top: 10px; font-style: italic; color: grey; }
+    </style>
+</head>
+<body>
+
+    <h1>English Text-to-Speech</h1>
+    <p>Enter English text below and click "Speak" to generate audio using GLM-4-Voice.</p>
+
+    <textarea id="textInput" placeholder="Enter English text here..."></textarea>
+    <button id="speakButton">Speak</button>
+    <span id="status"></span>
+
+    <audio id="audioPlayer" controls></audio>
+    <a id="downloadLink" download="output.wav">Download Audio (.wav)</a>
+
+    <script>
+        const apiKey = "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU"; // Your API Key
+        const apiUrl = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+
+        const textInput = document.getElementById('textInput');
+        const speakButton = document.getElementById('speakButton');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const downloadLink = document.getElementById('downloadLink');
+        const statusSpan = document.getElementById('status');
+
+        speakButton.addEventListener('click', async () => {
+            const text = textInput.value.trim();
+            if (!text) {
+                alert("Please enter some text.");
+                return;
+            }
+
+            // Clear previous results and show loading status
+            audioPlayer.src = '';
+            downloadLink.style.display = 'none';
+            downloadLink.href = '';
+            statusSpan.textContent = 'Generating audio...';
+            speakButton.disabled = true;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "glm-4-voice",
+                        messages: [
+                            {
+                                role: "system",
+                                content: "Read the following English text aloud verbatim. Do not add, omit, or rephrase any words or punctuation. Output only the exact spoken version of the input text."
+                            },
+                            {
+                                role: "user",
+                                content: [
+                                    {
+                                        type: "text",
+                                        text: text
+                                    }
+                                    // No input_audio needed for text-to-speech
+                                ]
+                            }
+                        ],
+                        stream: false, // Use synchronous call for single audio output
+                        max_tokens: 4095, // Explicitly set max_tokens to a higher value
+                        temperature: 0.1 // Set lower temperature for more deterministic output
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`API Error (${response.status}): ${errorData.error?.message || response.statusText}`);
+                }
+
+                const result = await response.json();
+
+                if (result.choices && result.choices[0] && result.choices[0].message && result.choices[0].message.audio && result.choices[0].message.audio.data) {
+                    const audioBase64 = result.choices[0].message.audio.data;
+                    const audioBytes = base64ToBytes(audioBase64);
+                    const audioBlob = new Blob([audioBytes], { type: 'audio/wav' }); // Assuming WAV output
+                    const audioUrl = URL.createObjectURL(audioBlob);
+
+                    audioPlayer.src = audioUrl;
+                    downloadLink.href = audioUrl;
+                    downloadLink.style.display = 'inline-block';
+                    statusSpan.textContent = 'Audio generated.';
+
+                } else {
+                     // Handle cases where audio might not be in the expected place, or if there's a content filter issue
+                     let errorMessage = 'Failed to get audio data.';
+                     const finishReason = result.choices?.[0]?.finish_reason;
+                     if (finishReason === 'sensitive') {
+                         errorMessage = 'Audio generation stopped: sensitive content.';
+                     } else if (finishReason === 'length') {
+                         // Although we have audio data, inform the user it might be incomplete
+                         const audioBase64 = result.choices[0].message.audio.data;
+                         const audioBytes = base64ToBytes(audioBase64);
+                         const audioBlob = new Blob([audioBytes], { type: 'audio/wav' });
+                         const audioUrl = URL.createObjectURL(audioBlob);
+                         audioPlayer.src = audioUrl;
+                         downloadLink.href = audioUrl;
+                         downloadLink.style.display = 'inline-block';
+                         statusSpan.textContent = 'Audio generated (may be incomplete due to length limit).';
+                         // Skip throwing an error here as we have partial audio
+                         console.warn("API Response indicates output may be truncated due to length.", result);
+                         speakButton.disabled = false; // Re-enable button
+                         return; // Exit successfully, but with a warning
+                     } else if (result.error) {
+                         errorMessage = `API Error: ${result.error.message}`;
+                     }
+                     console.error("API Response:", result); // Log the full response for debugging
+                     throw new Error(errorMessage);
+                }
+
+            } catch (error) {
+                console.error("Error:", error);
+                statusSpan.textContent = `Error: ${error.message}`;
+                alert(`An error occurred: ${error.message}`);
+            } finally {
+                 speakButton.disabled = false;
+            }
+        });
+
+        // Helper function to convert base64 to Uint8Array
+        function base64ToBytes(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes;
+        }
+    </script>
+
+</body>
+</html>

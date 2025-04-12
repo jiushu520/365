@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>完全平方公式动画演示</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        canvas {
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .formula {
+            font-size: 24px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        h1 {
+            color: #333;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>完全平方公式动画演示</h1>
+    <div class="formula">(a+b)² = a² + 2ab + b²</div>
+    <canvas id="myCanvas" width="500" height="500"></canvas>
+    <button id="restartBtn">重新开始</button>
+
+    <script>
+        // 获取Canvas元素和上下文
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 定义颜色
+        const colors = {
+            a2: '#FF9999', // 红色 - a²
+            ab: '#99FF99', // 绿色 - ab
+            b2: '#9999FF'  // 蓝色 - b²
+        };
+        
+        // 定义尺寸
+        const a = 200; // a的长度
+        const b = 100; // b的长度
+        const margin = 50; // 边距
+        
+        // 动画变量
+        let animationStep = 0;
+        let animationId = null;
+        let animationProgress = 0;
+        
+        // 绘制函数
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制坐标
+            ctx.font = '20px Arial';
+            ctx.fillStyle = 'black';
+            ctx.fillText('0', margin - 20, margin - 20);
+            ctx.fillText('a', margin + a - 10, margin - 20);
+            ctx.fillText('a+b', margin + a + b - 20, margin - 20);
+            ctx.fillText('a', margin - 20, margin + a - 10);
+            ctx.fillText('a+b', margin - 40, margin + a + b - 10);
+            
+            // 根据动画步骤绘制
+            switch(animationStep) {
+                case 0: // 绘制整个方形的轮廓
+                    if (animationProgress <= 1) {
+                        drawRectOutline(margin, margin, a + b, a + b, animationProgress);
+                    } else {
+                        drawRectOutline(margin, margin, a + b, a + b, 1);
+                        animationStep++;
+                        animationProgress = 0;
+                    }
+                    break;
+                    
+                case 1: // 绘制第一条分割线（垂直）
+                    drawRectOutline(margin, margin, a + b, a + b, 1);
+                    if (animationProgress <= 1) {
+                        drawLine(
+                            margin + a, 
+                            margin, 
+                            margin + a, 
+                            margin + (a + b) * animationProgress
+                        );
+                    } else {
+                        drawLine(margin + a, margin, margin + a, margin + a + b);
+                        animationStep++;
+                        animationProgress = 0;
+                    }
+                    break;
+                    
+                case 2: // 绘制第二条分割线（水平）
+                    drawRectOutline(margin, margin, a + b, a + b, 1);
+                    drawLine(margin + a, margin, margin + a, margin + a + b);
+                    if (animationProgress <= 1) {
+                        drawLine(
+                            margin, 
+                            margin + a, 
+                            margin + (a + b) * animationProgress, 
+                            margin + a
+                        );
+                    } else {
+                        drawLine(margin, margin + a, margin + a + b, margin + a);
+                        animationStep++;
+                        animationProgress = 0;
+                    }
+                    break;
+                    
+                case 3: // 填充a²区域
+                    drawRectOutline(margin, margin, a + b, a + b, 1);
+                    drawLine(margin + a, margin, margin + a, margin + a + b);
+                    drawLine(margin, margin + a, margin + a + b, margin + a);
+                    if (animationProgress <= 1) {
+                        fillRectWithAnimation(margin, margin, a, a, colors.a2, animationProgress);
+                    } else {
+                        ctx.fillStyle = colors.a2;
+                        ctx.fillRect(margin, margin, a, a);
+                        ctx.strokeRect(margin, margin, a, a);
+                        // 添加a²标签
+                        ctx.fillStyle = 'black';
+                        ctx.fillText('a²', margin + a/2 - 15, margin + a/2);
+                        animationStep++;
+                        animationProgress = 0;
+                    }
+                    break;
+                    
+                case 4: // 填充第一个ab区域
+                    drawRectOutline(margin, margin, a + b, a + b, 1);
+                    drawLine(margin + a, margin, margin + a, margin + a + b);
+                    drawLine(margin, margin + a, margin + a + b, margin + a);
+                    ctx.fillStyle = colors.a2;
+                    ctx.fillRect(margin, margin, a, a);
+                    ctx.strokeRect(margin, margin, a, a);
+                    ctx.fillStyle = 'black';
+                    ctx.fillText('a²', margin + a/2 - 15, margin + a/2);
+                    
+                    if (animationProgress <= 1) {
+                        fillRectWithAnimation(margin + a, margin, b, a, colors.ab, animationProgress);
+                    } else {
+                        ctx.fillStyle = colors.ab;
+                        ctx.fillRect(margin + a, margin, b, a);
+                        ctx.strokeRect(margin + a, margin, b, a);
+                        // 添加ab标签
+                        ctx.fillStyle = 'black';
+                        ctx.fillText('ab', margin + a + b/2 - 15, margin + a/2);
+                        animationStep++;
+                        animationProgress = 0;
+                    }
+                    break;
+                    
+                case 5: // 填充第二个ab区域
+                    drawRectOutline(margin, margin, a + b, a + b, 1);
+                    drawLine(margin + a, margin, margin + a, margin + a + b);
+                    drawLine(margin, margin + a, margin + a + b, margin + a);
+                    ctx.fillStyle = colors.a2;
+                    ctx.fillRect(margin, margin, a, a);
+                    ctx.strokeRect(margin, margin, a, a);
+                    ctx.fillStyle = 'black';
+                    ctx.fillText('a²', margin + a/2 - 15, margin + a/2);
+                    ctx.fillStyle = colors.ab;
+                    ctx.fillRect(margin + a, margin, b, a);
+                    ctx.strokeRect(margin + a, margin, b, a);
+                    ctx.fillStyle = 'black';
+                    ctx.fillText('ab', margin + a + b/2 - 15, margin + a/2);
+                    
+                    if (animationProgress <= 1) {
+                        fillRectWithAnimation(margin, margin + a, a, b, colors.ab, animationProgress);
+                    } else {
+                        ctx.fillStyle = colors.ab;
+                        ctx.fillRect(margin, margin + a, a, b);
+                        ctx.strokeRect(margin, margin + a, a, b);
+                        // 添加ab标签
+                        ctx.fillStyle = 'black';
+                        ctx.fillText('ab', margin + a/2 - 15, margin + a + b/2);
+                        animationStep++;
+                        animationProgress = 0;
+                    }
+                    break;
+                    
+                case 6: // 填充b²区域
+                    drawRectOutline(margin, margin, a + b, a + b, 1);
+                    drawLine(margin + a, margin, margin + a, margin + a + b);
+                    drawLine(margin, margin + a, margin + a + b, margin + a);
+                    ctx.fillStyle = colors.a2;
+                    ctx.fillRect(margin, margin, a, a);
+                    ctx.strokeRect(margin, margin, a, a);
+                    ctx.fillStyle = 'black';
+                    ctx.fillText('a²', margin + a/2 - 15, margin + a/2);
+                    ctx.fillStyle = colors.ab;
+                    ctx.fillRect(margin + a, margin, b, a);
+                    ctx.strokeRect(margin + a, margin, b, a);
+                    ctx.fillStyle = 'black';
+                    ctx.fillText('ab', margin + a + b/2 - 15, margin + a/2);
+                    ctx.fillStyle = colors.ab;
+                    ctx.fillRect(margin, margin + a, a, b);
+                    ctx.strokeRect(margin, margin + a, a, b);
+                    ctx.fillStyle = 'black';
+                    ctx.fillText('ab', margin + a/2 - 15, margin + a + b/2);
+                    
+                    if (animationProgress <= 1) {
+                        fillRectWithAnimation(margin + a, margin + a, b, b, colors.b2, animationProgress);
+                    } else {
+                        ctx.fillStyle = colors.b2;
+                        ctx.fillRect(margin + a, margin + a, b, b);
+                        ctx.strokeRect(margin + a, margin + a, b, b);
+                        // 添加b²标签
+                        ctx.fillStyle = 'black';
+                        ctx.fillText('b²', margin + a + b/2 - 15, margin + a + b/2);
+                        animationStep++;
+                        animationProgress = 0;
+                    }
+                    break;
+                    
+                case 7: // 显示完成的状态和公式
+                    drawRectOutline(margin, margin, a + b, a + b, 1);
+                    drawLine(margin + a, margin, margin + a, margin + a + b);
+                    drawLine(margin, margin + a, margin + a + b, margin + a);
+                    
+                    // 填充所有区域
+                    ctx.fillStyle = colors.a2;
+                    ctx.fillRect(margin, margin, a, a);
+                    ctx.strokeRect(margin, margin, a, a);
+                    ctx.fillStyle = 'black';
+                    ctx.fillText('a²', margin + a/2 - 15, margin + a/2);
+                    
+                    ctx.fillStyle = colors.ab;
+                    ctx.fillRect(margin + a, margin, b, a);
+                    ctx.strokeRect(margin + a, margin, b, a);
+                    ctx.fillStyle = 'black';
+                    ctx.fillText('ab', margin + a + b/2 - 15, margin + a/2);
+                    
+                    ctx.fillStyle = colors.ab;
+                    ctx.fillRect(margin, margin + a, a, b);
+                    ctx.strokeRect(margin, margin + a, a, b);
+                    ctx.fillStyle = 'black';
+                    ctx.fillText('ab', margin + a/2 - 15, margin + a + b/2);
+                    
+                    ctx.fillStyle = colors.b2;
+                    ctx.fillRect(margin + a, margin + a, b, b);
+                    ctx.strokeRect(margin + a, margin + a, b, b);
+                    ctx.fillStyle = 'black';
+                    ctx.fillText('b²', margin + a + b/2 - 15, margin + a + b/2);
+                    
+                    // 显示总面积公式
+                    ctx.font = '24px Arial';
+                    ctx.fillText('(a+b)² = a² + 2ab + b²', margin, margin + a + b + 50);
+                    break;
+            }
+            
+            if (animationStep < 7) {
+                animationProgress += 0.01;
+                animationId = requestAnimationFrame(draw);
+            }
+        }
+        
+        // 绘制矩形轮廓的动画
+        function drawRectOutline(x, y, width, height, progress) {
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            
+            // 进度小于等于0.25时，绘制上边
+            if (progress <= 0.25) {
+                ctx.lineTo(x + width * (progress * 4), y);
+            } else {
+                ctx.lineTo(x + width, y);
+            }
+            
+            // 进度在0.25到0.5之间时，绘制右边
+            if (progress > 0.25 && progress <= 0.5) {
+                ctx.lineTo(x + width, y + height * ((progress - 0.25) * 4));
+            } else if (progress > 0.5) {
+                ctx.lineTo(x + width, y + height);
+            }
+            
+            // 进度在0.5到0.75之间时，绘制下边
+            if (progress > 0.5 && progress <= 0.75) {
+                ctx.lineTo(x + width - width * ((progress - 0.5) * 4), y + height);
+            } else if (progress > 0.75) {
+                ctx.lineTo(x, y + height);
+            }
+            
+            // 进度在0.75到1之间时，绘制左边
+            if (progress > 0.75 && progress <= 1) {
+                ctx.lineTo(x, y + height - height * ((progress - 0.75) * 4));
+            } else if (progress === 1) {
+                ctx.lineTo(x, y);
+            }
+            
+            ctx.stroke();
+        }
+        
+        // 绘制线段
+        function drawLine(x1, y1, x2, y2) {
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+        }
+        
+        // 带有动画效果的矩形填充
+        function fillRectWithAnimation(x, y, width, height, color, progress) {
+            // 颜色"飞进来"的效果
+            const centerX = x + width / 2;
+            const centerY = y + height / 2;
+            const currentWidth = width * progress;
+            const currentHeight = height * progress;
+            
+            ctx.fillStyle = color;
+            ctx.globalAlpha = progress;
+            ctx.fillRect(
+                centerX - currentWidth / 2, 
+                centerY - currentHeight / 2, 
+                currentWidth, 
+                currentHeight
+            );
+            ctx.globalAlpha = 1;
+            ctx.strokeRect(
+                centerX - currentWidth / 2, 
+                centerY - currentHeight / 2, 
+                currentWidth, 
+                currentHeight
+            );
+        }
+        
+        // 重新开始按钮事件
+        document.getElementById('restartBtn').addEventListener('click', function() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            animationStep = 0;
+            animationProgress = 0;
+            draw();
+        });
+        
+        // 开始动画
+        draw();
+    </script>
+</body>
+</html> 

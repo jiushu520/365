@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>声控炮弹发射游戏</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .game-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border: 2px solid #333;
+            overflow: hidden;
+            background-color: #87CEEB;
+            margin: 20px 0;
+            z-index: 1;
+        }
+        
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        #volumeMeter {
+            width: 300px;
+            height: 20px;
+            border: 1px solid #333;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        #volumeBar {
+            height: 100%;
+            width: 0%;
+            background-color: #4CAF50;
+            transition: width 0.1s;
+        }
+        
+        #controls {
+            margin: 20px 0;
+        }
+        
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        #gameStatus {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        #score {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        
+        #instructions {
+            margin: 20px 0;
+            text-align: center;
+            font-size: 16px;
+            max-width: 600px;
+        }
+        
+        #audioVisualization {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            margin: 20px 0;
+        }
+        
+        #oscilloscopeContainer {
+            width: 100%;
+            max-width: 800px;
+            height: 150px;
+            background-color: #000;
+            border: 1px solid #333;
+            margin-bottom: 15px;
+        }
+        
+        #audioStats {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 800px;
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .stat-container {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 8px 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        #countdownDisplay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 80px;
+            font-weight: bold;
+            color: rgba(255, 0, 0, 0.7);
+            display: none;
+            z-index: 10;
+        }
+        
+        .angle-display {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-wrapper">
+        <h1>声控炮弹发射游戏</h1>
+        
+        <div id="gameStatus">准备开始</div>
+        <div id="score">分数: 0</div>
+        <div class="angle-display" id="angleDisplay">发射角度: 45°</div>
+        
+        <div id="gameContainer">
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+            <div id="countdownDisplay">3</div>
+        </div>
+        <div id="controls">
+            <button id="startButton">开始游戏</button>
+            <button id="fireButton" disabled>发射炮弹</button>
+            <button id="resetButton" disabled>重新开始</button>
+        </div>
+        
+        <div id="volumeMeter">
+            <div id="volumeBar"></div>
+        </div>
+        
+        <div id="audioVisualization">
+            <div id="oscilloscopeContainer">
+                <canvas id="oscilloscope" width="800" height="150"></canvas>
+            </div>
+
+            <div id="audioStats">
+                <div class="stat-container">
+                    <div>响度: <span id="loudness">0 dB</span></div>
+                </div>
+                <div class="stat-container">
+                    <div>主频率: <span id="dominantFrequency">0 Hz</span></div>
+                </div>
+                <div class="stat-container">
+                    <div>音量: <span id="volumeValue">0%</span></div>
+                </div>
+            </div>
+        </div>
+        
+
+        
+        <div id="instructions">
+            <p>游戏说明: 使用麦克风声音控制炮弹的发射角度:</p>
+            <p>- 高频声音(250Hz以上): 逆时针旋转角度</p>
+            <p>- 低频声音(250Hz以下): 顺时针旋转角度</p>
+            <p>- 点击"发射炮弹"按钮后有3秒倒计时</p>
+            <p>- 炮弹会沿抛物线飞行，尝试击中目标</p>
+        </div>
+    </div>
+    
+    <script>
+        // 游戏变量
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startButton = document.getElementById('startButton');
+        const fireButton = document.getElementById('fireButton');
+        const resetButton = document.getElementById('resetButton');
+        const statusElement = document.getElementById('gameStatus');
+        const scoreElement = document.getElementById('score');
+        const volumeBar = document.getElementById('volumeBar');
+        const angleDisplay = document.getElementById('angleDisplay');
+        const countdownDisplay = document.getElementById('countdownDisplay');
+        
+        // 音频分析相关变量
+        const oscilloscope = document.getElementById('oscilloscope');
+        const oscilloscopeCtx = oscilloscope.getContext('2d');
+        const loudnessElement = document.getElementById('loudness');
+        const dominantFrequencyElement = document.getElementById('dominantFrequency');
+        const volumeValueElement = document.getElementById('volumeValue');
+        
+        let gameRunning = false;
+        let score = 0;
+        let audioContext;
+        let microphone;
+        let analyser;
+        let dataArray;
+        let timeDataArray;
+        
+        // 添加声音检测变量
+        let lastSoundDetectedTime = 0;
+        let soundDetectionThreshold = 0.01; // 声音检测阈值改为1%
+        
+        // 炮塔和炮弹变量
+        const cannon = {
+            x: 50,
+            y: canvas.height - 50,
+            length: 60,
+            width: 20,
+            angle: 45, // 初始角度（度）
+            rotationSpeed: 3.0, // 旋转速度增加为原来的两倍
+            targetAngle: 60 // 目标角度，用于平滑旋转
+        };
+        
+        // 炮弹变量
+        let projectile = {
+            x: 0,
+            y: 0,
+            radius: 10,
+            velocity: { x: 0, y: 0 },
+            gravity: 0.15,
+            active: false,
+            hit: false
+        };
+        
+        // 目标变量
+        const target = {
+            x: canvas.width - 100,
+            y: canvas.height - 100,
+            width: 50,
+            height: 50,
+            hit: false
+        };
+        
+        // 障碍物数组
+        const obstacles = [
+            { x: 400, y: (canvas.height - 100) / 2, width: 30, height: 100 } // 垂直居中并减半高度
+        ];
+        
+        // 预测轨迹点数组
+        let trajectoryPoints = [];
+        
+        // 游戏状态
+        let gameState = 'start';
+        
+        // 倒计时变量
+        let countdown = 3;
+        let countdownInterval;
+        
+        // 控制游戏开始
+        startButton.addEventListener('click', () => {
+            if (gameState === 'start' || gameState === 'over') {
+                startGame();
+            }
+        });
+        
+        // 控制炮弹发射
+        fireButton.addEventListener('click', () => {
+            if (gameState === 'playing' && !projectile.active) {
+                startCountdown();
+            }
+        });
+        
+        // 控制游戏重新开始
+        resetButton.addEventListener('click', () => {
+            resetGame();
+        });
+        
+        // 初始化音频处理
+        async function setupAudio() {
+            try {
+                // 获取麦克风权限
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                // 创建音频上下文
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                microphone = audioContext.createMediaStreamSource(stream);
+                analyser = audioContext.createAnalyser();
+                
+                // 设置音频分析参数
+                analyser.fftSize = 2048;
+                const bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+                timeDataArray = new Uint8Array(bufferLength);
+                
+                // 连接节点
+                microphone.connect(analyser);
+                
+                // 启动示波器更新
+                updateOscilloscope();
+                
+                return true;
+            } catch (error) {
+                console.error('无法访问麦克风:', error);
+                statusElement.textContent = '无法访问麦克风，请检查您的设备设置';
+                return false;
+            }
+        }
+        
+        // 获取音量级别
+        function getVolumeLevel() {
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            
+            // 计算平均音量
+            for (let i = 0; i < dataArray.length; i++) {
+                sum += dataArray[i];
+            }
+            
+            const average = sum / dataArray.length;
+            return average / 256; // 归一化为0-1
+        }
+        
+        // 更新音量显示
+        function updateVolumeMeter(volume) {
+            volumeBar.style.width = `${volume * 100}%`;
+            volumeValueElement.textContent = `${Math.round(volume * 100)}%`;
+        }
+        
+        // 计算主导频率
+        function getDominantFrequency() {
+            analyser.getByteFrequencyData(dataArray);
+            
+            // 找到能量最高的频率bin
+            let maxValue = 0;
+            let maxIndex = 0;
+            
+            // 只考虑人声范围的频率 (大约80Hz到1100Hz)
+            const minIndex = Math.floor(80 * analyser.fftSize / audioContext.sampleRate);
+            const maxIndexLimit = Math.floor(1100 * analyser.fftSize / audioContext.sampleRate);
+            
+            for(let i = minIndex; i < Math.min(maxIndexLimit, dataArray.length); i++) {
+                if(dataArray[i] > maxValue) {
+                    maxValue = dataArray[i];
+                    maxIndex = i;
+                }
+            }
+            
+            // 如果音量太低，认为没有明显频率
+            if(maxValue < 30) return 0;
+            
+            // 将bin索引转换为频率
+            const frequency = maxIndex * audioContext.sampleRate / analyser.fftSize;
+            return Math.round(frequency);
+        }
+        
+        // 计算分贝响度
+        function calculateLoudness() {
+            analyser.getByteTimeDomainData(timeDataArray);
+            
+            let sumOfSquares = 0;
+            for(let i = 0; i < timeDataArray.length; i++) {
+                const amplitude = (timeDataArray[i] / 128) - 1;
+                sumOfSquares += amplitude * amplitude;
+            }
+            
+            const rms = Math.sqrt(sumOfSquares / timeDataArray.length);
+            const db = rms > 0 ? 20 * Math.log10(rms) : -100;
+            
+            return Math.max(-100, Math.round(db));
+        }
+        
+        // 绘制示波器
+        function updateOscilloscope() {
+            if(!analyser) return;
+            
+            // 获取音频时域数据
+            analyser.getByteTimeDomainData(timeDataArray);
+            
+            // 获取当前主导频率并据此计算颜色
+            const dominantFreq = getDominantFrequency();
+            
+            // 颜色计算 - 使用更鲜明的颜色过渡
+            let waveColor;
+            if (dominantFreq === 0) {
+                // 无明显频率时使用白色
+                waveColor = '#FFFFFF';
+            } else {
+                // 将频率映射到一个更大的颜色范围 (0-800Hz)
+                // 创建一个鲜艳的颜色过渡
+                const normalizedFreq = Math.min(dominantFreq, 800) / 800;
+                
+                // 使用HSL颜色模型创建更鲜艳的颜色过渡
+                // 从红色(0) 到 紫色(300)
+                const hue = normalizedFreq * 300;
+                const saturation = 100; // 饱和度100%
+                const lightness = 50;   // 亮度50%
+                
+                waveColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+            }
+            
+            // 清除示波器
+            oscilloscopeCtx.fillStyle = 'black';
+            oscilloscopeCtx.fillRect(0, 0, oscilloscope.width, oscilloscope.height);
+            
+            // 绘制波形 - 使用基于频率的颜色
+            oscilloscopeCtx.lineWidth = 3; // 增加线宽使颜色更明显
+            oscilloscopeCtx.strokeStyle = waveColor;
+            oscilloscopeCtx.beginPath();
+            
+            const sliceWidth = oscilloscope.width / timeDataArray.length;
+            let x = 0;
+            
+            for(let i = 0; i < timeDataArray.length; i++) {
+                const v = timeDataArray[i] / 128.0;
+                const y = v * oscilloscope.height/2;
+                
+                if(i === 0) {
+                    oscilloscopeCtx.moveTo(x, y);
+                } else {
+                    oscilloscopeCtx.lineTo(x, y);
+                }
+                
+                x += sliceWidth;
+            }
+            
+            oscilloscopeCtx.lineTo(oscilloscope.width, oscilloscope.height/2);
+            oscilloscopeCtx.stroke();
+            
+            // 更新音频状态信息
+            const volume = getVolumeLevel();
+            const loudness = calculateLoudness();
+            
+            // 更新显示
+            updateVolumeMeter(volume);
+            loudnessElement.textContent = `${loudness} dB`;
+            dominantFrequencyElement.textContent = `${dominantFreq} Hz`;
+            
+            // 使用requestAnimationFrame以获得更流畅的更新
+            requestAnimationFrame(updateOscilloscope);
+        }
+        
+        // 开始倒计时
+        function startCountdown() {
+            countdown = 3;
+            countdownDisplay.style.display = 'block';
+            countdownDisplay.textContent = countdown;
+            
+            // 更新按钮状态
+            fireButton.disabled = true;
+            
+            // 计算预测轨迹
+            calculateTrajectory();
+            
+            countdownInterval = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    countdownDisplay.textContent = countdown;
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownDisplay.style.display = 'none';
+                    fireProjectile();
+                }
+            }, 1000);
+        }
+        
+        // 发射炮弹
+        function fireProjectile() {
+            // 设置炮弹初始位置
+            const angleRad = cannon.angle * Math.PI / 180;
+            projectile.x = cannon.x + Math.cos(angleRad) * cannon.length;
+            projectile.y = cannon.y - Math.sin(angleRad) * cannon.length;
+            
+            // 设置初始速度（基于角度）
+            const power = 12; // 发射力度
+            projectile.velocity.x = Math.cos(angleRad) * power;
+            projectile.velocity.y = -Math.sin(angleRad) * power;
+            
+            // 设置炮弹为活跃状态
+            projectile.active = true;
+            projectile.hit = false;
+            
+            // 清除预测轨迹
+            trajectoryPoints = [];
+        }
+        
+        // 计算预测轨迹
+        function calculateTrajectory() {
+            trajectoryPoints = [];
+            
+            // 初始位置和速度（基于当前炮台角度）
+            const angleRad = cannon.angle * Math.PI / 180;
+            const startX = cannon.x + Math.cos(angleRad) * cannon.length;
+            const startY = cannon.y - Math.sin(angleRad) * cannon.length;
+            const power = 12;
+            const velocityX = Math.cos(angleRad) * power;
+            const velocityY = -Math.sin(angleRad) * power;
+            
+            // 模拟物理以生成预测点
+            let simX = startX;
+            let simY = startY;
+            let simVelX = velocityX;
+            let simVelY = velocityY;
+            let hitSomething = false;
+            
+            // 模拟200帧或直到击中某物
+            for (let i = 0; i < 200 && !hitSomething; i++) {
+                // 添加当前点
+                trajectoryPoints.push({ x: simX, y: simY });
+                
+                // 更新位置
+                simX += simVelX;
+                simY += simVelY;
+                
+                // 应用重力
+                simVelY += projectile.gravity;
+                
+                // 检查边界碰撞
+                if (simX < 0 || simX > canvas.width || simY > canvas.height) {
+                    hitSomething = true;
+                }
+                
+                // 检查与障碍物的碰撞
+                for (const obstacle of obstacles) {
+                    if (
+                        simX + projectile.radius > obstacle.x &&
+                        simX - projectile.radius < obstacle.x + obstacle.width &&
+                        simY + projectile.radius > obstacle.y &&
+                        simY - projectile.radius < obstacle.y + obstacle.height
+                    ) {
+                        hitSomething = true;
+                        break;
+                    }
+                }
+                
+                // 检查与目标的碰撞
+                if (
+                    simX + projectile.radius > target.x &&
+                    simX - projectile.radius < target.x + target.width &&
+                    simY + projectile.radius > target.y &&
+                    simY - projectile.radius < target.y + target.height
+                ) {
+                    hitSomething = true;
+                }
+            }
+        }
+        
+        // 游戏逻辑更新
+        function update() {
+            if (!gameRunning) return;
+            
+            // 获取当前音量和频率
+            const volume = getVolumeLevel();
+            const dominantFreq = getDominantFrequency();
+            
+            // 记录当前时间
+            const currentTime = Date.now();
+            
+            // 只有当音量足够大时才视为检测到声音
+            if (volume > soundDetectionThreshold) {
+                lastSoundDetectedTime = currentTime;
+                
+                // 根据频率决定旋转方向并设置目标角度
+                if (dominantFreq > 0 && dominantFreq < 400) {
+                    // 低频声音 - 顺时针旋转
+                    cannon.targetAngle -= cannon.rotationSpeed * volume * 2;
+                } else if (dominantFreq >= 400) {
+                    // 高频声音 - 逆时针旋转
+                    cannon.targetAngle += cannon.rotationSpeed * volume * 2;
+                }
+                
+                // 限制目标角度范围在0-90度之间
+                cannon.targetAngle = Math.max(0, Math.min(90, cannon.targetAngle));
+            }
+            
+            // 平滑旋转：当前角度逐渐接近目标角度
+            if (Math.abs(cannon.angle - cannon.targetAngle) > 0.1) {
+                cannon.angle += (cannon.targetAngle - cannon.angle) * 0.1; // 平滑系数
+            }
+            
+            // 更新角度显示
+            angleDisplay.textContent = `发射角度: ${Math.round(cannon.angle)}°`;
+            
+            // 如果角度改变了，更新预测轨迹（仅当准备发射时）
+            if (!projectile.active && gameState === 'playing') {
+                calculateTrajectory();
+            }
+            
+            // 更新炮弹位置
+            if (projectile.active && !projectile.hit) {
+                // 移动炮弹
+                projectile.x += projectile.velocity.x;
+                projectile.y += projectile.velocity.y;
+                
+                // 应用重力
+                projectile.velocity.y += projectile.gravity;
+                
+                // 检查边界碰撞
+                if (projectile.x < 0 || projectile.x > canvas.width || projectile.y > canvas.height) {
+                    projectile.active = false;
+                    fireButton.disabled = false;
+                }
+                
+                // 检查与障碍物的碰撞
+                for (const obstacle of obstacles) {
+                    if (
+                        projectile.x + projectile.radius > obstacle.x &&
+                        projectile.x - projectile.radius < obstacle.x + obstacle.width &&
+                        projectile.y + projectile.radius > obstacle.y &&
+                        projectile.y - projectile.radius < obstacle.y + obstacle.height
+                    ) {
+                        projectile.hit = true;
+                        projectile.velocity.x *= -0.5; // 反弹效果
+                        projectile.velocity.y *= -0.5;
+                        
+                        // 允许再次发射
+                        setTimeout(() => {
+                            projectile.active = false;
+                            fireButton.disabled = false;
+                        }, 1000);
+                        
+                        break;
+                    }
+                }
+                
+                // 检查与目标的碰撞
+                if (
+                    projectile.x + projectile.radius > target.x &&
+                    projectile.x - projectile.radius < target.x + target.width &&
+                    projectile.y + projectile.radius > target.y &&
+                    projectile.y - projectile.radius < target.y + target.height
+                ) {
+                    projectile.hit = true;
+                    target.hit = true;
+                    score += 100;
+                    scoreElement.textContent = `分数: ${score}`;
+                    
+                    // 允许再次发射
+                    setTimeout(() => {
+                        projectile.active = false;
+                        target.hit = false;
+                        fireButton.disabled = false;
+                        
+                        // 移动目标到新位置
+                        target.x = Math.random() * (canvas.width - 200) + 150;
+                        target.y = Math.random() * (canvas.height - 200) + 50;
+                    }, 1500);
+                }
+            }
+        }
+        
+        // 绘制游戏元素
+        function draw() {
+            // 清除画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制背景
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制地面
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+            
+            // 绘制目标
+            ctx.fillStyle = target.hit ? '#FF0000' : '#FF8C00';
+            ctx.fillRect(target.x, target.y, target.width, target.height);
+            // 绘制目标内圆环
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.arc(target.x + target.width/2, target.y + target.height/2, target.width/3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#FF0000';
+            ctx.beginPath();
+            ctx.arc(target.x + target.width/2, target.y + target.height/2, target.width/6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 绘制障碍物
+            ctx.fillStyle = '#808080';
+            for (const obstacle of obstacles) {
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            }
+            
+            // 绘制预测轨迹（点状线）
+            if (!projectile.active && gameState === 'playing' && trajectoryPoints.length > 0) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(trajectoryPoints[0].x, trajectoryPoints[0].y);
+                
+                for (let i = 1; i < trajectoryPoints.length; i++) {
+                    ctx.lineTo(trajectoryPoints[i].x, trajectoryPoints[i].y);
+                }
+                
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+            
+            // 绘制炮台底座
+            ctx.fillStyle = '#555555';
+            ctx.beginPath();
+            ctx.arc(cannon.x, cannon.y, 30, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 绘制炮筒
+            ctx.save();
+            ctx.translate(cannon.x, cannon.y);
+            ctx.rotate(-cannon.angle * Math.PI / 180);
+            ctx.fillStyle = '#333333';
+            ctx.fillRect(0, -cannon.width/2, cannon.length, cannon.width);
+            ctx.restore();
+            
+            // 绘制炮弹
+            if (projectile.active) {
+                ctx.fillStyle = projectile.hit ? '#FF0000' : '#000000';
+                ctx.beginPath();
+                ctx.arc(projectile.x, projectile.y, projectile.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // 游戏状态显示
+            if (!gameRunning) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = 'white';
+                ctx.font = '48px Arial';
+                ctx.textAlign = 'center';
+                
+                if (gameState === 'start') {
+                    ctx.fillText('准备开始', canvas.width / 2, canvas.height / 2);
+                } else if (gameState === 'over') {
+                    ctx.fillText('游戏结束', canvas.width / 2, canvas.height / 2);
+                    ctx.font = '24px Arial';
+                    ctx.fillText(`最终得分: ${score}`, canvas.width / 2, canvas.height / 2 + 50);
+                    ctx.fillText('点击"重新开始"按钮再试一次', canvas.width / 2, canvas.height / 2 + 90);
+                }
+            }
+        }
+        
+        // 游戏主循环
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 开始游戏
+        async function startGame() {
+            if (!audioContext) {
+                const audioReady = await setupAudio();
+                if (!audioReady) return;
+            }
+            
+            // 恢复可能被暂停的音频上下文
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+            
+            // 重置游戏状态
+            cannon.angle = 45;
+            cannon.targetAngle = 45; // 重置目标角度
+            projectile.active = false;
+            projectile.hit = false;
+            target.hit = false;
+            score = 0;
+            scoreElement.textContent = `分数: 0`;
+            
+            // 重新放置目标
+            target.x = canvas.width - 100;
+            target.y = canvas.height - 100;
+            
+            // 更新按钮状态
+            startButton.disabled = true;
+            fireButton.disabled = false;
+            resetButton.disabled = false;
+            
+            // 更新游戏状态
+            gameState = 'playing';
+            gameRunning = true;
+            statusElement.textContent = '游戏进行中';
+            
+            // 初始化预测轨迹
+            calculateTrajectory();
+        }
+        
+        // 重置游戏
+        function resetGame() {
+            // 取消倒计时
+            clearInterval(countdownInterval);
+            countdownDisplay.style.display = 'none';
+            
+            gameRunning = false;
+            gameState = 'start';
+            statusElement.textContent = '准备开始';
+            
+            // 更新按钮状态
+            startButton.disabled = false;
+            fireButton.disabled = true;
+            resetButton.disabled = true;
+            
+            // 清除预测轨迹
+            trajectoryPoints = [];
+        }
+        
+        // 开始游戏循环
+        gameLoop();
+    </script>
+</body>
+</html>

@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>单位圆与三角函数交互学习</title>
+    <!-- 添加MathJax库 -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .flex-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 20px;
+        }
+        .canvas-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: white;
+            padding: 10px;
+            margin-bottom: 20px;
+            position: relative; /* 添加相对定位 */
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        input[type="range"] {
+            width: 200px;
+        }
+        .function-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .function-btn {
+            padding: 8px 15px;
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .function-btn.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .value-display {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .explanation {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f5e9;
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .special-angle {
+            background-color: #e8f5e9;
+        }
+        /* 添加坐标显示样式 */
+        .coordinate-display {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid #4CAF50;
+            border-radius: 6px;
+            padding: 8px 12px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            z-index: 10;
+            display: none;
+            font-size: 16px;
+            min-width: 120px;
+            text-align: center;
+            pointer-events: none; /* 确保不会阻挡鼠标事件 */
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        
+        <div class="section">
+            <h2>单位圆与三角函数交互学习</h2>
+            <div class="flex-container">
+                <div class="canvas-container">
+                    <canvas id="unitCircleCanvas" width="400" height="400"></canvas>
+                    <div id="coordinateDisplay" class="coordinate-display"></div>
+                    <div class="controls">
+                        <div class="control-group">
+                            <label for="angleSlider">角度 (θ): <span id="angleValue">0°</span> / <span id="angleRadians">0 rad</span></label>
+                            <input type="range" id="angleSlider" min="0" max="360" value="0">
+                        </div>
+                    </div>
+                    <div class="value-display">
+                        sin(θ) = <span id="sinValue">0</span>, 
+                        cos(θ) = <span id="cosValue">1</span>, 
+                        tan(θ) = <span id="tanValue">0</span>
+                    </div>
+                </div>
+                
+                <div class="canvas-container">
+                    <canvas id="graphCanvas" width="400" height="300"></canvas>
+                    <div class="function-selector">
+                        <button class="function-btn active" data-function="sin">sin(θ)</button>
+                        <button class="function-btn" data-function="cos">cos(θ)</button>
+                        <button class="function-btn" data-function="tan">tan(θ)</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="explanation">
+                <h3>单位圆与三角函数的关系</h3>
+                <p>在单位圆上（半径为1的圆），对于任意角度θ：</p>
+                <ul>
+                    <li><strong>sin(θ)</strong> 是点在单位圆上的<strong>y坐标</strong></li>
+                    <li><strong>cos(θ)</strong> 是点在单位圆上的<strong>x坐标</strong></li>
+                    <li><strong>tan(θ)</strong> = sin(θ) / cos(θ)</li>
+                </ul>
+                <p>通过拖动滑块，你可以看到角度θ变化时，对应的三角函数值如何变化。</p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>特殊角度的三角函数值</h2>
+            <table>
+                <tr>
+                    <th>角度 (度)</th>
+                    <th>角度 (弧度)</th>
+                    <th>sin(θ)</th>
+                    <th>cos(θ)</th>
+                    <th>tan(θ)</th>
+                </tr>
+                <tr class="special-angle">
+                    <td>0°</td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>1</td>
+                    <td>0</td>
+                </tr>
+                <tr class="special-angle">
+                    <td>30°</td>
+                    <td>π/6</td>
+                    <td>1/2</td>
+                    <td>√3/2</td>
+                    <td>1/√3</td>
+                </tr>
+                <tr class="special-angle">
+                    <td>45°</td>
+                    <td>π/4</td>
+                    <td>√2/2</td>
+                    <td>√2/2</td>
+                    <td>1</td>
+                </tr>
+                <tr class="special-angle">
+                    <td>60°</td>
+                    <td>π/3</td>
+                    <td>√3/2</td>
+                    <td>1/2</td>
+                    <td>√3</td>
+                </tr>
+                <tr class="special-angle">
+                    <td>90°</td>
+                    <td>π/2</td>
+                    <td>1</td>
+                    <td>0</td>
+                    <td>∞</td>
+                </tr>
+                <tr class="special-angle">
+                    <td>180°</td>
+                    <td>π</td>
+                    <td>0</td>
+                    <td>-1</td>
+                    <td>0</td>
+                </tr>
+                <tr class="special-angle">
+                    <td>270°</td>
+                    <td>3π/2</td>
+                    <td>-1</td>
+                    <td>0</td>
+                    <td>∞</td>
+                </tr>
+                <tr class="special-angle">
+                    <td>360°</td>
+                    <td>2π</td>
+                    <td>0</td>
+                    <td>1</td>
+                    <td>0</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="section">
+            <h2>三角函数的性质</h2>
+            <div class="flex-container">
+                <div>
+                    <h3>周期性</h3>
+                    <ul>
+                        <li>sin(θ + 2π) = sin(θ)</li>
+                        <li>cos(θ + 2π) = cos(θ)</li>
+                        <li>tan(θ + π) = tan(θ)</li>
+                    </ul>
+                    
+                    <h3>奇偶性</h3>
+                    <ul>
+                        <li>sin(-θ) = -sin(θ) （奇函数）</li>
+                        <li>cos(-θ) = cos(θ) （偶函数）</li>
+                        <li>tan(-θ) = -tan(θ) （奇函数）</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3>基本恒等式</h3>
+                    <ul>
+                        <li>sin²(θ) + cos²(θ) = 1</li>
+                        <li>tan(θ) = sin(θ) / cos(θ)</li>
+                        <li>sin(θ + π/2) = cos(θ)</li>
+                        <li>cos(θ + π/2) = -sin(θ)</li>
+                    </ul>
+                    
+                    <h3>和差公式</h3>
+                    <ul>
+                        <li>sin(α ± β) = sin(α)cos(β) ± cos(α)sin(β)</li>
+                        <li>cos(α ± β) = cos(α)cos(β) ∓ sin(α)sin(β)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const unitCircleCanvas = document.getElementById('unitCircleCanvas');
+        const graphCanvas = document.getElementById('graphCanvas');
+        const angleSlider = document.getElementById('angleSlider');
+        const angleValue = document.getElementById('angleValue');
+        const angleRadians = document.getElementById('angleRadians');
+        const sinValue = document.getElementById('sinValue');
+        const cosValue = document.getElementById('cosValue');
+        const tanValue = document.getElementById('tanValue');
+        const functionBtns = document.querySelectorAll('.function-btn');
+        
+        // 设置画布上下文
+        const unitCircleCtx = unitCircleCanvas.getContext('2d');
+        const graphCtx = graphCanvas.getContext('2d');
+        
+        // 当前选中的函数
+        let currentFunction = 'sin';
+        
+        // 单位圆的中心和半径
+        const centerX = unitCircleCanvas.width / 2;
+        const centerY = unitCircleCanvas.height / 2;
+        const radius = 150;
+        
+        // 绘制单位圆
+        function drawUnitCircle(angle) {
+            // 清除画布
+            unitCircleCtx.clearRect(0, 0, unitCircleCanvas.width, unitCircleCanvas.height);
+            
+            // 绘制坐标轴
+            unitCircleCtx.beginPath();
+            unitCircleCtx.strokeStyle = '#888';
+            unitCircleCtx.lineWidth = 1;
+            unitCircleCtx.moveTo(0, centerY);
+            unitCircleCtx.lineTo(unitCircleCanvas.width, centerY);
+            unitCircleCtx.moveTo(centerX, 0);
+            unitCircleCtx.lineTo(centerX, unitCircleCanvas.height);
+            unitCircleCtx.stroke();
+            
+            // 绘制单位圆
+            unitCircleCtx.beginPath();
+            unitCircleCtx.strokeStyle = '#000';
+            unitCircleCtx.lineWidth = 2;
+            unitCircleCtx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            unitCircleCtx.stroke();
+            
+            // 计算角度对应的点坐标
+            const radians = angle * Math.PI / 180;
+            const x = centerX + radius * Math.cos(radians);
+            const y = centerY - radius * Math.sin(radians);
+            
+            // 绘制角度线
+            unitCircleCtx.beginPath();
+            unitCircleCtx.strokeStyle = '#333';
+            unitCircleCtx.lineWidth = 2;
+            unitCircleCtx.moveTo(centerX, centerY);
+            unitCircleCtx.lineTo(x, y);
+            unitCircleCtx.stroke();
+            
+            // 绘制角度弧 - 修正：从x正半轴逆时针旋转
+            unitCircleCtx.beginPath();
+            unitCircleCtx.strokeStyle = '#666';
+            unitCircleCtx.lineWidth = 1;
+            // 在Canvas中，由于y轴向下，所以需要特殊处理角度弧
+            // 从0到-radians，并使用false（顺时针）来实现数学上的逆时针效果
+            unitCircleCtx.arc(centerX, centerY, 30, 0, -radians, true);
+            unitCircleCtx.stroke();
+            
+            // 绘制sin和cos线
+            unitCircleCtx.beginPath();
+            unitCircleCtx.strokeStyle = 'blue';
+            unitCircleCtx.lineWidth = 2;
+            unitCircleCtx.moveTo(x, y);
+            unitCircleCtx.lineTo(x, centerY);
+            unitCircleCtx.stroke();
+            
+            unitCircleCtx.beginPath();
+            unitCircleCtx.strokeStyle = 'red';
+            unitCircleCtx.lineWidth = 2;
+            unitCircleCtx.moveTo(x, y);
+            unitCircleCtx.lineTo(centerX, y);
+            unitCircleCtx.stroke();
+            
+            // 绘制点
+            unitCircleCtx.beginPath();
+            unitCircleCtx.fillStyle = 'green';
+            unitCircleCtx.arc(x, y, 8, 0, 2 * Math.PI);
+            unitCircleCtx.fill();
+            
+            // 更新值显示
+            const sin = Math.sin(radians);
+            const cos = Math.cos(radians);
+            const tan = sin / cos;
+            
+            sinValue.textContent = sin.toFixed(3);
+            cosValue.textContent = cos.toFixed(3);
+            tanValue.textContent = Math.abs(tan) > 100 ? '∞' : tan.toFixed(3);
+            
+            // 标记特殊点
+            drawSpecialPoints();
+            
+            // 检查是否是特殊角度，如果是则显示坐标
+            checkSpecialAngle(angle, cos, sin);
+        }
+        
+        // 绘制特殊点
+        function drawSpecialPoints() {
+            const specialAngles = [0, 30, 45, 60, 90, 120, 135, 150, 180, 210, 225, 240, 270, 300, 315, 330];
+            
+            specialAngles.forEach(angle => {
+                const radians = angle * Math.PI / 180;
+                const x = centerX + radius * Math.cos(radians);
+                const y = centerY - radius * Math.sin(radians);
+                
+                unitCircleCtx.beginPath();
+                unitCircleCtx.fillStyle = '#fff';
+                unitCircleCtx.arc(x, y, 4, 0, 2 * Math.PI);
+                unitCircleCtx.fill();
+                unitCircleCtx.beginPath();
+                unitCircleCtx.strokeStyle = '#000';
+                unitCircleCtx.lineWidth = 1;
+                unitCircleCtx.arc(x, y, 4, 0, 2 * Math.PI);
+                unitCircleCtx.stroke();
+            });
+        }
+        
+        // 绘制函数图像
+        function drawFunctionGraph() {
+            // 清除画布
+            graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+            
+            // 绘制坐标轴
+            graphCtx.beginPath();
+            graphCtx.strokeStyle = '#888';
+            graphCtx.lineWidth = 1;
+            graphCtx.moveTo(0, graphCanvas.height / 2);
+            graphCtx.lineTo(graphCanvas.width, graphCanvas.height / 2);
+            graphCtx.moveTo(0, 0);
+            graphCtx.lineTo(0, graphCanvas.height);
+            graphCtx.stroke();
+            
+            // 绘制刻度
+            for (let i = 0; i <= 360; i += 90) {
+                const x = i * graphCanvas.width / 360;
+                graphCtx.beginPath();
+                graphCtx.moveTo(x, graphCanvas.height / 2 - 5);
+                graphCtx.lineTo(x, graphCanvas.height / 2 + 5);
+                graphCtx.stroke();
+                
+                graphCtx.fillStyle = '#666';
+                graphCtx.fillText(i + '°', x - 10, graphCanvas.height / 2 + 20);
+            }
+            
+            // 绘制函数图像
+            graphCtx.beginPath();
+            graphCtx.strokeStyle = 'green';
+            graphCtx.lineWidth = 2;
+            
+            for (let i = 0; i <= graphCanvas.width; i++) {
+                const angle = i * 360 / graphCanvas.width;
+                const radians = angle * Math.PI / 180;
+                let y;
+                
+                switch (currentFunction) {
+                    case 'sin':
+                        y = Math.sin(radians);
+                        break;
+                    case 'cos':
+                        y = Math.cos(radians);
+                        break;
+                    case 'tan':
+                        y = Math.tan(radians);
+                        // 限制tan的值范围，避免图像过大
+                        if (y > 3) y = 3;
+                        if (y < -3) y = -3;
+                        break;
+                }
+                
+                // 将y值映射到画布坐标
+                const canvasY = graphCanvas.height / 2 - y * graphCanvas.height / 4;
+                
+                if (i === 0) {
+                    graphCtx.moveTo(i, canvasY);
+                } else {
+                    graphCtx.lineTo(i, canvasY);
+                }
+            }
+            
+            graphCtx.stroke();
+            
+            // 绘制当前角度对应的点
+            const angle = parseFloat(angleSlider.value);
+            const x = angle * graphCanvas.width / 360;
+            const radians = angle * Math.PI / 180;
+            let y;
+            
+            switch (currentFunction) {
+                case 'sin':
+                    y = Math.sin(radians);
+                    break;
+                case 'cos':
+                    y = Math.cos(radians);
+                    break;
+                case 'tan':
+                    y = Math.tan(radians);
+                    if (y > 3) y = 3;
+                    if (y < -3) y = -3;
+                    break;
+            }
+            
+            const canvasY = graphCanvas.height / 2 - y * graphCanvas.height / 4;
+            
+            graphCtx.beginPath();
+            graphCtx.fillStyle = 'red';
+            graphCtx.arc(x, canvasY, 5, 0, 2 * Math.PI);
+            graphCtx.fill();
+            
+            // 绘制从x轴到点的垂直线
+            graphCtx.beginPath();
+            graphCtx.strokeStyle = 'green';
+            graphCtx.setLineDash([5, 3]);
+            graphCtx.moveTo(x, graphCanvas.height / 2);
+            graphCtx.lineTo(x, canvasY);
+            graphCtx.stroke();
+            graphCtx.setLineDash([]);
+        }
+        
+        // 更新角度显示
+        function updateAngleDisplay(angle) {
+            const radians = angle * Math.PI / 180;
+            
+            // 更新角度值（度数）
+            angleValue.textContent = angle.toFixed(2) + '°';
+            
+            // 更新弧度值，以π为单位，尝试简化分数表示
+            let radiansText = '';
+            
+            // 尝试将弧度表示为π的分数形式
+            if (Math.abs(radians) < 0.0001) {
+                radiansText = '0';
+            } else {
+                // 常见的特殊角度
+                const specialAngles = {
+                    0: '0',
+                    30: 'π/6',
+                    45: 'π/4',
+                    60: 'π/3',
+                    90: 'π/2',
+                    120: '2π/3',
+                    135: '3π/4',
+                    150: '5π/6',
+                    180: 'π',
+                    210: '7π/6',
+                    225: '5π/4',
+                    240: '4π/3',
+                    270: '3π/2',
+                    300: '5π/3',
+                    315: '7π/4',
+                    330: '11π/6',
+                    360: '2π'
+                };
+                
+                // 检查是否是特殊角度（允许小误差）
+                let isSpecialAngle = false;
+                for (const [degrees, fraction] of Object.entries(specialAngles)) {
+                    if (Math.abs(angle - degrees) < 0.1) {
+                        radiansText = fraction;
+                        isSpecialAngle = true;
+                        break;
+                    }
+                }
+                
+                // 如果不是特殊角度，则使用小数形式
+                if (!isSpecialAngle) {
+                    // 尝试表示为π的倍数
+                    const piMultiple = radians / Math.PI;
+                    if (Math.abs(piMultiple - Math.round(piMultiple)) < 0.01) {
+                        // 接近π的整数倍
+                        const multiple = Math.round(piMultiple);
+                        if (multiple === 1) {
+                            radiansText = 'π';
+                        } else if (multiple === -1) {
+                            radiansText = '-π';
+                        } else {
+                            radiansText = multiple + 'π';
+                        }
+                    } else {
+                        // 使用小数形式，保留2位小数
+                        radiansText = (radians / Math.PI).toFixed(2) + 'π';
+                    }
+                }
+            }
+            
+            angleRadians.textContent = radiansText + ' rad';
+        }
+        
+        // 检查是否是特殊角度并显示坐标
+        function checkSpecialAngle(angle, cos, sin) {
+            const coordinateDisplay = document.getElementById('coordinateDisplay');
+            const specialAngles = {
+                0: { cos: '1', sin: '0', exact: true, rad: '0' },
+                30: { cos: '\\frac{\\sqrt{3}}{2}', sin: '\\frac{1}{2}', exact: true, rad: '\\frac{\\pi}{6}' },
+                45: { cos: '\\frac{\\sqrt{2}}{2}', sin: '\\frac{\\sqrt{2}}{2}', exact: true, rad: '\\frac{\\pi}{4}' },
+                60: { cos: '\\frac{1}{2}', sin: '\\frac{\\sqrt{3}}{2}', exact: true, rad: '\\frac{\\pi}{3}' },
+                90: { cos: '0', sin: '1', exact: true, rad: '\\frac{\\pi}{2}' },
+                120: { cos: '-\\frac{1}{2}', sin: '\\frac{\\sqrt{3}}{2}', exact: true, rad: '\\frac{2\\pi}{3}' },
+                135: { cos: '-\\frac{\\sqrt{2}}{2}', sin: '\\frac{\\sqrt{2}}{2}', exact: true, rad: '\\frac{3\\pi}{4}' },
+                150: { cos: '-\\frac{\\sqrt{3}}{2}', sin: '\\frac{1}{2}', exact: true, rad: '\\frac{5\\pi}{6}' },
+                180: { cos: '-1', sin: '0', exact: true, rad: '\\pi' },
+                210: { cos: '-\\frac{\\sqrt{3}}{2}', sin: '-\\frac{1}{2}', exact: true, rad: '\\frac{7\\pi}{6}' },
+                225: { cos: '-\\frac{\\sqrt{2}}{2}', sin: '-\\frac{\\sqrt{2}}{2}', exact: true, rad: '\\frac{5\\pi}{4}' },
+                240: { cos: '-\\frac{1}{2}', sin: '-\\frac{\\sqrt{3}}{2}', exact: true, rad: '\\frac{4\\pi}{3}' },
+                270: { cos: '0', sin: '-1', exact: true, rad: '\\frac{3\\pi}{2}' },
+                300: { cos: '\\frac{1}{2}', sin: '-\\frac{\\sqrt{3}}{2}', exact: true, rad: '\\frac{5\\pi}{3}' },
+                315: { cos: '\\frac{\\sqrt{2}}{2}', sin: '-\\frac{\\sqrt{2}}{2}', exact: true, rad: '\\frac{7\\pi}{4}' },
+                330: { cos: '\\frac{\\sqrt{3}}{2}', sin: '-\\frac{1}{2}', exact: true, rad: '\\frac{11\\pi}{6}' },
+                360: { cos: '1', sin: '0', exact: true, rad: '2\\pi' }
+            };
+            
+            // 检查是否接近特殊角度（允许小误差）
+            let isSpecialAngle = false;
+            let specialAngleValue = null;
+            
+            for (const [degrees, values] of Object.entries(specialAngles)) {
+                if (Math.abs(angle - degrees) < 0.5) {
+                    isSpecialAngle = true;
+                    specialAngleValue = {
+                        degrees: degrees,
+                        values: values
+                    };
+                    break;
+                }
+            }
+            
+            if (isSpecialAngle && specialAngleValue) {
+                // 计算点的位置
+                const radians = specialAngleValue.degrees * Math.PI / 180;
+                const x = centerX + radius * Math.cos(radians);
+                const y = centerY - radius * Math.sin(radians);
+                
+                // 根据角度确定标签的最佳位置
+                let offsetX = 0;
+                let offsetY = 0;
+                let transformValue = '';
+                
+                // 根据象限调整位置
+                const degrees = parseFloat(specialAngleValue.degrees);
+                
+                if (degrees >= 0 && degrees < 90) { // 第一象限
+                    offsetX = 20;
+                    offsetY = -20;
+                    transformValue = 'translate(0, -100%)';
+                } else if (degrees >= 90 && degrees < 180) { // 第二象限
+                    offsetX = -20;
+                    offsetY = -20;
+                    transformValue = 'translate(-100%, -100%)';
+                } else if (degrees >= 180 && degrees < 270) { // 第三象限
+                    offsetX = -20;
+                    offsetY = 20;
+                    transformValue = 'translate(-100%, 0)';
+                } else { // 第四象限
+                    offsetX = 20;
+                    offsetY = 20;
+                    transformValue = 'translate(0, 0)';
+                }
+                
+                // 设置坐标显示的位置（相对于Canvas容器）
+                coordinateDisplay.style.left = (x + offsetX) + 'px';
+                coordinateDisplay.style.top = (y + offsetY) + 'px';
+                coordinateDisplay.style.transform = transformValue;
+                
+                // 设置LaTeX格式的坐标值，改为行的形式
+                coordinateDisplay.innerHTML = `
+                    <div style="margin-bottom: 5px;">\\(\\theta = ${specialAngleValue.degrees}^{\\circ} = ${specialAngleValue.values.rad}\\)</div>
+                    <div>\\((${specialAngleValue.values.cos}, ${specialAngleValue.values.sin})\\)</div>
+                `;
+                
+                // 显示坐标
+                coordinateDisplay.style.display = 'block';
+                
+                // 渲染LaTeX
+                if (window.MathJax) {
+                    MathJax.typesetPromise([coordinateDisplay]).catch(function (err) {
+                        console.error('MathJax typesetting failed: ' + err.message);
+                    });
+                }
+            } else {
+                // 隐藏坐标显示
+                coordinateDisplay.style.display = 'none';
+            }
+        }
+        
+        // 初始化
+        function init() {
+            // 绘制初始状态
+            drawUnitCircle(0);
+            drawFunctionGraph();
+            
+            // 添加滑块事件监听
+            angleSlider.addEventListener('input', function() {
+                const angle = parseFloat(this.value);
+                updateAngleDisplay(angle);
+                drawUnitCircle(angle);
+                drawFunctionGraph();
+            });
+            
+            // 添加函数选择按钮事件监听
+            functionBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    functionBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFunction = this.dataset.function;
+                    drawFunctionGraph();
+                });
+            });
+            
+            // 添加鼠标拖动功能
+            let isDragging = false;
+            
+            unitCircleCanvas.addEventListener('mousedown', function(e) {
+                const rect = unitCircleCanvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                // 检查鼠标是否在圆上的点附近
+                const currentAngle = parseFloat(angleSlider.value);
+                const radians = currentAngle * Math.PI / 180;
+                const pointX = centerX + radius * Math.cos(radians);
+                const pointY = centerY - radius * Math.sin(radians);
+                
+                const distance = Math.sqrt((mouseX - pointX) ** 2 + (mouseY - pointY) ** 2);
+                
+                if (distance < 15) { // 如果鼠标在点的15像素范围内
+                    isDragging = true;
+                }
+            });
+            
+            unitCircleCanvas.addEventListener('mousemove', function(e) {
+                if (isDragging) {
+                    const rect = unitCircleCanvas.getBoundingClientRect();
+                    const mouseX = e.clientX - rect.left;
+                    const mouseY = e.clientY - rect.top;
+                    
+                    // 计算鼠标相对于圆心的角度
+                    // 在Canvas坐标系中，y轴向下为正，所以需要取负值来实现标准的数学坐标系
+                    let angle = Math.atan2(-(mouseY - centerY), mouseX - centerX) * 180 / Math.PI;
+                    
+                    // 确保角度在0-360范围内
+                    if (angle < 0) {
+                        angle += 360;
+                    }
+                    
+                    // 更新滑块和显示
+                    angleSlider.value = angle;
+                    updateAngleDisplay(angle);
+                    drawUnitCircle(angle);
+                    drawFunctionGraph();
+                }
+            });
+            
+            unitCircleCanvas.addEventListener('mouseup', function() {
+                isDragging = false;
+            });
+            
+            unitCircleCanvas.addEventListener('mouseleave', function() {
+                isDragging = false;
+            });
+        }
+        
+        // 启动应用
+        init();
+    </script>
+</body>
+</html>

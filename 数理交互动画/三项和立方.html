@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三项和的幂 (a+b+c)^n</title>
+    <style>
+        body { margin: 0; font-family: sans-serif; overflow: hidden; }
+        canvas { display: block; }
+        #info {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            text-align: center;
+            color: #ffffff;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 2px;
+            font-size: 1.5em;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            white-space: nowrap;
+            overflow-x: auto;
+        }
+        .controls {
+            position: absolute;
+            top: 105px;
+            right: 0px;
+            background-color: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 1px;
+            color: white;
+            z-index: 101;
+            width: 200px; /* Fixed width */
+            height: 400px; /* Fixed height (adjust as needed) */
+        }
+        .controls label {
+            display: block;
+            margin-bottom: 8px; /* Increased spacing */
+        }
+        .controls input[type="range"] {
+            width: 180px; /* Wider slider */
+            vertical-align: middle;
+        }
+        .controls span {
+            display: inline-block;
+            min-width: 25px; /* Ensure space for value */
+            text-align: right;
+            margin-left: 5px;
+        }
+        #reference-line-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 30px; /* Adjust height as needed */
+            background-color: rgba(50, 50, 50, 0.8);
+            display: flex;
+            align-items: center; /* Center items vertically */
+            padding: 0 10px; /* Add some horizontal padding */
+            box-sizing: border-box;
+            z-index: 100;
+        }
+        .ref-segment {
+            height: 15px; /* Height of the colored segments */
+            margin-right: 5px; /* Spacing between segments */
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8em;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .ref-gap {
+             width: 10px; /* Fixed width for gap representation */
+             height: 15px;
+             margin-right: 5px;
+             /* background-color: rgba(255, 255, 255, 0.2); Optional: visualize gap */
+        }
+    </style>
+    <!-- MathJax Configuration -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src="./mathjax/mathjax/es5/tex-mml-chtml.js"></script> 
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\(', '\)']]
+        },
+        svg: {
+          fontCache: 'global'
+        }
+      };
+    </script>
+</head>
+<body>
+    <div id="info">
+      $$(a+b+c)^n = \text{展开式}$$
+      
+
+    </div>
+
+    <div class="controls">
+        <div>
+            <button id="demo_button">开始动画</button>    
+        </div>
+        <br>
+        
+        <div>
+            <label for="n_slider">n =<span id="n_value">3</span></label>
+            <input type="range" id="n_slider" min="1" max="3" value="3" step="1">
+        </div>
+
+        <div>
+            <label for="a_slider">a =<span id="a_value">8</span></label>
+            <input type="range" id="a_slider" min="0" max="10" value="8" step="0.1">
+        </div>
+        <div>
+            <label for="b_slider">b =<span id="b_value">4</span></label>
+            <input type="range" id="b_slider" min="0" max="10" value="4" step="0.1">
+        </div>
+        <div>
+            <label for="c_slider">c =<span id="c_value">2</span></label>
+            <input type="range" id="c_slider" min="0" max="10" value="2" step="0.1">
+        </div>
+        <div>
+            <label for="gap_slider">Gap =<span id="gap_value">0.10</span></label>
+            <input type="range" id="gap_slider" min="0" max="5" value="0.1" step="0.01">
+        </div>
+        <div>
+            <label for="opacity_slider">Opacity =<span id="opacity_value">0.80</span></label>
+            <input type="range" id="opacity_slider" min="0.1" max="1" value="0.8" step="0.01">
+        </div>
+        <br>
+        <div>
+
+    </div>
+
+    <div id="reference-line-container"></div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <!-- Three.js code will be added in the next step -->
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        let scene, camera, renderer, controls;
+        let a = 8, b = 4, c = 2;
+        let n = 3; // 指数参数
+        let gap = 0.1;
+        let shapeOpacity = 0.8; // Global opacity variable
+        const cubes = [];
+        const group = new THREE.Group();
+
+        // Demo state
+        let numActiveVariables = 3; // Start with 3 variables (a, b, c)
+        let isDemoRunning = false;
+        let demoTimeoutId = null;
+        const demoInterval = 3000; // Interval between demo steps (ms)
+
+        const nSlider = document.getElementById('n_slider');
+        const aSlider = document.getElementById('a_slider');
+        const bSlider = document.getElementById('b_slider');
+        const cSlider = document.getElementById('c_slider');
+        const gapSlider = document.getElementById('gap_slider');
+        const opacitySlider = document.getElementById('opacity_slider'); // Get opacity slider
+        const demoButton = document.getElementById('demo_button'); // Get demo button
+
+        const nValueSpan = document.getElementById('n_value');
+        const aValueSpan = document.getElementById('a_value');
+        const bValueSpan = document.getElementById('b_value');
+        const cValueSpan = document.getElementById('c_value');
+        const gapValueSpan = document.getElementById('gap_value');
+        const opacityValueSpan = document.getElementById('opacity_value'); // Get opacity value span
+
+        // Colors for each term type
+        // Base colors will be used and adapted based on numActiveVariables
+        const baseColors = {
+            v1: 0xff0000, // a - Red
+            v2: 0x0000ff, // b - Blue
+            v3: 0x006400, // c - Dark Green
+            a2b: 0xffff00, // a^2b - Yellow
+            ab2: 0xff00ff, // ab^2 - Magenta
+            a2c: 0x00ffff, // a^2c - Cyan
+            ac2: 0xffa500, // ac^2 - Orange
+            b2c: 0x800080, // b^2c - Purple
+            bc2: 0x7cfc00, // bc^2 - LawnGreen
+            abc: 0x808080  // abc - Grey
+        };
+
+        // Get reference line container
+        const refLineContainer = document.getElementById('reference-line-container');
+
+        // Helper to disable/enable controls
+        function setControlsEnabled(enabled) {
+            nSlider.disabled = !enabled;
+            aSlider.disabled = !enabled;
+            bSlider.disabled = !enabled;
+            cSlider.disabled = !enabled;
+            gapSlider.disabled = !enabled;
+            opacitySlider.disabled = !enabled; // Disable opacity slider too
+        }
+
+        // Function to get the currently active variables and their values
+        function getActiveVariables() {
+            const vars = [{ name: 'a', value: a, color: baseColors.v1 }];
+            if (numActiveVariables >= 2) {
+                vars.push({ name: 'b', value: b, color: baseColors.v2 });
+            }
+            if (numActiveVariables >= 3) {
+                vars.push({ name: 'c', value: c, color: baseColors.v3 });
+            }
+            return vars;
+        }
+
+        function createShape(size, color, position, addEdges = true) {
+            // Use BoxGeometry for all, just control dimensions
+            const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+            const material = new THREE.MeshLambertMaterial({
+                color: color,
+                transparent: true,
+                // Use global shapeOpacity, except when volume is zero
+                opacity: (size.x <= 0 || size.y <= 0 || size.z <= 0) ? 0 : shapeOpacity
+            });
+            const shape = new THREE.Mesh(geometry, material);
+
+            const container = new THREE.Group();
+            container.add(shape);
+
+            if (addEdges) {
+                const edges = new THREE.EdgesGeometry(geometry);
+                const lineMaterial = new THREE.LineBasicMaterial({
+                    color: 0x000000,
+                    linewidth: 1,
+                    transparent: true,
+                    opacity: (size.x <= 0 || size.y <= 0 || size.z <= 0) ? 0 : 1
+                });
+                const lineSegments = new THREE.LineSegments(edges, lineMaterial);
+                container.add(lineSegments);
+            }
+
+            container.position.set(position.x, position.y, position.z);
+            return container;
+        }
+
+        // Modified to handle variable number of active variables
+        function getTermColor(counts, power) {
+            const activeIndices = Object.keys(counts).map(Number).filter(k => counts[k] > 0);
+
+            if (numActiveVariables === 1) {
+                return baseColors.v1; // Only 'a'
+            } else if (numActiveVariables === 2) {
+                // Using indices 1 (a) and 2 (b)
+                if (power === 1) {
+                    if (counts[1] === 1) return baseColors.v1; // a
+                    if (counts[2] === 1) return baseColors.v2; // b
+                } else if (power === 2) {
+                    if (counts[1] === 2) return baseColors.v1; // a^2
+                    if (counts[2] === 2) return baseColors.v2; // b^2
+                    if (counts[1] === 1 && counts[2] === 1) return baseColors.a2b; // a^2b
+                } else if (power === 3) {
+                    if (counts[1] === 3 && counts[2] === 0) return baseColors.v1; // a^3
+                    if (counts[1] === 0 && counts[2] === 3) return baseColors.v2; // b^3
+                    if (counts[1] === 2 && counts[2] === 1) return baseColors.a2b; // a^2b
+                    if (counts[1] === 1 && counts[2] === 2) return baseColors.ab2; // ab^2
+                    // Explicit fallback if counts don't match expected patterns for (a+b)^3
+                    console.warn(`getTermColor: Unhandled counts for (a+b)^3: ${JSON.stringify(counts)}`);
+                    return 0xffffff;
+                }
+            } else if (numActiveVariables === 3) {
+                 // Using indices 1 (a), 2 (b), 3 (c)
+                 if (power === 1) {
+                     if (counts[1] === 1) return baseColors.v1; // a
+                     if (counts[2] === 1) return baseColors.v2; // b
+                     if (counts[3] === 1) return baseColors.v3; // c
+                 } else if (power === 2) {
+                     if (counts[1] === 2) return baseColors.v1; // a^2
+                     if (counts[2] === 2) return baseColors.v2; // b^2
+                     if (counts[3] === 2) return baseColors.v3; // c^2
+                     if (counts[1] === 1 && counts[2] === 1) return baseColors.a2b; // a^2b
+                     if (counts[1] === 1 && counts[3] === 1) return baseColors.a2c; // a^2c
+                     if (counts[2] === 1 && counts[3] === 1) return baseColors.b2c; // b^2c
+                 } else if (power === 3) {
+                     if (counts[1] === 3) return baseColors.v1; // a^3
+                     if (counts[2] === 3) return baseColors.v2; // b^3
+                     if (counts[3] === 3) return baseColors.v3; // c^3
+                     if (counts[1] === 2 && counts[2] === 1) return baseColors.a2b; // a^2b
+                     if (counts[1] === 1 && counts[2] === 2) return baseColors.ab2; // ab^2
+                     if (counts[1] === 2 && counts[3] === 1) return baseColors.a2c; // a^2c
+                     if (counts[1] === 1 && counts[3] === 2) return baseColors.ac2; // ac^2
+                     if (counts[2] === 2 && counts[3] === 1) return baseColors.b2c; // b^2c
+                     if (counts[2] === 1 && counts[3] === 2) return baseColors.bc2; // bc^2
+                     if (counts[1] === 1 && counts[2] === 1 && counts[3] === 1) return baseColors.abc; // abc
+                 }
+            }
+            return 0xffffff; // Fallback
+        }
+
+        // Modified to handle variable number of active variables and zero values
+        function updateFormula() {
+            const activeVars = getActiveVariables(); // Still useful for colors etc.
+            const displayVars = [];
+            if (a > 0) displayVars.push('a');
+            if (b > 0 && numActiveVariables >= 2) displayVars.push('b');
+            if (c > 0 && numActiveVariables >= 3) displayVars.push('c');
+
+            let varString = displayVars.join('+');
+            if (varString === '') varString = '0'; // Handle case where all are zero
+
+            let formula = `(${varString})^${n} = `;
+            let terms = [];
+
+            // Generate the expanded form based on numActiveVariables, n, and non-zero values
+            if (n === 1) {
+                if (a > 0) terms.push('a');
+                if (b > 0 && numActiveVariables >= 2) terms.push('b');
+                if (c > 0 && numActiveVariables >= 3) terms.push('c');
+            } else if (n === 2) {
+                if (a > 0) terms.push('a^2');
+                if (b > 0 && numActiveVariables >= 2) terms.push('b^2');
+                if (c > 0 && numActiveVariables >= 3) terms.push('c^2');
+                if (a > 0 && b > 0 && numActiveVariables >= 2) terms.push('2ab');
+                if (a > 0 && c > 0 && numActiveVariables >= 3) terms.push('2ac');
+                if (b > 0 && c > 0 && numActiveVariables >= 3) terms.push('2bc');
+            } else if (n === 3) {
+                if (a > 0) terms.push('a^3');
+                if (b > 0 && numActiveVariables >= 2) terms.push('b^3');
+                if (c > 0 && numActiveVariables >= 3) terms.push('c^3');
+                if (a > 0 && b > 0 && numActiveVariables >= 2) {
+                    terms.push('3a^2b');
+                    terms.push('3ab^2');
+                }
+                if (a > 0 && c > 0 && numActiveVariables >= 3) {
+                    terms.push('3a^2c');
+                    terms.push('3ac^2');
+                }
+                if (b > 0 && c > 0 && numActiveVariables >= 3) {
+                    terms.push('3b^2c');
+                    terms.push('3bc^2');
+                }
+                if (a > 0 && b > 0 && c > 0 && numActiveVariables >= 3) {
+                    terms.push('6abc');
+                }
+            }
+
+            let expansion = terms.join(' + ');
+            if (expansion === '') expansion = '0'; // Handle case where expansion is empty (e.g., (0)^n)
+
+            formula += expansion;
+
+            document.getElementById('info').innerHTML = `$$${formula} $$`;
+            if (window.MathJax) {
+                MathJax.typesetPromise && MathJax.typesetPromise();
+            }
+        }
+
+        // Modified to handle variable number of active variables and demo state
+        function updateCubes() {
+            // Clear existing shapes
+            cubes.forEach(c => {
+                group.remove(c);
+                c.children.forEach(child => {
+                    if (child.geometry) child.geometry.dispose();
+                    if (child.material) child.material.dispose();
+                });
+            });
+            cubes.length = 0;
+
+            const activeVars = getActiveVariables();
+            if (activeVars.length === 0) return;
+
+            // Calculate total size and centers based on active variables
+            const totalValue = activeVars.reduce((sum, v) => sum + v.value, 0);
+            const numGaps = Math.max(0, numActiveVariables - 1);
+            const totalGap = numGaps * gap;
+            const effectiveS = totalValue + totalGap;
+            const effectiveS_half = effectiveS / 2;
+            const smallDim = 0.2;
+            // const lineOffset = -smallDim * 2; // No longer needed for 3D line
+
+            const lengths = activeVars.map(v => v.value);
+            const centers1D = [];
+            let currentPos = -effectiveS_half;
+            for (let i = 0; i < numActiveVariables; i++) {
+                centers1D.push(currentPos + lengths[i] / 2);
+                currentPos += lengths[i] + (i < numActiveVariables - 1 ? gap : 0);
+            }
+
+            // --- Create main visualization based on exponent 'n' --- 
+            const generateCombinations = (currentIndices) => {
+                 if (currentIndices.length === n) {
+                     // Create shape based on combination
+                     const counts = {};
+                     activeVars.forEach((v, i) => counts[i + 1] = 0);
+                     currentIndices.forEach(idx => { counts[idx]++; });
+
+                     const dim = new THREE.Vector3();
+                     const pos = new THREE.Vector3();
+
+                     // Determine shape dimensions/position based on exponent 'n'
+                     if (n === 1) {
+                         // Only generate 1 shape per active variable
+                         const varIndex = currentIndices[0] - 1; // 0 for 'a', 1 for 'b', etc.
+                         dim.set(lengths[varIndex], smallDim, smallDim);
+                         pos.set(centers1D[varIndex], 0, 0); // Place at Y=0, Z=0
+                         // Don't add edges for 1D representation
+                         if (dim.x > 0 && dim.y > 0 && dim.z > 0) {
+                             const color = getTermColor(counts, n);
+                             const shape = createShape(dim, color, pos, false); // Pass addEdges=false
+                             cubes.push(shape);
+                             group.add(shape);
+                         }
+                         return; // Already handled for n=1
+                     } else if (n === 2) {
+                         dim.set(lengths[currentIndices[0] - 1], lengths[currentIndices[1] - 1], smallDim);
+                         pos.set(centers1D[currentIndices[0] - 1], centers1D[currentIndices[1] - 1], 0);
+                     } else if (n === 3) {
+                         dim.set(lengths[currentIndices[0] - 1], lengths[currentIndices[1] - 1], lengths[currentIndices[2] - 1]);
+                         pos.set(centers1D[currentIndices[0] - 1], centers1D[currentIndices[1] - 1], centers1D[currentIndices[2] - 1]);
+                     }
+
+                     // Check if dimension is valid before creating shape
+                     if (dim.x > 0 && dim.y > 0 && dim.z > 0) {
+                         const color = getTermColor(counts, n);
+                         const shape = createShape(dim, color, pos);
+                         cubes.push(shape);
+                         group.add(shape);
+                     }
+                     return;
+                 }
+
+                 // Recursive step: iterate through ACTIVE variables only
+                 for (let i = 1; i <= numActiveVariables; i++) {
+                     generateCombinations([...currentIndices, i]);
+                 }
+             };
+             generateCombinations([]);
+            // --- End of main visualization ---
+
+            // Update UI elements
+             nValueSpan.textContent = n;
+             aValueSpan.textContent = a.toFixed(1);
+             bValueSpan.textContent = (numActiveVariables >= 2) ? b.toFixed(1) : '-';
+             cValueSpan.textContent = (numActiveVariables >= 3) ? c.toFixed(1) : '-';
+             gapValueSpan.textContent = gap.toFixed(2);
+             opacityValueSpan.textContent = shapeOpacity.toFixed(2); // Update value display
+
+             // Update slider visibility/disabled state based on numActiveVariables
+             bSlider.parentElement.style.display = (numActiveVariables >= 2) ? 'block' : 'none';
+             cSlider.parentElement.style.display = (numActiveVariables >= 3) ? 'block' : 'none';
+             // Disable gap slider if only one variable
+             gapSlider.disabled = (numActiveVariables <= 1 || isDemoRunning);
+             console.log(`[updateCubes] Gap Slider Disabled: ${gapSlider.disabled} (numActiveVariables: ${numActiveVariables}, isDemoRunning: ${isDemoRunning})`); // Debug log
+             // Also update main controls disable state (for demo)
+             setControlsEnabled(!isDemoRunning);
+
+             updateFormula(); // Recreate shapes with new opacity
+             animate();
+        }
+
+        // --- New function to update the HTML reference line --- 
+        function updateReferenceLine() {
+            refLineContainer.innerHTML = ''; // Clear previous line
+            const activeVars = getActiveVariables();
+            if (activeVars.length === 0) return;
+
+            const totalValue = activeVars.reduce((sum, v) => sum + v.value, 0);
+            const containerWidth = refLineContainer.clientWidth - 20; // Available width minus padding
+
+            if (totalValue <= 0 || containerWidth <= 0) return; // Avoid division by zero or no space
+
+            // Fixed width for gap representation in pixels
+            const gapWidthPx = 10;
+            const numGaps = Math.max(0, activeVars.length - 1);
+            const totalGapWidthPx = numGaps * gapWidthPx;
+
+            // Available width for actual value segments
+            const availableValueWidth = Math.max(0, containerWidth - totalGapWidthPx);
+
+            for (let i = 0; i < activeVars.length; i++) {
+                const v = activeVars[i];
+                const segment = document.createElement('div');
+                segment.classList.add('ref-segment');
+                
+                const valueRatio = v.value / totalValue;
+                const segmentWidth = availableValueWidth * valueRatio;
+                
+                segment.style.width = `${segmentWidth}px`;
+                // Convert THREE color to CSS hex string
+                segment.style.backgroundColor = `#${v.color.toString(16).padStart(6, '0')}`;
+                segment.textContent = `${v.name}=${v.value.toFixed(1)}`; // Display value
+                refLineContainer.appendChild(segment);
+
+                // Add gap element if not the last variable
+                if (i < activeVars.length - 1) {
+                    const gapElement = document.createElement('div');
+                    gapElement.classList.add('ref-gap');
+                    // gapElement.style.width = `${gapWidthPx}px`; // Set via CSS
+                    refLineContainer.appendChild(gapElement);
+                }
+            }
+        }
+
+        // Store base camera direction vectors for each 'n'
+        const cameraDirections = {
+            1: new THREE.Vector3(0, 0, 1), // View along Z axis for n=1
+            2: new THREE.Vector3(0.3, 0.4, 0.9).normalize(), // Angled view for n=2 (plane)
+            3: new THREE.Vector3(0.9, 0.6, 0.9).normalize()  // Angled view for n=3 (cube)
+        };
+
+        // Calculates the desired camera distance based on current variables
+        function calculateTargetDistance() {
+            const activeVars = getActiveVariables();
+            const S = activeVars.reduce((sum, v) => sum + v.value, 0) + Math.max(0, numActiveVariables - 1) * gap;
+            return Math.max(S * 2.5, 5); // Increased multiplier from 1.6 to 2.5
+        }
+
+        // Adjusts only the camera distance, preserving orientation
+        function adjustCameraDistance() {
+            const targetDistance = calculateTargetDistance();
+            // Get current direction vector (camera position relative to target)
+            const direction = new THREE.Vector3();
+            direction.subVectors(camera.position, controls.target).normalize();
+
+            // Set new position along the current direction
+            camera.position.copy(controls.target).addScaledVector(direction, targetDistance);
+            // No need to call controls.update() if it's in the animate loop
+        }
+
+        // Sets the camera view (position, target, controls) based on n
+        function setCameraViewForN(newN) {
+            const targetDistance = calculateTargetDistance();
+            const baseDirection = cameraDirections[newN];
+
+            controls.target.set(0, 0, 0); // Reset target to origin for simplicity
+
+            if (newN === 1) {
+                 // Set position along Z axis
+                 camera.position.copy(controls.target).addScaledVector(baseDirection, targetDistance);
+                 controls.enableRotate = false;
+                 controls.enablePan = true;
+                 controls.screenSpacePanning = true;
+            } else { // n === 2 or n === 3
+                 // Set position based on predefined direction and distance
+                 camera.position.copy(controls.target).addScaledVector(baseDirection, targetDistance);
+                 controls.enableRotate = true;
+                 controls.enablePan = true;
+                 controls.screenSpacePanning = false;
+                 controls.minDistance = 1;
+                 controls.maxDistance = 150;
+            }
+             camera.lookAt(controls.target); // Ensure camera looks at the target
+            // No need to call controls.update() if it's in the animate loop
+        }
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xcccccc);
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+            const initialSize = a + b + c;
+            camera.position.set(initialSize * 1.6, initialSize * 1.3, initialSize * 1.6);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
+            directionalLight.position.set(0.5, 1, 0.75).normalize();
+            scene.add(directionalLight);
+
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = false;
+            controls.minDistance = 5;
+            controls.maxDistance = 150;
+            // controls.maxPolarAngle = Math.PI / 2 + 0.5;
+
+            scene.add(group);
+            updateCubes();
+            updateReferenceLine(); // Initial reference line update
+            setCameraViewForN(n);
+
+            nSlider.addEventListener('input', (event) => {
+                n = parseInt(event.target.value);
+                nValueSpan.textContent = n;
+                updateFormula();
+                updateCubes();
+                updateReferenceLine(); // Update ref line
+                setCameraViewForN(n);
+            });
+
+            aSlider.addEventListener('input', (event) => {
+                a = parseFloat(event.target.value);
+                aValueSpan.textContent = a.toFixed(1);
+                updateCubes();
+                updateReferenceLine();
+                adjustCameraDistance(); // Adjust distance only
+            });
+
+            bSlider.addEventListener('input', (event) => {
+                b = parseFloat(event.target.value);
+                bValueSpan.textContent = b.toFixed(1);
+                updateCubes();
+                updateReferenceLine();
+                adjustCameraDistance(); // Adjust distance only
+            });
+
+            cSlider.addEventListener('input', (event) => {
+                c = parseFloat(event.target.value);
+                cValueSpan.textContent = c.toFixed(1);
+                updateCubes();
+                updateReferenceLine();
+                adjustCameraDistance(); // Adjust distance only
+            });
+
+            gapSlider.addEventListener('input', (event) => {
+                if (isDemoRunning) return;
+                gap = parseFloat(event.target.value);
+                gapValueSpan.textContent = gap.toFixed(2);
+                updateCubes();
+                updateReferenceLine();
+                adjustCameraDistance(); // Adjust distance only
+            });
+
+            opacitySlider.addEventListener('input', (event) => {
+                if (isDemoRunning) return;
+                shapeOpacity = parseFloat(event.target.value);
+                opacityValueSpan.textContent = shapeOpacity.toFixed(2); // Update value display
+                updateCubes(); // Recreate shapes with new opacity
+                // No need to adjust camera distance/view for opacity changes
+            });
+
+            // Demo Button Listener
+            demoButton.addEventListener('click', () => {
+                if (isDemoRunning) {
+                    stopDemo();
+                } else {
+                    startDemo();
+                }
+            });
+
+            window.addEventListener('resize', onWindowResize, false);
+
+            updateFormula(); // 初始化公式显示
+            animate();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // --- Demo Logic ---
+        let demoStep = 0;
+        const demoSequence = [
+            { numVars: 1, exp: 1 }, // a^1
+            { numVars: 2, exp: 1 }, // (a+b)^1
+            { numVars: 3, exp: 1 }, // (a+b+c)^1
+            { numVars: 1, exp: 2 }, // a^2
+            { numVars: 2, exp: 2 }, // (a+b)^2
+            { numVars: 3, exp: 2 }, // (a+b+c)^2
+            { numVars: 1, exp: 3 }, // a^3
+            { numVars: 2, exp: 3 }, // (a+b)^3
+            { numVars: 3, exp: 3 }  // (a+b+c)^3
+        ];
+
+        function runDemoStep() {
+            if (!isDemoRunning) return;
+
+            const stepConfig = demoSequence[demoStep % demoSequence.length];
+            numActiveVariables = stepConfig.numVars;
+            n = stepConfig.exp;
+
+            // Update UI and visualization
+            nSlider.value = n; // Update slider to reflect state
+            updateFormula();
+            updateCubes();
+            updateReferenceLine();
+            setCameraViewForN(n);
+
+            demoStep++;
+            demoTimeoutId = setTimeout(runDemoStep, demoInterval);
+        }
+
+        function startDemo() {
+            if (isDemoRunning) return;
+            isDemoRunning = true;
+            demoButton.textContent = '停止动画';
+            setControlsEnabled(false); // Disable manual controls
+            demoStep = 0; // Start from the beginning
+            runDemoStep(); // Start the sequence
+        }
+
+        function stopDemo() {
+            if (!isDemoRunning) return;
+            isDemoRunning = false;
+            clearTimeout(demoTimeoutId);
+            demoTimeoutId = null;
+            demoButton.textContent = '开始动画';
+            // setControlsEnabled(true); // This will be handled by updateCubes now
+
+            // Reset to default state: (a+b+c)^3
+            numActiveVariables = 3;
+            n = 3;
+            nSlider.value = n; // Update slider UI
+
+            // Update everything to reflect the reset state
+            updateFormula();
+            updateCubes(); // This now handles slider visibility and enabling
+            updateReferenceLine();
+            setCameraViewForN(n);
+        }
+
+        init();
+    </script>
+
+</body>
+</html> 
