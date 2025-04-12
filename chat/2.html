@@ -3,6 +3,44 @@
 <head>
   <link rel="icon" href="icon.ico" type="image/x-icon">
   <meta charset="UTF-8">
+
+  <!-- Attempt to load MathJax from CDN -->
+  <script id="MathJax-CDN-script" async 
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+          onerror="loadLocalMathJax()"></script>
+
+  <!-- Local MathJax loader function (called on CDN error or as fallback) -->
+  <script>
+    let localMathJaxLoaded = false;
+    function loadLocalMathJax() {
+      // Check if MathJax object exists or if we've already tried loading locally
+      if (typeof MathJax === 'undefined' && !localMathJaxLoaded) {
+        localMathJaxLoaded = true; // Set flag to prevent multiple attempts
+        console.warn('MathJax CDN failed or unavailable. Loading local version from ./mathjax/ ...');
+        const script = document.createElement('script');
+        script.id = 'MathJax-Local-script'; // Unique ID for the local script
+        script.async = true;
+        // Path relative to 1.html (in chat folder), assuming mathjax folder is inside chat or web root
+        // Adjust './mathjax/...' if the mathjax folder location is different
+        script.src = './mathjax/mathjax/es5/tex-mml-chtml.js'; 
+        script.onerror = () => {
+          console.error('Local MathJax failed to load from ./mathjax/mathjax/es5/tex-mml-chtml.js. Check path?');
+        };
+        document.head.appendChild(script);
+      }
+    }
+
+    // Additional fallback check after page load, in case 'onerror' didn't catch all CDN issues (e.g., timeouts)
+    window.addEventListener('load', () => {
+      setTimeout(() => { // Short delay to give async CDN script a chance
+         if (typeof MathJax === 'undefined' && !localMathJaxLoaded) {
+            console.warn('MathJax CDN likely timed out or blocked. Triggering local load.');
+            loadLocalMathJax();
+         }
+      }, 1500); // Increased timeout slightly
+    });
+  </script>
+
   <style>
     body {
       margin: 0;
@@ -11,64 +49,28 @@
       font-family: Arial, sans-serif;
     }
     .main-container {
-      display: flex;
+      display: flex; /* Keep flex for centering content if needed, or change */
       height: 97vh;
       width: 100%;
       position: relative;
-      top: 0vh; 
-      justify-content: flex-start; /* Change to flex-start for better control */
-      gap: 0; /* Remove any default gap */
+      top: 0vh;
     }
     .container {
       height: 100%;
+      width: 100%; /* Make the single container take full width */
       display: flex;
       flex-direction: column;
-      transition: width 0.2s ease;
+      /* transition: width 0.2s ease; No longer needed */
       position: relative; /* Add position relative */
       overflow: hidden; /* Prevent content from overflowing */
     }
     .container1 {
       background: rgba(173, 216, 230, 0.3);
     }
-    .container2 {
-      background: rgba(173, 216, 230, 0.5);
-    }
-    .handle {
-      position: absolute;
-      top: 0;
-      width: 12px;
-      height: 100%;
-      background: #66aabb67; /* 静止状态 - 深蓝色 */
-      cursor: col-resize;
-      border-radius: 3px;
-      border: 1px solid #3498db;
-      box-shadow: 0 0 3px rgba(26, 106, 146, 0.489);
-      z-index: 100; /* 确保手柄在最上层 */
-      transition: background-color 0.2s, width 0.2s, margin-left 0.2s; /* 添加平滑过渡效果 */
-      touch-action: none; /* 防止默认的触摸行为如滚动 */
-    }
-    .handle:hover {
-      background: #3498db; /* 悬停状态 - 亮蓝色 */
-      width: 12px;
-      margin-left: -1px;
-    }
-    .handle.dragging {
-      background: #3498db68; /* 拖动状态 - 亮蓝色  */
-      width: 12px;
-      margin-left: -1px;
-      box-shadow: 0 0 8px rgba(68, 152, 182, 0.6); /* 拖动时增强阴影效果 */
-    }
-    
-    /* 为触摸设备添加媒体查询 */
-    @media (max-width: 768px) {
-      .handle {
-        width: 20px; /* 在触摸设备上增加手柄宽度 */
-      }
-      .handle:hover, .handle.dragging {
-        width: 20px;
-      }
-    }
-    
+    /* .container2 styles removed */
+    /* .handle styles removed */
+    /* Media query for handle removed */
+
     /* 书签导航样式 */
     .bookmark-nav {
       background: #f8f9fa;
@@ -80,22 +82,22 @@
       scrollbar-width: thin; /* For Firefox */
       scrollbar-color: #cbd5e0 #f8f9fa; /* For Firefox */
     }
-    
+
     /* Customize scrollbar for WebKit browsers (Chrome, Safari, Edge) */
     .bookmark-nav::-webkit-scrollbar {
       height: 6px; /* Thin horizontal scrollbar */
       width: 0; /* No vertical scrollbar */
     }
-    
+
     .bookmark-nav::-webkit-scrollbar-track {
       background: #f8f9fa;
     }
-    
+
     .bookmark-nav::-webkit-scrollbar-thumb {
       background-color: #cbd5e0;
       border-radius: 6px;
     }
-    
+
     .bookmark {
       display: inline-block;
       padding: 8px 12px;
@@ -114,14 +116,14 @@
       background: #3498db;
       color: white;
     }
-    
+
     .iframe-container {
       width: 100%;
       height: 100%;
       flex-grow: 1;
       position: relative;
     }
-    
+
     iframe {
       width: 100%;
       height: 100%;
@@ -131,85 +133,53 @@
       left: 0;
       display: none; /* 默认隐藏所有iframe */
     }
-    
+
     iframe.active {
       display: block; /* 只显示活动的iframe */
     }
-    
-    .title-bar {
-      height: 3vh;
-      background: #2c3e50;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: Arial, sans-serif;
-      position: absolute;
-      top: 0;
-      width: 100%;
-    }
+    /* Title bar styles removed or could be kept if desired */
   </style>
 </head>
 <body>
+
 <!-- 主容器 -->
 <div class="main-container" id="main-container">
-
   <!-- 第一个容器 -->
   <div class="container container1" id="container1">
     <div class="bookmark-nav" id="bookmarks1">
       <a class="bookmark" data-url="../one/index.html">玖数自招阶梯训练</a>
       <a class="bookmark" data-url="../tiku/index.html">玖数自招训练</a>
-
-      <a class="bookmark" data-url="https://jiu.cpolar.cn/chat/draw.html">绘图</a>
+      <a class="bookmark" data-url="https://jiushu.vip.cpolar.cn/课程规划/index.html">课程规划</a>
+      <a class="bookmark" data-url="../video/index.html">学习视频</a>
+      <a class="bookmark" data-url="https://shimo.im/forms/1lq7MylGd1U9RaAe/fill">提交成绩</a>
+      <a class="bookmark" data-url="https://shimo.im/tables/B1Awd5RyPOSB6o3m?tableGuid=eDsth8DhPW7&table=eDsth8DhPW7&view=PPmFhTRM9ig">查看成绩</a>
       <a class="bookmark" data-url="https://metaso.cn/">秘塔</a>
-      <a class="bookmark" data-url="https://www.geogebra.org/classic">ggb</a>
-      <a class="bookmark" data-url="ggborder.html">ggborder</a>
-
-
-
-
     </div>
     <div class="iframe-container" id="iframe-container1">
       <!-- 动态创建的iframes将被放置在这里 -->
     </div>
   </div>
 
-  <!-- 手柄 -->
-  <div class="handle" id="handle1"></div>
-
-  <!-- 第二个容器 -->
-  <div class="container container2" id="container2">
-    <div class="bookmark-nav" id="bookmarks2">
-
-      <a class="bookmark" data-url="https://jiu.cpolar.cn/chat/draw.html">绘图</a>
-      <a class="bookmark" data-url="https://metaso.cn/">秘塔</a>
-      <a class="bookmark" data-url="https://www.geogebra.org/classic">ggb</a>
-      <a class="bookmark" data-url="ggborder.html">ggborder</a>
-    </div>
-    <div class="iframe-container" id="iframe-container2">
-      <!-- 动态创建的iframes将被放置在这里 -->
-    </div>
-  </div>
+  <!-- 手柄 removed -->
+  <!-- 第二个容器 removed -->
 </div>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     // 获取元素
-    const mainContainer = document.getElementById('main-container');
-    const handle1 = document.getElementById('handle1');
+    const mainContainer = document.getElementById('main-container'); // Keep main container reference
     const container1 = document.getElementById('container1');
-    const container2 = document.getElementById('container2');
     const iframeContainer1 = document.getElementById('iframe-container1');
-    const iframeContainer2 = document.getElementById('iframe-container2');
-    
-    // 获取所有书签
+    // handle1, container2, iframeContainer2 removed
+
+    // 获取第一个容器的书签
     const bookmarks1 = document.querySelectorAll('#bookmarks1 .bookmark');
-    const bookmarks2 = document.querySelectorAll('#bookmarks2 .bookmark');
-    
+    // bookmarks2 removed
+
     // 存储已创建的iframe
     const iframes1 = {};
-    const iframes2 = {};
-    
+    // iframes2 removed
+
     // 为第一个容器的书签添加点击事件
     bookmarks1.forEach(bookmark => {
       // 创建每个书签的刷新按钮
@@ -220,43 +190,45 @@
       refreshButton.style.marginLeft = '5px';
       refreshButton.style.fontSize = '14px';
       refreshButton.setAttribute('title', '刷新当前页面');
-      
+
       // 将刷新按钮插入到书签后面
       bookmark.parentNode.insertBefore(refreshButton, bookmark.nextSibling);
-      
+
       // 存储刷新按钮引用
       bookmark.refreshButton = refreshButton;
-      
+
       // 添加刷新按钮点击事件
       refreshButton.addEventListener('click', function(e) {
         e.stopPropagation(); // 阻止事件冒泡
         const url = bookmark.getAttribute('data-url');
         if (iframes1[url]) {
-          iframes1[url].src = iframes1[url].src;
+          iframes1[url].src = iframes1[url].src; // Reload iframe
         }
       });
-      
+
       bookmark.addEventListener('click', function() {
         // 隐藏所有刷新按钮
         bookmarks1.forEach(b => {
           if (b.refreshButton) b.refreshButton.style.display = 'none';
         });
-        
+
         // 显示当前书签的刷新按钮
-        this.refreshButton.style.display = 'inline-block';
-        
+        if (this.refreshButton) { // Check if refresh button exists
+            this.refreshButton.style.display = 'inline-block';
+        }
+
         // 设置当前书签为活动状态
         bookmarks1.forEach(b => b.classList.remove('active'));
         this.classList.add('active');
-        
+
         const url = this.getAttribute('data-url');
-        
+
         // 隐藏所有iframe
         const allIframes = iframeContainer1.querySelectorAll('iframe');
         allIframes.forEach(iframe => {
           iframe.classList.remove('active');
         });
-        
+
         // 检查是否已经为此URL创建了iframe
         if (iframes1[url]) {
           // 如果已存在，则显示它
@@ -265,215 +237,29 @@
           // 如果不存在，创建新的iframe
           const iframe = document.createElement('iframe');
           iframe.src = url;
-          iframe.title = "Content Viewer";
+          iframe.title = "Content Viewer"; // Use a more descriptive title if possible
           iframe.classList.add('active');
           iframeContainer1.appendChild(iframe);
-          
+
           // 存储引用
           iframes1[url] = iframe;
         }
       });
     });
-    
-    // 为第二个容器的书签添加点击事件
-    bookmarks2.forEach(bookmark => {
-      // 创建每个书签的刷新按钮
-      const refreshButton = document.createElement('a');
-      refreshButton.className = 'refresh-button';
-      refreshButton.textContent = '↻';
-      refreshButton.style.display = 'none'; // 初始隐藏
-      refreshButton.style.marginLeft = '5px';
-      refreshButton.style.fontSize = '14px';
-      refreshButton.setAttribute('title', '刷新当前页面');
-      
-      // 将刷新按钮插入到书签后面
-      bookmark.parentNode.insertBefore(refreshButton, bookmark.nextSibling);
-      
-      // 存储刷新按钮引用
-      bookmark.refreshButton = refreshButton;
-      
-      // 添加刷新按钮点击事件
-      refreshButton.addEventListener('click', function(e) {
-        e.stopPropagation(); // 阻止事件冒泡
-        const url = bookmark.getAttribute('data-url');
-        if (iframes2[url]) {
-          iframes2[url].src = iframes2[url].src;
-        }
-      });
-      
-      bookmark.addEventListener('click', function() {
-        // 隐藏所有刷新按钮
-        bookmarks2.forEach(b => {
-          if (b.refreshButton) b.refreshButton.style.display = 'none';
-        });
-        
-        // 显示当前书签的刷新按钮
-        this.refreshButton.style.display = 'inline-block';
-        
-        // 设置当前书签为活动状态
-        bookmarks2.forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        
-        const url = this.getAttribute('data-url');
-        
-        // 隐藏所有iframe
-        const allIframes = iframeContainer2.querySelectorAll('iframe');
-        allIframes.forEach(iframe => {
-          iframe.classList.remove('active');
-        });
-        
-        // 检查是否已经为此URL创建了iframe
-        if (iframes2[url]) {
-          // 如果已存在，则显示它
-          iframes2[url].classList.add('active');
-        } else {
-          // 如果不存在，创建新的iframe
-          const iframe = document.createElement('iframe');
-          iframe.src = url;
-          iframe.title = "Content Viewer";
-          iframe.classList.add('active');
-          iframeContainer2.appendChild(iframe);
-          
-          // 存储引用
-          iframes2[url] = iframe;
-        }
-      });
-    });
-    
+
+    // Logic for second container bookmarks removed
+
     // 设置默认加载第一个书签内容
     if (bookmarks1.length > 0) {
       bookmarks1[0].click();
     }
-    
-    if (bookmarks2.length > 0) {
-      bookmarks2[0].click();
-    }
-    
-    // 调整窗口大小时重新初始化handle
-    window.addEventListener('resize', function() {
-      initHandle();
-    });
-    
-    let dragging = null;
-    
-    // 修改默认比例 - 左侧50%，右侧50%
-    const defaultRatio = 0.7; // 第一个容器默认占70%
-    
-    function initHandle() {
-      const totalWidth = mainContainer.offsetWidth;
-      const handleWidth = handle1.offsetWidth;
-      
-      // Calculate available width for containers
-      const availableWidth = totalWidth - handleWidth;
-      
-      // Set container widths
-      container1.style.width = (availableWidth * defaultRatio) + 'px';
-      container2.style.width = (availableWidth * (1 - defaultRatio)) + 'px';
-      
-      // Position the handle in the middle
-      handle1.style.left = container1.offsetWidth + 'px';
-      
-      // Position the second container after the handle
-      container2.style.position = 'absolute';
-      container2.style.left = (container1.offsetWidth + handleWidth) + 'px';
-      container2.style.top = '0';
-      container2.style.marginLeft = '0'; // Remove margin as we're using absolute positioning
-    }
-    
-    // 手柄拖动事件
-    function onPointerDown(e) {
-      e.preventDefault();
-      dragging = e.target;
-      dragging.classList.add('dragging'); // 添加拖动状态类
-      
-      // 使用 setPointerCapture 来确保即使触摸移动到元素外部也能继续接收事件
-      if (e.pointerId) {
-        dragging.setPointerCapture(e.pointerId);
-      } else {
-        // 兼容老设备
-        mainContainer.setPointerCapture(e.pointerId);
-      }
-      
-      // 禁止触摸时页面滚动
-      document.body.style.overflow = 'hidden';
-    }
-    
-    function onPointerMove(e) {
-      if (dragging) {
-        // Prevent event bubbling and default behavior
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const rect = mainContainer.getBoundingClientRect();
-        // Use clientX or touches[0].clientX to get touch position
-        let clientX = e.clientX;
-        if (e.touches && e.touches.length > 0) {
-          clientX = e.touches[0].clientX;
-        }
-        
-        let offsetX = clientX - rect.left;
-        const totalWidth = mainContainer.offsetWidth;
-        const handleWidth = handle1.offsetWidth;
-        
-        // Remove the minimum width restrictions (was 100px)
-        offsetX = Math.max(0, Math.min(offsetX, totalWidth - handleWidth));
-        
-        // Adjust container widths
-        container1.style.width = offsetX + 'px';
-        container2.style.width = (totalWidth - offsetX - handleWidth) + 'px';
-        
-        // Update handle position
-        handle1.style.left = offsetX + 'px';
-        
-        // Update second container position
-        container2.style.left = (offsetX + handleWidth) + 'px';
-      }
-    }
-    
-    function onPointerUp(e) {
-      if (dragging) {
-        dragging.classList.remove('dragging'); // 移除拖动状态类
-        
-        // 释放指针捕获
-        if (e.pointerId && dragging.releasePointerCapture) {
-          dragging.releasePointerCapture(e.pointerId);
-        } else {
-          mainContainer.releasePointerCapture(e.pointerId);
-        }
-        
-        dragging = null;
-        
-        // 恢复正常滚动
-        document.body.style.overflow = '';
-      }
-    }
-    
-    // 设置事件监听器 - 同时支持鼠标和触摸
-    handle1.addEventListener('pointerdown', onPointerDown);
-    mainContainer.addEventListener('pointermove', onPointerMove);
-    mainContainer.addEventListener('pointerup', onPointerUp);
-    mainContainer.addEventListener('pointercancel', onPointerUp);
-    
-    // 备用触摸事件监听器用于不支持 Pointer 事件的旧设备
-    handle1.addEventListener('touchstart', function(e) {
-      onPointerDown({target: handle1, preventDefault: function(){}, pointerId: null});
-    }, {passive: false});
-    mainContainer.addEventListener('touchmove', function(e) {
-      if (dragging) {
-        e.preventDefault();
-        onPointerMove({
-          preventDefault: function(){}, 
-          stopPropagation: function(){}, 
-          touches: e.touches,
-          clientX: e.touches[0].clientX
-        });
-      }
-    }, {passive: false});
-    mainContainer.addEventListener('touchend', onPointerUp);
-    mainContainer.addEventListener('touchcancel', onPointerUp);
-    
-    // 初始化
-    initHandle();
+    // Default load for bookmarks2 removed
+
+    // Resizing logic removed (initHandle, onPointerDown, onPointerMove, onPointerUp, event listeners)
+
+    // Make sure the container takes full width initially (CSS handles most of this)
+    // container1.style.width = '100%'; // Might not be needed if CSS is correct
+
   });
 </script>
 </body>
