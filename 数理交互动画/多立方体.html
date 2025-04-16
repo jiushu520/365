@@ -80,15 +80,15 @@
     <div id="controls">
         <div>
             <label for="x_layers_slider">X方向层数: <span id="x_layers_value">3</span></label>
-            <input type="range" id="x_layers_slider" min="1" max="5" value="3" step="1">
+            <input type="range" id="x_layers_slider" min="1" max="10" value="3" step="1">
         </div>
         <div>
             <label for="y_layers_slider">Y方向层数: <span id="y_layers_value">3</span></label>
-            <input type="range" id="y_layers_slider" min="1" max="5" value="3" step="1">
+            <input type="range" id="y_layers_slider" min="1" max="10" value="3" step="1">
         </div>
         <div>
             <label for="z_layers_slider">Z方向层数: <span id="z_layers_value">3</span></label>
-            <input type="range" id="z_layers_slider" min="1" max="5" value="3" step="1">
+            <input type="range" id="z_layers_slider" min="1" max="10" value="3" step="1">
         </div>
         <div>
             <label for="gap_slider">间隙: <span id="gap_value">0.20</span></label>
@@ -108,6 +108,10 @@
             <label for="coord_input" style="display: block; margin-bottom: 5px;">隐藏坐标 (ix,iy,iz):</label>
             <input type="text" id="coord_input" placeholder="例如: 1,2,3" style="width: 100px; margin-right: 5px;">
             <button id="hide_coord_button" style="padding: 3px 8px;">隐藏</button>
+        </div>
+        <div style="margin-top: 10px; border-top: 1px solid #ccc; padding-top: 10px;">
+            <button id="count_cubes_button" style="padding: 5px 10px; margin-right: 10px;">计数</button>
+            <span id="cube_count" style="font-weight: bold;"></span>
         </div>
     </div>
 
@@ -134,8 +138,8 @@
         let scene, camera, renderer, controls;
         let cubesGroup;
         const generatedCubes = [];
-        const totalDimensionLength = 6.0; // Updated fixed length for 5 cells + 4 gaps
-        const gridDim = 5; // Updated Max grid dimension
+        const totalDimensionLength = 10.0; // Updated fixed length for 5 cells + 4 gaps
+        const gridDim = 10; // Updated Max grid dimension to match new slider max
         const hiddenIndices = new Set(); // Set to store hidden indices like "ix,iy,iz"
         const raycaster = new THREE.Raycaster(); // For clicking
         const mouse = new THREE.Vector2();     // For clicking
@@ -155,6 +159,8 @@
         const clickHideToggle = document.getElementById('click_hide_toggle');
         const coordInput = document.getElementById('coord_input');
         const hideCoordButton = document.getElementById('hide_coord_button');
+        const countButton = document.getElementById('count_cubes_button');
+        const cubeCountSpan = document.getElementById('cube_count');
 
         // Store current values
         let xLayers = parseInt(xLayersSlider.value);
@@ -170,8 +176,8 @@
             scene.background = new THREE.Color(0xf0f0f0);
 
             // Camera
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-            camera.position.set(totalDimensionLength * 1.2, totalDimensionLength * 1.0, totalDimensionLength * 1.2);
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 200);
+            camera.position.set(totalDimensionLength * 2.0, totalDimensionLength * 1.8, totalDimensionLength * 2.0);
             camera.lookAt(0, 0, 0);
 
             // Renderer
@@ -258,7 +264,7 @@
                         const indexString = `${ix},${iy},${iz}`;
                         if (!hiddenIndices.has(indexString)) {
                             hiddenIndices.add(indexString);
-                            console.log(`Hiding cube by coordinate: ${indexString}`);
+                            console.log(`Hiding cube: ${indexString}`);
                             updateCubes(xLayers, yLayers, zLayers);
                             updateHiddenList();
                             coordInput.value = ''; // Clear input after success
@@ -271,6 +277,14 @@
                 } else {
                     alert('请输入有效的坐标格式，例如: 1,2,3');
                 }
+            });
+
+            // Add event listener for count button
+            countButton.addEventListener('click', () => {
+                const visibleCount = generatedCubes.length;
+                const totalCount = xLayers * yLayers * zLayers;
+                const hiddenCount = hiddenIndices.size;
+                cubeCountSpan.innerHTML = `${visibleCount}+${hiddenCount}= ${totalCount}`;
             });
 
             // Handle window resize
@@ -299,28 +313,41 @@
             generatedCubes.length = 0;
 
             // --- Dynamic Cell Size Calculation ---
-            let currentCellSize = (totalDimensionLength - (gridDim - 1) * gap) / gridDim;
-            currentCellSize = Math.max(0.01, currentCellSize); // Ensure size is positive
+            let currentCellSize = (totalDimensionLength - (Math.max(xCount, yCount, zCount) - 1) * gap) / Math.max(xCount, yCount, zCount);
+            currentCellSize = Math.max(0.5, currentCellSize); // Ensure minimum size
             // -------------------------------------
 
             const cubeGeo = new THREE.BoxGeometry(currentCellSize, currentCellSize, currentCellSize);
-            const offset = -totalDimensionLength / 2 + currentCellSize / 2;
+            const offset = -(Math.max(xCount, yCount, zCount) * (currentCellSize + gap) - gap) / 2;
 
             // Variables to calculate the actual center of generated cubes
             let minX = Infinity, minY = Infinity, minZ = Infinity;
             let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
             let cubesGenerated = false;
 
+            // Store colors for hidden cubes
+            const hiddenCubeColors = new Map();
+
             // Triple nested loop based on layer counts
             for (let ix = 0; ix < xCount; ix++) {
                 for (let iy = 0; iy < yCount; iy++) {
                     for (let iz = 0; iz < zCount; iz++) {
                         const indexString = `${ix},${iy},${iz}`;
+                        
+                        // Calculate color for both visible and hidden cubes
+                        const color = new THREE.Color().setHSL(
+                            (ix + iy + iz) / (Math.max(xCount, yCount, zCount) * 3 - 3),
+                            0.85,  // 增加饱和度，让颜色更鲜艳
+                            0.5    // 调整亮度，让颜色更深
+                        );
+
+                        // Store color for hidden cubes
                         if (hiddenIndices.has(indexString)) {
+                            hiddenCubeColors.set(indexString, color);
                             continue;
                         }
 
-                        cubesGenerated = true; // Mark that at least one cube is visible
+                        cubesGenerated = true;
 
                         // Calculate world position
                         const x = offset + ix * (currentCellSize + gap);
@@ -336,25 +363,24 @@
                         minZ = Math.min(minZ, z - halfSize);
                         maxZ = Math.max(maxZ, z + halfSize);
 
-                        // Create cube
+                        // Create cube with the calculated color
                         const cubeMat = new THREE.MeshLambertMaterial({
-                            color: new THREE.Color().setHSL(
-                                (ix + iy + iz) / (gridDim * 3 - 3), // Updated denominator for hue range (5*3-3=12)
-                                0.7,
-                                0.6
-                            ),
+                            color: color,
                             transparent: true,
                             opacity: shapeOpacity
                         });
                         const cube = new THREE.Mesh(cubeGeo, cubeMat);
                         cube.position.set(x, y, z);
-                        cube.userData = { ix, iy, iz };
+                        cube.userData = { ix, iy, iz, color: color };
 
                         cubesGroup.add(cube);
                         generatedCubes.push(cube);
                     }
                 }
             }
+
+            // Store colors in scene userData for access in updateHiddenList
+            scene.userData.hiddenCubeColors = hiddenCubeColors;
 
             // --- Update camera target to the center of generated cubes ---
             if (cubesGenerated) {
@@ -429,11 +455,25 @@
             }
 
             const ul = document.createElement('ul');
+            const hiddenCubeColors = scene.userData.hiddenCubeColors;
+
             hiddenIndices.forEach(indexString => {
                 const li = document.createElement('li');
-                // Extract ix, iy, iz for display
                 const [ix, iy, iz] = indexString.split(',').map(Number);
-                li.textContent = `立方体 (${ix}, ${iy}, ${iz})`;
+                
+                // Get the color for this hidden cube
+                const color = hiddenCubeColors.get(indexString);
+                const colorHex = color ? '#' + color.getHexString() : '#808080';
+                
+                // Create colored square and text
+                li.innerHTML = `
+                    <span style="display: inline-block; width: 15px; height: 15px; background-color: ${colorHex}; 
+                           margin-right: 8px; vertical-align: middle; border: 1px solid #666;"></span>
+                    <span style="vertical-align: middle;">立方体 (${ix}, ${iy}, ${iz})</span>
+                `;
+                
+                li.style.display = 'flex';
+                li.style.alignItems = 'center';
                 li.dataset.index = indexString;
 
                 li.addEventListener('click', () => {
@@ -466,5 +506,4 @@
         init();
     </script>
 </body>
-</html> 
 </html> 
