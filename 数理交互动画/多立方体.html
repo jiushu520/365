@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3x3x3 网格立方体</title>
+    <style>
+        body { margin: 0; font-family: sans-serif; overflow: hidden; background-color: #f0f0f0; }
+        canvas { display: block; }
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            color: #333;
+            z-index: 101;
+        }
+        #controls label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        #controls input[type="range"] {
+            width: 150px;
+            vertical-align: middle;
+        }
+        #controls span {
+            display: inline-block;
+            min-width: 25px;
+            text-align: right;
+            margin-left: 5px;
+            font-weight: bold;
+        }
+    </style>
+    <style>
+        /* Styles for the hidden list */
+        #hidden-list-container {
+            position: absolute;
+            top: 10px;
+            left: 200px; /* Adjust based on controls width */
+            width: 180px;
+            max-height: 300px; /* Limit height and add scroll */
+            overflow-y: auto;
+            background-color: rgba(220, 220, 220, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            color: #333;
+            z-index: 100;
+            font-size: 0.9em;
+        }
+        #hidden-list-container h4 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #aaa;
+        }
+        #hidden-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #hidden-list li {
+            padding: 4px;
+            margin-bottom: 3px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #hidden-list li:hover {
+            background-color: rgba(255, 255, 180, 0.9);
+        }
+        #hidden-list .no-hidden {
+             color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <div>
+            <label for="x_layers_slider">X方向层数: <span id="x_layers_value">3</span></label>
+            <input type="range" id="x_layers_slider" min="1" max="5" value="3" step="1">
+        </div>
+        <div>
+            <label for="y_layers_slider">Y方向层数: <span id="y_layers_value">3</span></label>
+            <input type="range" id="y_layers_slider" min="1" max="5" value="3" step="1">
+        </div>
+        <div>
+            <label for="z_layers_slider">Z方向层数: <span id="z_layers_value">3</span></label>
+            <input type="range" id="z_layers_slider" min="1" max="5" value="3" step="1">
+        </div>
+        <div>
+            <label for="gap_slider">间隙: <span id="gap_value">0.20</span></label>
+            <input type="range" id="gap_slider" min="0" max="0.5" value="0.2" step="0.01">
+        </div>
+        <div>
+            <label for="opacity_slider">透明度: <span id="opacity_value">1.00</span></label>
+            <input type="range" id="opacity_slider" min="0.1" max="1.0" value="1.0" step="0.01">
+        </div>
+        <div style="margin-top: 10px; border-top: 1px solid #ccc; padding-top: 10px;">
+            <label for="click_hide_toggle">
+                <input type="checkbox" id="click_hide_toggle">
+                启用点击隐藏
+            </label>
+        </div>
+        <div style="margin-top: 10px; border-top: 1px solid #ccc; padding-top: 10px;">
+            <label for="coord_input" style="display: block; margin-bottom: 5px;">隐藏坐标 (ix,iy,iz):</label>
+            <input type="text" id="coord_input" placeholder="例如: 1,2,3" style="width: 100px; margin-right: 5px;">
+            <button id="hide_coord_button" style="padding: 3px 8px;">隐藏</button>
+        </div>
+    </div>
+
+    <div id="hidden-list-container">
+        <h4>隐藏的立方体</h4>
+        <div id="hidden-list">
+            <!-- List items will be generated here -->
+        </div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        let scene, camera, renderer, controls;
+        let cubesGroup;
+        const generatedCubes = [];
+        const totalDimensionLength = 6.0; // Updated fixed length for 5 cells + 4 gaps
+        const gridDim = 5; // Updated Max grid dimension
+        const hiddenIndices = new Set(); // Set to store hidden indices like "ix,iy,iz"
+        const raycaster = new THREE.Raycaster(); // For clicking
+        const mouse = new THREE.Vector2();     // For clicking
+
+        // Get references to sliders and value spans
+        const xLayersSlider = document.getElementById('x_layers_slider');
+        const xLayersValueSpan = document.getElementById('x_layers_value');
+        const yLayersSlider = document.getElementById('y_layers_slider');
+        const yLayersValueSpan = document.getElementById('y_layers_value');
+        const zLayersSlider = document.getElementById('z_layers_slider');
+        const zLayersValueSpan = document.getElementById('z_layers_value');
+        const gapSlider = document.getElementById('gap_slider');
+        const gapValueSpan = document.getElementById('gap_value');
+        const opacitySlider = document.getElementById('opacity_slider');
+        const opacityValueSpan = document.getElementById('opacity_value');
+        const hiddenListDiv = document.getElementById('hidden-list');
+        const clickHideToggle = document.getElementById('click_hide_toggle');
+        const coordInput = document.getElementById('coord_input');
+        const hideCoordButton = document.getElementById('hide_coord_button');
+
+        // Store current values
+        let xLayers = parseInt(xLayersSlider.value);
+        let yLayers = parseInt(yLayersSlider.value);
+        let zLayers = parseInt(zLayersSlider.value);
+        let gap = parseFloat(gapSlider.value);
+        let shapeOpacity = parseFloat(opacitySlider.value);
+        let clickToHideEnabled = clickHideToggle.checked;
+
+        function init() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf0f0f0);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(totalDimensionLength * 1.2, totalDimensionLength * 1.0, totalDimensionLength * 1.2);
+            camera.lookAt(0, 0, 0);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 10, 7.5);
+            scene.add(directionalLight);
+
+            // Controls
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.target.set(0, 0, 0);
+
+            // Group for cubes
+            cubesGroup = new THREE.Group();
+            scene.add(cubesGroup);
+
+            // Initial update
+            gapValueSpan.textContent = gap.toFixed(2);
+            opacityValueSpan.textContent = shapeOpacity.toFixed(2);
+            updateCubes(xLayers, yLayers, zLayers);
+            updateHiddenList();
+
+            // Event Listener for layer sliders
+            xLayersSlider.addEventListener('input', (event) => {
+                xLayers = parseInt(event.target.value);
+                xLayersValueSpan.textContent = xLayers;
+                updateCubes(xLayers, yLayers, zLayers);
+            });
+            yLayersSlider.addEventListener('input', (event) => {
+                yLayers = parseInt(event.target.value);
+                yLayersValueSpan.textContent = yLayers;
+                updateCubes(xLayers, yLayers, zLayers);
+            });
+            zLayersSlider.addEventListener('input', (event) => {
+                zLayers = parseInt(event.target.value);
+                zLayersValueSpan.textContent = zLayers;
+                updateCubes(xLayers, yLayers, zLayers);
+            });
+
+            // Event Listener for gap slider
+            gapSlider.addEventListener('input', (event) => {
+                gap = parseFloat(event.target.value);
+                gapValueSpan.textContent = gap.toFixed(2);
+                updateCubes(xLayers, yLayers, zLayers);
+            });
+
+            // Event Listener for opacity slider
+            opacitySlider.addEventListener('input', (event) => {
+                shapeOpacity = parseFloat(event.target.value);
+                opacityValueSpan.textContent = shapeOpacity.toFixed(2);
+                updateCubeOpacity(shapeOpacity);
+            });
+
+            // Event listener for click-hide toggle
+            clickHideToggle.addEventListener('change', (event) => {
+                clickToHideEnabled = event.target.checked;
+                console.log(`Click to hide enabled: ${clickToHideEnabled}`);
+            });
+
+            // Event listener for hide-by-coordinate button
+            hideCoordButton.addEventListener('click', () => {
+                const inputText = coordInput.value.trim();
+                const parts = inputText.split(',');
+
+                if (parts.length === 3) {
+                    const ix = parseInt(parts[0], 10);
+                    const iy = parseInt(parts[1], 10);
+                    const iz = parseInt(parts[2], 10);
+
+                    // Validate numbers and range (0 to gridDim-1)
+                    if (!isNaN(ix) && !isNaN(iy) && !isNaN(iz) &&
+                        ix >= 0 && ix < gridDim &&
+                        iy >= 0 && iy < gridDim &&
+                        iz >= 0 && iz < gridDim)
+                    {
+                        const indexString = `${ix},${iy},${iz}`;
+                        if (!hiddenIndices.has(indexString)) {
+                            hiddenIndices.add(indexString);
+                            console.log(`Hiding cube by coordinate: ${indexString}`);
+                            updateCubes(xLayers, yLayers, zLayers);
+                            updateHiddenList();
+                            coordInput.value = ''; // Clear input after success
+                        } else {
+                            alert(`坐标 (${indexString}) 已经被隐藏了。`);
+                        }
+                    } else {
+                        alert('无效的坐标或超出范围 (0-' + (gridDim - 1) + ')。');
+                    }
+                } else {
+                    alert('请输入有效的坐标格式，例如: 1,2,3');
+                }
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize, false);
+
+            // Event listener for clicking cubes
+            renderer.domElement.addEventListener('click', onCubeClick, false);
+
+            animate();
+        }
+
+        function updateCubes(xCount, yCount, zCount) {
+            // Clear existing cubes
+            generatedCubes.forEach(cube => {
+                cubesGroup.remove(cube);
+                // Dispose geometry and material(s)
+                if (cube.geometry) cube.geometry.dispose();
+                if (cube.material) {
+                    if (Array.isArray(cube.material)) {
+                        cube.material.forEach(m => m.dispose());
+                    } else {
+                        cube.material.dispose();
+                    }
+                }
+            });
+            generatedCubes.length = 0;
+
+            // --- Dynamic Cell Size Calculation ---
+            let currentCellSize = (totalDimensionLength - (gridDim - 1) * gap) / gridDim;
+            currentCellSize = Math.max(0.01, currentCellSize); // Ensure size is positive
+            // -------------------------------------
+
+            const cubeGeo = new THREE.BoxGeometry(currentCellSize, currentCellSize, currentCellSize);
+            const offset = -totalDimensionLength / 2 + currentCellSize / 2;
+
+            // Variables to calculate the actual center of generated cubes
+            let minX = Infinity, minY = Infinity, minZ = Infinity;
+            let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+            let cubesGenerated = false;
+
+            // Triple nested loop based on layer counts
+            for (let ix = 0; ix < xCount; ix++) {
+                for (let iy = 0; iy < yCount; iy++) {
+                    for (let iz = 0; iz < zCount; iz++) {
+                        const indexString = `${ix},${iy},${iz}`;
+                        if (hiddenIndices.has(indexString)) {
+                            continue;
+                        }
+
+                        cubesGenerated = true; // Mark that at least one cube is visible
+
+                        // Calculate world position
+                        const x = offset + ix * (currentCellSize + gap);
+                        const y = offset + iy * (currentCellSize + gap);
+                        const z = offset + iz * (currentCellSize + gap);
+
+                        // Update min/max coordinates
+                        const halfSize = currentCellSize / 2;
+                        minX = Math.min(minX, x - halfSize);
+                        maxX = Math.max(maxX, x + halfSize);
+                        minY = Math.min(minY, y - halfSize);
+                        maxY = Math.max(maxY, y + halfSize);
+                        minZ = Math.min(minZ, z - halfSize);
+                        maxZ = Math.max(maxZ, z + halfSize);
+
+                        // Create cube
+                        const cubeMat = new THREE.MeshLambertMaterial({
+                            color: new THREE.Color().setHSL(
+                                (ix + iy + iz) / (gridDim * 3 - 3), // Updated denominator for hue range (5*3-3=12)
+                                0.7,
+                                0.6
+                            ),
+                            transparent: true,
+                            opacity: shapeOpacity
+                        });
+                        const cube = new THREE.Mesh(cubeGeo, cubeMat);
+                        cube.position.set(x, y, z);
+                        cube.userData = { ix, iy, iz };
+
+                        cubesGroup.add(cube);
+                        generatedCubes.push(cube);
+                    }
+                }
+            }
+
+            // --- Update camera target to the center of generated cubes ---
+            if (cubesGenerated) {
+                const centerX = (minX + maxX) / 2;
+                const centerY = (minY + maxY) / 2;
+                const centerZ = (minZ + maxZ) / 2;
+                controls.target.set(centerX, centerY, centerZ);
+            } else {
+                // If no cubes visible, target origin
+                controls.target.set(0, 0, 0);
+            }
+            // -------------------------------------------------------------
+        }
+
+        // Click event handler
+        function onCubeClick(event) {
+            // Check if click-to-hide is enabled
+            if (!clickToHideEnabled) {
+                return; // Do nothing if disabled
+            }
+
+            // Calculate mouse position in normalized device coordinates (-1 to +1) for both components
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            // Update the picking ray with the camera and mouse position
+            raycaster.setFromCamera(mouse, camera);
+
+            // Calculate objects intersecting the picking ray
+            const intersects = raycaster.intersectObjects(cubesGroup.children);
+
+            if (intersects.length > 0) {
+                const clickedCube = intersects[0].object;
+                if (clickedCube.userData.ix !== undefined) {
+                    const { ix, iy, iz } = clickedCube.userData;
+                    const indexString = `${ix},${iy},${iz}`;
+
+                    // Toggle hidden state
+                    if (hiddenIndices.has(indexString)) {
+                        hiddenIndices.delete(indexString);
+                        console.log(`Showing cube: ${indexString}`);
+                    } else {
+                        hiddenIndices.add(indexString);
+                        console.log(`Hiding cube: ${indexString}`);
+                    }
+
+                    // Regenerate the scene
+                    updateCubes(xLayers, yLayers, zLayers);
+                    updateHiddenList();
+                }
+            }
+        }
+
+        // New function to update opacity of existing cubes
+        function updateCubeOpacity(newOpacity) {
+            generatedCubes.forEach(cube => {
+                if (cube.material) {
+                    cube.material.opacity = newOpacity;
+                    cube.material.transparent = newOpacity < 1.0;
+                    cube.material.needsUpdate = true;
+                }
+            });
+        }
+
+        // New function to update the list of hidden cubes
+        function updateHiddenList() {
+            hiddenListDiv.innerHTML = '';
+
+            if (hiddenIndices.size === 0) {
+                hiddenListDiv.innerHTML = '<span class="no-hidden">没有隐藏的立方体</span>';
+                return;
+            }
+
+            const ul = document.createElement('ul');
+            hiddenIndices.forEach(indexString => {
+                const li = document.createElement('li');
+                // Extract ix, iy, iz for display
+                const [ix, iy, iz] = indexString.split(',').map(Number);
+                li.textContent = `立方体 (${ix}, ${iy}, ${iz})`;
+                li.dataset.index = indexString;
+
+                li.addEventListener('click', () => {
+                    const indexToRestore = li.dataset.index;
+                    if (hiddenIndices.has(indexToRestore)) {
+                        hiddenIndices.delete(indexToRestore);
+                        console.log(`Restoring cube via list: ${indexToRestore}`);
+                        updateCubes(xLayers, yLayers, zLayers);
+                        updateHiddenList();
+                    }
+                });
+
+                ul.appendChild(li);
+            });
+            hiddenListDiv.appendChild(ul);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        init();
+    </script>
+</body>
+</html> 
+</html> 

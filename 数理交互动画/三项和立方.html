@@ -49,6 +49,26 @@
             text-align: right;
             margin-left: 5px;
         }
+        #hidden-list-container {
+            margin-top: 15px;
+            max-height: 200px; /* Increased height and add scroll */
+            overflow-y: auto;
+            border: 1px solid #555;
+            padding: 5px;
+        }
+        #hidden-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #hidden-list li {
+            cursor: pointer;
+            padding: 2px 0;
+            border-bottom: 1px dashed #444;
+        }
+        #hidden-list li:hover {
+            background-color: #444;
+        }
         #reference-line-container {
             position: absolute;
             bottom: 0;
@@ -134,8 +154,18 @@
             <label for="opacity_slider">Opacity =<span id="opacity_value">0.80</span></label>
             <input type="range" id="opacity_slider" min="0.1" max="1" value="0.8" step="0.01">
         </div>
+        <div>
+            <label for="click_hide_toggle">点击隐藏:</label>
+            <input type="checkbox" id="click_hide_toggle" style="vertical-align: middle;">
+        </div>
         <br>
         <div>
+            <!-- Container for hidden cube indices -->
+            <div id="hidden-list-container" style="display: none;"> <!-- Initially hidden -->
+                <h6>隐藏的方块 (点击恢复):</h6>
+                <ul id="hidden-list"></ul>
+            </div>
+        </div>
 
     </div>
 
@@ -162,12 +192,16 @@
         let shapeOpacity = 0.8; // Global opacity variable
         const cubes = [];
         const group = new THREE.Group();
+        let isClickToHideEnabled = false; // State for click-to-hide
+        const hiddenCubeIndices = new Set(); // Store indices of hidden cubes
+        let currentN = n; // Store n to detect changes
 
         // Demo state
         let numActiveVariables = 3; // Start with 3 variables (a, b, c)
         let isDemoRunning = false;
         let demoTimeoutId = null;
         const demoInterval = 3000; // Interval between demo steps (ms)
+        let cubeIndexCounter = 0; // Counter for assigning unique indices
 
         const nSlider = document.getElementById('n_slider');
         const aSlider = document.getElementById('a_slider');
@@ -176,6 +210,9 @@
         const gapSlider = document.getElementById('gap_slider');
         const opacitySlider = document.getElementById('opacity_slider'); // Get opacity slider
         const demoButton = document.getElementById('demo_button'); // Get demo button
+        const clickHideToggle = document.getElementById('click_hide_toggle'); // Get click-hide toggle
+        const hiddenListContainer = document.getElementById('hidden-list-container'); // Get hidden list container
+        const hiddenListElement = document.getElementById('hidden-list'); // Get hidden list UL
 
         const nValueSpan = document.getElementById('n_value');
         const aValueSpan = document.getElementById('a_value');
@@ -210,6 +247,7 @@
             cSlider.disabled = !enabled;
             gapSlider.disabled = !enabled;
             opacitySlider.disabled = !enabled; // Disable opacity slider too
+            clickHideToggle.disabled = !enabled; // Disable toggle during demo
         }
 
         // Function to get the currently active variables and their values
@@ -252,6 +290,45 @@
 
             container.position.set(position.x, position.y, position.z);
             return container;
+        }
+
+        // Helper function to add index to hidden list UI
+        function addIndexToHiddenList(index) {
+             hiddenListContainer.style.display = 'block'; // Show the container
+             const listItem = document.createElement('li');
+             listItem.textContent = `方块 ${index}`;
+             listItem.dataset.index = index;
+             hiddenListElement.appendChild(listItem);
+        }
+
+        // Helper function to remove index from hidden list UI
+        function removeIndexFromHiddenList(index) {
+            const itemToRemove = hiddenListElement.querySelector(`li[data-index="${index}"]`);
+            if (itemToRemove) {
+                itemToRemove.remove();
+            }
+            // Hide container if list becomes empty
+            if (hiddenListElement.children.length === 0) {
+                hiddenListContainer.style.display = 'none';
+            }
+        }
+
+        // Helper function to generate the term string (e.g., a^2b)
+        function generateTermString(counts) {
+            const activeVars = getActiveVariables(); // Get current active variable names (a, b, c)
+            let parts = [];
+            activeVars.forEach((v, i) => {
+                const count = counts[i + 1] || 0; // Get count for this variable index (1-based)
+                if (count === 1) {
+                    parts.push(v.name);
+                } else if (count > 1) {
+                    parts.push(`${v.name}<sup>${count}</sup>`); // Use superscript for powers
+                }
+            });
+            if (parts.length === 0) return 'constant'; // Should not happen in this context but good fallback
+            // Sort parts alphabetically for consistency (e.g., a^2b not ba^2)
+            parts.sort();
+            return parts.join('');
         }
 
         // Modified to handle variable number of active variables
@@ -376,6 +453,15 @@
                 });
             });
             cubes.length = 0;
+            cubeIndexCounter = 0; // Reset index counter for new build
+            hiddenListElement.innerHTML = ''; // Clear the hidden list UI
+            hiddenListContainer.style.display = 'none'; // Hide the container
+
+            // Clear hidden state if n has changed
+            if (n !== currentN) {
+                hiddenCubeIndices.clear();
+                currentN = n; // Update stored n
+            }
 
             const activeVars = getActiveVariables();
             if (activeVars.length === 0) return;
@@ -410,6 +496,7 @@
 
                      // Determine shape dimensions/position based on exponent 'n'
                      if (n === 1) {
+                         const termString = generateTermString(counts);
                          // Only generate 1 shape per active variable
                          const varIndex = currentIndices[0] - 1; // 0 for 'a', 1 for 'b', etc.
                          dim.set(lengths[varIndex], smallDim, smallDim);
@@ -418,6 +505,22 @@
                          if (dim.x > 0 && dim.y > 0 && dim.z > 0) {
                              const color = getTermColor(counts, n);
                              const shape = createShape(dim, color, pos, false); // Pass addEdges=false
+                             shape.userData.index = cubeIndexCounter++; // Assign unique index
+                             shape.userData.term = termString;         // Store term string
+                             shape.userData.color = color;             // Store color hex value
+
+                             // Apply persistent hidden state if needed
+                             if (hiddenCubeIndices.has(shape.userData.index)) {
+                                 shape.visible = false;
+                                 shape.children.forEach(child => {
+                                     if (child.raycast) {
+                                         child.userData.originalRaycast = child.raycast;
+                                         child.raycast = function() {};
+                                     }
+                                 });
+                                 addInfoToHiddenList(shape); // Re-add to UI list
+                             }
+
                              cubes.push(shape);
                              group.add(shape);
                          }
@@ -430,10 +533,28 @@
                          pos.set(centers1D[currentIndices[0] - 1], centers1D[currentIndices[1] - 1], centers1D[currentIndices[2] - 1]);
                      }
 
+                     const termString = generateTermString(counts);
+
                      // Check if dimension is valid before creating shape
                      if (dim.x > 0 && dim.y > 0 && dim.z > 0) {
                          const color = getTermColor(counts, n);
                          const shape = createShape(dim, color, pos);
+                         shape.userData.index = cubeIndexCounter++; // Assign unique index
+                         shape.userData.term = termString;         // Store term string
+                         shape.userData.color = color;             // Store color hex value
+
+                         // Apply persistent hidden state if needed
+                         if (hiddenCubeIndices.has(shape.userData.index)) {
+                             shape.visible = false;
+                             shape.children.forEach(child => {
+                                 if (child.raycast) {
+                                     child.userData.originalRaycast = child.raycast;
+                                     child.raycast = function() {};
+                                 }
+                             });
+                             addInfoToHiddenList(shape); // Re-add to UI list
+                         }
+
                          cubes.push(shape);
                          group.add(shape);
                      }
@@ -598,6 +719,10 @@
 
             nSlider.addEventListener('input', (event) => {
                 n = parseInt(event.target.value);
+                // Clear hidden state when n changes, updateCubes will handle the rest
+                if (n !== currentN) {
+                    hiddenCubeIndices.clear();
+                }
                 nValueSpan.textContent = n;
                 updateFormula();
                 updateCubes();
@@ -655,6 +780,17 @@
                 }
             });
 
+            // Click-Hide Toggle Listener
+            clickHideToggle.addEventListener('change', (event) => {
+                 isClickToHideEnabled = event.target.checked;
+            });
+
+            // Canvas Click Listener for Hiding Cubes
+            renderer.domElement.addEventListener('click', onCanvasClick, false);
+
+            // Hidden List Click Listener for Restoring Cubes
+            hiddenListElement.addEventListener('click', onHiddenIndexClick, false);
+
             window.addEventListener('resize', onWindowResize, false);
 
             updateFormula(); // 初始化公式显示
@@ -709,8 +845,12 @@
             if (isDemoRunning) return;
             isDemoRunning = true;
             demoButton.textContent = '停止动画';
-            setControlsEnabled(false); // Disable manual controls
+            // Disable click-to-hide during demo
+            clickHideToggle.checked = false;
+            isClickToHideEnabled = false;
+            setControlsEnabled(false); // Disable manual controls (includes the toggle)
             demoStep = 0; // Start from the beginning
+            hiddenCubeIndices.clear(); // Clear hidden state on demo start
             runDemoStep(); // Start the sequence
         }
 
@@ -722,6 +862,7 @@
             demoButton.textContent = '开始动画';
             // setControlsEnabled(true); // This will be handled by updateCubes now
 
+            hiddenCubeIndices.clear(); // Clear hidden state on demo stop
             // Reset to default state: (a+b+c)^3
             numActiveVariables = 3;
             n = 3;
@@ -732,6 +873,105 @@
             updateCubes(); // This now handles slider visibility and enabling
             updateReferenceLine();
             setCameraViewForN(n);
+        }
+
+        // --- Click Handling ---
+        function onCanvasClick(event) {
+             if (!isClickToHideEnabled || isDemoRunning) return; // Only hide if enabled and demo not running
+
+             // Calculate mouse position in normalized device coordinates
+             // (-1 to +1) for both components
+             const mouse = new THREE.Vector2();
+             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+             mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+
+             const raycaster = new THREE.Raycaster();
+             raycaster.setFromCamera(mouse, camera);
+
+             // Calculate objects intersecting the picking ray
+             // Check intersections with the `group` that holds all the cubes
+             const intersects = raycaster.intersectObjects(group.children, true); // `true` for recursive
+
+             if (intersects.length > 0) {
+                 // Find the top-level group (direct child of 'group') that was clicked
+                 let intersectedGroup = intersects[0].object;
+                 while (intersectedGroup.parent !== group && intersectedGroup.parent !== null) {
+                     intersectedGroup = intersectedGroup.parent;
+                 }
+
+                 // If we found a direct child group and it's one of our cubes, hide it
+                 if (intersectedGroup.parent === group && cubes.includes(intersectedGroup)) {
+                     // Only hide and add to list if it's currently visible
+                     if (intersectedGroup.visible) {
+                         // Disable raycasting for the children (mesh and lines)
+                         intersectedGroup.children.forEach(child => {
+                             if (child.raycast) { // Make sure it has a raycast method
+                                 child.userData.originalRaycast = child.raycast;
+                                 child.raycast = function() {};
+                             }
+                         });
+ 
+                         intersectedGroup.visible = false;
+                         // Add term info to the hidden list UI
+                         addInfoToHiddenList(intersectedGroup); // Pass the whole group
+                         // animate() loop will handle re-render
+                     }
+                 }
+             }
+        }
+
+        // --- Restore Handling ---
+        function onHiddenIndexClick(event) {
+            if (event.target.tagName === 'LI' && event.target.dataset.index) {
+                const indexToRestore = parseInt(event.target.dataset.index);
+                const cubeToRestore = cubes.find(cube => cube.userData.index === indexToRestore);
+
+                if (cubeToRestore) {
+                    // Restore visibility and raycasting
+                    cubeToRestore.visible = true;
+                    // Restore raycasting for the children
+                    cubeToRestore.children.forEach(child => {
+                        if (child.userData.originalRaycast) {
+                            child.raycast = child.userData.originalRaycast;
+                            delete child.userData.originalRaycast;
+                        }
+                    });
+
+                    // Remove term info from the hidden list UI
+                    removeInfoFromHiddenList(indexToRestore);
+                    // animate() loop will handle re-render
+                }
+            }
+        }
+
+        // Helper function to add info to hidden list UI
+        // (Renamed from addIndexToHiddenList)
+        function addInfoToHiddenList(cubeGroup) {
+             hiddenListContainer.style.display = 'block'; // Show the container
+             const listItem = document.createElement('li');
+             const index = cubeGroup.userData.index;
+             const term = cubeGroup.userData.term || `方块 ${index}`; // Fallback to index if term missing
+             const color = cubeGroup.userData.color || 0xffffff; // Fallback color
+
+             listItem.innerHTML = `${index}: ${term}`; // Prepend index to the term
+             listItem.dataset.index = index; // Still use index for reliable restore
+             listItem.style.color = `#${color.toString(16).padStart(6, '0')}`; // Set text color
+
+             hiddenCubeIndices.add(index); // Add to the persistent set
+             hiddenListElement.appendChild(listItem);
+        }
+
+        // Helper function to remove info from hidden list UI
+        function removeInfoFromHiddenList(index) {
+            const itemToRemove = hiddenListElement.querySelector(`li[data-index="${index}"]`);
+            if (itemToRemove) {
+                itemToRemove.remove();
+            }
+            hiddenCubeIndices.delete(index); // Remove from the persistent set
+            // Hide container if list becomes empty
+            if (hiddenListElement.children.length === 0) {
+                hiddenListContainer.style.display = 'none';
+            }
         }
 
         init();
