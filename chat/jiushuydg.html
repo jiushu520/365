@@ -217,8 +217,38 @@
             </select>
         </div>
         
-        <div id="tone-selector-container" style="text-align: center; margin-bottom: 10px; flex-shrink: 0;">
-            <label for="tone-selector">选择语气：</label>
+        <div id="dimension-selector-container" style="text-align: center; margin-bottom: 10px; flex-shrink: 0;">
+            <label for="subject-selector">选择学科：</label>
+            <select id="subject-selector">
+                <option value="数学">数学</option>
+                <option value="物理">物理</option>
+                <option value="化学">化学</option>
+                <option value="编程">编程</option>
+                <option value="其他">其他</option>
+            </select>
+            <label for="style-selector">解题风格：</label>
+            <select id="style-selector">
+                <option value="详细步骤">详细步骤</option>
+                <option value="只给答案">只给答案</option>
+                <option value="举例说明">举例说明</option>
+                <option value="图文并茂">图文并茂</option>
+            </select>
+            <label for="level-selector">难度：</label>
+            <select id="level-selector">
+                <option value="小学">小学</option>
+                <option value="初中">初中</option>
+                <option value="高中">高中</option>
+                <option value="大学">大学</option>
+                <option value="竞赛">竞赛</option>
+            </select>
+            <label for="format-selector">输出格式：</label>
+            <select id="format-selector">
+                <option value="LaTeX">LaTeX</option>
+                <option value="Markdown">Markdown</option>
+                <option value="纯文本">纯文本</option>
+                <option value="表格">表格</option>
+            </select>
+            <label for="tone-selector">语气：</label>
             <select id="tone-selector">
                 <option value="诗意">诗意</option>
                 <option value="杠精">杠精</option>
@@ -226,6 +256,9 @@
                 <option value="幽默">幽默</option>
                 <option value="讽刺">讽刺</option>
             </select>
+            <button id="save-prompt-btn">收藏当前模板</button>
+            <button id="apply-prompt-btn">应用推荐模板</button>
+            <select id="favorite-prompts" style="max-width:200px;"></select>
         </div>
 
         <div id="history-list">
@@ -237,9 +270,10 @@
 
         <div id="loading">正在思考中...</div>
 
-        <div id="input-container">
+        <div id="input-container" style="position: relative;">
             <textarea id="user-input" placeholder="输入你的消息..." rows="1"></textarea>
             <button id="send-btn" disabled>发送</button>
+            <button id="copy-all-reply-btn" class="copy-btn" style="position:absolute;top:-22px;right:2px;z-index:10;">复制回复</button>
         </div>
         
         <div id="action-controls">
@@ -257,6 +291,14 @@
         constructor() {
             this.CONFIG = [
 
+                {
+                    name: "gpt-4.1-mini",
+                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
+                    apiKey: "sk-NKAwMaji6Elw3bXeAxTbkbaQ4zwwhFLKmhCySLJYDPp9tlTZ",
+                    model: "gpt-4.1-mini",
+                    temperature: 0
+                },
+
 
                 {
                     name: "glm-4-flashX",
@@ -265,8 +307,24 @@
                     model: "glm-4-flashX",
                     temperature: 0
                 },
+               {
+                    name: "glm-4-flash",
+                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
+                    model: "glm-4-flash",
+                    temperature: 0
+                },
 
-         {
+                {
+                    name: "glm-z1-flash",
+                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
+                    model: "glm-z1-flash",
+                    temperature: 0
+                },
+
+
+             {
                     name: "qwq-plus-2025-03-05",
                     apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
                     apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
@@ -281,13 +339,32 @@
                     temperature: 0
                 },
 
-               {
-                    name: "glm-4-flash",
+
+
+
+
+
+
+                {
+                    name: "glm-z1-air",
                     apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
                     apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
-                    model: "glm-4-flash",
+                    model: "glm-z1-air",
                     temperature: 0
                 },
+                {
+                    name: "glm-z1-airx",
+                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
+                    model: "glm-z1-airx",
+                    temperature: 0
+                },
+
+
+
+
+
+
            
                 {
                     name: "qwen-plus",
@@ -305,7 +382,7 @@
                     temperature: 0
                 },
                {
-                    name: "aili-deepseek-r1",
+                    name: "ali-deepseek-r1",
                     apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
                     apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
                     model: "deepseek-r1",
@@ -332,18 +409,39 @@
                  {
                     name: "gpt-4o-mini",
                     apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
-                    apiKey: "sk-nn99D99n0zZTSXWUgLItn8iIE18N0srux9KPt1PctLMhNJHd",
+                    apiKey: "sk-NKAwMaji6Elw3bXeAxTbkbaQ4zwwhFLKmhCySLJYDPp9tlTZ",
                     model: "gpt-4o-mini",
                     temperature: 0
                 },
+         {
+                    name: "gpt-4.1-nano",
+                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
+                    apiKey: "sk-NKAwMaji6Elw3bXeAxTbkbaQ4zwwhFLKmhCySLJYDPp9tlTZ",
+                    model: "gpt-4.1-nano",
+                    temperature: 0
+                },
+              {
+                    name: "gpt-4.1",
+                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
+                    apiKey: "sk-NKAwMaji6Elw3bXeAxTbkbaQ4zwwhFLKmhCySLJYDPp9tlTZ",
+                    model: "gpt-4.1",
+                    temperature: 0
+                },
+
 
 
             ];
             this.currentConfigIndex = 0;
 
-            this.getSystemMessage = (tone) => ({
+            this.selectedSubject = localStorage.getItem('selectedSubject') || '数学';
+            this.selectedStyle = localStorage.getItem('selectedStyle') || '详细步骤';
+            this.selectedLevel = localStorage.getItem('selectedLevel') || '高中';
+            this.selectedFormat = localStorage.getItem('selectedFormat') || 'LaTeX';
+            this.favoritePrompts = JSON.parse(localStorage.getItem('favoritePrompts') || '[]');
+
+            this.getSystemMessage = (tone = this.selectedTone, subject = this.selectedSubject, style = this.selectedStyle, level = this.selectedLevel, format = this.selectedFormat) => ({
                 "role": "system",
-                "content": `你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通数学问题。每个题目一定要多种不同的方法来解答，每种方法给出重要的思维模型。并会给出题涉及的相关知识点，以${tone}的语气回复。如果提问题和学习数理化学科或是编程无关则以${tone}的语气进行回怼！`
+                "content": `你是 玖数 人工智能助手。你是一个有20年经验的高级学者，精通${subject}问题。请用${tone}的语气，采用${style}的解题风格，针对${level}难度，输出格式为${format}。每个题目要多种方法解答，并给出相关知识点。注意：请不要使用 TikZ 画图，因为网页端无法渲染 TikZ。如需画图，请用文字描述、ASCII 图，或建议用 SVG/图片等网页可显示的方式。请不要使用 itemize、enumerate、tabular、center 等 LaTeX 环境，MathJax 无法渲染。请用数学环境（如 gather、align、array）和 \\ 换行、\text{} 插入文字。`
             });
 
             this.initElements();
@@ -353,6 +451,8 @@
             this.renderHistoryList();
             this.addHistoryEventListeners();
             this.setupAutoSave();
+            this.initDimensionSelectors();
+            this.renderFavoritePrompts();
         }
 
         initElements() {
@@ -369,6 +469,14 @@
             this.saveHistoryBtn = document.getElementById('save-history-btn');
             this.loadHistoryBtn = document.getElementById('load-history-btn');
             this.latexToggle = document.getElementById('latex-toggle');
+            this.subjectSelector = document.getElementById('subject-selector');
+            this.styleSelector = document.getElementById('style-selector');
+            this.levelSelector = document.getElementById('level-selector');
+            this.formatSelector = document.getElementById('format-selector');
+            this.savePromptBtn = document.getElementById('save-prompt-btn');
+            this.applyPromptBtn = document.getElementById('apply-prompt-btn');
+            this.favoritePromptsSelect = document.getElementById('favorite-prompts');
+            this.copyAllReplyBtn = document.getElementById('copy-all-reply-btn');
         }
 
         populateModelSelector() {
@@ -385,11 +493,11 @@
             if (storedTone) {
                 this.selectedTone = storedTone;
             } else {
-                this.selectedTone = this.toneSelector.options[0].value;
+                this.selectedTone = '诗意';
                 localStorage.setItem('selectedTone', this.selectedTone);
             }
-            this.toneSelector.value = this.selectedTone;
-            this.SYSTEM_MESSAGE = this.getSystemMessage(this.selectedTone);
+            if (this.toneSelector) this.toneSelector.value = this.selectedTone;
+            this.SYSTEM_MESSAGE = this.getSystemMessage(this.selectedTone, this.selectedSubject, this.selectedStyle, this.selectedLevel, this.selectedFormat);
             this.messages = [this.SYSTEM_MESSAGE];
         }
 
@@ -410,6 +518,29 @@
             this.modelSelector.addEventListener('change', (e) => this.changeModel(e.target.value));
             this.toneSelector.addEventListener('change', (e) => this.changeTone(e.target.value));
             this.latexToggle.addEventListener('change', () => this.toggleLatexRendering());
+            if (this.copyAllReplyBtn) {
+                this.copyAllReplyBtn.addEventListener('click', () => {
+                    // 获取所有 assistant-message 的原始内容
+                    const assistantMessages = document.querySelectorAll('.assistant-message');
+                    let allText = '';
+                    assistantMessages.forEach(msg => {
+                        allText += (msg.dataset.originalContent || msg.textContent || '') + '\n\n';
+                    });
+                    if (allText.trim()) {
+                        navigator.clipboard.writeText(allText.trim()).then(() => {
+                            this.copyAllReplyBtn.textContent = '已复制!';
+                            setTimeout(() => {
+                                this.copyAllReplyBtn.textContent = '复制回复';
+                            }, 1500);
+                        }).catch(() => {
+                            this.copyAllReplyBtn.textContent = '复制失败';
+                            setTimeout(() => {
+                                this.copyAllReplyBtn.textContent = '复制回复';
+                            }, 1500);
+                        });
+                    }
+                });
+            }
         }
 
         addHistoryEventListeners() {
@@ -435,7 +566,7 @@
         changeTone(tone) {
             this.selectedTone = tone;
             localStorage.setItem('selectedTone', tone);
-            this.SYSTEM_MESSAGE = this.getSystemMessage(tone);
+            this.SYSTEM_MESSAGE = this.getSystemMessage(this.selectedTone, this.selectedSubject, this.selectedStyle, this.selectedLevel, this.selectedFormat);
             this.clearMessages();
             this.messages = [this.SYSTEM_MESSAGE];
         }
@@ -443,7 +574,7 @@
         changeModel(index) {
             this.currentConfigIndex = parseInt(index);
             this.clearMessages();
-            this.SYSTEM_MESSAGE = this.getSystemMessage(this.selectedTone);
+            this.SYSTEM_MESSAGE = this.getSystemMessage(this.selectedTone, this.selectedSubject, this.selectedStyle, this.selectedLevel, this.selectedFormat);
             this.messages = [this.SYSTEM_MESSAGE];
         }
 
@@ -482,23 +613,86 @@
             const messageElement = document.createElement('div');
             messageElement.className = `message assistant-message`;
             
+            // 用于存放所有段落的容器
             const contentElement = document.createElement('div');
             contentElement.className = 'message-content';
-            contentElement.textContent = '玖数：';
+            messageElement.appendChild(contentElement);
             
             const timestamp = document.createElement('span');
             timestamp.className = 'timestamp';
             timestamp.textContent = new Date().toLocaleTimeString();
             
-            messageElement.appendChild(contentElement);
             messageElement.appendChild(timestamp);
             this.messagesContainer.appendChild(messageElement);
-            
-            // Always scroll to bottom when starting a new reply
             this.scrollToBottom();
             
             let fullResponse = '';
-            
+            let currentParagraph = '';
+            let inLatex = false;
+            let latexType = null; // '$', '\\(', '\\['
+            let latexBuffer = '';
+            let lastChar = '';
+            let last2Char = '';
+            let lastRenderTime = 0;
+            const renderCooldown = 150;
+            const paragraphList = [];
+
+            // 判断 LaTeX 公式是否闭合
+            function isLatexClosed(str) {
+                // $$...$$
+                const doubleDollar = (str.match(/\$\$/g) || []).length % 2 === 0;
+                // $...$（排除 $$...$$ 的情况）
+                const singleDollar = ((str.replace(/\$\$/g, '')).match(/\$/g) || []).length % 2 === 0;
+                // \\( ... \\)
+                const leftParen = (str.match(/\\\(/g) || []).length;
+                const rightParen = (str.match(/\\\)/g) || []).length;
+                // \\[ ... \\]
+                const leftBracket = (str.match(/\\\[/g) || []).length;
+                const rightBracket = (str.match(/\\\]/g) || []).length;
+                return doubleDollar && singleDollar && leftParen === rightParen && leftBracket === rightBracket;
+            }
+
+            // 段落分割判断（只有公式闭合才允许分段）
+            function isParagraphEnd(str) {
+                // 1. 连续两个换行
+                if (/\n\s*\n/.test(str)) return true;
+                // 2. 句号+换行
+                if (/。\s*\n/.test(str)) return true;
+                // 3. 结尾是 LaTeX 闭合
+                if (/\$\s*$/.test(str) || /\\\)\s*$/.test(str) || /\\\]\s*$/.test(str)) return true;
+                // 4. 太长强制分段
+                if (str.length > 300 && /[。！？!?.]$/.test(str)) return true;
+                return false;
+            }
+
+            // 渲染并插入新段落
+            const appendParagraph = async (text) => {
+                if (!text.trim()) return;
+                const paraDiv = document.createElement('div');
+                paraDiv.className = 'assistant-paragraph';
+                contentElement.appendChild(paraDiv);
+                paragraphList.push(paraDiv);
+
+                // 打字机动画逐字显示
+                let i = 0;
+                const typeWriter = () => {
+                    if (i < text.length) {
+                        paraDiv.textContent += text[i++];
+                        this.scrollToBottom();
+                        setTimeout(typeWriter, 1); // 速度可调
+                    } else {
+                        // 动画结束后再渲染 LaTeX
+                        if (this.latexToggle.checked) {
+                            MathJax.typesetPromise([paraDiv]).catch(err => {
+                                console.error('LaTeX渲染错误:', err);
+                            });
+                        }
+                        this.scrollToBottom();
+                    }
+                };
+                typeWriter();
+            };
+
             try {
                 const response = await fetch(config.apiUrl, {
                     method: 'POST',
@@ -521,76 +715,11 @@
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder("utf-8");
                 
-                // Track LaTeX delimiters for more efficient rendering
-                let latexDelimiters = {
-                    '$': 0,
-                    '\\(': 0,
-                    '\\)': 0,
-                    '\\[': 0,
-                    '\\]': 0
-                };
-                
-                let lastRenderTime = 0;
-                const renderCooldown = 150; // ms between renders
-                
-                // Function to check if we should render LaTeX now
-                const shouldRenderLatex = (token) => {
-                    if (!this.latexToggle.checked) return false;
-                    
-                    // Check for LaTeX delimiters in the token
-                    const hasDelimiter = token.includes('$') || 
-                                       token.includes('\\(') || 
-                                       token.includes('\\)') || 
-                                       token.includes('\\[') || 
-                                       token.includes('\\]');
-                    
-                    if (!hasDelimiter) return false;
-                    
-                    // Update delimiter counts
-                    if (token.includes('$')) latexDelimiters['$']++;
-                    if (token.includes('\\(')) latexDelimiters['\\(']++;
-                    if (token.includes('\\)')) latexDelimiters['\\)']++;
-                    if (token.includes('\\[')) latexDelimiters['\\[']++;
-                    if (token.includes('\\]')) latexDelimiters['\\]']++;
-                    
-                    // Check if we have complete LaTeX expressions
-                    const hasPotentialCompleteExpression = 
-                        (latexDelimiters['$'] >= 2) || 
-                        (latexDelimiters['\\('] > 0 && latexDelimiters['\\)'] > 0) ||
-                        (latexDelimiters['\\['] > 0 && latexDelimiters['\\]'] > 0);
-                    
-                    // Check if enough time has passed since last render
-                    const now = Date.now();
-                    const enoughTimePassed = (now - lastRenderTime) > renderCooldown;
-                    
-                    return hasPotentialCompleteExpression && enoughTimePassed;
-                };
-                
-                // Perform LaTeX rendering
-                const renderLatex = async () => {
-                    if (!this.latexToggle.checked) return;
-                    
-                    const isAtBottom = this.isScrolledToBottom();
-                    
-                    try {
-                        lastRenderTime = Date.now();
-                        await MathJax.typesetPromise([contentElement]);
-                    } catch (err) {
-                        console.error("LaTeX rendering error:", err);
-                    }
-                    
-                    if (isAtBottom) {
-                        this.scrollToBottom();
-                    }
-                };
-                
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
-                    
                     const chunk = decoder.decode(value);
                     const lines = chunk.split('\n');
-                    
                     for (const line of lines) {
                         if (line.startsWith('data: ') && line !== 'data: [DONE]') {
                             try {
@@ -598,17 +727,46 @@
                                 if (data.choices && data.choices[0].delta && data.choices[0].delta.content) {
                                     const token = data.choices[0].delta.content;
                                     fullResponse += token;
-                                    contentElement.textContent = '玖数：' + fullResponse;
-                                    
-                                    // Auto-scroll if already at bottom
-                                    if (this.isScrolledToBottom()) {
-                                        this.scrollToBottom();
+                                    currentParagraph += token;
+                                    // 检查 LaTeX 公式闭合
+                                    if (!inLatex) {
+                                        if (token.endsWith('$$') || token.endsWith('\\]')) {
+                                            inLatex = false;
+                                            latexType = null;
+                                        } else if (token.endsWith('\\)')) {
+                                            inLatex = false;
+                                            latexType = null;
+                                        } else if (token.endsWith('$') && (lastChar !== '$')) {
+                                            // 只处理单个$
+                                            inLatex = !inLatex;
+                                            latexType = '$';
+                                        } else if (token.endsWith('\\(')) {
+                                            inLatex = true;
+                                            latexType = '\\(';
+                                        } else if (token.endsWith('\\[')) {
+                                            inLatex = true;
+                                            latexType = '\\[';
+                                        }
+                                    } else {
+                                        // 检查闭合
+                                        if (latexType === '$' && token.endsWith('$') && lastChar !== '$') {
+                                            inLatex = false;
+                                            latexType = null;
+                                        } else if (latexType === '\\(' && token.endsWith('\\)')) {
+                                            inLatex = false;
+                                            latexType = null;
+                                        } else if (latexType === '\\[' && token.endsWith('\\]')) {
+                                            inLatex = false;
+                                            latexType = null;
+                                        }
                                     }
-                                    
-                                    // Progressive LaTeX rendering
-                                    if (shouldRenderLatex(token)) {
-                                        await renderLatex();
+                                    // 分段判断
+                                    if (!inLatex && isParagraphEnd(currentParagraph)) {
+                                        await appendParagraph(currentParagraph);
+                                        currentParagraph = '';
                                     }
+                                    last2Char = lastChar;
+                                    lastChar = token.slice(-1);
                                 }
                             } catch (e) {
                                 console.error("Error parsing stream:", e);
@@ -616,38 +774,25 @@
                         }
                     }
                 }
-                
+                // 处理最后一段
+                if (currentParagraph.trim()) {
+                    await appendParagraph(currentParagraph);
+                }
                 messageElement.dataset.originalContent = '玖数：' + fullResponse;
                 this.messages.push({ "role": "assistant", "content": fullResponse });
-                
-                // Final complete rendering of LaTeX after streaming completes
-                if (this.latexToggle.checked) {
-                    // Reset the delimiter counts to make sure final rendering happens
-                    latexDelimiters = {
-                        '$': 0,
-                        '\\(': 0,
-                        '\\)': 0,
-                        '\\[': 0,
-                        '\\]': 0
-                    };
-                    
-                    const isAtBottom = this.isScrolledToBottom();
-                    try {
-                        await MathJax.typesetPromise([contentElement]);
-                    } catch (err) {
-                        console.error("Final LaTeX rendering error:", err);
-                    }
-                    if (isAtBottom) {
-                        setTimeout(() => this.scrollToBottom(), 10);
-                    }
+
+                // 新增：如果是代码块，替换为代码高亮显示，不渲染 MathJax
+                if (/^```[\s\S]*```\s*$/.test(fullResponse.trim())) {
+                    // 移除原有 assistant-message 内容
+                    messageElement.innerHTML = '';
+                    // 用代码块显示
+                    this.displayCodeBlock(fullResponse, 'assistant-message');
                 }
-                
             } catch (error) {
                 console.error("请求出错:", error);
                 contentElement.textContent = "玖数：对不起，发生了错误，请稍后再试。";
                 this.messages.push({ "role": "assistant", "content": "对不起，发生了错误，请稍后再试。" });
             }
-
             this.loadingIndicator.style.display = 'none';
         }
 
@@ -914,6 +1059,118 @@
 
         scrollToBottom() {
             this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+        }
+
+        initDimensionSelectors() {
+            this.toneSelector.value = this.selectedTone;
+            this.subjectSelector.value = this.selectedSubject;
+            this.styleSelector.value = this.selectedStyle;
+            this.levelSelector.value = this.selectedLevel;
+            this.formatSelector.value = this.selectedFormat;
+            this.toneSelector.addEventListener('change', e => {
+                this.selectedTone = e.target.value;
+                localStorage.setItem('selectedTone', this.selectedTone);
+                this.updateSystemMessage();
+            });
+            this.subjectSelector.addEventListener('change', e => {
+                this.selectedSubject = e.target.value;
+                localStorage.setItem('selectedSubject', this.selectedSubject);
+                this.updateSystemMessage();
+            });
+            this.styleSelector.addEventListener('change', e => {
+                this.selectedStyle = e.target.value;
+                localStorage.setItem('selectedStyle', this.selectedStyle);
+                this.updateSystemMessage();
+            });
+            this.levelSelector.addEventListener('change', e => {
+                this.selectedLevel = e.target.value;
+                localStorage.setItem('selectedLevel', this.selectedLevel);
+                this.updateSystemMessage();
+            });
+            this.formatSelector.addEventListener('change', e => {
+                this.selectedFormat = e.target.value;
+                localStorage.setItem('selectedFormat', this.selectedFormat);
+                this.updateSystemMessage();
+            });
+            this.savePromptBtn.addEventListener('click', () => this.saveCurrentPromptTemplate());
+            this.applyPromptBtn.addEventListener('click', () => this.applyRecommendedPrompt());
+            this.favoritePromptsSelect.addEventListener('change', e => this.applyFavoritePrompt(e.target.value));
+        }
+
+        updateSystemMessage() {
+            this.SYSTEM_MESSAGE = this.getSystemMessage(this.selectedTone, this.selectedSubject, this.selectedStyle, this.selectedLevel, this.selectedFormat);
+            this.clearMessages();
+            this.messages = [this.SYSTEM_MESSAGE];
+        }
+
+        saveCurrentPromptTemplate() {
+            const template = {
+                tone: this.selectedTone,
+                subject: this.selectedSubject,
+                style: this.selectedStyle,
+                level: this.selectedLevel,
+                format: this.selectedFormat
+            };
+            const label = `${template.subject}-${template.style}-${template.level}-${template.format}-${template.tone}`;
+            if (!this.favoritePrompts.some(p => JSON.stringify(p) === JSON.stringify(template))) {
+                this.favoritePrompts.push(template);
+                localStorage.setItem('favoritePrompts', JSON.stringify(this.favoritePrompts));
+                this.renderFavoritePrompts();
+                alert('模板已收藏！');
+            } else {
+                alert('该模板已存在收藏夹！');
+            }
+        }
+
+        renderFavoritePrompts() {
+            this.favoritePromptsSelect.innerHTML = '';
+            this.favoritePrompts.forEach((p, idx) => {
+                const option = document.createElement('option');
+                option.value = idx;
+                option.textContent = `${p.subject}-${p.style}-${p.level}-${p.format}-${p.tone}`;
+                this.favoritePromptsSelect.appendChild(option);
+            });
+        }
+
+        applyFavoritePrompt(idx) {
+            const p = this.favoritePrompts[idx];
+            if (p) {
+                this.selectedTone = p.tone;
+                this.selectedSubject = p.subject;
+                this.selectedStyle = p.style;
+                this.selectedLevel = p.level;
+                this.selectedFormat = p.format;
+                this.toneSelector.value = p.tone;
+                this.subjectSelector.value = p.subject;
+                this.styleSelector.value = p.style;
+                this.levelSelector.value = p.level;
+                this.formatSelector.value = p.format;
+                this.updateSystemMessage();
+            }
+        }
+
+        applyRecommendedPrompt() {
+            // 简单智能推荐：根据输入内容自动切换学科和风格
+            const input = this.userInput.value;
+            if (/编程|代码|python|js|javascript|c\+\+|java|算法/i.test(input)) {
+                this.subjectSelector.value = '编程';
+                this.selectedSubject = '编程';
+                this.styleSelector.value = '详细步骤';
+                this.selectedStyle = '详细步骤';
+            } else if (/化学|分子|反应|元素|周期表/i.test(input)) {
+                this.subjectSelector.value = '化学';
+                this.selectedSubject = '化学';
+            } else if (/物理|力学|电学|光学|热学|运动/i.test(input)) {
+                this.subjectSelector.value = '物理';
+                this.selectedSubject = '物理';
+            } else if (/竞赛|奥数|难题|挑战/i.test(input)) {
+                this.levelSelector.value = '竞赛';
+                this.selectedLevel = '竞赛';
+            } else {
+                this.subjectSelector.value = '数学';
+                this.selectedSubject = '数学';
+            }
+            this.updateSystemMessage();
         }
     }
 
