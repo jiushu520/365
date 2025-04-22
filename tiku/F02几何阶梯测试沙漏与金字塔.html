@@ -534,8 +534,7 @@
     </div>
     <div style="display: flex; justify-content: center; align-items: center; margin: 10px 0; gap: 15px;">
         <div id="countdownDisplay" style="font-size: 20px; font-weight: bold; color: #007bff;">剩余时间: 05:00</div>
-        <button id="startGameBtn" onclick="startGame()">开始游戏</button>
-        <button id="resetGameBtn" onclick="resetGame()" disabled>重新开始</button>
+
     </div>
     
     <div class="pk-container">
@@ -570,6 +569,8 @@
             
             <!-- 模式切换按钮移到这里 -->
             <div class="mode-switch">
+                <button id="startGameBtn" onclick="startGame()">开始游戏</button>
+                <button id="resetGameBtn" onclick="resetGame()" disabled>重新开始</button>
                 <button id="selfPracticeBtn" class="mode-btn" onclick="switchMode('self')">自学练习</button>
                 <button id="pkModeBtn" class="mode-btn active" onclick="switchMode('pk')">PK模式</button>
                 <button id="conquestModeBtn" class="mode-btn" onclick="switchMode('conquest')">通关模式</button>
@@ -650,7 +651,19 @@
                 return;
             }
             
-            gameMode = mode;
+              gameMode = mode;
+
+            // Remove level progress indicator if not in conquest mode
+            if (mode !== 'conquest') {
+                const lp = document.getElementById('levelProgress');
+                if (lp) lp.remove();
+            }
+
+            // Remove level progress indicator if not in conquest mode
+            if (mode !== 'conquest') {
+                const lp = document.getElementById('levelProgress');
+                if (lp) lp.remove();
+            }
             
             // 重置UI元素
             document.getElementById('selfPracticeBtn').classList.remove('active');
@@ -726,7 +739,12 @@
                 updateDifficultyButtonsForConquest();
             }
             
-            // 更新界面按钮状态
+                   // 更新界面按钮状态
+            if (mode === 'conquest') {
+                document.querySelector('#playerContainer h3').style.display = 'none';
+            } else {
+                document.querySelector('#playerContainer h3').style.display = 'block';
+            }
             updateButtonStates();
         }
 
