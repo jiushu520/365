@@ -633,7 +633,15 @@
         // 新增游戏模式变量
         let gameMode = 'pk'; // 默认为PK模式，可选值: 'self'(自学练习)、'pk'(PK模式)、'conquest'(通关模式)
 
-        const difficultyNames = ["01平行X模型", "02梯形两翼", "03寻找沙漏","04平行A模型","05混合模型","06综合测试"];
+        const difficultyNames = [
+            "01将军饮马和最小值", 
+            "02将军饮马差最大值", 
+            "03一线三直角",
+            "04胡不归",
+            "05鸟头模型1",
+            "06鸟头模型2",
+            "07阿氏圆",
+            "08综合测试"];
 
         // 初始化
         document.addEventListener("DOMContentLoaded", () => {
@@ -1692,7 +1700,7 @@
                 AM垂直于AB，BN垂直于AB，\\\\
                 其中AM = ${AM}，BN = ${BN}，AB = ${AB}，\\\\
                 已知AM - BN = ${a}，\\\\
-                求|PM|-|PN|的最大值。\\\\
+                求||PM|-|PN||的最大值。\\\\
                 \\end{array}
 
                 <div style="margin-top: 15px;">${svg}</div>
