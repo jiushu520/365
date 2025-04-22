@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>求解 tan∠BAC之04向量法</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .problem { margin-bottom: 20px; }
+        .solution { margin-top: 20px; }
+        svg { 
+            border: 1px solid #ddd; 
+            display: block;
+            margin: 0 auto;
+        }
+        .step { margin: 10px 0; }
+        .hint { color: #0066cc; font-style: italic; }
+        #controls {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            text-align: center;
+        }
+    </style>
+    <!-- 添加MathJax支持 -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="problem">
+        <h2>已知：$A(0,0)$，$B(6,1)$，$C(3,6)$，求解 $\tan\angle BAC$</h2>
+        
+        <div id="controls">
+            <label>坐标缩放: <input type="range" id="scale" min="20" max="100" value="25"></label>
+            <span id="scaleValue">25</span>
+        </div>
+        
+        <svg id="coordinate-system" width="800" height="600"></svg>
+    </div>
+
+    <div class="solution">
+        <h3>向量法解题</h3>
+        
+        <div class="step">
+            <p>已知：$A(0,0)$，$B(6,1)$，$C(3,6)$</p>
+            <p>1. 构造向量 $\overrightarrow{AB} = (6,1)$ 和 $\overrightarrow{AC} = (3,6)$</p>
+            <p>2. 向量的叉积（外积）：$\overrightarrow{AB} \times \overrightarrow{AC} = 6 \times 6 - 1 \times 3 = 36 - 3 = 33$</p>
+            <p>3. 向量的点积（内积）：$\overrightarrow{AB} \cdot \overrightarrow{AC} = 6 \times 3 + 1 \times 6 = 18 + 6 = 24$</p>
+            <p>4. 根据向量关系：$\tan\angle BAC = \frac{|\overrightarrow{AB} \times \overrightarrow{AC}|}{\overrightarrow{AB} \cdot \overrightarrow{AC}} = \frac{33}{24} = \frac{11}{8}$</p>
+        </div>
+        
+        <div class="hint">
+            <p>要点：</p>
+            <ul>
+                <li>向量叉积的模的几何意义是以两向量为邻边的平行四边形面积</li>
+                <li>对于二维向量叉积 $\vec{a} \times \vec{b} = |\vec{a}| \cdot |\vec{b}| \cdot \sin\theta = a_1b_2 - a_2b_1$</li>
+                <li>向量点积的几何意义是两向量长度乘积再乘以夹角余弦</li>
+                <li>对于二维向量点积 $\vec{a} \cdot \vec{b} = |\vec{a}| \cdot |\vec{b}| \cdot \cos\theta = a_1b_1 + a_2b_2$</li>
+                <li>正切值等于正弦值除以余弦值，所以 $\tan\theta = \frac{\vec{a} \times \vec{b}}{\vec{a} \cdot \vec{b}}$</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="solution">
+        <h3>法向量投影法解题</h3>
+        
+        <div class="step">
+            <p>已知：$A(0,0)$，$B(6,1)$，$C(3,6)$</p>
+            
+            <p>1. 求直线AB的方程：</p>
+            <p>直线AB的方向向量为 $\overrightarrow{AB} = (6,1)$</p>
+            <p>直线AB的法向量可以通过将方向向量的分量交换并改变一个分量的符号得到：</p>
+            <p>若方向向量为$(a,b)$，则其法向量可以是$(-b,a)$或$(b,-a)$。对于方向向量$(6,1)$，我们可以得到法向量$(-1,6)$</p>
+            <p>直线AB的法向量为 $\overrightarrow{n} = (-1,6)$，垂直于AB</p>
+            <p>验证垂直关系：$\overrightarrow{AB} \cdot \overrightarrow{n} = 6 \times (-1) + 1 \times 6 = -6 + 6 = 0$</p>
+            
+            <p>2. 计算向量投影：</p>
+            <p>向量AC在法向量n上的投影长度：$\text{proj}_{\overrightarrow{n}}\overrightarrow{AC} = \frac{\overrightarrow{AC} \cdot \overrightarrow{n}}{|\overrightarrow{n}|} = \frac{3 \times (-1) + 6 \times 6}{\sqrt{(-1)^2 + 6^2}} = \frac{-3 + 36}{\sqrt{37}} = \frac{33}{\sqrt{37}}$</p>
+            
+            <p>向量AB在法向量n上的投影长度：$\text{proj}_{\overrightarrow{n}}\overrightarrow{AB} = \frac{\overrightarrow{AB} \cdot \overrightarrow{n}}{|\overrightarrow{n}|} = \frac{6 \times (-1) + 1 \times 6}{\sqrt{(-1)^2 + 6^2}} = \frac{-6 + 6}{\sqrt{37}} = 0$</p>
+            <p>这验证了法向量n确实垂直于AB</p>
+            
+            <p>3. 求垂线CD与AB的交点D：</p>
+            <p>过点C作AB的垂线，垂线方向为法向量n</p>
+            <p>垂线方程：$y - 6 = \frac{6}{-1}(x - 3)$，整理得$6x + y = 24$</p>
+            <p>与AB的方程$6y - x = 0$联立求交点D</p>
+            <p>得到$D(\frac{144}{37}, \frac{24}{37})$</p>
+            
+            <p>4. 利用投影计算CD和AD：</p>
+            <p>点C到直线AB的距离就是向量AC在法向量n上的投影长度：$CD = \frac{33}{\sqrt{37}}$</p>
+            <p>点A到直线CD的距离可以用点到直线公式计算：$AD = \frac{|6 \cdot 0 + 1 \cdot 0 - 24|}{\sqrt{6^2 + 1^2}} = \frac{24}{\sqrt{37}}$</p>
+            
+            <p>5. 计算最终结果：</p>
+            <p>$\frac{CD}{AD} = \frac{33/\sqrt{37}}{24/\sqrt{37}} = \frac{33}{24} = \frac{11}{8}$</p>
+        </div>
+        
+        <div class="hint">
+            <p>要点：</p>
+            <ul>
+                <li>法向量是与直线垂直的向量，用于表示直线的方向和进行投影计算</li>
+                <li>向量在另一向量上的投影长度公式：$\text{proj}_{\vec{b}}\vec{a} = \frac{\vec{a} \cdot \vec{b}}{|\vec{b}|}$</li>
+                <li>点到直线距离可以表示为向量在法向量上投影的绝对值</li>
+                <li>点到直线距离公式：$d = \frac{|Ax_0 + By_0 + C|}{\sqrt{A^2+B^2}}$，其中$(x_0,y_0)$是点的坐标，$Ax+By+C=0$是直线方程</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 设置中心点和缩放比例
+        const svgWidth = 800;
+        const svgHeight = 600;
+        const centerX = svgWidth / 2;
+        const centerY = svgHeight / 2;
+        let scale = 25; // 每个单位对应的像素数
+        
+        // 坐标点（数学坐标系中）
+        const pointA = {x: 0, y: 0};
+        const pointB = {x: 6, y: 1};
+        const pointC = {x: 3, y: 6};
+        const pointD = {x: -1, y: 6}; // 添加点D
+        
+        // 添加新的点
+        const pointE = {x: 24/37 * 6, y: 24/37 * 1}; // E = 24/37 * (6,1)
+        const pointF = {x: 33/37 * (-1), y: 33/37 * 6}; // F = 33/37 * (-1,6)
+        
+        // 转换为SVG坐标
+        function toSvgX(x) {
+            return centerX + x * scale;
+        }
+        
+        function toSvgY(y) {
+            // SVG中y轴朝下为正，所以需要反转
+            return centerY - y * scale;
+        }
+        
+        // 创建SVG元素
+        function createSVGElement(tag) {
+            return document.createElementNS("http://www.w3.org/2000/svg", tag);
+        }
+        
+        // 绘制坐标系和图形
+        function drawCoordinateSystem() {
+            const svg = document.getElementById('coordinate-system');
+            svg.innerHTML = ''; // 清空已有内容
+            
+            // 计算可见范围（单位）
+            const visibleWidth = svgWidth / scale;
+            const visibleHeight = svgHeight / scale;
+            const xMin = -visibleWidth / 2;
+            const xMax = visibleWidth / 2;
+            const yMin = -visibleHeight / 2;
+            const yMax = visibleHeight / 2;
+            
+            // 绘制网格线
+            const gridGroup = createSVGElement('g');
+            gridGroup.setAttribute('stroke', '#eee');
+            gridGroup.setAttribute('stroke-width', '1');
+            
+            // 横向网格线
+            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+                if (y === 0) continue; // 坐标轴单独绘制
+                const line = createSVGElement('line');
+                line.setAttribute('x1', toSvgX(xMin));
+                line.setAttribute('y1', toSvgY(y));
+                line.setAttribute('x2', toSvgX(xMax));
+                line.setAttribute('y2', toSvgY(y));
+                gridGroup.appendChild(line);
+            }
+            
+            // 纵向网格线
+            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+                if (x === 0) continue; // 坐标轴单独绘制
+                const line = createSVGElement('line');
+                line.setAttribute('x1', toSvgX(x));
+                line.setAttribute('y1', toSvgY(yMin));
+                line.setAttribute('x2', toSvgX(x));
+                line.setAttribute('y2', toSvgY(yMax));
+                gridGroup.appendChild(line);
+            }
+            
+            svg.appendChild(gridGroup);
+            
+            // 绘制坐标轴
+            const axisGroup = createSVGElement('g');
+            axisGroup.setAttribute('stroke', '#999');
+            axisGroup.setAttribute('stroke-width', '1');
+            
+            // x轴
+            const xAxis = createSVGElement('line');
+            xAxis.setAttribute('x1', toSvgX(xMin));
+            xAxis.setAttribute('y1', toSvgY(0));
+            xAxis.setAttribute('x2', toSvgX(xMax));
+            xAxis.setAttribute('y2', toSvgY(0));
+            axisGroup.appendChild(xAxis);
+            
+            // y轴
+            const yAxis = createSVGElement('line');
+            yAxis.setAttribute('x1', toSvgX(0));
+            yAxis.setAttribute('y1', toSvgY(yMin));
+            yAxis.setAttribute('x2', toSvgX(0));
+            yAxis.setAttribute('y2', toSvgY(yMax));
+            axisGroup.appendChild(yAxis);
+            
+            svg.appendChild(axisGroup);
+            
+            // 绘制刻度标签
+            const labelsGroup = createSVGElement('g');
+            labelsGroup.setAttribute('font-size', '12');
+            
+            // x轴刻度标签
+            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+                if (x === 0) continue;
+                const text = createSVGElement('text');
+                text.setAttribute('x', toSvgX(x));
+                text.setAttribute('y', toSvgY(0) + 15);
+                text.setAttribute('text-anchor', 'middle');
+                text.textContent = x;
+                labelsGroup.appendChild(text);
+            }
+            
+            // y轴刻度标签
+            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+                if (y === 0) continue;
+                const text = createSVGElement('text');
+                text.setAttribute('x', toSvgX(0) - 10);
+                text.setAttribute('y', toSvgY(y) + 5);
+                text.setAttribute('text-anchor', 'end');
+                text.textContent = y;
+                labelsGroup.appendChild(text);
+            }
+            
+            svg.appendChild(labelsGroup);
+            
+            // 绘制三角形
+            const triangleGroup = createSVGElement('g');
+            triangleGroup.setAttribute('stroke', '#000');
+            triangleGroup.setAttribute('stroke-width', '2');
+            
+            // 线段AB
+            const lineAB = createSVGElement('line');
+            lineAB.setAttribute('x1', toSvgX(pointA.x));
+            lineAB.setAttribute('y1', toSvgY(pointA.y));
+            lineAB.setAttribute('x2', toSvgX(pointB.x));
+            lineAB.setAttribute('y2', toSvgY(pointB.y));
+            triangleGroup.appendChild(lineAB);
+            
+            // 线段AC
+            const lineAC = createSVGElement('line');
+            lineAC.setAttribute('x1', toSvgX(pointA.x));
+            lineAC.setAttribute('y1', toSvgY(pointA.y));
+            lineAC.setAttribute('x2', toSvgX(pointC.x));
+            lineAC.setAttribute('y2', toSvgY(pointC.y));
+            triangleGroup.appendChild(lineAC);
+            
+            // 添加线段CE
+            const lineCE = createSVGElement('line');
+            lineCE.setAttribute('x1', toSvgX(pointC.x));
+            lineCE.setAttribute('y1', toSvgY(pointC.y));
+            lineCE.setAttribute('x2', toSvgX(pointE.x));
+            lineCE.setAttribute('y2', toSvgY(pointE.y));
+            lineCE.setAttribute('stroke', 'blue');
+            lineCE.setAttribute('stroke-dasharray', '5,3');
+            triangleGroup.appendChild(lineCE);
+            
+            // 添加线段CF
+            const lineCF = createSVGElement('line');
+            lineCF.setAttribute('x1', toSvgX(pointC.x));
+            lineCF.setAttribute('y1', toSvgY(pointC.y));
+            lineCF.setAttribute('x2', toSvgX(pointF.x));
+            lineCF.setAttribute('y2', toSvgY(pointF.y));
+            lineCF.setAttribute('stroke', 'purple');
+            lineCF.setAttribute('stroke-dasharray', '5,3');
+            triangleGroup.appendChild(lineCF);
+
+            // 添加线段AD
+            const lineAD = createSVGElement('line');
+            lineAD.setAttribute('x1', toSvgX(pointA.x));
+            lineAD.setAttribute('y1', toSvgY(pointA.y));
+            lineAD.setAttribute('x2', toSvgX(pointD.x));
+            lineAD.setAttribute('y2', toSvgY(pointD.y));
+            lineAD.setAttribute('stroke', 'green');
+            lineAD.setAttribute('stroke-dasharray', '3,2');
+            triangleGroup.appendChild(lineAD);
+            
+            svg.appendChild(triangleGroup);
+            
+            // 绘制点
+            const pointsGroup = createSVGElement('g');
+            
+            // 点A
+            const circleA = createSVGElement('circle');
+            circleA.setAttribute('cx', toSvgX(pointA.x));
+            circleA.setAttribute('cy', toSvgY(pointA.y));
+            circleA.setAttribute('r', '5');
+            circleA.setAttribute('fill', 'blue');
+            pointsGroup.appendChild(circleA);
+            
+            // 点B
+            const circleB = createSVGElement('circle');
+            circleB.setAttribute('cx', toSvgX(pointB.x));
+            circleB.setAttribute('cy', toSvgY(pointB.y));
+            circleB.setAttribute('r', '5');
+            circleB.setAttribute('fill', 'blue');
+            pointsGroup.appendChild(circleB);
+            
+            // 点C
+            const circleC = createSVGElement('circle');
+            circleC.setAttribute('cx', toSvgX(pointC.x));
+            circleC.setAttribute('cy', toSvgY(pointC.y));
+            circleC.setAttribute('r', '5');
+            circleC.setAttribute('fill', 'blue');
+            pointsGroup.appendChild(circleC);
+            
+            // 点D
+            const circleD = createSVGElement('circle');
+            circleD.setAttribute('cx', toSvgX(pointD.x));
+            circleD.setAttribute('cy', toSvgY(pointD.y));
+            circleD.setAttribute('r', '5');
+            circleD.setAttribute('fill', 'red');
+            pointsGroup.appendChild(circleD);
+            
+            // 点E
+            const circleE = createSVGElement('circle');
+            circleE.setAttribute('cx', toSvgX(pointE.x));
+            circleE.setAttribute('cy', toSvgY(pointE.y));
+            circleE.setAttribute('r', '5');
+            circleE.setAttribute('fill', 'blue');
+            pointsGroup.appendChild(circleE);
+            
+            // 点F
+            const circleF = createSVGElement('circle');
+            circleF.setAttribute('cx', toSvgX(pointF.x));
+            circleF.setAttribute('cy', toSvgY(pointF.y));
+            circleF.setAttribute('r', '5');
+            circleF.setAttribute('fill', 'purple');
+            pointsGroup.appendChild(circleF);
+            
+            svg.appendChild(pointsGroup);
+            
+            // 标记点
+            const markersGroup = createSVGElement('g');
+            
+            // 标记A
+            const textA = createSVGElement('text');
+            textA.setAttribute('x', toSvgX(pointA.x) + 10);
+            textA.setAttribute('y', toSvgY(pointA.y) - 10);
+            textA.textContent = 'A(0,0)';
+            markersGroup.appendChild(textA);
+            
+            // 标记B
+            const textB = createSVGElement('text');
+            textB.setAttribute('x', toSvgX(pointB.x) + 10);
+            textB.setAttribute('y', toSvgY(pointB.y) - 10);
+            textB.textContent = 'B(6,1)';
+            markersGroup.appendChild(textB);
+            
+            // 标记C
+            const textC = createSVGElement('text');
+            textC.setAttribute('x', toSvgX(pointC.x) + 10);
+            textC.setAttribute('y', toSvgY(pointC.y) - 10);
+            textC.textContent = 'C(3,6)';
+            markersGroup.appendChild(textC);
+            
+            // 标记D
+            const textD = createSVGElement('text');
+            textD.setAttribute('x', toSvgX(pointD.x) - 10);
+            textD.setAttribute('y', toSvgY(pointD.y) - 10);
+            textD.textContent = 'D(-1,6)';
+            markersGroup.appendChild(textD);
+            
+            // 标记E
+            const textE = createSVGElement('text');
+            textE.setAttribute('x', toSvgX(pointE.x) + 10);
+            textE.setAttribute('y', toSvgY(pointE.y) - 10);
+            textE.textContent = 'E(144/37,24/37)';
+            markersGroup.appendChild(textE);
+            
+            // 标记F
+            const textF = createSVGElement('text');
+            textF.setAttribute('x', toSvgX(pointF.x) - 10);
+            textF.setAttribute('y', toSvgY(pointF.y) - 10);
+            textF.textContent = 'F(-33/37,198/37)';
+            markersGroup.appendChild(textF);
+            
+            svg.appendChild(markersGroup);
+        }
+        
+        // 监听缩放变化
+        document.getElementById('scale').addEventListener('input', function() {
+            scale = parseInt(this.value);
+            document.getElementById('scaleValue').textContent = scale;
+            drawCoordinateSystem();
+        });
+        
+        // 初始化绘图
+        drawCoordinateSystem();
+    </script>
+</body>
+</html> 

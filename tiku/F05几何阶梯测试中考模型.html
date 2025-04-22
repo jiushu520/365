@@ -615,7 +615,7 @@
             generateDifficultyButtons();
             setDifficulty(1);
             updateCountdownDisplay();
-            switchMode('self'); // 默认self模式
+            switchMode('conquest'); // 默认self模式
             selectThinkingDifficulty('hard'); // 默认为困难难度
         });
 
@@ -777,6 +777,16 @@
             playerTime = 0;
             computerTime = 0;
             
+            // 通关模式特殊处理
+            if (gameMode === 'conquest') {
+                conquestStartTime = new Date().getTime();
+                conquestTotalTime = 0;
+                conquestLevel = 1;
+                conquestCorrectCount = 0;
+                setDifficulty(conquestLevel);
+                updateConquestUI();
+            }
+            
             // 更新UI
             document.getElementById('playerScore').innerHTML = `正确: 0 | 错误: 0 | 总题数: 0`;
             if (gameMode === 'pk') {
@@ -802,25 +812,19 @@
             // 开始计时器
             startTimers();
             
-            // 通关模式特殊处理
-            if (gameMode === 'conquest') {
-                conquestStartTime = new Date().getTime();
-                conquestTotalTime = 0;
-                conquestLevel = 1;
-                conquestCorrectCount = 0;
-                setDifficulty(conquestLevel);
-                updateConquestUI();
-            }
-            
-            // 不是通关模式才启动倒计时
+            // 只在PK和自学模式下启动倒计时
             if (gameMode !== 'conquest') {
-                // 启动倒计时
                 startCountdown();
             }
             
             // 仅在PK模式下才生成计算机题目
             if (gameMode === 'pk') {
                 generateComputerQuestion();
+            }
+            
+            // 通关模式下禁用难度按钮
+            if (gameMode === 'conquest') {
+                updateDifficultyButtonsForConquest();
             }
         }
         
@@ -834,8 +838,21 @@
             
             // 重置状态
             gameInProgress = false;
-            countdownTime = gameDuration * 60;
-            updateCountdownDisplay();
+            
+            // 非通关模式重置倒计时
+            if (gameMode !== 'conquest') {
+                countdownTime = gameDuration * 60;
+                updateCountdownDisplay();
+            }
+            
+            // 通关模式重置
+            if (gameMode === 'conquest') {
+                conquestLevel = 1;
+                conquestCorrectCount = 0;
+                setDifficulty(conquestLevel);
+                updateConquestUI();
+                updateDifficultyButtonsForConquest();
+            }
             
             // 更新UI
             document.getElementById('playerQuestion').innerHTML = '';
@@ -850,14 +867,6 @@
                 document.getElementById('computerResult').innerHTML = '';
                 document.getElementById('computerStatus').innerHTML = '等待开始...';
                 document.getElementById('roundResult').innerHTML = '';
-            }
-            
-            if (gameMode === 'conquest') {
-                conquestLevel = 1;
-                conquestCorrectCount = 0;
-                setDifficulty(conquestLevel);
-                updateConquestUI();
-                updateDifficultyButtonsForConquest();
             }
             
             // 启用/禁用相关按钮
@@ -877,6 +886,11 @@
             playerTimer = setInterval(() => {
                 playerTime++;
                 document.getElementById('playerTimer').innerHTML = `时间: ${playerTime}秒`;
+                
+                // 通关模式特殊处理
+                if (gameMode === 'conquest') {
+                    updateTimers();
+                }
             }, 1000);
             
             // 仅在PK模式下启动计算机计时器
@@ -989,55 +1003,45 @@
             if (!gameInProgress) return;
             
             const userAnswer = document.getElementById('playerAnswer').value.trim();
+                        // 使用 toHalfWidth 函数将用户输入转换为半角字符
+                        const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
             
-            if (userAnswer === '') {
-                document.getElementById('playerResult').innerHTML = '请输入答案！';
-                document.getElementById('playerResult').className = 'result incorrect';
-                return;
-            }
+            // 如果没有输入答案，不做处理
+            if (!userAnswer) return;
             
-            // 计算答题用时
             const questionTime = playerTime - playerQuestionStartTime;
-            
-            // 使用 toHalfWidth 函数将用户输入转换为半角字符
-            const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
-            
-            // 对于正数答案，同时接受带"+"号和不带"+"号的形式
-            const normalizedCorrectAnswers = playerCorrectAnswer.map(answer => {
-                const num = parseInt(answer);
-                if (num > 0) {
-                    return [answer, `+${answer}`]; // 正数同时接受带"+"号和不带"+"号的形式
-                }
-                return [answer]; // 负数只接受一种形式
-            }).flat();
-            
-            // 检查答案是否正确
-            const isCorrect = normalizedCorrectAnswers.some(answer => 
+            const isCorrect = playerCorrectAnswer.some(answer => 
                 normalizedUserAnswer === toHalfWidth(answer.replace(/\s/g, '').toLowerCase()));
             
+            // 更新计数
+            playerTotalCount++;
             if (isCorrect) {
-                document.getElementById('playerResult').innerHTML = '正确!';
-                document.getElementById('playerResult').className = 'result correct';
                 playerCorrectCount++;
+                document.getElementById('correctSound').play();
+                document.getElementById('playerResult').innerHTML = '<span class="correct">回答正确！</span>';
                 
                 // 通关模式特殊处理
                 if (gameMode === 'conquest') {
                     conquestCorrectCount++;
                     
-                    // 判断是否完成当前关卡
-                    if (conquestCorrectCount >= 3) {
-                        // 判断是否完成所有关卡
+                    // 检查是否完成当前关卡(5题)
+                    if (conquestCorrectCount >= 5) {
+                        // 检查是否通关所有10个级别
                         if (conquestLevel >= difficultyNames.length) {
-                            // 通关成功
+                            // 游戏胜利
                             const totalTime = Math.floor((new Date().getTime() - conquestStartTime) / 1000);
-                            alert(`恭喜你完成了所有关卡！
-总用时: ${totalTime}秒
-总题数: ${playerTotalCount + 1}题
-正确率: ${Math.round((playerCorrectCount / (playerTotalCount + 1)) * 100)}%`);
+                            alert(`恭喜！你已通关所有级别！\n总用时: ${totalTime}秒`);
+                            
+                            // 最后一次更新所有按钮状态，使所有关卡都显示为已完成
+                            document.querySelectorAll('.difficulty-buttons button').forEach((btn, index) => {
+                                btn.classList.remove('active', 'current');
+                                btn.classList.add('completed');
+                            });
+                            
                             resetGame();
                             return;
                         } else {
-                            // 晋级下一关
+                            // 晋级到下一关
                             conquestLevel++;
                             conquestCorrectCount = 0;
                             setDifficulty(conquestLevel);
@@ -1046,62 +1050,52 @@
                         }
                     }
                     
-                    // 更新通关模式UI
                     updateConquestUI();
-                }
-                
-                // 播放正确音效
-                document.getElementById('correctSound').play();
-                
-                // 仅在PK模式下显示攻击效果
-                if (gameMode === 'pk' && document.getElementById('computerResult').innerHTML !== '') {
-                    // 创建并添加冲击波元素
-                    createShockwave('player');
-                    
-                    // 让计算机容器抖动
-                    document.getElementById('computerContainer').classList.add('shake');
-                    setTimeout(() => {
-                        document.getElementById('computerContainer').classList.remove('shake');
-                    }, 500);
-                    
-                    // 显示对诮语句
-                    if (gameMode === 'pk' && isCorrect) {
-                        showTaunt('player');
-                    }
                 }
             } else {
-                document.getElementById('playerResult').innerHTML = '错误';
-                document.getElementById('playerResult').className = 'result incorrect';
                 playerIncorrectCount++;
-                
-                // 播放错误音效
                 document.getElementById('wrongSound').play();
+                document.getElementById('playerResult').innerHTML = `<span class="incorrect">回答错误！正确答案是：${playerCorrectAnswer[0]}</span>`;
                 
-                // 通关模式错误处理
+                // 通关模式特殊处理 - 错一题就重置本关进度
                 if (gameMode === 'conquest') {
-                    // 错误时重置当前关卡
-                    alert(`回答错误，请重新开始第${conquestLevel}关！`);
-                    conquestLevel = 1;
-                    conquestCorrectCount = 0;
-                    setDifficulty(conquestLevel);
-                    updateConquestUI();
+                    setTimeout(() => {
+                        alert(`很遗憾，答错了，本关需要重新开始！`);
+                        // 保持当前关卡，只清零已答对题数
+                        conquestCorrectCount = 0;
+                        updateConquestUI();
+                    }, 1000);
                 }
             }
             
-            // 更新总题数
-            playerTotalCount++;
-            
-            // 更新分数
-            updatePlayerScore();
+            // 更新分数显示
+            document.getElementById('playerScore').innerHTML = 
+                `正确: ${playerCorrectCount} | 错误: ${playerIncorrectCount} | 总题数: ${playerTotalCount}`;
             
             // 添加到历史记录
-            addToHistory('玩家', difficultyNames[currentDifficulty - 1], 
-                          document.getElementById('playerQuestion').innerHTML, 
-                          userAnswer, playerCorrectAnswer.join(' 或 '), 
-                          isCorrect ? '正确' : '错误', questionTime);
+            addToHistory('玩家', currentDifficulty, 
+                document.getElementById('playerQuestion').innerHTML,
+                userAnswer, playerCorrectAnswer[0], isCorrect, questionTime);
             
-            // 立即生成新题目
-            generatePlayerQuestion();
+            // 游戏中 - 生成新题目
+            if (gameInProgress) {
+                // 延迟一秒后生成新题目，给用户时间看结果
+                setTimeout(() => {
+                    if (gameInProgress) {
+                        generatePlayerQuestion();
+                    }
+                }, 1000);
+            }
+            
+            // 在PK模式中，如果双方都已回答，判断此轮胜负
+            if (gameMode === 'pk' && document.getElementById('computerResult').innerHTML !== '') {
+                determineRoundWinner();
+            }
+            
+            // 攻击特效 - 仅在PK模式下显示
+            if (gameMode === 'pk' && isCorrect) {
+                showAttackEffect('player');
+            }
         }
         
         function submitComputerAnswer() {
@@ -1359,8 +1353,7 @@
             document.getElementById('resetGameBtn').disabled = false;
         }
 
-
-        // 以下是生成题目的函数，与原有代码相同
+       // 以下是生成题目的函数，与原有代码相同
 
         function generateQuestion() {
             switch(currentDifficulty) {
@@ -2198,7 +2191,7 @@
             if (document.querySelector('.level-progress-bar')) {
                 document.querySelector('.level-progress-bar').style.width = `${(conquestCorrectCount / 5) * 100}%`;
                 document.querySelector('.level-indicator').textContent = `当前关卡: ${conquestLevel}`;
-                document.querySelector('.question-counter').textContent = `完成题数: ${conquestCorrectCount}/3`;
+                document.querySelector('.question-counter').textContent = `完成题数: ${conquestCorrectCount}/5`;
                 document.querySelector('.conquest-timer').textContent = `总用时: ${Math.floor((new Date().getTime() - conquestStartTime) / 1000)}秒`;
             }
         }

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>点关于直线的对称点07向量分解法</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .problem { margin-bottom: 20px; }
+        .solution { margin-top: 20px; }
+        svg {
+            border: 1px solid #ddd;
+            display: block;
+            margin: 0 auto;
+        }
+        .step { margin: 10px 0; }
+        .hint { color: #0066cc; font-style: italic; }
+        .math { font-style: italic; }
+        #controls {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .reference { font-size: 0.9em; color: #555; margin-top: 15px; }
+    </style>
+    <!-- 添加MathJax支持 -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src="./mathjax/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="problem">
+        <h2>已知：$B(0,0)$，$C(3,0)$，$A(3,1)$。点 $C'$ 是点 $C$ 关于直线 $AB$ 的对称点，求点 $C'$ 的坐标。</h2>
+
+        <div id="controls">
+            <label>坐标缩放: <input type="range" id="scale" min="20" max="100" value="60"></label>
+            <span id="scaleValue">60</span>
+        </div>
+
+        <svg id="coordinate-system" width="800" height="600"></svg>
+    </div>
+
+    <div class="solution">
+        <h3>向量分解法解题</h3>
+        <p class="reference">方法参考自 Bilibili 视频：<a href="https://www.bilibili.com/video/BV1FF4m1c7jE?t=13.6" target="_blank">https://www.bilibili.com/video/BV1FF4m1c7jE?t=13.6</a></p>
+
+        <div class="step">
+            <p>1. 定义相关点和向量：
+               <br>• 点 $B = (0,0)$，$A = (3,1)$，$C = (3,0)$。
+               <br>• 直线 $AB$ 的方向向量 $\vec{v} = \vec{BA} = A - B = (3, 1)$。
+               <br>• 从直线外一点 $C$ 到直线上一点 $B$ 的向量 $\vec{u} = \vec{BC} = C - B = (3, 0)$。
+               <br>• 设 $C$ 在直线 $AB$ 上的投影点为 $M$，对称点为 $C'$。</p>
+
+            <p>2. 将向量 $\vec{u}$ 分解为平行于 $\vec{v}$ 和垂直于 $\vec{v}$ 的分量：
+               <br>• 平行分量 $\vec{u}_{\parallel} = \text{proj}_{\vec{v}} \vec{u} = \frac{\vec{u} \cdot \vec{v}}{\|\vec{v}\|^2} \vec{v}$。
+               <br>• $\vec{u} \cdot \vec{v} = (3)(3) + (0)(1) = 9$。
+               <br>• $\|\vec{v}\|^2 = 3^2 + 1^2 = 10$。
+               <br>• $\vec{u}_{\parallel} = \frac{9}{10} \vec{v} = \frac{9}{10} (3, 1) = (\frac{27}{10}, \frac{9}{10})$。
+               <br>• 这个平行分量实际上就是向量 $\vec{BM}$，所以投影点 $M = B + \vec{u}_{\parallel} = (0,0) + (\frac{27}{10}, \frac{9}{10}) = (\frac{27}{10}, \frac{9}{10})$。
+               <br>• 垂直分量 $\vec{u}_{\perp} = \vec{u} - \vec{u}_{\parallel} = \vec{BC} - \vec{BM} = \vec{MC}$。
+               <br>• $\vec{MC} = (3, 0) - (\frac{27}{10}, \frac{9}{10}) = (\frac{30-27}{10}, \frac{0-9}{10}) = (\frac{3}{10}, -\frac{9}{10})$。
+               <br>• 注意，这里算的是 $\vec{MC}$，而我们需要的是 $\vec{CM}$ 用于求 $C'$。 $\vec{CM} = -\vec{MC} = (-\frac{3}{10}, \frac{9}{10})$。
+            </p>
+
+            <p>3. 利用对称性求 $C'$：
+               <br>• 对称点 $C'$ 满足 $\vec{BC'} = \vec{BM} + \vec{MC'}$。
+               <br>• 由于对称性，$\vec{MC'} = \vec{CM} = (-\frac{3}{10}, \frac{9}{10})$。
+               <br>• $\vec{BC'} = \vec{BM} + \vec{CM} = (\frac{27}{10}, \frac{9}{10}) + (-\frac{3}{10}, \frac{9}{10})$
+               <br>• $\vec{BC'} = (\frac{27-3}{10}, \frac{9+9}{10}) = (\frac{24}{10}, \frac{18}{10}) = (\frac{12}{5}, \frac{9}{5})$。
+               <br>• 因为 $B$ 是原点，所以 $C'$ 的坐标就是向量 $\vec{BC'}$ 的分量。
+               <br>• 或者，直接用 $C' = M + \vec{MC'} = M + \vec{CM} = (\frac{27}{10}, \frac{9}{10}) + (-\frac{3}{10}, \frac{9}{10}) = (\frac{24}{10}, \frac{18}{10}) = (\frac{12}{5}, \frac{9}{5})$。
+               <br>• 另一种理解：$\vec{CC'} = 2 \vec{CM} = 2(-\frac{3}{10}, \frac{9}{10}) = (-\frac{6}{10}, \frac{18}{10}) = (-\frac{3}{5}, \frac{9}{5})$。
+               <br>• $C' = C + \vec{CC'} = (3, 0) + (-\frac{3}{5}, \frac{9}{5}) = (3 - \frac{3}{5}, 0 + \frac{9}{5}) = (\frac{15-3}{5}, \frac{9}{5}) = (\frac{12}{5}, \frac{9}{5})$。
+            </p>
+
+            <p>4. 结论：
+               <br>• 对称点 $C'$ 的坐标为 $(\frac{12}{5}, \frac{9}{5})$。</p>
+        </div>
+
+        <div class="hint">
+            <p>要点：</p>
+            <ul>
+                <li>将连接点到直线的向量 $\vec{BC}$ 分解为平行和垂直于直线方向向量 $\vec{v}$ 的分量。</li>
+                <li>平行分量 $\vec{BM}$ 通过投影公式 $\frac{\vec{u} \cdot \vec{v}}{\|\vec{v}\|^2} \vec{v}$ 计算，它直接给出了投影点 $M$ (因为 $B$ 是原点)。</li>
+                <li>垂直分量 $\vec{MC} = \vec{u} - \vec{u}_{\parallel}$。</li>
+                <li>利用对称性 $\vec{MC'} = \vec{CM} = -\vec{MC}$。</li>
+                <li>通过向量加法 $C' = M + \vec{MC'}$ 或 $C' = C + 2\vec{CM}$ 求得对称点。</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // (JavaScript SVG code is the same as in previous files)
+        const svgWidth = 800;
+        const svgHeight = 600;
+        const centerX = svgWidth / 2 - 50;
+        const centerY = svgHeight / 2 + 50;
+        let scale = 60;
+        const pointB = {x: 0, y: 0};
+        const pointC = {x: 3, y: 0};
+        const pointA = {x: 3, y: 1};
+        const pointM = {x: 27/10, y: 9/10};
+        const pointCPrime = {x: 12/5, y: 9/5};
+        function toSvgX(x) { return centerX + x * scale; }
+        function toSvgY(y) { return centerY - y * scale; }
+        function createSVGElement(tag) { return document.createElementNS("http://www.w3.org/2000/svg", tag); }
+        function drawCoordinateSystem() {
+            const svg = document.getElementById('coordinate-system');
+            svg.innerHTML = '';
+            const visibleWidth = svgWidth / scale;
+            const visibleHeight = svgHeight / scale;
+            const xMin = -centerX / scale;
+            const xMax = (svgWidth - centerX) / scale;
+            const yMin = -(svgHeight - centerY) / scale;
+            const yMax = centerY / scale;
+            const gridGroup = createSVGElement('g');
+            gridGroup.setAttribute('stroke', '#eee');
+            gridGroup.setAttribute('stroke-width', '1');
+            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+                if (y === 0) continue;
+                const line = createSVGElement('line');
+                line.setAttribute('x1', toSvgX(xMin)); line.setAttribute('y1', toSvgY(y));
+                line.setAttribute('x2', toSvgX(xMax)); line.setAttribute('y2', toSvgY(y));
+                gridGroup.appendChild(line);
+            }
+            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+                if (x === 0) continue;
+                const line = createSVGElement('line');
+                line.setAttribute('x1', toSvgX(x)); line.setAttribute('y1', toSvgY(yMin));
+                line.setAttribute('x2', toSvgX(x)); line.setAttribute('y2', toSvgY(yMax));
+                gridGroup.appendChild(line);
+            }
+            svg.appendChild(gridGroup);
+            const axisGroup = createSVGElement('g');
+            axisGroup.setAttribute('stroke', '#999');
+            axisGroup.setAttribute('stroke-width', '1');
+            const xAxis = createSVGElement('line');
+            xAxis.setAttribute('x1', toSvgX(xMin)); xAxis.setAttribute('y1', toSvgY(0));
+            xAxis.setAttribute('x2', toSvgX(xMax)); xAxis.setAttribute('y2', toSvgY(0));
+            axisGroup.appendChild(xAxis);
+            const yAxis = createSVGElement('line');
+            yAxis.setAttribute('x1', toSvgX(0)); yAxis.setAttribute('y1', toSvgY(yMin));
+            yAxis.setAttribute('x2', toSvgX(0)); yAxis.setAttribute('y2', toSvgY(yMax));
+            axisGroup.appendChild(yAxis);
+            svg.appendChild(axisGroup);
+            const labelsGroup = createSVGElement('g');
+            labelsGroup.setAttribute('font-size', '12');
+            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+                if (x === 0) continue;
+                const text = createSVGElement('text');
+                text.setAttribute('x', toSvgX(x)); text.setAttribute('y', toSvgY(0) + 15);
+                text.setAttribute('text-anchor', 'middle'); text.textContent = x;
+                labelsGroup.appendChild(text);
+            }
+            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+                if (y === 0) continue;
+                const text = createSVGElement('text');
+                text.setAttribute('x', toSvgX(0) - 10); text.setAttribute('y', toSvgY(y) + 5);
+                text.setAttribute('text-anchor', 'end'); text.textContent = y;
+                labelsGroup.appendChild(text);
+            }
+            const originText = createSVGElement('text');
+            originText.setAttribute('x', toSvgX(0) - 15); originText.setAttribute('y', toSvgY(0) + 15);
+            originText.textContent = '0';
+            labelsGroup.appendChild(originText);
+            svg.appendChild(labelsGroup);
+            const mainGroup = createSVGElement('g');
+            mainGroup.setAttribute('stroke', '#000');
+            mainGroup.setAttribute('stroke-width', '2');
+            const lineAB = createSVGElement('line');
+            const ext = 10;
+            const dx = pointA.x - pointB.x; const dy = pointA.y - pointB.y;
+            const len = Math.sqrt(dx*dx + dy*dy);
+            const unitDx = dx / len; const unitDy = dy / len;
+            lineAB.setAttribute('x1', toSvgX(pointB.x - unitDx * ext)); lineAB.setAttribute('y1', toSvgY(pointB.y - unitDy * ext));
+            lineAB.setAttribute('x2', toSvgX(pointA.x + unitDx * ext)); lineAB.setAttribute('y2', toSvgY(pointA.y + unitDy * ext));
+            lineAB.setAttribute('stroke', '#666'); lineAB.setAttribute('stroke-dasharray', '4,4');
+            mainGroup.appendChild(lineAB);
+            const lineBC = createSVGElement('line');
+            lineBC.setAttribute('x1', toSvgX(pointB.x)); lineBC.setAttribute('y1', toSvgY(pointB.y));
+            lineBC.setAttribute('x2', toSvgX(pointC.x)); lineBC.setAttribute('y2', toSvgY(pointC.y));
+            mainGroup.appendChild(lineBC);
+            const lineAC = createSVGElement('line');
+            lineAC.setAttribute('x1', toSvgX(pointA.x)); lineAC.setAttribute('y1', toSvgY(pointA.y));
+            lineAC.setAttribute('x2', toSvgX(pointC.x)); lineAC.setAttribute('y2', toSvgY(pointC.y));
+            mainGroup.appendChild(lineAC);
+            const lineACPrime = createSVGElement('line');
+            lineACPrime.setAttribute('x1', toSvgX(pointA.x)); lineACPrime.setAttribute('y1', toSvgY(pointA.y));
+            lineACPrime.setAttribute('x2', toSvgX(pointCPrime.x)); lineACPrime.setAttribute('y2', toSvgY(pointCPrime.y));
+            mainGroup.appendChild(lineACPrime);
+            const lineBCPrime = createSVGElement('line');
+            lineBCPrime.setAttribute('x1', toSvgX(pointB.x)); lineBCPrime.setAttribute('y1', toSvgY(pointB.y));
+            lineBCPrime.setAttribute('x2', toSvgX(pointCPrime.x)); lineBCPrime.setAttribute('y2', toSvgY(pointCPrime.y));
+            mainGroup.appendChild(lineBCPrime);
+            svg.appendChild(mainGroup);
+            const perpGroup = createSVGElement('g');
+            perpGroup.setAttribute('stroke', '#cc0000'); perpGroup.setAttribute('stroke-width', '1');
+            perpGroup.setAttribute('stroke-dasharray', '3,3');
+            const lineCCPrime = createSVGElement('line');
+            lineCCPrime.setAttribute('x1', toSvgX(pointC.x)); lineCCPrime.setAttribute('y1', toSvgY(pointC.y));
+            lineCCPrime.setAttribute('x2', toSvgX(pointCPrime.x)); lineCCPrime.setAttribute('y2', toSvgY(pointCPrime.y));
+            perpGroup.appendChild(lineCCPrime);
+            svg.appendChild(perpGroup);
+            const pointsGroup = createSVGElement('g');
+            const circleB = createSVGElement('circle');
+            circleB.setAttribute('cx', toSvgX(pointB.x)); circleB.setAttribute('cy', toSvgY(pointB.y));
+            circleB.setAttribute('r', '5'); circleB.setAttribute('fill', 'blue');
+            pointsGroup.appendChild(circleB);
+            const circleC = createSVGElement('circle');
+            circleC.setAttribute('cx', toSvgX(pointC.x)); circleC.setAttribute('cy', toSvgY(pointC.y));
+            circleC.setAttribute('r', '5'); circleC.setAttribute('fill', 'blue');
+            pointsGroup.appendChild(circleC);
+            const circleA = createSVGElement('circle');
+            circleA.setAttribute('cx', toSvgX(pointA.x)); circleA.setAttribute('cy', toSvgY(pointA.y));
+            circleA.setAttribute('r', '5'); circleA.setAttribute('fill', 'blue');
+            pointsGroup.appendChild(circleA);
+            const circleM = createSVGElement('circle');
+            circleM.setAttribute('cx', toSvgX(pointM.x)); circleM.setAttribute('cy', toSvgY(pointM.y));
+            circleM.setAttribute('r', '3'); circleM.setAttribute('fill', 'green');
+            pointsGroup.appendChild(circleM);
+            const circleCPrime = createSVGElement('circle');
+            circleCPrime.setAttribute('cx', toSvgX(pointCPrime.x)); circleCPrime.setAttribute('cy', toSvgY(pointCPrime.y));
+            circleCPrime.setAttribute('r', '5'); circleCPrime.setAttribute('fill', 'magenta');
+            pointsGroup.appendChild(circleCPrime);
+            svg.appendChild(pointsGroup);
+            const markersGroup = createSVGElement('g');
+            markersGroup.setAttribute('font-size', '14'); markersGroup.setAttribute('fill', '#333');
+            const textB = createSVGElement('text');
+            textB.setAttribute('x', toSvgX(pointB.x) - 25); textB.setAttribute('y', toSvgY(pointB.y) + 15);
+            textB.textContent = 'B(0,0)';
+            markersGroup.appendChild(textB);
+            const textC = createSVGElement('text');
+            textC.setAttribute('x', toSvgX(pointC.x) + 10); textC.setAttribute('y', toSvgY(pointC.y) + 20);
+            textC.textContent = 'C(3,0)';
+            markersGroup.appendChild(textC);
+            const textA = createSVGElement('text');
+            textA.setAttribute('x', toSvgX(pointA.x) + 10); textA.setAttribute('y', toSvgY(pointA.y) - 10);
+            textA.textContent = 'A(3,1)';
+            markersGroup.appendChild(textA);
+            const textM = createSVGElement('text');
+            textM.setAttribute('x', toSvgX(pointM.x) + 8); textM.setAttribute('y', toSvgY(pointM.y) - 8);
+            textM.textContent = 'M'; textM.setAttribute('fill', 'green');
+            markersGroup.appendChild(textM);
+            const textCPrime = createSVGElement('text');
+            textCPrime.setAttribute('x', toSvgX(pointCPrime.x) + 5); textCPrime.setAttribute('y', toSvgY(pointCPrime.y) - 15);
+            const cPrimeXText = '12/5'; const cPrimeYText = '9/5';
+            textCPrime.textContent = `C'(${cPrimeXText},${cPrimeYText})`;
+            textCPrime.setAttribute('fill', 'magenta');
+            markersGroup.appendChild(textCPrime);
+            svg.appendChild(markersGroup);
+        }
+        document.getElementById('scale').addEventListener('input', function() {
+            scale = parseInt(this.value);
+            document.getElementById('scaleValue').textContent = scale;
+            drawCoordinateSystem();
+        });
+        drawCoordinateSystem();
+    </script>
+</body>
+</html> 

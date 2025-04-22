@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>等边三角形内任一点到三边之和不变</title>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script id="MathJax-script" async src="./mathjax/mathjax/es5/tex-mml-chtml.js"></script>
+<style>
+  body { font-family: sans-serif; text-align: center; }
+  svg { border: 1px solid #ccc; margin-top: 20px; }
+  .triangle { fill: none; stroke: #333; stroke-width: 2; }
+  .perp { stroke-width: 2; }
+  .perp1 { stroke: red; }
+  .perp2 { stroke: green; }
+  .perp3 { stroke: blue; }
+  .subtri1 { fill: rgba(255,0,0,0.3); }
+  .subtri2 { fill: rgba(0,255,0,0.3); }
+  .subtri3 { fill: rgba(0,0,255,0.3); }
+  .point { fill: blue; cursor: pointer; }
+</style>
+</head>
+<body>
+<h2>等边三角形内任一点到三边之和不变</h2>
+<svg id="svg" width="600" height="500">
+  <polygon id="triangle" class="triangle" points="300,20 50,453 550,453"></polygon>
+  <polygon id="tri1" class="subtri1"></polygon>
+  <polygon id="tri2" class="subtri2"></polygon>
+  <polygon id="tri3" class="subtri3"></polygon>
+  <line id="l1" class="perp perp1"></line>
+  <line id="l2" class="perp perp2"></line>
+  <line id="l3" class="perp perp3"></line>
+  <circle id="point" class="point" cx="300" cy="300" r="8"></circle>
+</svg>
+<div id="info" style="margin-top:10px;">
+  <span style="color:red">d1: <span id="d1Value"></span></span>
+  &nbsp;
+  <span style="color:green">d2: <span id="d2Value"></span></span>
+  &nbsp;
+  <span style="color:blue">d3: <span id="d3Value"></span></span>
+  <br>
+  当前点到三边距离之和: <span id="sumValue"></span>
+</div>
+<div id="formula" style="margin-top:10px;">
+  公式：\(d_1 + d_2 + d_3 = h\)
+</div>
+<script>
+(() => {
+  const svg = document.getElementById('svg');
+  const point = document.getElementById('point');
+  const lines = [
+    {p1: {x:300,y:20},  p2: {x:50, y:453},  line: document.getElementById('l1')},
+    {p1: {x:50, y:453}, p2: {x:550,y:453},  line: document.getElementById('l2')},
+    {p1: {x:550,y:453}, p2: {x:300,y:20},  line: document.getElementById('l3')}
+  ];
+  // 顶点 A, B, C
+  const A = lines[0].p1, B = lines[0].p2, C = lines[1].p2;
+  // 子三角形
+  const tri1 = document.getElementById('tri1');
+  const tri2 = document.getElementById('tri2');
+  const tri3 = document.getElementById('tri3');
+  // 计算三角形高度
+  const height = calcDistancePointToLine({x:300,y:20}, lines[1].p1, lines[1].p2);
+
+  let dragging = false;
+  point.addEventListener('mousedown', () => dragging = true);
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX; pt.y = e.clientY;
+    const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+    if (insideTriangle(svgP, lines[0].p1, lines[1].p1, lines[2].p1)) {
+      setPoint(svgP.x, svgP.y);
+    }
+  });
+  document.addEventListener('mouseup', () => dragging = false);
+
+  function setPoint(x, y) {
+    point.setAttribute('cx', x);
+    point.setAttribute('cy', y);
+    update();
+  }
+
+  function update() {
+    const x = +point.getAttribute('cx');
+    const y = +point.getAttribute('cy');
+    let sum = 0;
+    const ds = [];
+    lines.forEach(({p1, p2, line}, idx) => {
+      const proj = project({x,y}, p1, p2);
+      line.setAttribute('x1', x);
+      line.setAttribute('y1', y);
+      line.setAttribute('x2', proj.x);
+      line.setAttribute('y2', proj.y);
+      const d = Math.hypot(x - proj.x, y - proj.y);
+      ds[idx] = d;
+      sum += d;
+    });
+    // 更新子三角形点
+    tri1.setAttribute('points', `${A.x},${A.y} ${B.x},${B.y} ${x},${y}`);
+    tri2.setAttribute('points', `${B.x},${B.y} ${C.x},${C.y} ${x},${y}`);
+    tri3.setAttribute('points', `${C.x},${C.y} ${A.x},${A.y} ${x},${y}`);
+    document.getElementById('d1Value').textContent = ds[0].toFixed(2);
+    document.getElementById('d2Value').textContent = ds[1].toFixed(2);
+    document.getElementById('d3Value').textContent = ds[2].toFixed(2);
+    document.getElementById('sumValue').textContent = sum.toFixed(2) + ' ≈ ' + height.toFixed(2);
+  }
+
+  function project(p, a, b) {
+    const vx = b.x - a.x, vy = b.y - a.y;
+    const t = ((p.x - a.x) * vx + (p.y - a.y) * vy) / (vx*vx + vy*vy);
+    return {x: a.x + t * vx, y: a.y + t * vy};
+  }
+
+  function insideTriangle(p, a, b, c) {
+    const area = (p1,p2,p3) => Math.abs((p1.x*(p2.y-p3.y) + p2.x*(p3.y-p1.y) + p3.x*(p1.y-p2.y)) / 2);
+    return Math.abs(area(a,b,c) - (area(p,a,b) + area(p,b,c) + area(p,c,a))) < 1e-1;
+  }
+
+  function calcDistancePointToLine(p, a, b) {
+    return Math.abs((b.y - a.y) * p.x - (b.x - a.x) * p.y + b.x * a.y - b.y * a.x)
+      / Math.hypot(b.y - a.y, b.x - a.x);
+  }
+
+  update();
+})();
+</script>
+</body>
+</html>

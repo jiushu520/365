@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>求解 tan∠BAC之07圆的切线</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .problem { margin-bottom: 20px; }
+        .solution { margin-top: 20px; }
+        svg { 
+            border: 1px solid #ddd; 
+            display: block;
+            margin: 0 auto;
+        }
+        .step { margin: 10px 0; }
+        .hint { color: #0066cc; font-style: italic; }
+        #controls {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            text-align: center;
+        }
+    </style>
+    <!-- 添加MathJax支持 -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="problem">
+        <h2>已知：$A(0,0)$，$B(6,1)$，$C(3,6)$，求解 $\tan\angle BAC$</h2>
+        
+        <div id="controls">
+            <label>坐标缩放: <input type="range" id="scale" min="20" max="100" value="20"></label>
+            <span id="scaleValue">20</span>
+        </div>
+        
+        <svg id="coordinate-system" width="800" height="600"></svg>
+    </div>
+
+    <div class="solution">
+        <h3>圆的切线法解题</h3>
+        
+        <div class="step">
+            <p>已知：$A(0,0)$，$B(6,1)$，$C(3,6)$</p>
+            
+            <h4>方法一：以A为圆心的单位圆</h4>
+            
+            <p>1. 考虑以$A$为圆心的单位圆</p>
+            
+            <p>2. 计算向量 $\overrightarrow{AB} = (6,1)$ 和 $\overrightarrow{AC} = (3,6)$ 的单位向量：
+            <br>• $|AB| = \sqrt{6^2 + 1^2} = \sqrt{37}$
+            <br>• $|AC| = \sqrt{3^2 + 6^2} = \sqrt{45} = 3\sqrt{5}$
+            <br>• 单位向量 $u_1 = \frac{\overrightarrow{AB}}{|AB|} = (\frac{6}{\sqrt{37}}, \frac{1}{\sqrt{37}})$
+            <br>• 单位向量 $u_2 = \frac{\overrightarrow{AC}}{|AC|} = (\frac{1}{\sqrt{5}}, \frac{2}{\sqrt{5}})$</p>
+            
+            <p>3. 这些单位向量对应单位圆上的点 $P$ 和 $Q$</p>
+            
+            <p>4. 从 $A$ 出发的射线 $AB$ 和 $AC$ 是单位圆在 $P$ 和 $Q$ 处的切线</p>
+            
+            <p>5. 切线的斜率：
+            <br>• $k_1 = \frac{1}{6}$ 对应向量 $\overrightarrow{AB}$
+            <br>• $k_2 = 2$ 对应向量 $\overrightarrow{AC}$</p>
+            
+            <p>6. 计算 $\tan\angle BAC$：
+            <br>• 利用切线夹角公式：$\tan\angle BAC = \left|\frac{k_2 - k_1}{1 + k_1k_2}\right| = \left|\frac{2 - \frac{1}{6}}{1 + 2\cdot\frac{1}{6}}\right| = \left|\frac{\frac{11}{6}}{\frac{8}{6}}\right| = \frac{11}{8}$</p>
+            
+            <h4>方法二：以C为圆心的圆与AB相切</h4>
+            
+            <p>1. 直线AB的方程为 $y = \frac{1}{6}x$ 或 $x - 6y = 0$</p>
+            
+            <p>2. 点C(3,6)到直线AB的距离：
+            <br>• 使用点到直线距离公式：$d = \frac{|ax_0 + by_0 + c|}{\sqrt{a^2 + b^2}}$
+            <br>• 直线方程标准形式：$1x - 6y + 0 = 0$
+            <br>• 代入得：$d = \frac{|1 \cdot 3 - 6 \cdot 6 + 0|}{\sqrt{1^2 + (-6)^2}} = \frac{|3 - 36|}{\sqrt{37}} = \frac{33}{\sqrt{37}}$</p>
+            
+            <p>3. 以C为圆心，$\frac{33}{\sqrt{37}}$为半径的圆正好与AB相切</p>
+            
+            <p>4. 计算切点T的坐标，由垂足公式得：$T(\frac{144}{37}, \frac{24}{37})$</p>
+            
+            <p>5. 计算AT的长度：$|AT| = \sqrt{(\frac{144}{37})^2 + (\frac{24}{37})^2} = \frac{\sqrt{144^2 + 24^2}}{37} = \frac{146}{37}$</p>
+            
+            <p>6. 由三角形关系得：$\tan\angle BAC = \frac{11}{8}$</p>
+        </div>
+        
+        <div class="hint">
+            <p>要点：</p>
+            <ul>
+                <li>该方法利用向量的几何意义，将向量与圆的切线联系起来</li>
+                <li>单位向量对应单位圆上的点</li>
+                <li>从圆心出发的射线是单位圆在对应点处的切线</li>
+                <li>切线夹角的正切值可用斜率计算公式求得</li>
+                <li>点到直线的距离可用于确定切圆的半径</li>
+                <li>不同的圆和切线关系都可以推导出同一个角度的正切值</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 设置中心点和缩放比例
+        const svgWidth = 800;
+        const svgHeight = 600;
+        const centerX = svgWidth / 2;
+        const centerY = svgHeight / 2;
+        let scale = 20; // 每个单位对应的像素数
+        
+        // 坐标点（数学坐标系中）
+        const pointA = {x: 0, y: 0};
+        const pointB = {x: 6, y: 1};
+        const pointC = {x: 3, y: 6};
+        
+        // 单位向量计算
+        const lengthAB = Math.sqrt(36 + 1);
+        const lengthAC = Math.sqrt(9 + 36);
+        const unitVectorAB = {
+            x: 6 / lengthAB,
+            y: 1 / lengthAB
+        };
+        const unitVectorAC = {
+            x: 3 / lengthAC,
+            y: 6 / lengthAC
+        };
+        
+        // 计算切点T的坐标（点C到直线AB的垂足）
+        function calculateFootPoint() {
+            // 计算垂足坐标
+            const tX = 144 / 37;
+            const tY = 24 / 37;
+            return {x: tX, y: tY};
+        }
+        
+        // 转换为SVG坐标
+        function toSvgX(x) {
+            return centerX + x * scale;
+        }
+        
+        function toSvgY(y) {
+            // SVG中y轴朝下为正，所以需要反转
+            return centerY - y * scale;
+        }
+        
+        // 创建SVG元素
+        function createSVGElement(tag) {
+            return document.createElementNS("http://www.w3.org/2000/svg", tag);
+        }
+        
+        // 绘制坐标系和图形
+        function drawCoordinateSystem() {
+            const svg = document.getElementById('coordinate-system');
+            svg.innerHTML = ''; // 清空已有内容
+            
+            // 计算可见范围（单位）
+            const visibleWidth = svgWidth / scale;
+            const visibleHeight = svgHeight / scale;
+            const xMin = -visibleWidth / 2;
+            const xMax = visibleWidth / 2;
+            const yMin = -visibleHeight / 2;
+            const yMax = visibleHeight / 2;
+            
+            // 绘制网格线
+            const gridGroup = createSVGElement('g');
+            gridGroup.setAttribute('stroke', '#eee');
+            gridGroup.setAttribute('stroke-width', '1');
+            
+            // 横向网格线
+            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+                if (y === 0) continue; // 坐标轴单独绘制
+                const line = createSVGElement('line');
+                line.setAttribute('x1', toSvgX(xMin));
+                line.setAttribute('y1', toSvgY(y));
+                line.setAttribute('x2', toSvgX(xMax));
+                line.setAttribute('y2', toSvgY(y));
+                gridGroup.appendChild(line);
+            }
+            
+            // 纵向网格线
+            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+                if (x === 0) continue; // 坐标轴单独绘制
+                const line = createSVGElement('line');
+                line.setAttribute('x1', toSvgX(x));
+                line.setAttribute('y1', toSvgY(yMin));
+                line.setAttribute('x2', toSvgX(x));
+                line.setAttribute('y2', toSvgY(yMax));
+                gridGroup.appendChild(line);
+            }
+            
+            svg.appendChild(gridGroup);
+            
+            // 绘制坐标轴
+            const axisGroup = createSVGElement('g');
+            axisGroup.setAttribute('stroke', '#999');
+            axisGroup.setAttribute('stroke-width', '1');
+            
+            // x轴
+            const xAxis = createSVGElement('line');
+            xAxis.setAttribute('x1', toSvgX(xMin));
+            xAxis.setAttribute('y1', toSvgY(0));
+            xAxis.setAttribute('x2', toSvgX(xMax));
+            xAxis.setAttribute('y2', toSvgY(0));
+            axisGroup.appendChild(xAxis);
+            
+            // y轴
+            const yAxis = createSVGElement('line');
+            yAxis.setAttribute('x1', toSvgX(0));
+            yAxis.setAttribute('y1', toSvgY(yMin));
+            yAxis.setAttribute('x2', toSvgX(0));
+            yAxis.setAttribute('y2', toSvgY(yMax));
+            axisGroup.appendChild(yAxis);
+            
+            svg.appendChild(axisGroup);
+            
+            // 绘制刻度标签
+            const labelsGroup = createSVGElement('g');
+            labelsGroup.setAttribute('font-size', '12');
+            
+            // x轴刻度标签
+            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+                if (x === 0) continue;
+                const text = createSVGElement('text');
+                text.setAttribute('x', toSvgX(x));
+                text.setAttribute('y', toSvgY(0) + 15);
+                text.setAttribute('text-anchor', 'middle');
+                text.textContent = x;
+                labelsGroup.appendChild(text);
+            }
+            
+            // y轴刻度标签
+            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+                if (y === 0) continue;
+                const text = createSVGElement('text');
+                text.setAttribute('x', toSvgX(0) - 10);
+                text.setAttribute('y', toSvgY(y) + 5);
+                text.setAttribute('text-anchor', 'end');
+                text.textContent = y;
+                labelsGroup.appendChild(text);
+            }
+            
+            svg.appendChild(labelsGroup);
+            
+            // 绘制三角形
+            const triangleGroup = createSVGElement('g');
+            triangleGroup.setAttribute('stroke', '#000');
+            triangleGroup.setAttribute('stroke-width', '2');
+            
+            // 线段AB
+            const lineAB = createSVGElement('line');
+            lineAB.setAttribute('x1', toSvgX(pointA.x));
+            lineAB.setAttribute('y1', toSvgY(pointA.y));
+            lineAB.setAttribute('x2', toSvgX(pointB.x));
+            lineAB.setAttribute('y2', toSvgY(pointB.y));
+            triangleGroup.appendChild(lineAB);
+            
+            // 线段AC
+            const lineAC = createSVGElement('line');
+            lineAC.setAttribute('x1', toSvgX(pointA.x));
+            lineAC.setAttribute('y1', toSvgY(pointA.y));
+            lineAC.setAttribute('x2', toSvgX(pointC.x));
+            lineAC.setAttribute('y2', toSvgY(pointC.y));
+            triangleGroup.appendChild(lineAC);
+            
+            svg.appendChild(triangleGroup);
+            
+
+            
+            // 计算以C为圆心的圆的半径
+            const radius = 33 / Math.sqrt(37);
+            
+            // 绘制以C为圆心的圆
+            const circleC = createSVGElement('circle');
+            circleC.setAttribute('cx', toSvgX(pointC.x));
+            circleC.setAttribute('cy', toSvgY(pointC.y));
+            circleC.setAttribute('r', radius * scale); // 转换半径到SVG比例
+            circleC.setAttribute('stroke', '#cc6600');
+            circleC.setAttribute('stroke-width', '1');
+            circleC.setAttribute('fill', 'none');
+            svg.appendChild(circleC);
+            
+            // 计算切点T
+            const pointT = calculateFootPoint();
+            
+            // 绘制CT垂线
+            const lineCT = createSVGElement('line');
+            lineCT.setAttribute('x1', toSvgX(pointC.x));
+            lineCT.setAttribute('y1', toSvgY(pointC.y));
+            lineCT.setAttribute('x2', toSvgX(pointT.x));
+            lineCT.setAttribute('y2', toSvgY(pointT.y));
+            lineCT.setAttribute('stroke', '#cc6600');
+            lineCT.setAttribute('stroke-width', '1');
+            lineCT.setAttribute('stroke-dasharray', '4');
+            svg.appendChild(lineCT);
+            
+            // 绘制单位圆上的点P和Q
+            const pointsGroup = createSVGElement('g');
+            
+            // 点A - 原点
+            const circlePointA = createSVGElement('circle');
+            circlePointA.setAttribute('cx', toSvgX(pointA.x));
+            circlePointA.setAttribute('cy', toSvgY(pointA.y));
+            circlePointA.setAttribute('r', '5');
+            circlePointA.setAttribute('fill', 'blue');
+            pointsGroup.appendChild(circlePointA);
+            
+            // 点B
+            const circlePointB = createSVGElement('circle');
+            circlePointB.setAttribute('cx', toSvgX(pointB.x));
+            circlePointB.setAttribute('cy', toSvgY(pointB.y));
+            circlePointB.setAttribute('r', '5');
+            circlePointB.setAttribute('fill', 'blue');
+            pointsGroup.appendChild(circlePointB);
+            
+            // 点C
+            const circlePointC = createSVGElement('circle');
+            circlePointC.setAttribute('cx', toSvgX(pointC.x));
+            circlePointC.setAttribute('cy', toSvgY(pointC.y));
+            circlePointC.setAttribute('r', '5');
+            circlePointC.setAttribute('fill', 'blue');
+            pointsGroup.appendChild(circlePointC);
+            
+
+            
+            // 切点T
+            const circleT = createSVGElement('circle');
+            circleT.setAttribute('cx', toSvgX(pointT.x));
+            circleT.setAttribute('cy', toSvgY(pointT.y));
+            circleT.setAttribute('r', '3');
+            circleT.setAttribute('fill', 'orange');
+            pointsGroup.appendChild(circleT);
+            
+            svg.appendChild(pointsGroup);
+            
+            // 标记点
+            const markersGroup = createSVGElement('g');
+            
+            // 标记A
+            const textA = createSVGElement('text');
+            textA.setAttribute('x', toSvgX(pointA.x) + 10);
+            textA.setAttribute('y', toSvgY(pointA.y) - 10);
+            textA.textContent = 'A(0,0)';
+            markersGroup.appendChild(textA);
+            
+            // 标记B
+            const textB = createSVGElement('text');
+            textB.setAttribute('x', toSvgX(pointB.x) + 10);
+            textB.setAttribute('y', toSvgY(pointB.y) - 10);
+            textB.textContent = 'B(6,1)';
+            markersGroup.appendChild(textB);
+            
+            // 标记C
+            const textC = createSVGElement('text');
+            textC.setAttribute('x', toSvgX(pointC.x) + 10);
+            textC.setAttribute('y', toSvgY(pointC.y) - 10);
+            textC.textContent = 'C(3,6)';
+            markersGroup.appendChild(textC);
+            
+
+            // 标记T
+            const textT = createSVGElement('text');
+            textT.setAttribute('x', toSvgX(pointT.x) + 10);
+            textT.setAttribute('y', toSvgY(pointT.y) - 5);
+            textT.textContent = 'T';
+            markersGroup.appendChild(textT);
+            
+            svg.appendChild(markersGroup);
+        }
+        
+        // 监听缩放变化
+        document.getElementById('scale').addEventListener('input', function() {
+            scale = parseInt(this.value);
+            document.getElementById('scaleValue').textContent = scale;
+            drawCoordinateSystem();
+        });
+        
+        // 初始化绘图
+        drawCoordinateSystem();
+    </script>
+</body>
+</html> 

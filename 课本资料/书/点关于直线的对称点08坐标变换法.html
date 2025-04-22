@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>点关于直线的对称点08坐标变换法</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .problem { margin-bottom: 20px; }
+        .solution { margin-top: 20px; }
+        svg {
+            border: 1px solid #ddd;
+            display: block;
+            margin: 0 auto;
+        }
+        .step { margin: 10px 0; }
+        .hint { color: #0066cc; font-style: italic; }
+        .math { font-style: italic; }
+        #controls {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .reference { font-size: 0.9em; color: #555; margin-top: 15px; }
+    </style>
+    <!-- 添加MathJax支持 -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src=".\\mathjax\\mathjax\\es5\\tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="problem">
+        <h2>已知：$B(0,0)$，$C(3,0)$，$A(3,1)$。点 $C'$ 是点 $C$ 关于直线 $AB$ 的对称点，求点 $C'$ 的坐标。</h2>
+
+        <div id="controls">
+            <label>坐标缩放: <input type="range" id="scale" min="20" max="100" value="60"></label>
+            <span id="scaleValue">60</span>
+        </div>
+
+        <svg id="coordinate-system" width="800" height="600"></svg>
+    </div>
+
+    <div class="solution">
+        <h3>坐标变换法解题</h3>
+        <p class="reference">方法参考自 Bilibili 视频：<a href="https://www.bilibili.com/video/BV1uJ4m1a7HC?t=26.9" target="_blank">https://www.bilibili.com/video/BV1uJ4m1a7HC?t=26.9</a></p>
+
+        <div class="step">
+            <p>1. 确定直线 $AB$ 的角度：
+               <br>• 直线 $AB$ 经过原点 $B(0,0)$ 和 $A(3,1)$。
+               <br>• 直线 $AB$ 与 $x$ 轴正方向的夹角为 $\theta$。
+               <br>• $\cos \theta = \frac{3}{\sqrt{3^2+1^2}} = \frac{3}{\sqrt{10}}$。
+               <br>• $\sin \theta = \frac{1}{\sqrt{10}}$。</p>
+
+            <p>2. 旋转坐标系使直线 $AB$ 成为新的 $x'$ 轴：
+               <br>• 将原坐标系 $(x, y)$ 逆时针旋转 $\theta$ 得到新坐标系 $(x", y")$。此时直线 $AB$ 就是 $x"$ 轴。
+               <br>• 旋转公式为：
+                 \[ \begin{pmatrix} x" \\ y" \end{pmatrix} = \begin{pmatrix} \cos\theta & \sin\theta \\ -\sin\theta & \cos\theta \end{pmatrix} \begin{pmatrix} x \\ y \end{pmatrix} \]
+               <br>• 旋转矩阵 $R_{-\theta} = \begin{pmatrix} \frac{3}{\sqrt{10}} & \frac{1}{\sqrt{10}} \\ -\frac{1}{\sqrt{10}} & \frac{3}{\sqrt{10}} \end{pmatrix}$。
+               <br>• 计算点 $C(3,0)$ 在新坐标系下的坐标 $C"$：
+                 \[ \begin{pmatrix} x_C" \\ y_C" \end{pmatrix} = \begin{pmatrix} \frac{3}{\sqrt{10}} & \frac{1}{\sqrt{10}} \\ -\frac{1}{\sqrt{10}} & \frac{3}{\sqrt{10}} \end{pmatrix} \begin{pmatrix} 3 \\ 0 \end{pmatrix} = \begin{pmatrix} \frac{9}{\sqrt{10}} \\ -\frac{3}{\sqrt{10}} \end{pmatrix} \]
+               <br>• 所以 $C" = (\frac{9}{\sqrt{10}}, -\frac{3}{\sqrt{10}})$。
+            </p>
+
+            <p>3. 在新坐标系 $(x", y")$ 中进行反射：
+               <br>• 反射轴是新的 $x"$ 轴 ($y"=0$)。
+               <br>• 点 $(x", y")$ 关于 $x"$ 轴的对称点是 $(x", -y")$。
+               <br>• $C"$ 的对称点 $C"_{reflected} = (\frac{9}{\sqrt{10}}, -(-\frac{3}{\sqrt{10}})) = (\frac{9}{\sqrt{10}}, \frac{3}{\sqrt{10}})$。</p>
+
+            <p>4. 将反射后的点 $C"_{reflected}$ 旋转回原坐标系：
+               <br>• 将新坐标系 $(x", y")$ 顺时针旋转 $\theta$（或逆时针旋转 $-\theta$）即可回到原坐标系 $(x, y)$。
+               <br>• 反向旋转公式为：
+                 \[ \begin{pmatrix} x \\ y \end{pmatrix} = \begin{pmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{pmatrix} \begin{pmatrix} x" \\ y" \end{pmatrix} \]
+               <br>• 反向旋转矩阵 $R_{\theta} = \begin{pmatrix} \frac{3}{\sqrt{10}} & -\frac{1}{\sqrt{10}} \\ \frac{1}{\sqrt{10}} & \frac{3}{\sqrt{10}} \end{pmatrix}$。
+               <br>• 计算 $C'$ 的坐标：
+                 \[ \begin{pmatrix} x_{C'} \\ y_{C'} \end{pmatrix} = \begin{pmatrix} \frac{3}{\sqrt{10}} & -\frac{1}{\sqrt{10}} \\ \frac{1}{\sqrt{10}} & \frac{3}{\sqrt{10}} \end{pmatrix} \begin{pmatrix} \frac{9}{\sqrt{10}} \\ \frac{3}{\sqrt{10}} \end{pmatrix} \]
+                 \[ \begin{pmatrix} x_{C'} \\ y_{C'} \end{pmatrix} = \begin{pmatrix} \frac{27}{10} - \frac{3}{10} \\ \frac{9}{10} + \frac{9}{10} \end{pmatrix} = \begin{pmatrix} \frac{24}{10} \\ \frac{18}{10} \end{pmatrix} = \begin{pmatrix} \frac{12}{5} \\ \frac{9}{5} \end{pmatrix} \]
+            </p>
+
+            <p>5. 结论：
+               <br>• 对称点 $C'$ 的坐标为 $(\frac{12}{5}, \frac{9}{5})$。</p>
+        </div>
+
+        <div class="hint">
+            <p>要点：</p>
+            <ul>
+                <li>通过坐标旋转将反射直线变为坐标轴，简化反射操作。</li>
+                <li>需要进行两次旋转：一次将点转到新坐标系，一次将反射后的点转回原坐标系。</li>
+                <li>需要正确使用旋转矩阵及其逆矩阵（或反向旋转矩阵）。</li>
+                <li>注意旋转方向和角度符号。</li>
+                <li>如果直线不过原点，还需结合平移变换。</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // (JavaScript SVG code is the same as in previous files)
+        const svgWidth = 800;
+        const svgHeight = 600;
+        const centerX = svgWidth / 2 - 50;
+        const centerY = svgHeight / 2 + 50;
+        let scale = 60;
+        const pointB = {x: 0, y: 0};
+        const pointC = {x: 3, y: 0};
+        const pointA = {x: 3, y: 1};
+        const pointM = {x: 27/10, y: 9/10};
+        const pointCPrime = {x: 12/5, y: 9/5};
+        function toSvgX(x) { return centerX + x * scale; }
+        function toSvgY(y) { return centerY - y * scale; }
+        function createSVGElement(tag) { return document.createElementNS("http://www.w3.org/2000/svg", tag); }
+        function drawCoordinateSystem() {
+            const svg = document.getElementById('coordinate-system');
+            svg.innerHTML = '';
+            const visibleWidth = svgWidth / scale;
+            const visibleHeight = svgHeight / scale;
+            const xMin = -centerX / scale;
+            const xMax = (svgWidth - centerX) / scale;
+            const yMin = -(svgHeight - centerY) / scale;
+            const yMax = centerY / scale;
+            const gridGroup = createSVGElement('g');
+            gridGroup.setAttribute('stroke', '#eee');
+            gridGroup.setAttribute('stroke-width', '1');
+            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+                if (y === 0) continue;
+                const line = createSVGElement('line');
+                line.setAttribute('x1', toSvgX(xMin)); line.setAttribute('y1', toSvgY(y));
+                line.setAttribute('x2', toSvgX(xMax)); line.setAttribute('y2', toSvgY(y));
+                gridGroup.appendChild(line);
+            }
+            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+                if (x === 0) continue;
+                const line = createSVGElement('line');
+                line.setAttribute('x1', toSvgX(x)); line.setAttribute('y1', toSvgY(yMin));
+                line.setAttribute('x2', toSvgX(x)); line.setAttribute('y2', toSvgY(yMax));
+                gridGroup.appendChild(line);
+            }
+            svg.appendChild(gridGroup);
+            const axisGroup = createSVGElement('g');
+            axisGroup.setAttribute('stroke', '#999');
+            axisGroup.setAttribute('stroke-width', '1');
+            const xAxis = createSVGElement('line');
+            xAxis.setAttribute('x1', toSvgX(xMin)); xAxis.setAttribute('y1', toSvgY(0));
+            xAxis.setAttribute('x2', toSvgX(xMax)); xAxis.setAttribute('y2', toSvgY(0));
+            axisGroup.appendChild(xAxis);
+            const yAxis = createSVGElement('line');
+            yAxis.setAttribute('x1', toSvgX(0)); yAxis.setAttribute('y1', toSvgY(yMin));
+            yAxis.setAttribute('x2', toSvgX(0)); yAxis.setAttribute('y2', toSvgY(yMax));
+            axisGroup.appendChild(yAxis);
+            svg.appendChild(axisGroup);
+            const labelsGroup = createSVGElement('g');
+            labelsGroup.setAttribute('font-size', '12');
+            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+                if (x === 0) continue;
+                const text = createSVGElement('text');
+                text.setAttribute('x', toSvgX(x)); text.setAttribute('y', toSvgY(0) + 15);
+                text.setAttribute('text-anchor', 'middle'); text.textContent = x;
+                labelsGroup.appendChild(text);
+            }
+            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+                if (y === 0) continue;
+                const text = createSVGElement('text');
+                text.setAttribute('x', toSvgX(0) - 10); text.setAttribute('y', toSvgY(y) + 5);
+                text.setAttribute('text-anchor', 'end'); text.textContent = y;
+                labelsGroup.appendChild(text);
+            }
+            const originText = createSVGElement('text');
+            originText.setAttribute('x', toSvgX(0) - 15); originText.setAttribute('y', toSvgY(0) + 15);
+            originText.textContent = '0';
+            labelsGroup.appendChild(originText);
+            svg.appendChild(labelsGroup);
+            const mainGroup = createSVGElement('g');
+            mainGroup.setAttribute('stroke', '#000');
+            mainGroup.setAttribute('stroke-width', '2');
+            const lineAB = createSVGElement('line');
+            const ext = 10;
+            const dx = pointA.x - pointB.x; const dy = pointA.y - pointB.y;
+            const len = Math.sqrt(dx*dx + dy*dy);
+            const unitDx = dx / len; const unitDy = dy / len;
+            lineAB.setAttribute('x1', toSvgX(pointB.x - unitDx * ext)); lineAB.setAttribute('y1', toSvgY(pointB.y - unitDy * ext));
+            lineAB.setAttribute('x2', toSvgX(pointA.x + unitDx * ext)); lineAB.setAttribute('y2', toSvgY(pointA.y + unitDy * ext));
+            lineAB.setAttribute('stroke', '#666'); lineAB.setAttribute('stroke-dasharray', '4,4');
+            mainGroup.appendChild(lineAB);
+            const lineBC = createSVGElement('line');
+            lineBC.setAttribute('x1', toSvgX(pointB.x)); lineBC.setAttribute('y1', toSvgY(pointB.y));
+            lineBC.setAttribute('x2', toSvgX(pointC.x)); lineBC.setAttribute('y2', toSvgY(pointC.y));
+            mainGroup.appendChild(lineBC);
+            const lineAC = createSVGElement('line');
+            lineAC.setAttribute('x1', toSvgX(pointA.x)); lineAC.setAttribute('y1', toSvgY(pointA.y));
+            lineAC.setAttribute('x2', toSvgX(pointC.x)); lineAC.setAttribute('y2', toSvgY(pointC.y));
+            mainGroup.appendChild(lineAC);
+            const lineACPrime = createSVGElement('line');
+            lineACPrime.setAttribute('x1', toSvgX(pointA.x)); lineACPrime.setAttribute('y1', toSvgY(pointA.y));
+            lineACPrime.setAttribute('x2', toSvgX(pointCPrime.x)); lineACPrime.setAttribute('y2', toSvgY(pointCPrime.y));
+            mainGroup.appendChild(lineACPrime);
+            const lineBCPrime = createSVGElement('line');
+            lineBCPrime.setAttribute('x1', toSvgX(pointB.x)); lineBCPrime.setAttribute('y1', toSvgY(pointB.y));
+            lineBCPrime.setAttribute('x2', toSvgX(pointCPrime.x)); lineBCPrime.setAttribute('y2', toSvgY(pointCPrime.y));
+            mainGroup.appendChild(lineBCPrime);
+            svg.appendChild(mainGroup);
+            const perpGroup = createSVGElement('g');
+            perpGroup.setAttribute('stroke', '#cc0000'); perpGroup.setAttribute('stroke-width', '1');
+            perpGroup.setAttribute('stroke-dasharray', '3,3');
+            const lineCCPrime = createSVGElement('line');
+            lineCCPrime.setAttribute('x1', toSvgX(pointC.x)); lineCCPrime.setAttribute('y1', toSvgY(pointC.y));
+            lineCCPrime.setAttribute('x2', toSvgX(pointCPrime.x)); lineCCPrime.setAttribute('y2', toSvgY(pointCPrime.y));
+            perpGroup.appendChild(lineCCPrime);
+            svg.appendChild(perpGroup);
+            const pointsGroup = createSVGElement('g');
+            const circleB = createSVGElement('circle');
+            circleB.setAttribute('cx', toSvgX(pointB.x)); circleB.setAttribute('cy', toSvgY(pointB.y));
+            circleB.setAttribute('r', '5'); circleB.setAttribute('fill', 'blue');
+            pointsGroup.appendChild(circleB);
+            const circleC = createSVGElement('circle');
+            circleC.setAttribute('cx', toSvgX(pointC.x)); circleC.setAttribute('cy', toSvgY(pointC.y));
+            circleC.setAttribute('r', '5'); circleC.setAttribute('fill', 'blue');
+            pointsGroup.appendChild(circleC);
+            const circleA = createSVGElement('circle');
+            circleA.setAttribute('cx', toSvgX(pointA.x)); circleA.setAttribute('cy', toSvgY(pointA.y));
+            circleA.setAttribute('r', '5'); circleA.setAttribute('fill', 'blue');
+            pointsGroup.appendChild(circleA);
+            const circleM = createSVGElement('circle');
+            circleM.setAttribute('cx', toSvgX(pointM.x)); circleM.setAttribute('cy', toSvgY(pointM.y));
+            circleM.setAttribute('r', '3'); circleM.setAttribute('fill', 'green');
+            pointsGroup.appendChild(circleM);
+            const circleCPrime = createSVGElement('circle');
+            circleCPrime.setAttribute('cx', toSvgX(pointCPrime.x)); circleCPrime.setAttribute('cy', toSvgY(pointCPrime.y));
+            circleCPrime.setAttribute('r', '5'); circleCPrime.setAttribute('fill', 'magenta');
+            pointsGroup.appendChild(circleCPrime);
+            svg.appendChild(pointsGroup);
+            const markersGroup = createSVGElement('g');
+            markersGroup.setAttribute('font-size', '14'); markersGroup.setAttribute('fill', '#333');
+            const textB = createSVGElement('text');
+            textB.setAttribute('x', toSvgX(pointB.x) - 25); textB.setAttribute('y', toSvgY(pointB.y) + 15);
+            textB.textContent = 'B(0,0)';
+            markersGroup.appendChild(textB);
+            const textC = createSVGElement('text');
+            textC.setAttribute('x', toSvgX(pointC.x) + 10); textC.setAttribute('y', toSvgY(pointC.y) + 20);
+            textC.textContent = 'C(3,0)';
+            markersGroup.appendChild(textC);
+            const textA = createSVGElement('text');
+            textA.setAttribute('x', toSvgX(pointA.x) + 10); textA.setAttribute('y', toSvgY(pointA.y) - 10);
+            textA.textContent = 'A(3,1)';
+            markersGroup.appendChild(textA);
+            const textM = createSVGElement('text');
+            textM.setAttribute('x', toSvgX(pointM.x) + 8); textM.setAttribute('y', toSvgY(pointM.y) - 8);
+            textM.textContent = 'M'; textM.setAttribute('fill', 'green');
+            markersGroup.appendChild(textM);
+            const textCPrime = createSVGElement('text');
+            textCPrime.setAttribute('x', toSvgX(pointCPrime.x) + 5); textCPrime.setAttribute('y', toSvgY(pointCPrime.y) - 15);
+            const cPrimeXText = '12/5'; const cPrimeYText = '9/5';
+            textCPrime.textContent = `C'(${cPrimeXText},${cPrimeYText})`;
+            textCPrime.setAttribute('fill', 'magenta');
+            markersGroup.appendChild(textCPrime);
+            svg.appendChild(markersGroup);
+        }
+        document.getElementById('scale').addEventListener('input', function() {
+            scale = parseInt(this.value);
+            document.getElementById('scaleValue').textContent = scale;
+            drawCoordinateSystem();
+        });
+        drawCoordinateSystem();
+    </script>
+</body>
+</html> 
