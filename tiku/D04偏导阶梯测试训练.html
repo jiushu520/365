@@ -519,13 +519,13 @@
     
     <!-- 游戏选项布局修改为一行 -->
     <div class="game-options" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin: 10px 0;">
-        <div style="display: flex; align-items: center; margin: 0 10px;">
+        <div  style="display: flex; align-items: center; margin: 0 10px;">
 
             <button id="timer5min" class="timer-btn" onclick="selectGameDuration(5)">5分钟</button>
             <button id="timer10min" class="timer-btn active" onclick="selectGameDuration(10)">10分钟</button>
         </div>
         
-        <div style="display: flex; align-items: center; margin: 0 10px;">
+        <div id="thinkingControls" style="display: flex; align-items: center; margin: 0 10px;">
             <span style="margin-right: 10px;">计算机思考难度:</span>
             <button id="thinkingEasy" class="timer-btn active" onclick="selectThinkingDifficulty('easy')">快</button>
             <button id="thinkingMedium" class="timer-btn" onclick="selectThinkingDifficulty('medium')">中</button>
@@ -648,6 +648,15 @@
 
         // 切换游戏模式
         function switchMode(mode) {
+                // 先统一拿到这个容器
+    const thinkingCtr = document.getElementById('thinkingControls');
+    
+    // 只有 PK 模式下显示，其他模式全部隐藏
+    if (mode === 'pk') {
+        thinkingCtr.style.display = 'flex';
+    } else {
+        thinkingCtr.style.display = 'none';
+    }
             if (gameInProgress) {
                 alert('游戏进行中无法切换模式，请先重置游戏');
                 return;
