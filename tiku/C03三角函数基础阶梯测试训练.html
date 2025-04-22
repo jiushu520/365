@@ -1818,8 +1818,10 @@ function gcd(a, b) {
 }
 
 function generateLevel3Question() {
-      // 生成正切函数所需的随机系数
-      let a, b;
+
+
+     // 生成正切函数所需的随机系数
+     let a, b;
     
     do {
         // 生成1到6的随机整数
@@ -1864,7 +1866,8 @@ let answer;
         }
     }
     
-    correctAnswer =  [answer];
+    // Ensure correctAnswer is a flat array of strings
+    correctAnswer = Array.isArray(answer) ? answer : [answer];
 
 
     // 创建SVG可视化
@@ -2052,17 +2055,18 @@ let answer;
                     simplifiedDenominator = -simplifiedDenominator;
                 }
                 
-                // 更新正确答案
+                // 更新正确答案 - 直接更新全局变量
                 if (simplifiedDenominator === 1) {
-                    correctAnswer = [`${simplifiedNumerator}`];
+                    playerCorrectAnswer = [`${simplifiedNumerator}`];
                 } else {
                     if (simplifiedNumerator < 0) {
-                        correctAnswer = [
+                        playerCorrectAnswer = [
                             `\\frac{${simplifiedNumerator}}{${simplifiedDenominator}}`,
-                            `-\\frac{${Math.abs(simplifiedNumerator)}}{${simplifiedDenominator}}`
+                            `-\\frac{${Math.abs(simplifiedNumerator)}}{${simplifiedDenominator}}`,
+                            `-${Math.abs(simplifiedNumerator)}/${Math.abs(simplifiedDenominator)}` // Add alternative format
                         ];
                     } else {
-                        correctAnswer = [`\\frac{${simplifiedNumerator}}{${simplifiedDenominator}}`];
+                        playerCorrectAnswer = [`\\frac{${simplifiedNumerator}}{${simplifiedDenominator}}`, `${simplifiedNumerator}/${simplifiedDenominator}`]; // Update global playerCorrectAnswer, add alternative format
                     }
                 }
                 
@@ -2081,118 +2085,11 @@ let answer;
         
         function endDrag() {
             isDragging = false;
-            
-            // 获取当前B点的位置
-            const currentX = parseFloat(pointB.getAttribute('cx'));
-            const currentY = parseFloat(pointB.getAttribute('cy'));
-            
-            // 计算最近的整数坐标
-            const newBX = Math.round((currentX - centerX) / scale);
-            const newBY = Math.round((centerY - currentY) / scale);
-            
-            // 更新B点到整数位置
-            const snapX = centerX + newBX * scale;
-            const snapY = centerY - newBY * scale;
-            
-            // 设置B点位置到整数坐标
-            pointB.setAttribute('cx', snapX);
-            pointB.setAttribute('cy', snapY);
-            
-            // 更新点B文本显示
-            pointBText.setAttribute('x', snapX + 10);
-            pointBText.setAttribute('y', snapY - 10);
-            pointBText.textContent = `B(${newBX},${newBY})`;
-            
-            // 保持A的x坐标和B的x坐标相同（矩形特性）
-            const newAX = newBX;
-            const newAY = 0; // A点始终在x轴上
-            
-            // 保持C的y坐标和B的y坐标相同（矩形特性）
-            const newCX = 0; // C点始终在y轴上
-            const newCY = newBY;
-            
-            // 更新A点位置
-            const pointAX = centerX + newAX * scale;
-            const pointAY = centerY - newAY * scale;
-            pointA.setAttribute('cx', pointAX);
-            pointA.setAttribute('cy', pointAY);
-            
-            // 更新点A文本显示
-            pointAText.setAttribute('x', pointAX + 10);
-            pointAText.setAttribute('y', pointAY + 20);
-            pointAText.textContent = `A(${newAX},0)`;
-            
-            // 更新点C位置
-            const pointCX = centerX + newCX * scale;
-            const pointCY = centerY - newCY * scale;
-            pointC.setAttribute('cx', pointCX);
-            pointC.setAttribute('cy', pointCY);
-            
-            // 更新点C文本显示
-            pointCText.setAttribute('x', pointCX - 40);
-            pointCText.setAttribute('y', pointCY - 10);
-            pointCText.textContent = `C(0,${newCY})`;
-            
-            // 重新计算A'的坐标
-            const newAPrimeCoords = calculateAprimeCoordinates(newAX, newAY, newBX, newBY);
-            const newAPrimeX = newAPrimeCoords.m;
-            const newAPrimeY = newAPrimeCoords.n;
-            
-            // 更新点A'的位置
-            const pointAPrimeX = centerX + newAPrimeX * scale;
-            const pointAPrimeY = centerY - newAPrimeY * scale;
-            pointAPrime.setAttribute('cx', pointAPrimeX);
-            pointAPrime.setAttribute('cy', pointAPrimeY);
-            
-            // 更新点A'的文本位置
-            pointAPrimeText.setAttribute('x', pointAPrimeX + 10);
-            pointAPrimeText.setAttribute('y', pointAPrimeY - 10);
-            pointAPrimeText.textContent = `A'(?,?)`;
-            
-            // 更新所有线段
-            lineOA.setAttribute('x2', pointAX);
-            lineOA.setAttribute('y2', pointAY);
-            
-            lineAB.setAttribute('x1', pointAX);
-            lineAB.setAttribute('y1', pointAY);
-            lineAB.setAttribute('x2', snapX);
-            lineAB.setAttribute('y2', snapY);
-            
-            lineBC.setAttribute('x1', snapX);
-            lineBC.setAttribute('y1', snapY);
-            lineBC.setAttribute('x2', pointCX);
-            lineBC.setAttribute('y2', pointCY);
-            
-            lineCO.setAttribute('x1', pointCX);
-            lineCO.setAttribute('y1', pointCY);
-            
-            lineOB.setAttribute('x2', snapX);
-            lineOB.setAttribute('y2', snapY);
-            
-            lineAAPrime.setAttribute('x1', pointAX);
-            lineAAPrime.setAttribute('y1', pointAY);
-            lineAAPrime.setAttribute('x2', pointAPrimeX);
-            lineAAPrime.setAttribute('y2', pointAPrimeY);
-            
-            // 更新正确答案
-            correctAnswer = formatAnswer(newAPrimeX, newAPrimeY);
-            
-            // 验证矩形条件
-            const isValidRectangle = (newBX !== 0 && newBY !== 0);
-            if (!isValidRectangle) {
-                pointBText.setAttribute('fill', 'orange');
-                document.getElementById('dragInstructions').textContent = '警告: 请确保B点不在坐标轴上，以保持矩形性质';
-                document.getElementById('dragInstructions').style.color = 'orange';
-            } else {
-                pointBText.setAttribute('fill', 'lightblue');
-                document.getElementById('dragInstructions').textContent = '提示: 你可以拖动蓝色点B来探索不同的情况';
-                document.getElementById('dragInstructions').style.color = '#007bff';
-            }
         }
     }, 500);
 
     return result;
-}
+        }
 
 
 
