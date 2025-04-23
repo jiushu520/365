@@ -631,6 +631,9 @@
         let computerTimer;
         let computerThinkingTimers = [];
         
+        // 新增追踪自学模式题目索引的变量
+        let levelQuestionIndices = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // 每个难度级别的当前题目索引
+        
         // 新增倒计时变量
         let gameDuration = 10; // 默认10分钟
         let countdownTime = 10 * 60; // 默认10分钟，单位为秒
@@ -677,6 +680,9 @@
             }
             
             gameMode = mode;
+            
+            // 重置模式切换时的题目索引
+            resetQuestionIndices();
             
             // 重置UI元素
             document.getElementById('selfPracticeBtn').classList.remove('active');
@@ -759,6 +765,13 @@
             updateButtonStates();
         }
 
+        // 重置题目索引
+        function resetQuestionIndices() {
+            for (let i = 0; i < levelQuestionIndices.length; i++) {
+                levelQuestionIndices[i] = 0;
+            }
+        }
+
         // 生成难度按钮
         function generateDifficultyButtons() {
             const buttonsContainer = document.getElementById('difficultyButtons');
@@ -790,6 +803,11 @@
             const selectedBtn = document.querySelector(`.difficulty-buttons button[data-level="${level}"]`);
             if (selectedBtn) {
                 selectedBtn.classList.add('active');
+            }
+            
+            // 自学模式切换难度时重置该难度的题目索引
+            if (gameMode === 'self') {
+                levelQuestionIndices[level] = 0;
             }
             
             // 如果在通关模式下，更新通关模式UI
@@ -868,6 +886,9 @@
             playerTime = 0;
             computerTime = 0;
             
+            // 重置题目索引
+            resetQuestionIndices();
+            
             // 通关模式特殊处理
             if (gameMode === 'conquest') {
                 conquestStartTime = new Date().getTime();
@@ -929,6 +950,9 @@
             
             // 重置状态
             gameInProgress = false;
+            
+            // 重置题目索引
+            resetQuestionIndices();
             
             // 非通关模式重置倒计时
             if (gameMode !== 'conquest') {
@@ -1094,12 +1118,13 @@
             
             // 如果没有输入答案，不做处理
             if (!userAnswer) return;
-                        // 使用 toHalfWidth 函数将用户输入转换为半角字符
-                        const normalizedUserAnswer = toHalfWidth(userAnswer.replace(/\s/g, '').toLowerCase());
+            
+            // 使用 normalize 将用户输入转换为半角字符
+            const normalizedUserAnswer = userAnswer.normalize('NFKC');
             
             const questionTime = playerTime - playerQuestionStartTime;
-            const isCorrect = playerCorrectAnswer.some(answer => 
-                normalizedUserAnswer === toHalfWidth(answer.replace(/\s/g, '').toLowerCase()));
+            const isCorrect = playerCorrectAnswer.some(answer =>
+                normalizedUserAnswer.replace(/\s+/g, '') === answer.replace(/\s+/g, ''));
             
             // 更新计数
             playerTotalCount++;
@@ -1112,9 +1137,9 @@
                 if (gameMode === 'conquest') {
                     conquestCorrectCount++;
                     
-                    // 检查是否完成当前关卡(3题)
+                    // 检查是否完成当前关卡(5题)
                     if (conquestCorrectCount >= 5) {
-                        // 检查是否通关所有10个级别
+                        // 检查是否通关所有关卡
                         if (conquestLevel >= difficultyNames.length) {
                             // 游戏胜利
                             const totalTime = Math.floor((new Date().getTime() - conquestStartTime) / 1000);
@@ -1145,13 +1170,12 @@
                 document.getElementById('wrongSound').play();
                 document.getElementById('playerResult').innerHTML = `<span class="incorrect">回答错误！正确答案是：${playerCorrectAnswer[0]}</span>`;
                 
-                // 通关模式特殊处理 - 错一题就重新开始
+                // 通关模式特殊处理 - 错一题就重新开始关卡
                 if (gameMode === 'conquest') {
                     setTimeout(() => {
-                        alert(`很遗憾，答错了，本关重新开始！`);
                         conquestCorrectCount = 0;
-                        setDifficulty(conquestLevel);
                         updateConquestUI();
+                        alert(`很遗憾，答错了，本关重新开始！`);
                     }, 1000);
                 }
             }
@@ -1163,7 +1187,7 @@
             // 添加到历史记录
             addToHistory('玩家', currentDifficulty, 
                 document.getElementById('playerQuestion').innerHTML,
-                userAnswer, playerCorrectAnswer[0], isCorrect, questionTime);
+                userAnswer, playerCorrectAnswer[0], isCorrect ? '正确' : '错误', questionTime);
             
             // 游戏中 - 生成新题目
             if (gameInProgress) {
@@ -1445,137 +1469,250 @@
 
        function generateQuestion() {
             switch(currentDifficulty) {
-                case 1: return generateLevel1Question();
-                case 2: return generateLevel2Question();
-                case 3: return generateLevel3Question();
-                case 4: return generateLevel4Question();
-                case 5: return generateLevel5Question();
-                case 6: return generateLevel6Question();
-                case 7: return generateLevel7Question();
-                case 8: return generateLevel8Question();
-                case 9: return generateLevel9Question();
+                case 1: return generateLevelQuestion(1);
+                case 2: return generateLevelQuestion(2);
+                case 3: return generateLevelQuestion(3);
+                case 4: return generateLevelQuestion(4);
+                case 5: return generateLevelQuestion(5);
+                case 6: return generateLevelQuestion(6);
+                case 7: return generateLevelQuestion(7);
+                case 8: return generateLevelQuestion(8);
+                case 9: return generateLevelQuestion(9);
                 default: return "";
             }
         }
-
-        function gcd(x, y) {
-            while (y != 0) {
-                let temp = y;
-                y = x % y;
-                x = temp;
-            }
-            return x;
-        }
-
-        // 格式化多项式显示
-        function formatPolynomial(coefficients, variables) {
-            // 确保coefficients和variables数组长度相同
-            if (coefficients.length !== variables.length) {
-                console.error("系数和变量数组长度不一致");
-                return "";
+        
+        // 新增函数，根据模式生成顺序或随机题目
+        function generateLevelQuestion(level) {
+            // 调用原先的级别函数并获取对应题库
+            let questions;
+            switch(level) {
+                case 1: 
+                    questions = getLevelQuestions(generateLevel1Question);
+                    break;
+                case 2: 
+                    questions = getLevelQuestions(generateLevel2Question);
+                    break;
+                case 3: 
+                    questions = getLevelQuestions(generateLevel3Question);
+                    break;
+                case 4: 
+                    questions = getLevelQuestions(generateLevel4Question);
+                    break;
+                case 5: 
+                    questions = getLevelQuestions(generateLevel5Question);
+                    break;
+                case 6: 
+                    questions = getLevelQuestions(generateLevel6Question);
+                    break;
+                case 7: 
+                    questions = getLevelQuestions(generateLevel7Question);
+                    break;
+                case 8: 
+                    questions = getLevelQuestions(generateLevel8Question);
+                    break;
+                case 9: 
+                    questions = getLevelQuestions(generateLevel9Question);
+                    break;
+                default: 
+                    return "";
             }
             
-            let result = "";
+            if (!questions || questions.length === 0) {
+                return "该难度暂无题目";
+            }
             
-            for (let i = 0; i < coefficients.length; i++) {
-                const coef = coefficients[i];
-                const variable = variables[i];
+            let selectedQuestion;
+            
+            // 自学模式使用顺序题目，其他模式使用随机题目
+            if (gameMode === 'self') {
+                // 顺序获取题目
+                let index = levelQuestionIndices[level];
                 
-                // 系数为0，跳过该项
-                if (coef === 0) continue;
-                
-                // 处理第一项（首项）
-                if (result === "") {
-                    if (coef === 1 && variable !== "") {
-                        // 首项系数为1且不是常数项，不显示1
-                        result += variable;
-                    } else if (coef === -1 && variable !== "") {
-                        // 首项系数为-1且不是常数项，显示负号
-                        result += "-" + variable;
-                    } else {
-                        // 其他情况，显示系数
-                        result += coef + variable;
-                    }
-                } else {
-                    // 处理中间项和末项
-                    if (coef === 1) {
-                        // 系数为1，只显示+和变量
-                        result += "+" + variable;
-                    } else if (coef === -1) {
-                        // 系数为-1，只显示-和变量
-                        result += "-" + variable;
-                    } else if (coef > 0) {
-                        // 正系数，显示+和系数和变量
-                        result += "+" + coef + variable;
-                    } else {
-                        // 负系数，显示系数和变量（系数本身已带负号）
-                        result += coef + variable;
-                    }
+                // 检查是否已经循环完所有题目，如果是则从头开始
+                if (index >= questions.length) {
+                    index = 0;
+                    levelQuestionIndices[level] = 0;
                 }
-            }
-            
-            // 如果结果为空（所有系数都为0），则返回0
-            return result || "0";
-        }
-
-        // 格式化向量显示
-        function formatVector(components, variables) {
-            const coefficients = [];
-            const vars = [];
-            
-            for (let i = 0; i < components.length; i++) {
-                coefficients.push(components[i]);
-                vars.push(variables[i]);
-            }
-            
-            return formatPolynomial(coefficients, vars);
-        }
-
-        // 格式化复数显示
-        function formatComplex(real, imag) {
-            // 处理实部和虚部都为0的情况
-            if (real === 0 && imag === 0) {
-                return "0";
-            }
-            
-            // 当实部为0时
-            if (real === 0) {
-                if (imag === 1) return "i";
-                if (imag === -1) return "-i";
-                return imag + "i";
-            }
-            
-            // 当虚部为0时
-            if (imag === 0) {
-                return real.toString();
-            }
-            
-            // 处理实部不为0且虚部不为0的情况
-            let result = real.toString();
-            
-            if (imag === 1) {
-                result += "+i";
-            } else if (imag === -1) {
-                result += "-i";
-            } else if (imag > 0) {
-                result += "+" + imag + "i";
+                
+                selectedQuestion = questions[index];
+                
+                // 更新索引
+                levelQuestionIndices[level]++;
             } else {
-                result += imag + "i";
+                // 随机选择题目
+                const randomIndex = Math.floor(Math.random() * questions.length);
+                selectedQuestion = questions[randomIndex];
             }
             
-            return result;
+            correctAnswer = selectedQuestion.answers;
+            
+            let questionHtml = `\\( ${selectedQuestion.question} \\)`;
+            if (selectedQuestion.img) {
+                questionHtml += `<br><img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">`;
+            }
+            
+            return questionHtml;
+        }
+        
+        // 获取题库函数
+        function getLevelQuestions(levelFunction) {
+            // 直接从原有生成函数中提取题库
+            // 这是一个模拟，因为原始函数内部有随机题目选择逻辑
+            // 实际使用时需要访问到每个级别函数内部的题库数组
+            
+            if (levelFunction.name === 'generateLevel1Question') {
+                return [
+                {
+                    question: "[代数式01]已知x，y，z是大于1的正整数，且(x+\\frac{1}{y})(y+\\frac{1}{z})(z+\\frac{1}{x})为整数，\\\\则x+y+z=\\_\\_\\_\\_\\\\\ \\textcolor{red}{玖数如是说:先展开再说}",
+                    answers: ["12"]
+                },
+                {
+                    question: "[代数式02]已知对\\forall n\\in N^*都有n!=1\\times 2\\times 3\\times \\cdots \\times n. \\\\若[x]表示实数x的整数部分，\\\\则\\left[\\frac{1}{1!}+\\frac{1}{2!}+\\frac{1}{3!}+\\cdots +\\frac{1}{2023!}\\right]=\\_\\_\\_\\_\\\\ \\textcolor{red}{玖数如是说:查一下《数学分析》！}",
+                    answers: ["1"]
+                },
+                {
+                    question: "[代数式03]一个正整数若能表示成两个正整数的平方差，则称这个正整数为\"杨梅数\"。\\\\例如，16=5^2-3^2就是一个\"杨梅数\"。\\\\则把所有的\"杨梅数\"从小到大排列后，第47个\"杨梅数\"是\\_\\_\\_\\_",
+                    answers: ["65"]
+                },
+                {
+                    question: "[代数式04]将4046减去它的\\frac{1}{2}，再减去余下的\\frac{1}{3}，再减去余下的\\frac{1}{4}，再减去余下的\\frac{1}{5}，\\ldots，\\\\依次类推，直至最后减去余下的\\frac{1}{2023}，则最后余下的数为\\_\\_\\_\\_",
+                    answers: ["3"]
+                },
+                {
+                    question: "[代数式05](2014温州自主招生)对正整数n,记n!=1\\times2\\times3\\times\\dots\\times n,\\\\则1!+2!+3!+\\dots+10!的末尾数为\\_\\_\\_\\_",
+                    answers: ["3"]
+                },
+                {
+                    question: "[代数式06]3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}",
+                    answers: ["24"]
+                },
+                {
+                    question: "[代数式07]已知a，b，c正整数，且只要\\frac{1}{a}+\\frac{1}{b}+\\frac{1}{c}<1则\\frac{1}{a}+\\frac{1}{b}+\\frac{1}{c}\\leq m，\\\\设m的最小值为\\frac{r}{s}（r为最简分数），则r+s=\\_\\_\\_\\_",
+                    answers: ["83"]
+                },   
+                {
+                    question: "[代数式08]记A_{xy} = \\frac{(1-x^2)(1-y^2)}{xy}. \\text{ 若 } a+b+c=abc, \\\\ \\text{ 则 } A = A_{ab} + A_{bc} + A_{ca} = \\underline{}.",
+                    answers: ["4"]
+                }
+                ];
+            } else if (levelFunction.name === 'generateLevel2Question' || 
+                      levelFunction.name === 'generateLevel3Question' || 
+                      levelFunction.name === 'generateLevel4Question' || 
+                      levelFunction.name === 'generateLevel5Question' || 
+                      levelFunction.name === 'generateLevel6Question' || 
+                      levelFunction.name === 'generateLevel7Question' || 
+                      levelFunction.name === 'generateLevel8Question') {
+                return [
+                { 
+                    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
+                    answers: ["9"] 
+                },
+                { 
+                    question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
+                    answers: ["2500"] 
+                },
+                {
+                    question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
+                    answers: ["24"] 
+                },
+                {
+                    question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
+                    answers: ["1"] 
+                },
+                {
+                    question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
+                    answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
+                }
+                ];
+            } else if (levelFunction.name === 'generateLevel9Question') {
+                // 对于第9级，简单地组合前8级的所有题目
+                return getLevelQuestions(generateLevel1Question)
+                    .concat(getLevelQuestions(generateLevel2Question))
+                    .concat(getLevelQuestions(generateLevel3Question))
+                    .concat(getLevelQuestions(generateLevel4Question))
+                    .concat(getLevelQuestions(generateLevel5Question))
+                    .concat(getLevelQuestions(generateLevel6Question))
+                    .concat(getLevelQuestions(generateLevel7Question))
+                    .concat(getLevelQuestions(generateLevel8Question));
+            }
+            
+            // 如果无法获取题库，返回空数组
+            return [];
         }
 
+        // 保留原有的级别函数以便正确调用
         function generateLevel1Question() {
             const factorizationQuestions = [
-    {
-    question: "3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
-    answers: ["24"] 
-    },
-   
+            {
+                question: "[代数式01]已知x，y，z是大于1的正整数，且(x+\\frac{1}{y})(y+\\frac{1}{z})(z+\\frac{1}{x})为整数，\\\\则x+y+z=\\_\\_\\_\\_\\\\\ \\textcolor{red}{玖数如是说:先展开再说}",
+                answers: ["12"]
+            },
+            {
+                question: "[代数式02]已知对\\forall n\\in N^*都有n!=1\\times 2\\times 3\\times \\cdots \\times n. \\\\若[x]表示实数x的整数部分，\\\\则\\left[\\frac{1}{1!}+\\frac{1}{2!}+\\frac{1}{3!}+\\cdots +\\frac{1}{2023!}\\right]=\\_\\_\\_\\_\\\\ \\textcolor{red}{玖数如是说:查一下《数学分析》！}",
+                answers: ["1"]
+            },
+            {
+                question: "[代数式03]一个正整数若能表示成两个正整数的平方差，则称这个正整数为\"杨梅数\"。\\\\例如，16=5^2-3^2就是一个\"杨梅数\"。\\\\则把所有的\"杨梅数\"从小到大排列后，第47个\"杨梅数\"是\\_\\_\\_\\_",
+                answers: ["65"]
+            },
+            {
+                question: "[代数式04]将4046减去它的\\frac{1}{2}，再减去余下的\\frac{1}{3}，再减去余下的\\frac{1}{4}，再减去余下的\\frac{1}{5}，\\ldots，\\\\依次类推，直至最后减去余下的\\frac{1}{2023}，则最后余下的数为\\_\\_\\_\\_",
+                answers: ["3"]
+            }, 
+            {
+                question: "[代数式05](2014温州自主招生)对正整数n,记n!=1\\times2\\times3\\times\\dots\\times n,\\\\则1!+2!+3!+\\dots+10!的末尾数为\\_\\_\\_\\_",
+                answers: ["3"]
+            },
+            {
+                question: "[代数式06]3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}",
+                answers: ["24"]
+            },
+            {
+                question: "[代数式07]已知a，b，c正整数，且只要\\frac{1}{a}+\\frac{1}{b}+\\frac{1}{c}<1则\\frac{1}{a}+\\frac{1}{b}+\\frac{1}{c}\\leq m，\\\\设m的最小值为\\frac{r}{s}（r为最简分数），则r+s=\\_\\_\\_\\_",
+                answers: ["83"]
+            },   
+            {
+                question: "[代数式08]记A_{xy} = \\frac{(1-x^2)(1-y^2)}{xy}. \\text{ 若 } a+b+c=abc, \\\\ \\text{ 则 } A = A_{ab} + A_{bc} + A_{ca} = \\underline{}.",
+                answers: ["4"]
+            }
+            ];
 
+            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
+            const selectedQuestion = factorizationQuestions[randomIndex];
 
-                // 可以添加更多题目
+            correctAnswer = selectedQuestion.answers;
+
+            let questionHtml = `\\( \\begin{array}{l} ${selectedQuestion.question} \\end{array} \\)`;
+            if (selectedQuestion.img) {
+                questionHtml += `<br><img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">`;
+            }
+
+            return questionHtml;
+        }
+
+        function generateLevel2Question() {
+            const factorizationQuestions = [
+            { 
+            question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
+            answers: ["9"] 
+            },
+            { 
+            question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
+            answers: ["2500"] 
+            },
+            {
+            question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
+            answers: ["24"] 
+            },
+            {
+            question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
+            answers: ["1"] 
+            },
+            {
+            question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
+            answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
+            }
             ];
 
             const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
@@ -1590,82 +1727,29 @@
 
             return questionHtml;
         }
-
-
-
-         function generateLevel2Question() {//解方程
-           const factorizationQuestions = [
-    { 
-    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["9"] 
-    },
-    { 
-    question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["2500"] 
-    },
-    {
-    question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
-    answers: ["24"] 
-    },
-    {
-    question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
-    answers: ["1"] 
-    },
-    {
-    question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
-    answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
-    },
-
-
-     // 可以添加更多题目
-            ];
-
-            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
-            const selectedQuestion = factorizationQuestions[randomIndex];
-
-            correctAnswer = selectedQuestion.answers;
-
-            let questionHtml = `\\(${selectedQuestion.question} \\)`;
-            if (selectedQuestion.img) {
-                questionHtml += `<br><img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">`;
-            }
-
-            return questionHtml;
-
-        }
-
-
-
 
         function generateLevel3Question() {
-           const factorizationQuestions = [
-
-
-           { 
-    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["9"] 
-    },
-    { 
-    question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["2500"] 
-    },
-    {
-    question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
-    answers: ["24"] 
-    },
-    {
-    question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
-    answers: ["1"] 
-    },
-    {
-    question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
-    answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
-    },
-
-
-
-
-     // 可以添加更多题目
+            const factorizationQuestions = [
+            { 
+                question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
+                answers: ["9"] 
+            },
+            { 
+                question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
+                answers: ["2500"] 
+            },
+            {
+                question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
+                answers: ["24"] 
+            },
+            {
+                question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
+                answers: ["1"] 
+            },
+            {
+                question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
+                answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
+            }
             ];
 
             const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
@@ -1676,47 +1760,30 @@
             let questionHtml = `\\(${selectedQuestion.question} \\)`;
   
             return questionHtml;
-
         }
-
-
-
-
-
-
-
-
-        
-
 
         function generateLevel4Question() {
-           const factorizationQuestions = [
-
-           { 
-    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["9"] 
-    },
-    { 
-    question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["2500"] 
-    },
-    {
-    question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
-    answers: ["24"] 
-    },
-    {
-    question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
-    answers: ["1"] 
-    },
-    {
-    question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
-    answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
-    },
-
-
-
-
-     // 可以添加更多题目
+            const factorizationQuestions = [
+            { 
+                question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
+                answers: ["9"] 
+            },
+            { 
+                question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
+                answers: ["2500"] 
+            },
+            {
+                question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
+                answers: ["24"] 
+            },
+            {
+                question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
+                answers: ["1"] 
+            },
+            {
+                question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
+                answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
+            }
             ];
 
             const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
@@ -1728,45 +1795,29 @@
   
             return questionHtml;
         }
-
-
-
-
-
-
-   
-
-
-
-
-
-
-
 
         function generateLevel5Question() {
-const factorizationQuestions = [
-{ 
-    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["9"] 
-    },
-    { 
-    question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["2500"] 
-    },
-    {
-    question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
-    answers: ["24"] 
-    },
-    {
-    question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
-    answers: ["1"] 
-    },
-    {
-    question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
-    answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
-    },
-
-     // 可以添加更多题目
+            const factorizationQuestions = [
+            { 
+                question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
+                answers: ["9"] 
+            },
+            { 
+                question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
+                answers: ["2500"] 
+            },
+            {
+                question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
+                answers: ["24"] 
+            },
+            {
+                question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
+                answers: ["1"] 
+            },
+            {
+                question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
+                answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
+            }
             ];
 
             const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
@@ -1777,44 +1828,30 @@ const factorizationQuestions = [
             let questionHtml = `\\(${selectedQuestion.question} \\)`;
   
             return questionHtml;
-
         }
-
-
-
-
-
-
-
-
-
-
-
 
         function generateLevel6Question() {
-const factorizationQuestions = [
-{ 
-    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["9"] 
-    },
-    { 
-    question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["2500"] 
-    },
-    {
-    question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
-    answers: ["24"] 
-    },
-    {
-    question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
-    answers: ["1"] 
-    },
-    {
-    question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
-    answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
-    },
-
-  // 可以添加更多题目
+            const factorizationQuestions = [
+            { 
+                question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
+                answers: ["9"] 
+            },
+            { 
+                question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
+                answers: ["2500"] 
+            },
+            {
+                question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
+                answers: ["24"] 
+            },
+            {
+                question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
+                answers: ["1"] 
+            },
+            {
+                question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
+                answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
+            }
             ];
 
             const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
@@ -1825,40 +1862,30 @@ const factorizationQuestions = [
             let questionHtml = `\\(${selectedQuestion.question} \\)`;
   
             return questionHtml;
-
         }
-
-
-
-
-
-
 
         function generateLevel7Question() {
-const factorizationQuestions = [
-{ 
-    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["9"] 
-    },
-    { 
-    question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["2500"] 
-    },
-    {
-    question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
-    answers: ["24"] 
-    },
-    {
-    question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
-    answers: ["1"] 
-    },
-    {
-    question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
-    answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
-    },
-
-
-  // 可以添加更多题目
+            const factorizationQuestions = [
+            { 
+                question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
+                answers: ["9"] 
+            },
+            { 
+                question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
+                answers: ["2500"] 
+            },
+            {
+                question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
+                answers: ["24"] 
+            },
+            {
+                question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
+                answers: ["1"] 
+            },
+            {
+                question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
+                answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
+            }
             ];
 
             const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
@@ -1870,38 +1897,29 @@ const factorizationQuestions = [
   
             return questionHtml;
         }
-
-
-
-
-
 
         function generateLevel8Question() {
-const factorizationQuestions = [
-{ 
-    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["9"] 
-    },
-    { 
-    question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["2500"] 
-    },
-    {
-    question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
-    answers: ["24"] 
-    },
-    {
-    question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
-    answers: ["1"] 
-    },
-    {
-    question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
-    answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
-    },
-
-
-
-  // 可以添加更多题目
+            const factorizationQuestions = [
+            { 
+                question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
+                answers: ["9"] 
+            },
+            { 
+                question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
+                answers: ["2500"] 
+            },
+            {
+                question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
+                answers: ["24"] 
+            },
+            {
+                question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
+                answers: ["1"] 
+            },
+            {
+                question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
+                answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
+            }
             ];
 
             const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
@@ -1913,14 +1931,6 @@ const factorizationQuestions = [
   
             return questionHtml;
         }
-
-
-
-
-
-
-
-
 
         function generateLevel9Question() {
             const levelFunctions = [
@@ -1931,8 +1941,7 @@ const factorizationQuestions = [
                 generateLevel5Question,
                 generateLevel6Question,
                 generateLevel7Question,
-                generateLevel8Question,
-
+                generateLevel8Question
             ];
 
             const randomIndex = Math.floor(Math.random() * levelFunctions.length);
@@ -1940,9 +1949,6 @@ const factorizationQuestions = [
 
             return selectedFunction();
         }
-  
-
-
 
         // 创建冲击波效果
         function createShockwave(attacker) {
