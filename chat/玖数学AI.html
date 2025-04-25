@@ -261,124 +261,182 @@
         .history-panel {
             position: fixed;
             top: 0;
-            right: -350px;
-            width: 350px;
+            right: -100%; /* 完全隐藏在屏幕外 */
+            width: 350px; /* 固定宽度，不要太宽 */
             height: 100vh;
-            background-color: #f8f9fa;
-            border-left: 1px solid #ddd;
-            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
-            z-index: 1000; /* Increase z-index to ensure it appears above other elements */
-            transition: right 0.3s ease;
-            padding: 15px;
+            background-color: #ffffff;
+            border-left: 3px solid #2a2a72;
+            box-shadow: -8px 0 20px rgba(0, 0, 0, 0.15);
+            z-index: 1050; /* 提高z-index确保在其他元素之上 */
+            transition: right 0.3s ease; /* 简化过渡效果 */
+            padding: 20px;
             overflow-y: auto;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         .history-panel.active {
-            right: 0;
+            right: 0; /* 活动状态下完全显示 */
         }
         
         .history-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         .history-header h3 {
             margin: 0;
-            color: #333;
-            font-size: 1.3rem;
+            color: #2a2a72;
+            font-size: 1.4rem;
+            font-weight: 600;
         }
         
         .close-history {
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
-            color: #777;
-            transition: color 0.2s;
+            color: #dc3545;
+            transition: all 0.2s;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: #ffe5e5;
+            font-weight: bold;
         }
         
         .close-history:hover {
-            color: #dc3545;
+            color: white;
+            background-color: #dc3545;
+            transform: scale(1.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         
         .history-actions-top {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         .history-btn {
-            padding: 6px 12px;
+            padding: 8px 16px;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 0.9rem;
+            font-weight: 500;
             transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
         .save-history-btn {
-            background-color: #28a745;
+            background-color: #2a2a72;
             color: white;
         }
         
         .save-history-btn:hover {
-            background-color: #218838;
+            background-color: #1a1a62;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
         }
         
         .clear-history-btn {
-            background-color: #dc3545;
-            color: white;
+            background-color: #f8d7da;
+            color: #842029;
         }
         
         .clear-history-btn:hover {
-            background-color: #c82333;
+            background-color: #f5c2c7;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
         }
         
         .history-list {
-            max-height: calc(100vh - 150px);
+            max-height: calc(100vh - 180px);
             overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .history-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .history-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .history-list::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+        
+        .history-list::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
         }
         
         .no-history-msg {
             color: #6c757d;
             text-align: center;
-            padding: 20px 0;
+            padding: 30px 0;
             font-style: italic;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px dashed #dee2e6;
         }
         
         .history-item {
             background-color: white;
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 10px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.2s ease;
+            border: 1px solid #eaeaea;
         }
         
         .history-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-color: #d1d1d1;
         }
         
-        .history-date {
-            color: #6c757d;
-            font-size: 0.8rem;
-            margin-bottom: 5px;
-        }
-        
-        .history-title {
-            font-weight: 500;
+        .history-item-title {
+            font-weight: 600;
             margin-bottom: 8px;
-            color: #343a40;
+            color: #2a2a72;
+            font-size: 1.1rem;
+        }
+        
+        .history-item-preview {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            line-height: 1.5;
+            max-height: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        
+        .history-item-date {
+            color: #888;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
         }
         
         .history-actions {
             display: flex;
             justify-content: flex-end;
-            margin-top: 8px;
+            margin-top: 10px;
+            gap: 10px;
         }
         
         .history-action {
@@ -386,30 +444,44 @@
             border: none;
             color: #6c757d;
             font-size: 0.9rem;
-            margin-left: 10px;
+            padding: 5px 10px;
             cursor: pointer;
-            transition: color 0.2s;
+            transition: all 0.2s;
+            border-radius: 4px;
+        }
+        
+        .history-load {
+            color: #2a2a72;
+            background-color: rgba(42, 42, 114, 0.1);
         }
         
         .history-load:hover {
-            color: #007bff;
+            color: #ffffff;
+            background-color: #2a2a72;
+        }
+        
+        .history-delete {
+            color: #dc3545;
+            background-color: rgba(220, 53, 69, 0.1);
         }
         
         .history-delete:hover {
-            color: #dc3545;
+            color: #ffffff;
+            background-color: #dc3545;
         }
         
         #autoSaveIndicator {
             position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background-color: rgba(40, 167, 69, 0.8);
+            bottom: 15px;
+            right: 15px;
+            background-color: rgba(40, 167, 69, 0.9);
             color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.8rem;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 0.85rem;
             opacity: 0;
             transition: opacity 0.3s;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
         
         #autoSaveIndicator.show {
@@ -422,6 +494,21 @@
                 right: -85%;
             }
         }
+        #historyToggle.active {
+            background-color: #1a1a62 !important;
+            transform: scale(0.95);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.4) !important;
+        }
+        #historyToggle.active span {
+            transform: rotate(180deg) !important;
+        }
+        /* 确保历史面板在激活时可见 */
+        .history-panel.active {
+            right: 0 !important; /* 强制显示，覆盖任何可能的样式冲突 */
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
     </style>
 </head>
 <body>
@@ -432,8 +519,8 @@
         <button class="settings-toggle" id="settingsToggle">⚙</button>
         
         <!-- 历史记录开关按钮 -->
-        <button id="historyToggle" style="position: fixed; top: 15px; right: 15px; width: 40px; height: 40px; z-index: 999; background-color: #2a2a72; color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 18px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
-            ⌛
+        <button id="historyToggle" onclick="this.classList.toggle('active'); document.getElementById('historyPanel').classList.toggle('active'); console.log('Toggle clicked directly');" style="position: fixed; top: 15px; right: 15px; width: 44px; height: 44px; z-index: 999; background-color: #2a2a72; color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 20px; box-shadow: 0 3px 8px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; transition: all 0.2s ease;">
+            <span style="transform: rotate(0deg); transition: transform 0.3s ease;">📋</span>
         </button>
         
         <!-- 侧边设置面板 -->
@@ -509,6 +596,9 @@
             <div id="historyList" class="history-list">
                 <div class="no-history-msg">暂无历史记录</div>
             </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="closeHistoryBottom" style="background-color: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%;">关闭历史面板</button>
+            </div>
         </div>
         <div id="autoSaveIndicator"></div>
         
@@ -530,12 +620,13 @@
             </div>
         </div>
         
-        <div class="voice-buttons">
-            <button id="startRecordBtn">Start Recording</button>
-            <button id="stopRecordBtn" disabled>Stop Recording</button>
-            <button id="speakResponseBtn">Speak Last Response</button>
+        <div class="voice-buttons" style="display: flex; justify-content: space-between; gap: 10px; margin-top: 15px;">
+            <button id="startRecordBtn" style="flex: 1; background-color: #2a2a72;">开始录音</button>
+            <button id="stopRecordBtn" style="flex: 1; background-color: #6c757d;" disabled>停止录音</button>
+            <button id="speakResponseBtn" style="flex: 1; background-color: #2a2a72;">朗读回复</button>
+            <button id="historyToggleBtn" style="flex: 1; background-color: #2a2a72;" onclick="document.getElementById('historyPanel').classList.add('active'); document.getElementById('historyToggle').classList.add('active');">历史记录</button>
+            <button id="closeHistoryBtn" style="flex: 1; background-color: #dc3545;" onclick="document.getElementById('historyPanel').classList.remove('active'); document.getElementById('historyToggle').classList.remove('active'); document.getElementById('historyPanel').style.right = '-100%';">关闭历史</button>
         </div>
-        
 
     </div>
     
@@ -1000,6 +1091,21 @@
             
             // Initialize
             window.onload = () => {
+                // Debug check for history panel
+                console.log("Checking history panel:", {
+                    historyPanel: historyPanel,
+                    historyToggle: historyToggle,
+                    panelVisible: historyPanel ? historyPanel.classList.contains('active') : 'Panel not found',
+                    historyCSS: historyPanel ? window.getComputedStyle(historyPanel) : 'No panel styles'
+                });
+                
+                // Test history panel visibility
+                const testHistoryPanel = () => {
+                    const isVisible = historyPanel.classList.contains('active');
+                    console.log("History panel visible:", isVisible, 
+                                "Right position:", window.getComputedStyle(historyPanel).right);
+                };
+                
                 // 配置MathJax以更好地处理动态内容
                 if (window.MathJax) {
                     window.MathJax = {
@@ -1033,7 +1139,7 @@
                 // 初始化自动保存指示器
                 updateAutoSaveIndicator();
                 // Add an initial greeting message
-                addMessage("你好！我是AI助手。我可以帮助你回答问题，包括数学问题。我也支持语音交互，点击\"Start Recording\"开始录音。", true, null);
+                addMessage("你好！我是玖数学AI，一个专注于数学教育的AI助手。我可以帮助你回答问题，包括数学问题。我也支持语音交互，点击\"开始录音\"开始录音。", true, null);
             };
 
             // 设置面板控制
@@ -1131,25 +1237,34 @@
             savePromptBtn.addEventListener('click', savePrompt);
             applyPromptBtn.addEventListener('click', applyPrompt);
 
-            // 历史记录面板控制
-            historyToggle.addEventListener('click', () => {
-                console.log('History toggle clicked');
-                historyPanel.classList.toggle('active');
-                console.log('History panel active:', historyPanel.classList.contains('active'));
-                loadHistoryList(); // 每次打开面板时刷新历史记录列表
-            });
+            // 为新的历史记录按钮添加事件监听器
+            const historyToggleBtn = document.getElementById('historyToggleBtn');
+            const closeHistoryBtn = document.getElementById('closeHistoryBtn');
             
-            closeHistory.addEventListener('click', () => {
-                historyPanel.classList.remove('active');
-            });
-            
-            // 点击面板外部区域关闭历史记录
-            document.addEventListener('click', (e) => {
-                if (historyPanel.classList.contains('active') && 
-                    !historyPanel.contains(e.target) && 
-                    e.target !== historyToggle) {
-                    historyPanel.classList.remove('active');
+            historyToggleBtn.addEventListener('click', () => {
+                console.log('History toggle button clicked');
+                historyPanel.classList.add('active');
+                historyToggle.classList.add('active');
+                if (historyToggle.querySelector('span')) {
+                    historyToggle.querySelector('span').style.transform = 'rotate(180deg)';
                 }
+                // 强制调整历史面板样式
+                historyPanel.style.right = '0';
+                historyPanel.style.display = 'block';
+                historyPanel.style.visibility = 'visible';
+                historyPanel.style.opacity = '1';
+                loadHistoryList();
+            });
+            
+            closeHistoryBtn.addEventListener('click', () => {
+                console.log('Close history button clicked');
+                historyPanel.classList.remove('active');
+                historyToggle.classList.remove('active');
+                if (historyToggle.querySelector('span')) {
+                    historyToggle.querySelector('span').style.transform = 'rotate(0deg)';
+                }
+                // 强制关闭面板
+                historyPanel.style.right = '-100%';
             });
             
             // 保存当前聊天历史
@@ -1232,8 +1347,8 @@
                     
                     historyItem.innerHTML = `
                         <div class="history-item-title">${history.name}</div>
-                        <div class="history-item-preview">${previewText}</div>
-                        <div class="history-item-date">${history.date}</div>
+                        <div class="history-item-preview">${previewText || '无文本预览'}</div>
+                        <div class="history-item-date"><i style="margin-right: 5px;">🕒</i>${history.date}</div>
                         <div class="history-actions">
                             <span class="history-action history-load" data-id="${history.id}">加载</span>
                             <span class="history-action history-delete" data-id="${history.id}">删除</span>
@@ -1397,6 +1512,12 @@
                 const autoSaveIndicator = document.getElementById('autoSaveIndicator');
                 if (lastAutoSaveTime) {
                     autoSaveIndicator.textContent = `最近自动保存: ${lastAutoSaveTime.toLocaleString()}`;
+                    // 显示指示器
+                    autoSaveIndicator.style.opacity = '1';
+                    // 3秒后隐藏
+                    setTimeout(() => {
+                        autoSaveIndicator.style.opacity = '0';
+                    }, 3000);
                 } else {
                     autoSaveIndicator.textContent = '最近保存: 未保存';
                 }
@@ -1418,6 +1539,49 @@
             
             // 页面关闭前自动保存
             window.addEventListener('beforeunload', autoSaveCurrentChat);
+
+            // 为底部关闭按钮添加事件监听器
+            const closeHistoryBottom = document.getElementById('closeHistoryBottom');
+            if (closeHistoryBottom) {
+                closeHistoryBottom.addEventListener('click', () => {
+                    console.log('Bottom close button clicked');
+                    historyPanel.classList.remove('active');
+                    historyToggle.classList.remove('active');
+                    historyToggle.querySelector('span').style.transform = 'rotate(0deg)';
+                    
+                    // 强制关闭面板
+                    historyPanel.style.right = '-100%';
+                });
+            }
+
+            // 按下ESC键关闭历史面板
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && historyPanel.classList.contains('active')) {
+                    console.log('Escape key pressed, closing history panel');
+                    historyPanel.classList.remove('active');
+                    historyToggle.classList.remove('active');
+                    historyToggle.querySelector('span').style.transform = 'rotate(0deg)';
+                    
+                    // 强制关闭面板
+                    historyPanel.style.right = '-100%';
+                }
+            });
+
+            // 历史记录面板控制
+            // 保留原始关闭按钮功能
+            closeHistory.addEventListener('click', () => {
+                console.log('Close history X button clicked');
+                historyPanel.classList.remove('active');
+                historyToggle.classList.remove('active');
+                if (historyToggle.querySelector('span')) {
+                    historyToggle.querySelector('span').style.transform = 'rotate(0deg)';
+                }
+                // 强制关闭面板
+                historyPanel.style.right = '-100%';
+            });
+            
+            // 隐藏浮动的历史记录按钮，因为现在我们有了集成按钮
+            historyToggle.style.display = 'none';
         });
     </script>
 </body>

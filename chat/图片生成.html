@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>玖数涂鸦</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2a2a72;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        textarea {
+            min-height: 100px;
+        }
+        button {
+            background-color: #2a2a72;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #1a1a62;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .status-area {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+        .status-message {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #2a2a72;
+        }
+        .error-message {
+            color: #d9534f;
+            border-left: 3px solid #d9534f;
+        }
+        .result-area {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .result-image {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        /* 粘贴区域的样式 */
+        .paste-area {
+            width: 100%;
+            height: 150px;
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: #f9f9f9;
+            margin-bottom: 10px;
+        }
+        .paste-area:hover {
+            border-color: #2a2a72;
+            background-color: #f1f1f9;
+        }
+        .paste-area p {
+            margin: 0;
+            color: #666;
+        }
+        .paste-img-preview {
+            max-width: 100%;
+            max-height: 140px;
+            margin-top: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        /* 历史记录样式 */
+        .history-panel {
+            margin-top: 30px;
+        }
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .history-toggle {
+            cursor: pointer;
+            font-weight: 600;
+            color: #2a2a72;
+            display: flex;
+            align-items: center;
+        }
+        .history-toggle::after {
+            content: '▼';
+            margin-left: 8px;
+            font-size: 12px;
+        }
+        .history-toggle.collapsed::after {
+            content: '▶';
+        }
+        .history-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+        .history-content.collapsed {
+            display: none;
+        }
+        .history-clear {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            border: 1px solid #f5c6cb;
+        }
+        .history-clear:hover {
+            background-color: #f5c6cb;
+        }
+        .history-item {
+            position: relative;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .history-item:hover {
+            transform: translateY(-5px);
+        }
+        .history-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        .history-info {
+            padding: 8px;
+            font-size: 12px;
+            background-color: rgba(0,0,0,0.03);
+        }
+        .history-prompt {
+            margin: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .history-date {
+            margin: 3px 0 0;
+            color: #666;
+            font-size: 11px;
+        }
+        .history-actions {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            display: flex;
+            gap: 5px;
+        }
+        .history-action-btn {
+            width: 25px;
+            height: 25px;
+            background-color: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .history-action-btn:hover {
+            background-color: white;
+        }
+        .no-history {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h3>涂鸦</h3>
+        
+        <div class="form-group" style="display: none;">
+            <label for="apiKey">OpenAI API Key:</label>
+            <input type="password" id="apiKey" value="sk-NKAwMaji6Elw3bXeAxTbkbaQ4zwwhFLKmhCySLJYDPp9tlTZ" placeholder="Enter your OpenAI API key here">
+        </div>
+        
+        <div class="form-group" style="display: none;">
+            <label for="baseUrl">Base URL:</label>
+            <input type="text" id="baseUrl" value="https://aigc.x-see.cn/v1/" placeholder="API base URL">
+        </div>
+        
+        <div class="form-group">
+            <label for="prompt">Prompt:</label>
+            <textarea id="prompt" placeholder="Enter your image description here or leave empty for Ghibli style image"></textarea>
+        </div>
+        <button id="generateBtn">Generate Image</button>        
+        <div class="form-group" style="display: none;">
+            <label for="model">Model:</label>
+            <select id="model">
+                <option value="gpt-4o-image">GPT-4o Image</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="size">Image Size:</label>
+            <select id="size">
+                <option value="1024x1024">1024x1024</option>
+                <option value="1024x1792">1024x1792</option>
+                <option value="1792x1024">1792x1024</option>
+            </select>
+        </div>
+        
+        <div id="inputImageOptions" class="form-group">
+            
+            <div id="pasteImage" class="form-group">
+                <label>粘贴图片 (可直接Ctrl+V):</label>
+                <div class="paste-area" id="pasteArea">
+                    <img id="pastePreview" class="paste-img-preview" alt="粘贴预览">
+                </div>
+            </div>
+            
+            <div id="inputImage" class="form-group">
+                <label for="imageUrl">或输入图片URL:</label>
+                <input type="text" id="imageUrl" placeholder="Enter URL of an image to use as reference">
+            </div>
+        </div>
+        
+        
+        <div class="status-area" id="statusArea">
+            <div class="status-message">请输入提示词或粘贴图片</div>
+        </div>
+        
+        <div class="result-area" id="resultArea" style="display: none;">
+            <h3>Generated Image</h3>
+            <img id="resultImage" class="result-image" alt="Generated image will appear here">
+            <div>
+                <button id="saveBtn" style="display: none;">Save Image</button>
+            </div>
+        </div>
+        
+        <!-- 历史记录面板 -->
+        <div class="history-panel">
+            <div class="history-header">
+                <div class="history-toggle" id="historyToggle">历史记录</div>
+                <button class="history-clear" id="historyClear">清空历史</button>
+            </div>
+            <div class="history-content" id="historyContent">
+                <!-- 历史记录项将由JavaScript动态添加 -->
+                <div class="no-history">暂无历史记录</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Model configurations
+        const MODEL_CONFIGS = {
+            "gpt-4o-image": {
+                "sizes": ["1024x1024", "1024x1792", "1792x1024"],
+                "api_endpoint": "chat/completions",
+                "supports_image_input": true
+            }
+        };
+
+        // DOM elements
+        const apiKeyInput = document.getElementById('apiKey');
+        const baseUrlInput = document.getElementById('baseUrl');
+        const promptInput = document.getElementById('prompt');
+        const modelSelect = document.getElementById('model');
+        const sizeSelect = document.getElementById('size');
+        const generateBtn = document.getElementById('generateBtn');
+        const statusArea = document.getElementById('statusArea');
+        const resultArea = document.getElementById('resultArea');
+        const resultImage = document.getElementById('resultImage');
+        const saveBtn = document.getElementById('saveBtn');
+        const inputImageOptionsDiv = document.getElementById('inputImageOptions');
+        const inputImageDiv = document.getElementById('inputImage');
+        const imageUrlInput = document.getElementById('imageUrl');
+        const pasteArea = document.getElementById('pasteArea');
+        const pastePreview = document.getElementById('pastePreview');
+        const historyToggle = document.getElementById('historyToggle');
+        const historyContent = document.getElementById('historyContent');
+        const historyClear = document.getElementById('historyClear');
+
+        // 存储粘贴的图片数据
+        let pastedImageData = null;
+        
+        // 历史记录相关函数
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('openai_image_history') || '[]');
+            updateHistoryDisplay(history);
+        }
+        
+        function saveToHistory(data) {
+            const history = JSON.parse(localStorage.getItem('openai_image_history') || '[]');
+            // 将新的记录添加到顶部
+            history.unshift(data);
+            // 只保留最近的30条记录
+            if (history.length > 30) {
+                history.pop();
+            }
+            localStorage.setItem('openai_image_history', JSON.stringify(history));
+            updateHistoryDisplay(history);
+        }
+        
+        function updateHistoryDisplay(history) {
+            historyContent.innerHTML = '';
+            
+            if (history.length === 0) {
+                const noHistory = document.createElement('div');
+                noHistory.className = 'no-history';
+                noHistory.textContent = '暂无历史记录';
+                historyContent.appendChild(noHistory);
+                return;
+            }
+            
+            history.forEach((item, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                // 创建图片元素
+                const img = document.createElement('img');
+                img.className = 'history-img';
+                img.src = item.imageUrl;
+                img.alt = `Generated image ${index + 1}`;
+                img.onclick = () => {
+                    resultImage.src = item.imageUrl;
+                    resultArea.style.display = 'block';
+                };
+                
+                // 创建信息区域
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'history-info';
+                
+                // 创建提示词显示
+                const promptP = document.createElement('p');
+                promptP.className = 'history-prompt';
+                promptP.title = item.prompt;
+                promptP.textContent = item.prompt;
+                
+                // 创建日期显示
+                const dateP = document.createElement('p');
+                dateP.className = 'history-date';
+                dateP.textContent = new Date(item.timestamp).toLocaleString();
+                
+                // 创建操作按钮区域
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'history-actions';
+                
+                // 创建删除按钮
+                const deleteBtn = document.createElement('div');
+                deleteBtn.className = 'history-action-btn';
+                deleteBtn.innerHTML = '&#x2715;'; // ×符号
+                deleteBtn.title = '删除';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    removeHistoryItem(index);
+                };
+                
+                // 创建使用提示词按钮
+                const usePromptBtn = document.createElement('div');
+                usePromptBtn.className = 'history-action-btn';
+                usePromptBtn.innerHTML = '&#x270E;'; // 铅笔符号
+                usePromptBtn.title = '使用此提示词';
+                usePromptBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    promptInput.value = item.prompt;
+                    addStatus(`已加载提示词: "${item.prompt}"`);
+                };
+                
+                // 组装各个元素
+                actionsDiv.appendChild(usePromptBtn);
+                actionsDiv.appendChild(deleteBtn);
+                
+                infoDiv.appendChild(promptP);
+                infoDiv.appendChild(dateP);
+                
+                historyItem.appendChild(img);
+                historyItem.appendChild(infoDiv);
+                historyItem.appendChild(actionsDiv);
+                
+                historyContent.appendChild(historyItem);
+            });
+        }
+        
+        function removeHistoryItem(index) {
+            const history = JSON.parse(localStorage.getItem('openai_image_history') || '[]');
+            history.splice(index, 1);
+            localStorage.setItem('openai_image_history', JSON.stringify(history));
+            updateHistoryDisplay(history);
+        }
+        
+        // 处理历史记录面板的折叠与展开
+        historyToggle.addEventListener('click', function() {
+            this.classList.toggle('collapsed');
+            historyContent.classList.toggle('collapsed');
+        });
+        
+        // 处理清空历史记录
+        historyClear.addEventListener('click', function() {
+            if (confirm('确定要清空所有历史记录吗？此操作不可恢复。')) {
+                localStorage.removeItem('openai_image_history');
+                updateHistoryDisplay([]);
+                addStatus('历史记录已清空');
+            }
+        });
+
+        // Add status message
+        function addStatus(message, isError = false) {
+            const statusMessage = document.createElement('div');
+            statusMessage.className = isError ? 'status-message error-message' : 'status-message';
+            statusMessage.textContent = message;
+            statusArea.appendChild(statusMessage);
+            statusArea.scrollTop = statusArea.scrollHeight;
+        }
+
+        // 处理图片粘贴功能
+        document.addEventListener('paste', function(e) {
+            // 检查粘贴的内容是否包含图片
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            let blob = null;
+            
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') === 0) {
+                    blob = items[i].getAsFile();
+                    break;
+                }
+            }
+            
+            if (blob) {
+                handlePastedImage(blob);
+            }
+        });
+
+        // 处理拖放功能
+        pasteArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.style.borderColor = '#2a2a72';
+            this.style.backgroundColor = '#f0f0f9';
+        });
+
+        pasteArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.style.borderColor = '#ccc';
+            this.style.backgroundColor = '#f9f9f9';
+        });
+
+        pasteArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.style.borderColor = '#ccc';
+            this.style.backgroundColor = '#f9f9f9';
+            
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0 && files[0].type.indexOf('image') === 0) {
+                handlePastedImage(files[0]);
+            }
+        });
+
+        // 点击粘贴区域时触发粘贴操作
+        pasteArea.addEventListener('click', function() {
+            addStatus('请按 Ctrl+V 粘贴图片...');
+        });
+
+        // 处理粘贴或拖放的图片
+        function handlePastedImage(blob) {
+            // 创建图片URL并显示预览
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                pastedImageData = e.target.result;
+                pastePreview.src = pastedImageData;
+                pastePreview.style.display = 'block';
+                
+                // 清除URL输入框，防止冲突
+                imageUrlInput.value = '';
+                
+                addStatus('图片已添加! 准备用于生成。');
+            };
+            reader.readAsDataURL(blob);
+        }
+
+        // Generate image
+        generateBtn.addEventListener('click', async function() {
+            const apiKey = apiKeyInput.value.trim();
+            const baseUrl = baseUrlInput.value.trim();
+            let prompt = promptInput.value.trim();
+            const model = "gpt-4o-image";
+            const size = sizeSelect.value;
+            const imageUrl = imageUrlInput.value.trim();
+            
+            // 设置默认提示词为吉卜力风格
+            if (!prompt) {
+                prompt = "Generate a Studio Ghibli style image with dreamy landscapes, whimsical characters, and magical elements";
+                promptInput.value = prompt; // Update the textarea with the default prompt
+                addStatus('使用默认吉卜力风格提示词生成图片');
+            }
+            
+            // Disable button during generation
+            generateBtn.disabled = true;
+            addStatus(`Generating image with prompt: "${prompt}" using model ${model} at size ${size}...`);
+            resultArea.style.display = 'none';
+            
+            try {
+                let response;
+                
+                // 优先使用粘贴的图片，其次使用URL
+                if (pastedImageData && pastedImageData.startsWith('data:image')) {
+                    addStatus('使用粘贴的图片作为输入...');
+                    response = await generateGPT4oImage(apiKey, baseUrl, prompt, size, pastedImageData);
+                } else if (imageUrl) {
+                    addStatus('使用URL图片作为输入...');
+                    response = await generateGPT4oImage(apiKey, baseUrl, prompt, size, imageUrl);
+                } else {
+                    addStatus('没有输入图片，只使用文本提示...');
+                    response = await generateGPT4oImage(apiKey, baseUrl, prompt, size);
+                }
+                
+                if (response.success) {
+                    addStatus('Image generated successfully!');
+                    resultImage.src = response.imageUrl;
+                    resultArea.style.display = 'block';
+                    saveBtn.style.display = 'inline-block';
+                    
+                    // 保存到历史记录
+                    saveToHistory({
+                        prompt: prompt,
+                        imageUrl: response.imageUrl,
+                        model: model,
+                        size: size,
+                        timestamp: Date.now()
+                    });
+                    
+                    // Set up save button
+                    saveBtn.onclick = function() {
+                        const a = document.createElement('a');
+                        a.href = response.imageUrl;
+                        a.download = `openai_image_${new Date().getTime()}.png`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    };
+                } else {
+                    addStatus(`Error: ${response.error}`, true);
+                }
+            } catch (error) {
+                addStatus(`Error: ${error.message}`, true);
+                console.error(error);
+            } finally {
+                generateBtn.disabled = false;
+            }
+        });
+
+        // Generate image with GPT-4o
+        async function generateGPT4oImage(apiKey, baseUrl, prompt, size, imageUrl = null) {
+            try {
+                const endpoint = `${baseUrl.replace(/\/$/, '')}/chat/completions`;
+                
+                // Prepare messages content
+                const messagesContent = [
+                    {
+                        "type": "text",
+                        "text": `Generate an image based on this description: ${prompt}`
+                    }
+                ];
+                
+                // Add image to content if URL is provided
+                if (imageUrl) {
+                    // 检查是否为Base64图片数据
+                    if (imageUrl.startsWith('data:image')) {
+                        addStatus(`Using pasted image in the request...`);
+                        messagesContent.push({
+                            "type": "image_url",
+                            "image_url": {
+                                "url": imageUrl
+                            }
+                        });
+                    } else {
+                        addStatus(`Including input image URL: ${imageUrl}`);
+                        messagesContent.push({
+                            "type": "image_url",
+                            "image_url": {
+                                "url": imageUrl
+                            }
+                        });
+                    }
+                }
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o-image',
+                        messages: [
+                            {
+                                "role": "user",
+                                "content": messagesContent
+                            }
+                        ],
+                        max_tokens: 300
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    return {
+                        success: false,
+                        error: errorData.error?.message || `API error: ${response.status} ${response.statusText}`
+                    };
+                }
+                
+                const data = await response.json();
+                
+                if (data.choices && data.choices.length > 0) {
+                    const responseContent = data.choices[0].message.content;
+                    
+                    // Extract image URL from the markdown response
+                    const imageUrlMatch = responseContent.match(/!\[.*?\]\((https:\/\/[^\s\)]+)\)/);
+                    
+                    if (imageUrlMatch) {
+                        const imageUrl = imageUrlMatch[1];
+                        addStatus(`Extracted image URL from response`);
+                        return {
+                            success: true,
+                            imageUrl: imageUrl
+                        };
+                    } else {
+                        // Try alternative format
+                        const downloadLinkMatch = responseContent.match(/\[点击下载\]\((https:\/\/[^\s\)]+)\)/);
+                        if (downloadLinkMatch) {
+                            const imageUrl = downloadLinkMatch[1];
+                            addStatus(`Extracted download URL from response`);
+                            return {
+                                success: true,
+                                imageUrl: imageUrl
+                            };
+                        } else {
+                            return {
+                                success: false,
+                                error: `Failed to extract image URL from response: ${responseContent.substring(0, 100)}...`
+                            };
+                        }
+                    }
+                } else {
+                    return {
+                        success: false,
+                        error: 'No image information found in GPT-4o response'
+                    };
+                }
+            } catch (error) {
+                console.error('Error generating GPT-4o image:', error);
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+        }
+
+        // Initialize the page
+        window.onload = function() {
+            addStatus('UI initialized. Ready to generate images.');
+            addStatus('可直接生成图像。');
+            
+            // 加载历史记录
+            loadHistory();
+        };
+    </script>
+</body>
+</html> 
