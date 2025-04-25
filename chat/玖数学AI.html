@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Speech Chat</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
+    <script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true,
+            packages: {'[+]': ['noerrors', 'autoload', 'ams', 'cancel']}
+        },
+        options: {
+            enableMenu: false,
+            renderActions: {
+                addMenu: [0, '', ''],
+                checkLoading: [200, '', '']
+            },
+            processEscapes: true,
+            ignoreHtmlClass: 'tex2jax_ignore',
+            processHtmlClass: 'tex2jax_process'
+        },
+        startup: {
+            pageReady: () => {
+                console.log('MathJax初始化完成');
+            }
+        }
+    };
+    </script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            padding-left: 20px;
+        }
+        h1 {
+            color: #2a2a72;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .chat-container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+        .message {
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 15px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background-color: #dcf8c6;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+        .ai-message {
+            background-color: #f1f0f0;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+        .message-input {
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+        }
+        textarea {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: none;
+            height: 60px;
+            font-family: inherit;
+            font-size: 16px;
+        }
+        .input-actions {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            background-color: #2a2a72;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #1a1a62;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .voice-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .status {
+            text-align: center;
+            margin: 10px 0;
+            color: #666;
+            font-style: italic;
+        }
+        .settings {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        select, input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .math-example {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        /* 图片粘贴区域样式 */
+        .paste-area {
+            width: 100%;
+            height: 100px;
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: #f9f9f9;
+            margin-bottom: 10px;
+        }
+        .paste-area:hover {
+            border-color: #2a2a72;
+            background-color: #f1f1f9;
+        }
+        .paste-area p {
+            margin: 0;
+            color: #666;
+        }
+        .paste-img-preview {
+            max-width: 100%;
+            max-height: 100px;
+            margin-top: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        .message img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+        .typing-indicator {
+            color: #888;
+            font-style: italic;
+        }
+        .assistant-paragraph {
+            margin-bottom: 10px;
+        }
+        /* 设置面板样式 */
+        .settings-panel {
+            position: fixed;
+            left: -350px; /* 增加宽度以容纳更多内容 */
+            top: 0;
+            width: 330px; /* 增加宽度 */
+            height: 100%;
+            background-color: #f0f0f0;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: left 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .settings-panel.open {
+            left: 0;
+        }
+        .settings-toggle {
+            position: fixed;
+            left: 10px;
+            top: 10px;
+            background-color: #2a2a72;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 1001;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .settings-toggle:hover {
+            background-color: #1a1a62;
+        }
+        .settings-panel h4 {
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .settings-section {
+            margin-bottom: 20px;
+        }
+        .close-settings {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #666;
+        }
+        .close-settings:hover {
+            color: #333;
+        }
+        /* 历史记录面板样式 */
+        .history-panel {
+            position: fixed;
+            top: 0;
+            right: -350px;
+            width: 350px;
+            height: 100vh;
+            background-color: #f8f9fa;
+            border-left: 1px solid #ddd;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+            z-index: 1000; /* Increase z-index to ensure it appears above other elements */
+            transition: right 0.3s ease;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        
+        .history-panel.active {
+            right: 0;
+        }
+        
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .history-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.3rem;
+        }
+        
+        .close-history {
+            font-size: 24px;
+            cursor: pointer;
+            color: #777;
+            transition: color 0.2s;
+        }
+        
+        .close-history:hover {
+            color: #dc3545;
+        }
+        
+        .history-actions-top {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .history-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        .save-history-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .save-history-btn:hover {
+            background-color: #218838;
+        }
+        
+        .clear-history-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .clear-history-btn:hover {
+            background-color: #c82333;
+        }
+        
+        .history-list {
+            max-height: calc(100vh - 150px);
+            overflow-y: auto;
+        }
+        
+        .no-history-msg {
+            color: #6c757d;
+            text-align: center;
+            padding: 20px 0;
+            font-style: italic;
+        }
+        
+        .history-item {
+            background-color: white;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .history-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.15);
+        }
+        
+        .history-date {
+            color: #6c757d;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .history-title {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #343a40;
+        }
+        
+        .history-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+        
+        .history-action {
+            background: none;
+            border: none;
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-left: 10px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .history-load:hover {
+            color: #007bff;
+        }
+        
+        .history-delete:hover {
+            color: #dc3545;
+        }
+        
+        #autoSaveIndicator {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background-color: rgba(40, 167, 69, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        #autoSaveIndicator.show {
+            opacity: 1;
+        }
+        
+        @media (max-width: 576px) {
+            .history-panel {
+                width: 85%;
+                right: -85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h3>玖数学</h3>
+        
+        <!-- 设置开关按钮 -->
+        <button class="settings-toggle" id="settingsToggle">⚙</button>
+        
+        <!-- 历史记录开关按钮 -->
+        <button id="historyToggle" style="position: fixed; top: 15px; right: 15px; width: 40px; height: 40px; z-index: 999; background-color: #2a2a72; color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 18px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+            ⌛
+        </button>
+        
+        <!-- 侧边设置面板 -->
+        <div class="settings-panel" id="settingsPanel">
+            <h4>设置</h4>
+            <button class="close-settings" id="closeSettings">×</button>
+            
+            <div class="settings-section">
+                <div class="form-group" style="display: none;">
+                    <label for="apiKey">API Key:</label>
+                    <input type="password" id="apiKey" value="sk-NKAwMaji6Elw3bXeAxTbkbaQ4zwwhFLKmhCySLJYDPp9tlTZ">
+                </div>
+                <div class="form-group">
+                    <label for="baseUrl">Base URL:</label>
+                    <input type="text" id="baseUrl" value="https://aigc.x-see.cn/v1/" placeholder="API base URL">
+                </div>
+                <div class="form-group">
+                    <label for="model">Model:</label>
+                    <select id="model">
+                        <option value="gpt-4.1-nano">GPT-4.1-nano</option>
+                        <option value="gpt-4.1-mini">GPT-4.1-mini</option>
+                        <option value="gpt-4.1">GPT-4.1</option>
+                        <option value="gpt-4o-mini">GPT-4o-mini</option>
+                        <option value="gpt-4o">GPT-4o</option>
+                        <option value="o3">o3</option>
+                        <option value="o3-mini-high">o3-mini-high</option>
+                    </select>
+                </div>
+                
+                <!-- 提示词模板设置 -->
+                <h4>提示词设置</h4>
+                <div class="form-group">
+                    <label for="promptTemplates">预设模板:</label>
+                    <select id="promptTemplates">
+                        <option value="">-- 选择模板 --</option>
+                        <option value="math-teacher">数学老师模式</option>
+                        <option value="math-competition">数学竞赛模式</option>
+                        <option value="step-by-step">详细步骤解析</option>
+                        <option value="concise">简洁模式</option>
+                        <option value="creative">创意思考模式</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="customPrompt">自定义提示词:</label>
+                    <textarea id="customPrompt" rows="5" placeholder="输入自定义提示词..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <button id="savePromptBtn">保存当前提示词</button>
+                    <button id="applyPromptBtn">应用提示词</button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="savedPrompts">已保存的提示词:</label>
+                    <select id="savedPrompts">
+                        <option value="">-- 选择已保存的提示词 --</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 历史记录面板 -->
+        <div id="historyPanel" class="history-panel">
+            <div class="history-header">
+                <h3>聊天历史</h3>
+                <span id="closeHistory" class="close-history">&times;</span>
+            </div>
+            <div class="history-actions-top">
+                <button id="saveHistoryBtn" class="history-btn save-history-btn">保存当前对话</button>
+                <button id="clearHistoryBtn" class="history-btn clear-history-btn">清空历史</button>
+            </div>
+            <div id="historyList" class="history-list">
+                <div class="no-history-msg">暂无历史记录</div>
+            </div>
+        </div>
+        <div id="autoSaveIndicator"></div>
+        
+        <div class="chat-container" id="chatContainer"></div>
+        
+        <div class="status" id="status">Ready to chat</div>
+        
+        <div class="message-input">
+            <textarea id="messageInput" placeholder="Type your message here..."></textarea>
+            
+            <!-- 添加图片粘贴区域 -->
+            <div class="paste-area" id="pasteArea">
+                <img id="pastePreview" class="paste-img-preview" alt="粘贴预览">
+            </div>
+            
+            <div class="input-actions">
+                <button id="sendBtn">Send</button>
+                <button id="clearImageBtn" style="display: none;">Clear Image</button>
+            </div>
+        </div>
+        
+        <div class="voice-buttons">
+            <button id="startRecordBtn">Start Recording</button>
+            <button id="stopRecordBtn" disabled>Stop Recording</button>
+            <button id="speakResponseBtn">Speak Last Response</button>
+        </div>
+        
+
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const chatContainer = document.getElementById('chatContainer');
+            const messageInput = document.getElementById('messageInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const startRecordBtn = document.getElementById('startRecordBtn');
+            const stopRecordBtn = document.getElementById('stopRecordBtn');
+            const speakResponseBtn = document.getElementById('speakResponseBtn');
+            const statusEl = document.getElementById('status');
+            const apiKeyInput = document.getElementById('apiKey');
+            const baseUrlInput = document.getElementById('baseUrl');
+            const modelSelect = document.getElementById('model');
+            const settingsToggle = document.getElementById('settingsToggle');
+            const settingsPanel = document.getElementById('settingsPanel');
+            const closeSettings = document.getElementById('closeSettings');
+            const promptTemplateSelect = document.getElementById('promptTemplates');
+            const customPromptTextarea = document.getElementById('customPrompt');
+            const savePromptBtn = document.getElementById('savePromptBtn');
+            const applyPromptBtn = document.getElementById('applyPromptBtn');
+            const savedPromptsSelect = document.getElementById('savedPrompts');
+            const historyToggle = document.getElementById('historyToggle');
+            const historyPanel = document.getElementById('historyPanel');
+            const closeHistory = document.getElementById('closeHistory');
+            const saveHistoryBtn = document.getElementById('saveHistoryBtn');
+            const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+            const historyList = document.getElementById('historyList');
+            
+            // Variables
+            let messages = [];
+            let recognition;
+            let speechSynthesis = window.speechSynthesis;
+            let lastAiResponse = '';
+            let pastedImageData = null; // 存储粘贴的图片数据
+            let lastAutoSaveTime = null; // 最后自动保存时间
+            
+            // 提示词模板
+            const PROMPT_TEMPLATES = {
+                "math-teacher": "你是一位有20年经验的数学老师，擅长通过简单易懂的方式讲解复杂的数学概念。请提供清晰的解释和例子来帮助理解。使用LaTeX表示数学公式。",
+                "math-competition": "你是一位数学竞赛教练，擅长解决各种复杂的竞赛题目。请提供多种解法，尤其是巧妙、简洁的方法，并分析每种解法的思路和技巧。使用LaTeX表示数学公式。",
+                "step-by-step": "请提供详细的逐步解析，解释每一步背后的原理和思路。使用LaTeX表示数学公式，并在关键步骤添加说明。",
+                "concise": "请简洁地回答问题，直接给出结论和必要的步骤，不需要冗长的解释。使用LaTeX表示数学公式。",
+                "creative": "请以创新的视角思考问题，提供常规方法之外的解决思路。尝试用不同的概念或领域的知识来解释。使用LaTeX表示数学公式。"
+            };
+            
+            // 初始化系统消息
+            const DEFAULT_SYSTEM_MESSAGE = {
+                "role": "system",
+                "content": "你是一个专业的数学助手，擅长解答数学问题和讲解数学概念。每一道题都用多种方法。从各个角度来理解问题，每一道题尽可能从线性代数，向量，三角，复数等方面来解答。请使用简洁清晰的语言，并正确使用LaTeX表示数学公式。"
+            };
+            
+            // 当前系统消息
+            let currentSystemMessage = DEFAULT_SYSTEM_MESSAGE;
+            
+            // Check for Speech Recognition API
+            if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+                recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'zh-CN'; // Default to Chinese
+            } else {
+                startRecordBtn.disabled = true;
+                stopRecordBtn.disabled = true;
+                updateStatus('Speech recognition not supported in this browser', true);
+            }
+            
+            // Add a message to the chat
+            function addMessage(text, isAi = false, imageData = null) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${isAi ? 'ai-message' : 'user-message'}`;
+                
+                // Process the text for MathJax
+                let processedText = text;
+                
+                messageDiv.innerHTML = processedText;
+                
+                // 如果有图片数据，添加图片
+                if (imageData) {
+                    const imgElement = document.createElement('img');
+                    imgElement.src = imageData;
+                    imgElement.alt = "Attached image";
+                    messageDiv.appendChild(imgElement);
+                }
+                
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // Process MathJax rendering
+                if (window.MathJax) {
+                    window.MathJax.typeset([messageDiv]);
+                }
+                
+                // Store message for API
+                if (imageData) {
+                    // 如果有图片，使用多模态内容格式
+                    messages.push({
+                        role: isAi ? 'assistant' : 'user',
+                        content: [
+                            {
+                                type: "text",
+                                text: text
+                            },
+                            {
+                                type: "image_url",
+                                image_url: {
+                                    url: imageData
+                                }
+                            }
+                        ]
+                    });
+                } else {
+                    // 纯文本消息
+                    messages.push({
+                        role: isAi ? 'assistant' : 'user',
+                        content: text
+                    });
+                }
+                
+                // Save last AI response for speech
+                if (isAi) {
+                    lastAiResponse = text;
+                }
+            }
+            
+            // Update status message
+            function updateStatus(message, isError = false) {
+                statusEl.textContent = message;
+                statusEl.style.color = isError ? '#d9534f' : '#666';
+            }
+            
+            // Send message to API
+            async function sendMessageToAPI(text) {
+                const apiKey = apiKeyInput.value.trim();
+                const baseUrl = baseUrlInput.value.trim();
+                const model = modelSelect.value;
+                
+                // 添加消息到聊天区域，如果有图片则包含图片
+                addMessage(text, false, pastedImageData);
+                updateStatus('Waiting for response...');
+                
+                // 预先创建AI消息占位符，以便流式更新
+                const aiMessageDiv = document.createElement('div');
+                aiMessageDiv.className = 'message ai-message';
+                aiMessageDiv.innerHTML = '<div class="typing-indicator">AI正在思考...</div>';
+                chatContainer.appendChild(aiMessageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                try {
+                    const endpoint = `${baseUrl.replace(/\/$/, '')}/chat/completions`;
+                    
+                    // 准备请求体
+                    const requestBody = {
+                        model: model,
+                        max_tokens: 12000, // 增加token上限以确保完整的数学公式渲染
+                        stream: true // 启用流式响应
+                    };
+                    
+                    // 构建消息数组，确保包含系统消息
+                    let messagesList = [];
+                    // 首先添加系统消息
+                    messagesList.push(currentSystemMessage);
+                    // 然后添加历史消息，但跳过第一条系统消息（如果存在）
+                    for (let i = 0; i < messages.length; i++) {
+                        if (i === 0 && messages[i].role === 'system') continue;
+                        messagesList.push(messages[i]);
+                    }
+                    
+                    // 根据是否有图片使用不同的消息格式
+                    if (messagesList.length > 0 && Array.isArray(messagesList[messagesList.length - 1].content)) {
+                        // 最新消息是多模态格式（包含图片）
+                        requestBody.messages = messagesList;
+                    } else {
+                        // 使用传统消息格式
+                        requestBody.messages = messagesList;
+                    }
+                    
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${apiKey}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error?.message || `API error: ${response.status} ${response.statusText}`);
+                    }
+                    
+                    // 处理流式响应
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder('utf-8');
+                    
+                    // 移除占位符
+                    aiMessageDiv.innerHTML = '';
+                    
+                    // 创建内容容器
+                    const contentElement = document.createElement('div');
+                    contentElement.className = 'message-content';
+                    aiMessageDiv.appendChild(contentElement);
+                    
+                    let fullResponse = '';
+                    
+                    // 处理数据流
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        
+                        // 解码字节流为文本
+                        const chunk = decoder.decode(value, { stream: true });
+                        
+                        // 处理SSE（Server-Sent Events）格式的数据
+                        const lines = chunk.split('\n');
+                        for (const line of lines) {
+                            if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                                try {
+                                    const data = JSON.parse(line.substring(6));
+                                    if (data.choices && data.choices.length > 0) {
+                                        const contentDelta = data.choices[0].delta?.content || '';
+                                        if (contentDelta) {
+                                            fullResponse += contentDelta;
+                                            
+                                            // 更新UI显示的文本内容
+                                            contentElement.innerHTML = fullResponse;
+                                            
+                                            // 滚动到底部
+                                            chatContainer.scrollTop = chatContainer.scrollHeight;
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error('Error parsing SSE data:', e);
+                                }
+                            }
+                        }
+                    }
+                    
+                    // 所有内容接收完毕后，完整渲染LaTeX
+                    try {
+                        if (window.MathJax) {
+                            await window.MathJax.typesetPromise([contentElement]);
+                            console.log('LaTeX渲染完成');
+                        }
+                    } catch (err) {
+                        console.error('LaTeX渲染错误:', err);
+                    }
+                    
+                    // 流处理完成后，添加到消息历史
+                    messages.push({
+                        role: 'assistant',
+                        content: fullResponse
+                    });
+                    
+                    // 保存最后的AI响应用于语音播放
+                    lastAiResponse = fullResponse;
+                    
+                    updateStatus('Response received');
+                    
+                    // 清除粘贴的图片
+                    clearPastedImage();
+                    
+                } catch (error) {
+                    updateStatus(`Error: ${error.message}`, true);
+                    console.error('API call error:', error);
+                }
+            }
+            
+            // 清除粘贴的图片
+            function clearPastedImage() {
+                pastedImageData = null;
+                pastePreview.style.display = 'none';
+                pastePreview.src = '';
+                document.getElementById('clearImageBtn').style.display = 'none';
+            }
+            
+            // Handle send button click
+            sendBtn.addEventListener('click', () => {
+                const text = messageInput.value.trim();
+                if (text || pastedImageData) {
+                    sendMessageToAPI(text);
+                    messageInput.value = '';
+                }
+            });
+            
+            // Handle Enter key in textarea
+            messageInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendBtn.click();
+                }
+            });
+            
+            // Handle speech recognition
+            if (recognition) {
+                let finalTranscript = '';
+                
+                recognition.onstart = () => {
+                    updateStatus('Listening...');
+                    finalTranscript = '';
+                };
+                
+                recognition.onresult = (event) => {
+                    let interimTranscript = '';
+                    
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript;
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+                    
+                    messageInput.value = finalTranscript + interimTranscript;
+                };
+                
+                recognition.onerror = (event) => {
+                    updateStatus(`Error in speech recognition: ${event.error}`, true);
+                    stopRecordBtn.disabled = true;
+                    startRecordBtn.disabled = false;
+                };
+                
+                recognition.onend = () => {
+                    updateStatus('Speech recognition ended');
+                    stopRecordBtn.disabled = true;
+                    startRecordBtn.disabled = false;
+                };
+                
+                startRecordBtn.addEventListener('click', () => {
+                    try {
+                        recognition.start();
+                        startRecordBtn.disabled = true;
+                        stopRecordBtn.disabled = false;
+                    } catch (error) {
+                        updateStatus(`Error starting recognition: ${error.message}`, true);
+                    }
+                });
+                
+                stopRecordBtn.addEventListener('click', () => {
+                    recognition.stop();
+                    stopRecordBtn.disabled = true;
+                    startRecordBtn.disabled = false;
+                    
+                    if (finalTranscript) {
+                        messageInput.value = finalTranscript;
+                    }
+                });
+            }
+            
+            // Handle text-to-speech
+            speakResponseBtn.addEventListener('click', () => {
+                if (!lastAiResponse) {
+                    updateStatus('No AI response to speak', true);
+                    return;
+                }
+                
+                if (!speechSynthesis) {
+                    updateStatus('Text-to-speech not supported in this browser', true);
+                    return;
+                }
+                
+                // Stop any current speech
+                speechSynthesis.cancel();
+                
+                // Create a new utterance
+                const utterance = new SpeechSynthesisUtterance(lastAiResponse);
+                utterance.lang = 'zh-CN'; // Set language to Chinese
+                
+                utterance.onstart = () => {
+                    updateStatus('Speaking...');
+                };
+                
+                utterance.onend = () => {
+                    updateStatus('Finished speaking');
+                };
+                
+                utterance.onerror = (event) => {
+                    updateStatus(`Speech synthesis error: ${event.error}`, true);
+                };
+                
+                // Speak the utterance
+                speechSynthesis.speak(utterance);
+            });
+            
+            // 处理图片粘贴功能
+            document.addEventListener('paste', function(e) {
+                // 检查粘贴的内容是否包含图片
+                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                let blob = null;
+                
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') === 0) {
+                        blob = items[i].getAsFile();
+                        break;
+                    }
+                }
+                
+                if (blob) {
+                    handlePastedImage(blob);
+                }
+            });
+
+            // 处理拖放功能
+            const pasteArea = document.getElementById('pasteArea');
+            const pastePreview = document.getElementById('pastePreview');
+            const clearImageBtn = document.getElementById('clearImageBtn');
+            
+            pasteArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.borderColor = '#2a2a72';
+                this.style.backgroundColor = '#f0f0f9';
+            });
+
+            pasteArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.borderColor = '#ccc';
+                this.style.backgroundColor = '#f9f9f9';
+            });
+
+            pasteArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.borderColor = '#ccc';
+                this.style.backgroundColor = '#f9f9f9';
+                
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files.length > 0 && files[0].type.indexOf('image') === 0) {
+                    handlePastedImage(files[0]);
+                }
+            });
+
+            // 点击粘贴区域时触发粘贴操作
+            pasteArea.addEventListener('click', function() {
+                updateStatus('请按 Ctrl+V 粘贴图片...');
+            });
+            
+            // 清除图片按钮
+            clearImageBtn.addEventListener('click', clearPastedImage);
+
+            // 处理粘贴或拖放的图片
+            function handlePastedImage(blob) {
+                // 创建图片URL并显示预览
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    pastedImageData = e.target.result;
+                    pastePreview.src = pastedImageData;
+                    pastePreview.style.display = 'block';
+                    clearImageBtn.style.display = 'inline-block';
+                    
+                    updateStatus('图片已添加! 发送消息时将包含此图片。');
+                };
+                reader.readAsDataURL(blob);
+            }
+            
+            // Initialize
+            window.onload = () => {
+                // 配置MathJax以更好地处理动态内容
+                if (window.MathJax) {
+                    window.MathJax = {
+                        ...window.MathJax,
+                        options: {
+                            ...window.MathJax?.options,
+                            renderActions: {
+                                addMenu: [0, '', ''],
+                                checkLoading: [200, '', '']
+                            },
+                            processEscapes: true,
+                            ignoreHtmlClass: 'tex2jax_ignore',
+                            processHtmlClass: 'tex2jax_process'
+                        },
+                        startup: {
+                            ...window.MathJax?.startup,
+                            pageReady: () => {
+                                console.log('MathJax初始化完成');
+                            }
+                        }
+                    };
+                }
+                
+                updateStatus('Ready to chat');
+                // 加载已保存的提示词
+                loadSavedPrompts();
+                // 初始化系统消息
+                messages = [currentSystemMessage];
+                // 初始化历史记录列表
+                loadHistoryList();
+                // 初始化自动保存指示器
+                updateAutoSaveIndicator();
+                // Add an initial greeting message
+                addMessage("你好！我是AI助手。我可以帮助你回答问题，包括数学问题。我也支持语音交互，点击\"Start Recording\"开始录音。", true, null);
+            };
+
+            // 设置面板控制
+            settingsToggle.addEventListener('click', () => {
+                settingsPanel.classList.add('open');
+            });
+            
+            closeSettings.addEventListener('click', () => {
+                settingsPanel.classList.remove('open');
+            });
+            
+            // 点击面板外部区域关闭设置
+            document.addEventListener('click', (e) => {
+                if (settingsPanel.classList.contains('open') && 
+                    !settingsPanel.contains(e.target) && 
+                    e.target !== settingsToggle) {
+                    settingsPanel.classList.remove('open');
+                }
+            });
+
+            // 加载保存的提示词
+            function loadSavedPrompts() {
+                const savedPrompts = JSON.parse(localStorage.getItem('savedPrompts') || '{}');
+                savedPromptsSelect.innerHTML = '<option value="">-- 选择已保存的提示词 --</option>';
+                
+                for (const [name, prompt] of Object.entries(savedPrompts)) {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    savedPromptsSelect.appendChild(option);
+                }
+            }
+            
+            // 应用提示词模板
+            function applyPromptTemplate(template) {
+                if (PROMPT_TEMPLATES[template]) {
+                    customPromptTextarea.value = PROMPT_TEMPLATES[template];
+                }
+            }
+            
+            // 应用提示词到系统消息
+            function applyPrompt() {
+                const promptText = customPromptTextarea.value.trim();
+                if (promptText) {
+                    currentSystemMessage = {
+                        "role": "system",
+                        "content": promptText
+                    };
+                    
+                    // 重置消息历史，保留系统消息
+                    messages = [currentSystemMessage];
+                    
+                    updateStatus('已应用新的提示词模板，开始新的对话');
+                    chatContainer.innerHTML = '';
+                } else {
+                    updateStatus('请先输入或选择提示词', true);
+                }
+            }
+            
+            // 保存提示词
+            function savePrompt() {
+                const promptText = customPromptTextarea.value.trim();
+                if (!promptText) {
+                    updateStatus('请先输入提示词', true);
+                    return;
+                }
+                
+                const name = prompt('请输入提示词模板名称:');
+                if (!name) return;
+                
+                const savedPrompts = JSON.parse(localStorage.getItem('savedPrompts') || '{}');
+                savedPrompts[name] = promptText;
+                localStorage.setItem('savedPrompts', JSON.stringify(savedPrompts));
+                
+                loadSavedPrompts();
+                updateStatus(`提示词"${name}"已保存`);
+            }
+            
+            // 监听提示词相关事件
+            promptTemplateSelect.addEventListener('change', () => {
+                const template = promptTemplateSelect.value;
+                if (template) {
+                    applyPromptTemplate(template);
+                }
+            });
+            
+            savedPromptsSelect.addEventListener('change', () => {
+                const name = savedPromptsSelect.value;
+                if (name) {
+                    const savedPrompts = JSON.parse(localStorage.getItem('savedPrompts') || '{}');
+                    customPromptTextarea.value = savedPrompts[name];
+                }
+            });
+            
+            savePromptBtn.addEventListener('click', savePrompt);
+            applyPromptBtn.addEventListener('click', applyPrompt);
+
+            // 历史记录面板控制
+            historyToggle.addEventListener('click', () => {
+                console.log('History toggle clicked');
+                historyPanel.classList.toggle('active');
+                console.log('History panel active:', historyPanel.classList.contains('active'));
+                loadHistoryList(); // 每次打开面板时刷新历史记录列表
+            });
+            
+            closeHistory.addEventListener('click', () => {
+                historyPanel.classList.remove('active');
+            });
+            
+            // 点击面板外部区域关闭历史记录
+            document.addEventListener('click', (e) => {
+                if (historyPanel.classList.contains('active') && 
+                    !historyPanel.contains(e.target) && 
+                    e.target !== historyToggle) {
+                    historyPanel.classList.remove('active');
+                }
+            });
+            
+            // 保存当前聊天历史
+            saveHistoryBtn.addEventListener('click', saveCurrentHistory);
+            
+            // 清除所有历史记录
+            clearHistoryBtn.addEventListener('click', clearAllHistory);
+            
+            function saveCurrentHistory() {
+                // 确保有内容可保存
+                if (messages.length <= 1) {
+                    updateStatus('当前对话为空，无需保存', true);
+                    return;
+                }
+                
+                const historyName = prompt('请输入此次对话的名称:');
+                if (!historyName) return;
+                
+                // 获取现有历史记录
+                let histories = JSON.parse(localStorage.getItem('chatHistories') || '[]');
+                
+                // 创建新的历史记录对象
+                const newHistory = {
+                    id: Date.now().toString(),
+                    name: historyName,
+                    date: new Date().toLocaleString(),
+                    messages: JSON.parse(JSON.stringify(messages)), // 深拷贝消息
+                    systemMessage: JSON.parse(JSON.stringify(currentSystemMessage))
+                };
+                
+                // 添加新历史记录
+                histories.unshift(newHistory); // 添加到数组前面，使最新的在最前
+                
+                // 限制历史记录数量（可选）
+                if (histories.length > 50) {
+                    histories = histories.slice(0, 50);
+                }
+                
+                // 保存回本地存储
+                localStorage.setItem('chatHistories', JSON.stringify(histories));
+                
+                // 更新历史记录列表
+                loadHistoryList();
+                
+                // 更新最后保存时间
+                lastAutoSaveTime = new Date();
+                updateAutoSaveIndicator();
+                
+                // 显示历史记录面板
+                historyPanel.classList.add('active');
+                
+                updateStatus(`对话"${historyName}"已保存`);
+            }
+            
+            // 加载历史记录列表
+            function loadHistoryList() {
+                const histories = JSON.parse(localStorage.getItem('chatHistories') || '[]');
+                
+                if (histories.length === 0) {
+                    historyList.innerHTML = '<div class="no-history-msg">暂无历史记录</div>';
+                    return;
+                }
+                
+                historyList.innerHTML = '';
+                
+                histories.forEach(history => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    
+                    // 截取对话内容预览
+                    let previewText = '';
+                    if (history.messages.length > 1) {
+                        const userMsg = history.messages.find(msg => msg.role === 'user');
+                        if (userMsg) {
+                            previewText = typeof userMsg.content === 'string' 
+                                ? userMsg.content.substring(0, 50) + (userMsg.content.length > 50 ? '...' : '')
+                                : '多模态消息...';
+                        }
+                    }
+                    
+                    historyItem.innerHTML = `
+                        <div class="history-item-title">${history.name}</div>
+                        <div class="history-item-preview">${previewText}</div>
+                        <div class="history-item-date">${history.date}</div>
+                        <div class="history-actions">
+                            <span class="history-action history-load" data-id="${history.id}">加载</span>
+                            <span class="history-action history-delete" data-id="${history.id}">删除</span>
+                        </div>
+                    `;
+                    
+                    historyList.appendChild(historyItem);
+                });
+                
+                // 添加事件监听器
+                document.querySelectorAll('.history-load').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        loadHistory(e.target.dataset.id);
+                    });
+                });
+                
+                document.querySelectorAll('.history-delete').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteHistory(e.target.dataset.id);
+                    });
+                });
+            }
+            
+            // 加载特定历史记录
+            function loadHistory(historyId) {
+                const histories = JSON.parse(localStorage.getItem('chatHistories') || '[]');
+                const history = histories.find(h => h.id === historyId);
+                
+                if (!history) {
+                    updateStatus('找不到指定的历史记录', true);
+                    return;
+                }
+                
+                // 清空当前对话
+                chatContainer.innerHTML = '';
+                
+                // 设置系统消息
+                if (history.systemMessage) {
+                    currentSystemMessage = history.systemMessage;
+                }
+                
+                // 恢复消息数组
+                messages = JSON.parse(JSON.stringify(history.messages));
+                
+                // 重新显示所有消息
+                messages.forEach(msg => {
+                    if (msg.role !== 'system') {
+                        const isAi = msg.role === 'assistant';
+                        let content = msg.content;
+                        let imageData = null;
+                        
+                        // 处理多模态消息
+                        if (Array.isArray(msg.content)) {
+                            const textContent = msg.content.find(c => c.type === 'text');
+                            const imageContent = msg.content.find(c => c.type === 'image_url');
+                            
+                            content = textContent ? textContent.text : '';
+                            imageData = imageContent ? imageContent.image_url.url : null;
+                        }
+                        
+                        // 手动创建消息元素而不是调用addMessage以避免重复添加到messages数组
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = `message ${isAi ? 'ai-message' : 'user-message'}`;
+                        
+                        messageDiv.innerHTML = content;
+                        
+                        if (imageData) {
+                            const imgElement = document.createElement('img');
+                            imgElement.src = imageData;
+                            imgElement.alt = "Attached image";
+                            messageDiv.appendChild(imgElement);
+                        }
+                        
+                        chatContainer.appendChild(messageDiv);
+                        
+                        // 渲染LaTeX
+                        if (window.MathJax) {
+                            window.MathJax.typeset([messageDiv]);
+                        }
+                        
+                        // 更新最后的AI响应
+                        if (isAi) {
+                            lastAiResponse = content;
+                        }
+                    }
+                });
+                
+                // 滚动到底部
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // 关闭历史记录面板
+                historyPanel.classList.remove('active');
+                
+                updateStatus(`已加载对话: ${history.name}`);
+            }
+            
+            // 删除特定历史记录
+            function deleteHistory(historyId) {
+                if (!confirm('确定要删除此条历史记录吗？')) return;
+                
+                let histories = JSON.parse(localStorage.getItem('chatHistories') || '[]');
+                histories = histories.filter(h => h.id !== historyId);
+                localStorage.setItem('chatHistories', JSON.stringify(histories));
+                
+                loadHistoryList();
+                updateStatus('已删除历史记录');
+            }
+            
+            // 清除所有历史记录
+            function clearAllHistory() {
+                if (!confirm('确定要删除所有历史记录吗？此操作无法撤销！')) return;
+                
+                localStorage.removeItem('chatHistories');
+                loadHistoryList();
+                updateStatus('已清除所有历史记录');
+            }
+            
+            // 自动保存当前对话
+            function autoSaveCurrentChat() {
+                // 确保有内容可保存
+                if (messages.length <= 1) return;
+                
+                // 获取现有历史记录
+                let histories = JSON.parse(localStorage.getItem('chatHistories') || '[]');
+                
+                // 检查是否已有自动保存的记录
+                const autoSaveIndex = histories.findIndex(h => h.name.startsWith('自动保存'));
+                
+                // 创建新的历史记录对象
+                const newHistory = {
+                    id: Date.now().toString(),
+                    name: `自动保存 - ${new Date().toLocaleString()}`,
+                    date: new Date().toLocaleString(),
+                    messages: JSON.parse(JSON.stringify(messages)),
+                    systemMessage: JSON.parse(JSON.stringify(currentSystemMessage))
+                };
+                
+                // 替换或添加自动保存记录
+                if (autoSaveIndex !== -1) {
+                    histories[autoSaveIndex] = newHistory;
+                } else {
+                    histories.unshift(newHistory);
+                }
+                
+                // 限制历史记录数量
+                if (histories.length > 50) {
+                    histories = histories.slice(0, 50);
+                }
+                
+                // 保存回本地存储
+                localStorage.setItem('chatHistories', JSON.stringify(histories));
+                
+                // 更新自动保存指示器
+                lastAutoSaveTime = new Date();
+                updateAutoSaveIndicator();
+            }
+            
+            // 更新自动保存指示器
+            function updateAutoSaveIndicator() {
+                const autoSaveIndicator = document.getElementById('autoSaveIndicator');
+                if (lastAutoSaveTime) {
+                    autoSaveIndicator.textContent = `最近自动保存: ${lastAutoSaveTime.toLocaleString()}`;
+                } else {
+                    autoSaveIndicator.textContent = '最近保存: 未保存';
+                }
+            }
+            
+            // 格式化多项式表达式，确保正确渲染
+            function formatPolynomial(expression) {
+                // 处理多项式首项系数为1，不显示;-1，显示-;中间项+1，显示+，-1，显示-
+                // 正数时多加一个+，负数不要加正号；常数项正数加+，负数不要加
+                return expression.replace(/\+\s*-/g, '-')
+                                .replace(/([^0-9])(1)([a-zA-Z])/g, '$1$3')
+                                .replace(/\+\s*1([a-zA-Z])/g, '+$1')
+                                .replace(/^\s*1([a-zA-Z])/g, '$1')
+                                .replace(/\-\s*1([a-zA-Z])/g, '-$1');
+            }
+            
+            // 添加自动保存功能 (每5分钟自动保存一次)
+            setInterval(autoSaveCurrentChat, 5 * 60 * 1000);
+            
+            // 页面关闭前自动保存
+            window.addEventListener('beforeunload', autoSaveCurrentChat);
+        });
+    </script>
+</body>
+</html> 
