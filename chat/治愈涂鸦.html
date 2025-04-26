@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>治愈涂鸦</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .left-panel {
+            flex: 1;
+            min-width: 300px;
+        }
+        .right-panel {
+            flex: 1;
+            min-width: 300px;
+        }
+        h1 {
+            color: #2a2a72;
+            text-align: center;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+        h2 {
+            color: #2a2a72;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        textarea {
+            min-height: 100px;
+        }
+        button {
+            background-color: #2a2a72;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #1a1a62;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .status-area {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+        .status-message {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #2a2a72;
+        }
+        .error-message {
+            color: #d9534f;
+            border-left: 3px solid #d9534f;
+        }
+        .result-area {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .result-image {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        /* 粘贴区域的样式 */
+        .paste-area {
+            width: 100%;
+            height: 150px;
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: #f9f9f9;
+            margin-bottom: 10px;
+        }
+        .paste-area:hover {
+            border-color: #2a2a72;
+            background-color: #f1f1f9;
+        }
+        .paste-area p {
+            margin: 0;
+            color: #666;
+        }
+        .paste-img-preview {
+            max-width: 100%;
+            max-height: 140px;
+            margin-top: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        /* 历史记录样式 */
+        .history-panel {
+            margin-top: 30px;
+        }
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .history-toggle {
+            cursor: pointer;
+            font-weight: 600;
+            color: #2a2a72;
+            display: flex;
+            align-items: center;
+        }
+        .history-toggle::after {
+            content: '▼';
+            margin-left: 8px;
+            font-size: 12px;
+        }
+        .history-toggle.collapsed::after {
+            content: '▶';
+        }
+        .history-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+        .history-content.collapsed {
+            display: none;
+        }
+        .history-clear {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            border: 1px solid #f5c6cb;
+        }
+        .history-clear:hover {
+            background-color: #f5c6cb;
+        }
+        .history-item {
+            position: relative;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .history-item:hover {
+            transform: translateY(-5px);
+        }
+        .history-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        .history-info {
+            padding: 8px;
+            font-size: 12px;
+            background-color: rgba(0,0,0,0.03);
+        }
+        .history-prompt {
+            margin: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .history-date {
+            margin: 3px 0 0;
+            color: #666;
+            font-size: 11px;
+        }
+        .history-actions {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            display: flex;
+            gap: 5px;
+        }
+        .history-action-btn {
+            width: 25px;
+            height: 25px;
+            background-color: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .history-action-btn:hover {
+            background-color: white;
+        }
+        .no-history {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        /* 批量生成进度样式 */
+        .batch-progress {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 3px solid #2a2a72;
+        }
+        .progress-bar-container {
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #2a2a72;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* Canvas styles */
+        .canvas-container {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            position: relative;
+            overflow: hidden;
+            background-color: #fff;
+            margin-bottom: 15px;
+        }
+        #drawingCanvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+            cursor: crosshair;
+        }
+        .canvas-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .canvas-buttons button {
+            flex: 1;
+            min-width: 80px;
+            margin: 0;
+            font-size: 14px;
+            padding: 8px 12px;
+        }
+        #eraserBtn {
+            background-color: #ff9800;
+        }
+        #eraserBtn.active {
+            background-color: #e65100;
+        }
+        #clearCanvasBtn {
+            background-color: #f44336;
+        }
+        /* 调色板样式 */
+        .color-palette {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+            border: 2px solid #f5f5f5;
+        }
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+        .color-option.active {
+            border: 2px solid #333;
+            transform: scale(1.1);
+        }
+        .color-picker {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+        }
+        .color-picker input {
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            background: transparent;
+        }
+        .color-picker label {
+            margin-top: 4px;
+            color: #666;
+            font-size: 10px;
+            font-weight: normal;
+        }
+        /* Notification styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #323232;
+            color: #fff;
+            padding: 15px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+            z-index: 1000;
+        }
+        .notification.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .notification.success {
+            background-color: #4CAF50;
+        }
+        .notification.error {
+            background-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <div class="left-panel">
+            <h2>绘制草图</h2>
+            <p style="margin-bottom: 10px; font-style: italic; color: #666;">点击画布后可以直接粘贴(Ctrl+V)图片到画布上</p>
+            <div class="canvas-container">
+                <canvas id="drawingCanvas" tabindex="0"></canvas>
+            </div>
+            <div class="canvas-buttons">
+                <button id="clearCanvasBtn">清除</button>
+                <button id="eraserBtn">橡皮擦</button>
+                <button id="sendCanvasBtn">发送草图</button>
+                <button id="generateBtn">生成图像</button>
+            </div>
+            
+            <!-- 添加调色板 -->
+            <div class="color-palette">
+                <div class="color-option active" data-color="#000000" style="background-color: #000000;"></div>
+                <div class="color-option" data-color="#ff0000" style="background-color: #ff0000;"></div>
+                <div class="color-option" data-color="#ff9900" style="background-color: #ff9900;"></div>
+                <div class="color-option" data-color="#33cc33" style="background-color: #33cc33;"></div>
+                <div class="color-option" data-color="#3366ff" style="background-color: #3366ff;"></div>
+                <div class="color-option" data-color="#9933ff" style="background-color: #9933ff;"></div>
+                <div class="color-option" data-color="#ff66cc" style="background-color: #ff66cc;"></div>
+                <div class="color-option" data-color="#663300" style="background-color: #663300;"></div>
+                <div class="color-picker">
+                    <input type="color" id="customColorPicker" value="#000000">
+                    <label for="customColorPicker">自定义</label>
+                </div>
+            </div>
+            
+            <div class="form-group" style="display: none;">
+                <label for="apiKey">OpenAI API Key:</label>
+                <input type="password" id="apiKey" value="sk-NKAwMaji6Elw3bXeAxTbkbaQ4zwwhFLKmhCySLJYDPp9tlTZ" placeholder="Enter your OpenAI API key here">
+            </div>
+            
+            <div class="form-group" style="display: none;">
+                <label for="baseUrl">Base URL:</label>
+                <input type="text" id="baseUrl" value="https://aigc.x-see.cn/v1/" placeholder="API base URL">
+            </div>
+            
+            <div class="form-group">
+                <label for="prompt">Prompt: (一行一个提示词，可批量生成)</label>
+                <textarea id="prompt" placeholder="Enter your image description here...">生成一个治愈系图片</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="promptCategory">提示词分类:</label>
+                <select id="promptCategory" onchange="showSubcategory()">
+                    <option value="">-- 选择提示词分类 --</option>
+                    <option value="composition">一、精确构图篇</option>
+                    <option value="creative">二、创意激发篇</option>
+                    <option value="master">三、大师复刻篇</option>
+                    <option value="scene">四、场景构建篇</option>
+                    <option value="technical">五、技术参数篇</option>
+                    <option value="styleMix">六、风格融合篇</option>
+                    <option value="dynamic">七、动态捕捉篇</option>
+                    <option value="commercial">八、商业应用篇</option>
+                    <option value="metaverse">九、元宇宙场景篇</option>
+                    <option value="cinematic">十、影视级渲染篇</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="subcategoryContainer" style="display: none;">
+                <label for="promptSubcategory">具体提示词:</label>
+                <select id="promptSubcategory" onchange="addPromptToTextarea()">
+                    <option value="">-- 选择具体提示词 --</option>
+                </select>
+            </div>
+            
+            <div class="form-group"style="display: true;">
+                <label for="model">Model:</label>
+                <select id="model">
+                    <option value="gpt-4o-image">GPT-4o Image</option>
+                    <option value="dall-e-3">DALL-E 3</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="size">Image Size:</label>
+                <select id="size">
+                    <option value="1024x1024">1024x1024</option>
+                    <option value="1024x1792">1024x1792</option>
+                    <option value="1792x1024">1792x1024</option>
+                </select>
+            </div>
+            
+            <div id="inputImageOptions" class="form-group" style="display: none;">
+                
+                <div id="pasteImage" class="form-group">
+                    <label>粘贴图片 (点击或直接Ctrl+V):</label>
+                    <div class="paste-area" id="pasteArea">
+
+
+                        <img id="pastePreview" class="paste-img-preview" alt="粘贴预览">
+                    </div>
+                    <button id="clearImageBtn" style="margin-top: 10px; background-color: #f44336;">清除图片</button>
+                </div>
+                
+                <div id="inputImage" class="form-group">
+                    <label for="imageUrl">或输入图片URL:</label>
+                    <input type="text" id="imageUrl" placeholder="Enter URL of an image to use as reference">
+                </div>
+            </div>
+            
+            
+
+        </div>
+        
+        <div class="right-panel">
+            <div class="result-area" id="resultArea" style="display: none;">
+                <h2>Generated Image</h2>
+                <img id="resultImage" class="result-image" alt="Generated image will appear here">
+                <div>
+                    <button id="saveBtn" style="display: none;">Save Image</button>
+                </div>
+            </div>
+
+            <!-- 历史记录面板 -->
+            <div class="history-panel">
+                <div class="status-area" id="statusArea">
+                    <div class="status-message">可直接生成图像。</div>
+                </div>
+                <div class="history-header">
+                    <div class="history-toggle" id="historyToggle">历史记录</div>
+                    <button class="history-clear" id="historyClear">清空历史</button>
+                </div>
+                <div class="history-content" id="historyContent">
+                    <!-- 历史记录项将由JavaScript动态添加 -->
+                    <div class="no-history">暂无历史记录</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知元素 -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Model configurations
+        const MODEL_CONFIGS = {
+            "gpt-4o-image": {
+                "sizes": ["1024x1024", "1024x1792", "1792x1024"],
+                "api_endpoint": "chat/completions",
+                "supports_image_input": true
+            },
+            "dall-e-3": {
+                "sizes": ["1024x1024", "1024x1792", "1792x1024"],
+                "api_endpoint": "images/generations",
+                "supports_image_input": false
+            }
+        };
+
+        // DOM elements
+        const apiKeyInput = document.getElementById('apiKey');
+        const baseUrlInput = document.getElementById('baseUrl');
+        const promptInput = document.getElementById('prompt');
+        const modelSelect = document.getElementById('model');
+        const sizeSelect = document.getElementById('size');
+        const generateBtn = document.getElementById('generateBtn');
+        const statusArea = document.getElementById('statusArea');
+        const resultArea = document.getElementById('resultArea');
+        const resultImage = document.getElementById('resultImage');
+        const saveBtn = document.getElementById('saveBtn');
+        const inputImageOptionsDiv = document.getElementById('inputImageOptions');
+        const inputImageDiv = document.getElementById('inputImage');
+        const imageUrlInput = document.getElementById('imageUrl');
+        const pasteArea = document.getElementById('pasteArea');
+        const pastePreview = document.getElementById('pastePreview');
+        const historyToggle = document.getElementById('historyToggle');
+        const historyContent = document.getElementById('historyContent');
+        const historyClear = document.getElementById('historyClear');
+        const drawingCanvas = document.getElementById('drawingCanvas');
+        const clearCanvasBtn = document.getElementById('clearCanvasBtn');
+        const eraserBtn = document.getElementById('eraserBtn');
+        const sendCanvasBtn = document.getElementById('sendCanvasBtn');
+        const notification = document.getElementById('notification');
+
+        // 存储粘贴的图片数据
+        let pastedImageData = null;
+        
+        // Canvas drawing functionality
+        const ctx = drawingCanvas.getContext('2d');
+        let drawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let isEraser = false;
+        let lastTime = 0;
+        let lastSpeed = 0;
+        const MIN_LINE_WIDTH = 0.5;
+        const MAX_LINE_WIDTH = 16;
+        let currentColor = '#000000'; // 当前选择的颜色
+
+        // Initialize canvas
+        function initializeCanvas() {
+            drawingCanvas.width = drawingCanvas.offsetWidth;
+            drawingCanvas.height = drawingCanvas.offsetHeight;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = currentColor;
+        }
+
+        // Drawing functions
+        function startDrawing(x, y) {
+            drawing = true;
+            [lastX, lastY] = [x, y];
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+        }
+
+        function stopDrawing() {
+            drawing = false;
+        }
+
+        function draw(x, y, pressure = 1) {
+            if (!drawing) return;
+            
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            
+            if (isEraser) {
+                // Calculate movement speed
+                const currentTime = Date.now();
+                const timeDiff = currentTime - lastTime;
+                const distance = Math.sqrt(Math.pow(x - lastX, 2) + Math.pow(y - lastY, 2));
+                const speed = timeDiff > 0 ? distance / timeDiff : 0;
+                
+                // Smooth speed changes
+                lastSpeed = lastSpeed * 0.7 + speed * 0.3;
+                
+                const baseWidth = 20;
+                const speedFactor = Math.min(lastSpeed * 2, 3);
+                const pressureFactor = pressure > 0 ? pressure : 1;
+                ctx.lineWidth = baseWidth * (speedFactor + pressureFactor);
+                ctx.strokeStyle = '#ffffff';
+                
+                lastTime = currentTime;
+            } else {
+                ctx.strokeStyle = currentColor; // 使用当前选择的颜色
+                ctx.lineWidth = pressure > 0 ? 
+                    Math.min(MAX_LINE_WIDTH, Math.max(MIN_LINE_WIDTH, pressure * MAX_LINE_WIDTH)) : 2;
+            }
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            [lastX, lastY] = [x, y];
+        }
+
+        // Canvas event listeners
+        drawingCanvas.addEventListener('mousedown', (e) => {
+            startDrawing(e.offsetX, e.offsetY);
+        });
+
+        drawingCanvas.addEventListener('mousemove', (e) => {
+            draw(e.offsetX, e.offsetY);
+        });
+
+        drawingCanvas.addEventListener('mouseup', stopDrawing);
+        drawingCanvas.addEventListener('mouseout', stopDrawing);
+
+        // Add paste event listener to canvas
+        drawingCanvas.addEventListener('paste', (e) => {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            let blob = null;
+            
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') === 0) {
+                    blob = items[i].getAsFile();
+                    break;
+                }
+            }
+            
+            if (blob) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        // Clear canvas
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                        
+                        // Calculate dimensions to center the image
+                        let width = img.width;
+                        let height = img.height;
+                        let x = 0;
+                        let y = 0;
+                        
+                        // Scale image if needed
+                        const maxWidth = drawingCanvas.width * 0.9; // 90% of canvas width
+                        const maxHeight = drawingCanvas.height * 0.9; // 90% of canvas height
+                        
+                        if (width > maxWidth || height > maxHeight) {
+                            const ratio = Math.min(maxWidth / width, maxHeight / height);
+                            width *= ratio;
+                            height *= ratio;
+                        }
+                        
+                        // Center image
+                        x = (drawingCanvas.width - width) / 2;
+                        y = (drawingCanvas.height - height) / 2;
+                        
+                        // Draw image on canvas
+                        ctx.drawImage(img, x, y, width, height);
+                        
+                        showNotification('图片已粘贴到画布上并居中显示');
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(blob);
+            }
+        });
+        
+        // Make canvas focusable so it can receive paste events
+        drawingCanvas.setAttribute("tabindex", "0");
+        drawingCanvas.addEventListener('click', function() {
+            this.focus();
+        });
+
+        // Touch events
+        drawingCanvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = drawingCanvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            startDrawing(x, y);
+        });
+
+        drawingCanvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = drawingCanvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            draw(x, y, touch.force || 1);
+        });
+
+        drawingCanvas.addEventListener('touchend', stopDrawing);
+        drawingCanvas.addEventListener('touchcancel', stopDrawing);
+
+        // Pointer events
+        drawingCanvas.addEventListener('pointerdown', (e) => {
+            if (e.pointerType === 'pen' || e.pointerType === 'touch' || e.pointerType === 'mouse') {
+                e.preventDefault();
+                if (e.buttons === 32 || isEraser) {
+                    isEraser = true;
+                    lastTime = Date.now();
+                    lastSpeed = 0;
+                }
+                startDrawing(e.offsetX, e.offsetY);
+            }
+        });
+
+        drawingCanvas.addEventListener('pointermove', (e) => {
+            if (!drawing) return;
+            e.preventDefault();
+            draw(e.offsetX, e.offsetY, e.pressure);
+        });
+
+        drawingCanvas.addEventListener('pointerup', (e) => {
+            stopDrawing();
+            if (isEraser && !eraserBtn.classList.contains('active')) {
+                isEraser = false;
+                ctx.strokeStyle = currentColor;
+                ctx.lineWidth = 2;
+            }
+        });
+
+        drawingCanvas.addEventListener('pointerout', stopDrawing);
+        drawingCanvas.addEventListener('pointercancel', stopDrawing);
+
+        // Canvas button events
+        clearCanvasBtn.addEventListener('click', () => {
+            ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            showNotification('画布已清除');
+        });
+
+        eraserBtn.addEventListener('click', () => {
+            isEraser = !isEraser;
+            
+            if (isEraser) {
+                ctx.strokeStyle = '#ffffff';
+                drawingCanvas.style.cursor = 'not-allowed';
+                showNotification('橡皮擦模式已启用');
+                eraserBtn.classList.add('active');
+            } else {
+                ctx.strokeStyle = currentColor; // 恢复为当前选择的颜色
+                drawingCanvas.style.cursor = 'crosshair';
+                showNotification('绘图模式已启用');
+                eraserBtn.classList.remove('active');
+            }
+        });
+
+        sendCanvasBtn.addEventListener('click', () => {
+            drawingCanvas.toBlob((blob) => {
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    // Convert canvas to base64 image data
+                    const base64data = reader.result;
+                    
+                    // Set this as the input image
+                    pastedImageData = base64data;
+                    
+                    // Make sure we're using a model that supports image input
+                    if (!MODEL_CONFIGS[modelSelect.value].supports_image_input) {
+                        modelSelect.value = 'gpt-4o-image';
+                        const event = new Event('change');
+                        modelSelect.dispatchEvent(event);
+                    }
+                    
+                    // Update UI to show the image is selected
+                    pastePreview.src = base64data;
+                    pastePreview.style.display = 'block';
+                    inputImageOptionsDiv.style.display = 'block';
+                    
+                    showNotification('草图已准备好，可以生成图像了');
+                    addStatus('草图已添加! 准备好生成图像了。');
+                };
+                reader.readAsDataURL(blob);
+            });
+        });
+
+        // Notification function
+        function showNotification(message, type = 'success') {
+            notification.textContent = message;
+            notification.className = `notification show ${type}`;
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+
+        // Window resize handler for canvas
+        window.addEventListener('resize', () => {
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = drawingCanvas.width;
+            tempCanvas.height = drawingCanvas.height;
+            tempCtx.drawImage(drawingCanvas, 0, 0);
+
+            drawingCanvas.width = drawingCanvas.offsetWidth;
+            drawingCanvas.height = drawingCanvas.offsetHeight;
+
+            // Reinitialize canvas
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = currentColor;
+
+            // Redraw previous content
+            ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, 0, 0, drawingCanvas.width, drawingCanvas.height);
+        });
+
+        // 提示词分类和内容
+        let promptsData = {};
+        
+        // 初始化提示词数据
+        function initPromptsData() {
+            promptsData = {
+                'composition': [
+                    {value: '以黄金分割比例构建画面，主体置于右侧三分线交汇处', label: '1. 精确构图：黄金分割'},
+                    {value: '晨光 45 度角投射，在人物鼻梁处形成三角形高光', label: '2. 光影控制：精确光照'},
+                    {value: '丝绸长裙需呈现 0.8mm 厚度下的半透明折射效果', label: '3. 材质表现：丝绸半透明'},
+                    {value: '广角镜头畸变控制在 3% 以内，确保建筑垂直线绝对垂直', label: '4. 透视校正：广角无畸变'},
+                    {value: '使用孟塞尔色环，主色调 H:210° S:70% V:85%', label: '5. 色彩公式：精确色调'},
+                    {value: '奔跑猎豹的肌肉拉伸需符合 120fps 慢动作分解', label: '6. 动态捕捉：高帧慢动作'},
+                    {value: '前景虚化程度与 Canon 50mm f/1.2 镜头效果一致', label: '7. 景深模拟：专业镜头虚化'},
+                    {value: '在画面左下象限添加 0.3 视觉权重的对冲元素', label: '8. 构图平衡：视觉平衡'},
+                    {value: '暴雨天气每平方米镜面需呈现 2000 个雨滴碰撞波纹', label: '9. 天气模拟：精细雨滴'},
+                    {value: '将大理石油画纹理与 3D 渲染材质进行图层正片叠底', label: '10. 材质混合：混合材质'}
+                ],
+                'creative': [
+                    {value: '让敦煌飞天手持全息投影的量子计算机', label: '11. 时空折叠：古今结合'},
+                    {value: '设计会呼吸的机械牡丹，齿轮间绽放液态金属花瓣', label: '12. 元素悖论：机械花卉'},
+                    {value: '用点彩派技法呈现《千里江山图》的量子纠缠版本', label: '13. 文化解构：量子国画'},
+                    {value: '把贝多芬《月光奏鸣曲》转化为可见的光纹波动', label: '14. 感官通感：音乐可视化'},
+                    {value: '在克莱因瓶结构中搭建巴洛克风格图书馆', label: '15. 维度穿越：不可能空间'},
+                    {value: '培育发光蕨类与机械蜂共生的末日温室', label: '16. 生态幻想：机械与生物'},
+                    {value: '让云朵具备琉璃质感却保持 0.1g/cm³ 的密度', label: '17. 材质异化：轻质琉璃云'},
+                    {value: '用影子讲述被遗忘的故事，实体仅保留 30% 可见度', label: '18. 光影叙事：影子故事'},
+                    {value: '建造违反亥姆霍兹定理的永动喷泉庭院', label: '19. 悖论空间：永动喷泉'},
+                    {value: '将焦虑情绪转化为不断重组的几何神经突触', label: '20. 情绪可视化：焦虑几何'}
+                ],
+                'master': [
+                    {value: '城市天际线需呈现《天气之子》特有的 2.5D 色温渐变', label: '21. 新海诚化：城市天际线'},
+                    {value: '《星月夜》笔触结合 NASA 星云数据可视化', label: '22. 梵高迭代：星空数据'},
+                    {value: '飞行器机械结构需保留吉卜力手绘温度感', label: '23. 宫崎骏风：吉卜力机械'},
+                    {value: '用 0.01mm 钛合金笔锋勾勒江南烟雨', label: '24. 赛博朋克+吴冠中水墨'},
+                    {value: '睡莲池需同时呈现可见光与热辐射谱系', label: '25. 莫奈+红外摄影'},
+                    {value: '将立体主义解构为概率云分布形态', label: '26. 毕加索+量子物理'},
+                    {value: '神奈川冲浪里中的浪花转为 NFT 数据流', label: '27. 葛饰北斋+元宇宙'},
+                    {value: '将抽象图形与 EEG 脑电波频谱对应', label: '28. 康定斯基+脑科学'},
+                    {value: '装饰花纹中嵌套 CRISPR 分子结构', label: '29. 穆夏+基因编辑'},
+                    {value: '为《维特鲁威人》叠加 SpaceX 宇航服拓扑图', label: '30. 达芬奇+航天工程'}
+                ],
+                'scene': [
+                    {value: '核爆十年后的超级城市，藤蔓包裹的 CBD 玻璃幕墙折射极光', label: '31. 末日美学：后核爆城市'},
+                    {value: '放大皮脂腺 100 万倍，呈现赛博坦星人般的机械生态圈', label: '32. 微观宇宙：皮肤微景观'},
+                    {value: '在土星环陨石表面搭建新艺术运动风格的歌剧院', label: '33. 太空歌剧：土星环歌剧院'},
+                    {value: '仙鹤牵引的云舟穿梭于悬浮的《山海经》异兽群', label: '34. 东方幻想：云舟异兽'},
+                    {value: '乌篷船加装特斯拉线圈动力的青铜齿轮组', label: '35. 蒸汽朋克+江南水乡'},
+                    {value: '海啸在冻结瞬间的流体力学结构与冰晶折射彩虹', label: '36. 灾难美学：冻结海啸'},
+                    {value: '挖掘出嵌有全息日记的北宋汝窑残片', label: '37. 未来考古：全息残片'},
+                    {value: '人行道裂缝中生长出发光的水晶地铁系统', label: '38. 超现实街景：裂缝地铁'},
+                    {value: '硅基树木的年轮记录着三体运动轨迹', label: '39. 异星生态：硅基树木'},
+                    {value: '用梵高笔触表现弗洛伊德释梦案例中的坠落场景', label: '40. 梦境还原：梵高式梦境'}
+                ],
+                'technical': [
+                    {value: '毛发需达到单根 16K 渲染，每毫米呈现 8 个皮质层反光', label: '41. 渲染精度：超高清毛发'},
+                    {value: '布料摆动需符合 ANSYS 流体力学仿真数据', label: '42. 物理模拟：布料动态'},
+                    {value: '金属氧化层厚度控制在 7nm 以产生结构色效应', label: '43. 光学特性：结构色金属'},
+                    {value: '猛禽俯冲时翼尖涡流需符合 CFD 模拟图谱', label: '44. 生物动态：精确涡流'},
+                    {value: '设定陶瓷釉面折射率 1.62，散射系数 0.38', label: '45. 材质参数：精确陶瓷'},
+                    {value: '火山灰扩散需符合 PM2.5 浓度梯度分布模型', label: '46. 粒子系统：火山灰扩散'},
+                    {value: '高速旋转的螺旋桨需呈现 1/8000 快门捕捉效果', label: '47. 动态模糊：高速快门'},
+                    {value: '人体耳朵在逆光下的半透明效果参考医学解剖图', label: '48. 次表面散射：耳朵逆光'},
+                    {value: '紫边现象限制在 CIE LAB ΔE≤2.3 范围内', label: '49. 色差控制：消除紫边'},
+                    {value: '岩石表面凹凸高度差严格遵循分形布朗运动算法', label: '50. 法线贴图：分形岩石'}
+                ],
+                'styleMix': [
+                    {value: '浪花中嵌套 Glitch 特效的二进制代码流', label: '51. 浮世绘+故障艺术'},
+                    {value: '用单一线条构建克苏鲁神话生物轮廓', label: '52. 极简主义+暗黑幻想'},
+                    {value: '将玛丽莲梦露肖像解构为薛定谔方程解集', label: '53. 波普艺术+量子物理'},
+                    {value: '皮克斯角色在真实世界的光线追踪投影', label: '54. 超写实+二维动画'},
+                    {value: '用游丝描技法勾勒仿生人的经脉能量回路', label: '55. 中国工笔+赛博格'},
+                    {value: '将情感波动转化为马蒂斯式色块热力图', label: '56. 野兽派+数据可视化'},
+                    {value: '在几何构图中嵌入先天八卦的能量流动轨迹', label: '57. 包豪斯+玄学'},
+                    {value: '动漫角色在战地记者镜头下的真实肌理', label: '58. 二次元+纪实摄影'},
+                    {value: '将教堂穹顶重构为克莱因瓶无限结构', label: '59. 巴洛克+拓扑学'},
+                    {value: '飞天手持 AR 眼镜在数字洞窟中临摹 NFT', label: '60. 敦煌壁画+元宇宙'}
+                ],
+                'dynamic': [
+                    {value: '太极拳云手势能轨迹需符合运动捕捉数据', label: '61. 武术分解：太极云手'},
+                    {value: '将微表情肌肉运动拆解为 FACS 动作单元组合', label: '62. 表情编码：微表情捕捉'},
+                    {value: '飞溅的咖啡液滴呈现曼德勃罗分形迭代过程', label: '63. 流体艺术：分形咖啡滴'},
+                    {value: '蒸汽机活塞运动需符合示功图压力变化曲线', label: '64. 机械运动：蒸汽机活塞'},
+                    {value: '蝉蜕过程的时间切片呈现拓扑形态连续演变', label: '65. 生物变形：蝉蜕过程'},
+                    {value: '将雷击瞬间的等离子体通道进行毫秒级定格', label: '66. 能量流动：闪电定格'},
+                    {value: '模拟 10 万只椋鸟飞行的 Boids 算法动态', label: '67. 群体智能：椋鸟算法'},
+                    {value: '记录玻璃从熔融到淬火的分子结构重组过程', label: '68. 材料相变：玻璃变化'},
+                    {value: '用光剑在长曝光下书写篆体字的运动轨迹', label: '69. 光轨绘画：光剑书法'},
+                    {value: '在微重力环境中绘制水墨扩散的洛伦兹吸引子', label: '70. 重力艺术：墨水吸引子'}
+                ],
+                'commercial': [
+                    {value: '护肤品成分分子在皮脂膜扩散的 4K 医学可视化', label: '71. 广告级渲染：护肤分子'},
+                    {value: '将口红膏体剖切面呈现地质岩层般的多层质感', label: '72. 电商场景：口红剖面'},
+                    {value: '车轮旋转时的空气湍流可视化需符合 CFD 数据', label: '73. 概念车设计：湍流可视化'},
+                    {value: '用神经辐射场技术生成未建成地标的晨昏光影变化', label: '74. 建筑提案：NeRF光影'},
+                    {value: 'BOSS 战场景融合 EEG 脑波数据生成动态恐惧图谱', label: '75. 游戏原画：脑波战斗场景'},
+                    {value: '将剧本高潮段落转化为色彩情感波动曲线图', label: '76. 影视分镜：情感色彩曲线'},
+                    {value: '在瓶身折射中嵌套品牌 LOGO 的莫尔条纹效应', label: '77. 产品包装：折射LOGO'},
+                    {value: '可实时响应环境光的纳米材料虚拟走秀', label: '78. 数字时装：响应式面料'},
+                    {value: '将相对论效应转化为可交互的时空网格变形', label: '79. 科教可视化：相对论网格'},
+                    {value: '土地 NFT 的 3D 呈现需包含区块链数据流装饰层', label: '80. 元宇宙地产：NFT土地'}
+                ],
+                'metaverse': [
+                    {value: '在虚拟纽约中精确复现现实世界的天气粒子系统', label: '81. 数字孪生：虚拟纽约'},
+                    {value: '设计能承载表情肌电信号的全息聊天广场', label: '82. 跨维社交：全息聊天'},
+                    {value: '让 NFT 作品的元数据变化实时影响视觉形态', label: '83. 链上艺术：动态NFT'},
+                    {value: '用共识算法生成动态变化的去中心化建筑表皮', label: '84. DAO 空间：算法建筑'},
+                    {value: '开发可穿戴光影滤镜的跨平台数字衣橱系统', label: '85. 虚拟时尚：光影衣橱'},
+                    {value: '将神经信号转化为可进入的拓扑冥想空间', label: '86. 脑机接口：冥想空间'},
+                    {value: '构建逝者 AI 替身的情感交互式纪念碑谷', label: '87. 数字永生：AI纪念碑'},
+                    {value: '在数字城市中可视化 DeFi 市场的资金流动轨迹', label: '88. 虚拟经济：资金流可视化'},
+                    {value: '将比特币区块哈希转化为不断生长的晶体结构', label: '89. 加密艺术：哈希晶体'},
+                    {value: '设计可叠加在物理世界的 AR 涂鸦共识层', label: '90. 混合现实：AR涂鸦'}
+                ],
+                'cinematic': [
+                    {value: '模拟《2012》级洪水冲击波的 SPH 流体解算', label: '91. 灾难特效：洪水模拟'},
+                    {value: '异形口腔结构需符合生物力学与捕食效率优化', label: '92. 生物设计：异形口腔'},
+                    {value: '设计雷神之锤击打地面时的磁暴等离子体特效', label: '93. 超英视效：雷神磁暴'},
+                    {value: '诛仙剑阵的能量场呈现矢量场可视化', label: '94. 玄幻场景：剑阵能量场'},
+                    {value: '曲速引擎尾迹需呈现阿尔库维雷度规变形', label: '95. 科幻载具：曲速引擎'},
+                    {value: '龙翼膜结构需符合空气动力学压力分布图', label: '96. 魔幻生物：龙翼空气动力学'},
+                    {value: '用 NeRF 技术重建圆明园被毁前的光影实景', label: '97. 历史复现：圆明园重建'},
+                    {value: '纳米机器人集群攻击的磁流体动力学模拟', label: '98. 未来战场：纳米机器人'},
+                    {value: '设计符合哥德尔度规的时间漩涡视觉特效', label: '99. 时空穿越：时间漩涡'},
+                    {value: '将上述 99 项技术进行蒙太奇式组合，生成具有数字指纹的 AI 艺术语言', label: '100. 终极融合：AI艺术语言'}
+                ]
+            };
+        }
+        
+        // 显示子分类
+        function showSubcategory() {
+            const category = document.getElementById('promptCategory').value;
+            const subcategoryContainer = document.getElementById('subcategoryContainer');
+            const subcategorySelect = document.getElementById('promptSubcategory');
+            
+            // 清空现有选项，保留第一个默认选项
+            subcategorySelect.innerHTML = '<option value="">-- 选择具体提示词 --</option>';
+            
+            if (category && promptsData[category]) {
+                // 填充子分类选项
+                promptsData[category].forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.value;
+                    option.textContent = item.label;
+                    subcategorySelect.appendChild(option);
+                });
+                
+                // 显示子分类下拉框
+                subcategoryContainer.style.display = 'block';
+            } else {
+                // 隐藏子分类下拉框
+                subcategoryContainer.style.display = 'none';
+            }
+        }
+        
+        // 将选择的提示词添加到文本域
+        function addPromptToTextarea() {
+            const selectedPrompt = document.getElementById('promptSubcategory').value;
+            if (selectedPrompt) {
+                const promptTextarea = document.getElementById('prompt');
+                // 检查当前文本是否为默认文本，如果是则清空
+                if (promptTextarea.value === '生成一个治愈系图片') {
+                    promptTextarea.value = selectedPrompt;
+                } else {
+                    // 否则在末尾添加新行
+                    promptTextarea.value = promptTextarea.value.trim() + '\n' + selectedPrompt;
+                }
+                
+                // 显示通知
+                showNotification('已添加提示词到输入框');
+                addStatus(`已添加提示词: "${selectedPrompt}"`);
+            }
+        }
+
+        // Initialize the page
+        window.onload = function() {
+            // Initialize the canvas
+            initializeCanvas();
+            
+            // Show initial paste hint
+            addStatus('提示: 点击画布后可直接使用Ctrl+V粘贴图片到画布上');
+            
+            // 初始检查模型是否支持图像输入
+            const supportsImage = MODEL_CONFIGS[modelSelect.value].supports_image_input;
+            inputImageOptionsDiv.style.display = supportsImage ? 'block' : 'none';
+            
+            // 加载历史记录
+            loadHistory();
+            
+            // 清除图片按钮事件处理
+            const clearImageBtn = document.getElementById('clearImageBtn');
+            clearImageBtn.addEventListener('click', function() {
+                // 清除图片数据
+                pastedImageData = null;
+                pastePreview.src = '';
+                pastePreview.style.display = 'none';
+                imageUrlInput.value = '';
+                
+                // 显示通知
+                showNotification('图片已清除');
+                addStatus('已清除所有图片输入。');
+            });
+            
+            // 初始化提示词数据
+            initPromptsData();
+            
+            // 设置调色板功能
+            initializeColorPalette();
+            
+            // Update UI when model changes
+            modelSelect.addEventListener('change', function() {
+                const selectedModel = this.value;
+                const sizes = MODEL_CONFIGS[selectedModel].sizes;
+                
+                // Update size options
+                sizeSelect.innerHTML = '';
+                sizes.forEach(size => {
+                    const option = document.createElement('option');
+                    option.value = size;
+                    option.textContent = size;
+                    sizeSelect.appendChild(option);
+                });
+                
+                // Show/hide input image options based on model capability
+                const supportsImage = MODEL_CONFIGS[selectedModel].supports_image_input;
+                inputImageOptionsDiv.style.display = supportsImage ? 'block' : 'none';
+                
+                if (supportsImage) {
+                    addStatus(`已切换到模型 ${selectedModel}。该模型支持图像输入，可以结合草图生成图像。`);
+                } else {
+                    addStatus(`已切换到模型 ${selectedModel}。该模型不支持图像输入，无法使用草图功能。`, true);
+                    // Clear any existing image data
+                    pastedImageData = null;
+                    pastePreview.style.display = 'none';
+                }
+            });
+            
+            // Handle paste events for the paste area
+            pasteArea.addEventListener('click', function() {
+                // Try to paste from clipboard
+                navigator.clipboard.read().then(items => {
+                    for (const item of items) {
+                        if (item.types.includes('image/png') || item.types.includes('image/jpeg')) {
+                            item.getType('image/png').then(blob => {
+                                const reader = new FileReader();
+                                reader.onload = function(e) {
+                                    pastedImageData = e.target.result;
+                                    pastePreview.src = pastedImageData;
+                                    pastePreview.style.display = 'block';
+                                    
+                                    // Clear URL input to avoid conflicts
+                                    imageUrlInput.value = '';
+                                    
+                                    addStatus('图片已添加! 准备用于生成。');
+                                };
+                                reader.readAsDataURL(blob);
+                            });
+                        }
+                    }
+                }).catch(e => {
+                    addStatus('请点击后使用Ctrl+V粘贴图片，或拖拽图片到此区域。');
+                });
+            });
+            
+            // Handle drag and drop
+            pasteArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.borderColor = '#2a2a72';
+                this.style.backgroundColor = '#f0f0f9';
+            });
+            
+            pasteArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.borderColor = '#ccc';
+                this.style.backgroundColor = '#f9f9f9';
+            });
+            
+            pasteArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.borderColor = '#ccc';
+                this.style.backgroundColor = '#f9f9f9';
+                
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files.length > 0 && files[0].type.indexOf('image') === 0) {
+                    const file = files[0];
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        pastedImageData = e.target.result;
+                        pastePreview.src = pastedImageData;
+                        pastePreview.style.display = 'block';
+                        
+                        // Clear URL input to avoid conflicts
+                        imageUrlInput.value = '';
+                        
+                        addStatus('图片已添加! 准备用于生成。');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // Handle paste events globally
+            document.addEventListener('paste', function(e) {
+                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                let blob = null;
+                
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') === 0) {
+                        blob = items[i].getAsFile();
+                        break;
+                    }
+                }
+                
+                if (blob && MODEL_CONFIGS[modelSelect.value].supports_image_input) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        pastedImageData = e.target.result;
+                        pastePreview.src = pastedImageData;
+                        pastePreview.style.display = 'block';
+                        
+                        // Clear URL input to avoid conflicts
+                        imageUrlInput.value = '';
+                        
+                        addStatus('图片已添加! 准备用于生成。');
+                    };
+                    reader.readAsDataURL(blob);
+                }
+            });
+        };
+
+        // 历史记录相关函数
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('openai_image_history') || '[]');
+            updateHistoryDisplay(history);
+        }
+        
+        function saveToHistory(data) {
+            const history = JSON.parse(localStorage.getItem('openai_image_history') || '[]');
+            // 将新的记录添加到顶部
+            history.unshift(data);
+            // 只保留最近的30条记录
+            if (history.length > 30) {
+                history.pop();
+            }
+            localStorage.setItem('openai_image_history', JSON.stringify(history));
+            updateHistoryDisplay(history);
+        }
+        
+        function updateHistoryDisplay(history) {
+            historyContent.innerHTML = '';
+            
+            if (history.length === 0) {
+                const noHistory = document.createElement('div');
+                noHistory.className = 'no-history';
+                noHistory.textContent = '暂无历史记录';
+                historyContent.appendChild(noHistory);
+                return;
+            }
+            
+            history.forEach((item, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                // 创建图片元素
+                const img = document.createElement('img');
+                img.className = 'history-img';
+                img.src = item.imageUrl;
+                img.alt = `Generated image ${index + 1}`;
+                img.onclick = () => {
+                    resultImage.src = item.imageUrl;
+                    resultArea.style.display = 'block';
+                };
+                
+                // 创建信息区域
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'history-info';
+                
+                // 创建提示词显示
+                const promptP = document.createElement('p');
+                promptP.className = 'history-prompt';
+                promptP.title = item.prompt;
+                promptP.textContent = item.prompt;
+                
+                // 创建日期显示
+                const dateP = document.createElement('p');
+                dateP.className = 'history-date';
+                dateP.textContent = new Date(item.timestamp).toLocaleString();
+                
+                // 创建操作按钮区域
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'history-actions';
+                
+                // 创建删除按钮
+                const deleteBtn = document.createElement('div');
+                deleteBtn.className = 'history-action-btn';
+                deleteBtn.innerHTML = '&#x2715;'; // ×符号
+                deleteBtn.title = '删除';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    removeHistoryItem(index);
+                };
+                
+                // 创建使用提示词按钮
+                const usePromptBtn = document.createElement('div');
+                usePromptBtn.className = 'history-action-btn';
+                usePromptBtn.innerHTML = '&#x270E;'; // 铅笔符号
+                usePromptBtn.title = '使用此提示词';
+                usePromptBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    promptInput.value = item.prompt;
+                    addStatus(`已加载提示词: "${item.prompt}"`);
+                };
+                
+                // 组装各个元素
+                actionsDiv.appendChild(usePromptBtn);
+                actionsDiv.appendChild(deleteBtn);
+                
+                infoDiv.appendChild(promptP);
+                infoDiv.appendChild(dateP);
+                
+                historyItem.appendChild(img);
+                historyItem.appendChild(infoDiv);
+                historyItem.appendChild(actionsDiv);
+                
+                historyContent.appendChild(historyItem);
+            });
+        }
+        
+        function removeHistoryItem(index) {
+            const history = JSON.parse(localStorage.getItem('openai_image_history') || '[]');
+            history.splice(index, 1);
+            localStorage.setItem('openai_image_history', JSON.stringify(history));
+            updateHistoryDisplay(history);
+        }
+        
+        // 处理历史记录面板的折叠与展开
+        historyToggle.addEventListener('click', function() {
+            this.classList.toggle('collapsed');
+            historyContent.classList.toggle('collapsed');
+        });
+        
+        // 处理清空历史记录
+        historyClear.addEventListener('click', function() {
+            if (confirm('确定要清空所有历史记录吗？此操作不可恢复。')) {
+                localStorage.removeItem('openai_image_history');
+                updateHistoryDisplay([]);
+                addStatus('历史记录已清空');
+            }
+        });
+
+        // 初始化调色板功能
+        function initializeColorPalette() {
+            const colorOptions = document.querySelectorAll('.color-option');
+            const customColorPicker = document.getElementById('customColorPicker');
+            
+            // 为每个颜色选项添加点击事件
+            colorOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // 移除所有active类
+                    colorOptions.forEach(opt => opt.classList.remove('active'));
+                    // 给当前选中的添加active类
+                    this.classList.add('active');
+                    // 更新当前颜色
+                    currentColor = this.getAttribute('data-color');
+                    // 同步更新自定义颜色选择器的值
+                    customColorPicker.value = currentColor;
+                    // 如果不是橡皮擦模式，更新绘图颜色
+                    if (!isEraser) {
+                        ctx.strokeStyle = currentColor;
+                    }
+                    showNotification(`颜色已切换为: ${currentColor}`);
+                });
+            });
+            
+            // 为自定义颜色选择器添加事件
+            customColorPicker.addEventListener('input', function() {
+                // 更新当前颜色
+                currentColor = this.value;
+                // 移除所有active类
+                colorOptions.forEach(opt => opt.classList.remove('active'));
+                // 如果不是橡皮擦模式，更新绘图颜色
+                if (!isEraser) {
+                    ctx.strokeStyle = currentColor;
+                }
+                showNotification(`自定义颜色: ${currentColor}`);
+            });
+        }
+
+        // Add status message
+        function addStatus(message, isError = false) {
+            const statusMessage = document.createElement('div');
+            statusMessage.className = isError ? 'status-message error-message' : 'status-message';
+            statusMessage.textContent = message;
+            statusArea.appendChild(statusMessage);
+            statusArea.scrollTop = statusArea.scrollHeight;
+        }
+
+        // Generate image with DALL-E 3
+        async function generateDallE3Image(apiKey, baseUrl, prompt, size) {
+            try {
+                const endpoint = `${baseUrl.replace(/\/$/, '')}/images/generations`;
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        n: 1,
+                        model: 'dall-e-3',
+                        size: size
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    return {
+                        success: false,
+                        error: errorData.error?.message || `API error: ${response.status} ${response.statusText}`
+                    };
+                }
+                
+                const data = await response.json();
+                if (data.data && data.data.length > 0 && data.data[0].url) {
+                    return {
+                        success: true,
+                        imageUrl: data.data[0].url
+                    };
+                } else {
+                    return {
+                        success: false,
+                        error: 'No image URL found in response'
+                    };
+                }
+            } catch (error) {
+                console.error('Error generating DALL-E image:', error);
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+        }
+
+        // Generate image with GPT-4o
+        async function generateGPT4oImage(apiKey, baseUrl, prompt, size, imageUrl = null) {
+            try {
+                const endpoint = `${baseUrl.replace(/\/$/, '')}/chat/completions`;
+                
+                // Prepare messages content
+                const messagesContent = [
+                    {
+                        "type": "text",
+                        "text": `Generate an image based on this description: ${prompt}`
+                    }
+                ];
+                
+                // Add image to content if URL is provided
+                if (imageUrl) {
+                    // 检查是否为Base64图片数据
+                    if (imageUrl.startsWith('data:image')) {
+                        addStatus(`Using pasted image in the request...`);
+                        messagesContent.push({
+                            "type": "image_url",
+                            "image_url": {
+                                "url": imageUrl
+                            }
+                        });
+                    } else {
+                        addStatus(`Including input image URL: ${imageUrl}`);
+                        messagesContent.push({
+                            "type": "image_url",
+                            "image_url": {
+                                "url": imageUrl
+                            }
+                        });
+                    }
+                }
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o-image',
+                        messages: [
+                            {
+                                "role": "user",
+                                "content": messagesContent
+                            }
+                        ],
+                        max_tokens: 300
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    return {
+                        success: false,
+                        error: errorData.error?.message || `API error: ${response.status} ${response.statusText}`
+                    };
+                }
+                
+                const data = await response.json();
+                
+                if (data.choices && data.choices.length > 0) {
+                    const responseContent = data.choices[0].message.content;
+                    
+                    // Extract image URL from the markdown response
+                    const imageUrlMatch = responseContent.match(/!\[.*?\]\((https:\/\/[^\s\)]+)\)/);
+                    
+                    if (imageUrlMatch) {
+                        const imageUrl = imageUrlMatch[1];
+                        addStatus(`Extracted image URL from response`);
+                        return {
+                            success: true,
+                            imageUrl: imageUrl
+                        };
+                    } else {
+                        // Try alternative format
+                        const downloadLinkMatch = responseContent.match(/\[点击下载\]\((https:\/\/[^\s\)]+)\)/);
+                        if (downloadLinkMatch) {
+                            const imageUrl = downloadLinkMatch[1];
+                            addStatus(`Extracted download URL from response`);
+                            return {
+                                success: true,
+                                imageUrl: imageUrl
+                            };
+                        } else {
+                            return {
+                                success: false,
+                                error: `Failed to extract image URL from response: ${responseContent.substring(0, 100)}...`
+                            };
+                        }
+                    }
+                } else {
+                    return {
+                        success: false,
+                        error: 'No image information found in GPT-4o response'
+                    };
+                }
+            } catch (error) {
+                console.error('Error generating GPT-4o image:', error);
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+        }
+
+        // 添加生成图像按钮的事件监听器
+        generateBtn.addEventListener('click', async function() {
+            const apiKey = apiKeyInput.value.trim();
+            const baseUrl = baseUrlInput.value.trim();
+            const promptText = promptInput.value.trim();
+            const model = modelSelect.value;
+            const size = sizeSelect.value;
+            const imageUrl = imageUrlInput.value.trim();
+            
+            if (!promptText) {
+                addStatus('请输入提示词。', true);
+                return;
+            }
+            
+            // 按行分割提示词
+            const prompts = promptText.split('\n').filter(p => p.trim().length > 0);
+            
+            if (prompts.length === 0) {
+                addStatus('没有有效的提示词。', true);
+                return;
+            }
+            
+            // Disable button during generation
+            generateBtn.disabled = true;
+            
+            // 创建批量处理进度显示
+            const batchProgressDiv = document.createElement('div');
+            batchProgressDiv.className = 'batch-progress';
+            
+            const progressTitle = document.createElement('div');
+            const totalCount = prompts.length;
+            progressTitle.innerHTML = `<strong>批量生成进度</strong>: 0/${totalCount} 完成`;
+            
+            const progressBarContainer = document.createElement('div');
+            progressBarContainer.className = 'progress-bar-container';
+            
+            const progressBar = document.createElement('div');
+            progressBar.className = 'progress-bar';
+            progressBar.style.width = '0%';
+            
+            progressBarContainer.appendChild(progressBar);
+            batchProgressDiv.appendChild(progressTitle);
+            batchProgressDiv.appendChild(progressBarContainer);
+            
+            statusArea.appendChild(batchProgressDiv);
+            addStatus(`开始批量生成 ${totalCount} 张图片...`);
+            
+            // 存储所有成功生成的图片URL
+            const generatedImages = [];
+            
+            try {
+                for (let i = 0; i < prompts.length; i++) {
+                    const prompt = prompts[i].trim();
+                    if (prompt.length === 0) continue;
+                    
+                    // 更新进度显示
+                    progressTitle.innerHTML = `<strong>批量生成进度</strong>: ${i}/${totalCount} 完成`;
+                    progressBar.style.width = `${(i / totalCount) * 100}%`;
+                    
+                    addStatus(`[${i+1}/${totalCount}] 正在生成: "${prompt}" 使用模型 ${model} 尺寸 ${size}...`);
+                    
+                    let response;
+                    
+                    if (model === 'dall-e-3') {
+                        // Use DALL-E 3 API
+                        response = await generateDallE3Image(apiKey, baseUrl, prompt, size);
+                    } else {
+                        // Use GPT-4o API
+                        // 优先使用画布图像，其次粘贴的图片，最后使用URL
+                        if (pastedImageData && pastedImageData.startsWith('data:image')) {
+                            addStatus(`[${i+1}/${totalCount}] 使用粘贴的图片或草图作为输入...`);
+                            response = await generateGPT4oImage(apiKey, baseUrl, prompt, size, pastedImageData);
+                        } else if (imageUrl) {
+                            addStatus(`[${i+1}/${totalCount}] 使用URL图片作为输入...`);
+                            response = await generateGPT4oImage(apiKey, baseUrl, prompt, size, imageUrl);
+                        } else {
+                            addStatus(`[${i+1}/${totalCount}] 没有输入图片，只使用文本提示...`);
+                            response = await generateGPT4oImage(apiKey, baseUrl, prompt, size);
+                        }
+                    }
+                    
+                    if (response.success) {
+                        addStatus(`[${i+1}/${totalCount}] 生成成功!`);
+                        
+                        // 添加到结果列表
+                        generatedImages.push({
+                            prompt: prompt,
+                            imageUrl: response.imageUrl
+                        });
+                        
+                        // 保存到历史记录
+                        saveToHistory({
+                            prompt: prompt,
+                            imageUrl: response.imageUrl,
+                            model: model,
+                            size: size,
+                            timestamp: Date.now()
+                        });
+                    } else {
+                        addStatus(`[${i+1}/${totalCount}] 错误: ${response.error}`, true);
+                    }
+                }
+                
+                // 完成所有生成
+                progressTitle.innerHTML = `<strong>批量生成进度</strong>: ${totalCount}/${totalCount} 完成`;
+                progressBar.style.width = '100%';
+                
+                // 显示结果摘要
+                if (generatedImages.length > 0) {
+                    addStatus(`批量生成完成！成功生成 ${generatedImages.length}/${totalCount} 张图片。`);
+                    
+                    // 显示最后一张生成的图片
+                    const lastImage = generatedImages[generatedImages.length - 1];
+                    resultImage.src = lastImage.imageUrl;
+                    resultArea.style.display = 'block';
+                    saveBtn.style.display = 'inline-block';
+                    
+                    // Set up save button for last generated image
+                    saveBtn.onclick = function() {
+                        const a = document.createElement('a');
+                        a.href = lastImage.imageUrl;
+                        a.download = `openai_image_${new Date().getTime()}.png`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    };
+                } else {
+                    addStatus('批量生成完成，但没有成功生成任何图片。', true);
+                }
+            } catch (error) {
+                addStatus(`生成图片过程中发生错误: ${error.message}`, true);
+                console.error(error);
+            } finally {
+                generateBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html> 
