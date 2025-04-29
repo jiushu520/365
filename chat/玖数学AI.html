@@ -86,15 +86,29 @@
             gap: 10px;
             flex-direction: column;
         }
-        textarea {
+        #messageInput {
             flex: 1;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
-            resize: none;
-            height: 60px;
+            min-height: 60px;
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: white;
             font-family: inherit;
             font-size: 16px;
+            line-height: 1.5;
+            cursor: text;
+        }
+        #messageInput:empty:before {
+            content: attr(data-placeholder);
+            color: #999;
+        }
+        #messageInput img {
+            max-width: 200px;
+            max-height: 150px;
+            margin: 5px;
+            border-radius: 4px;
         }
         .input-actions {
             display: flex;
@@ -154,42 +168,6 @@
             border: 1px solid #eee;
             border-radius: 5px;
             background-color: #f9f9f9;
-        }
-        /* 图片粘贴区域样式 */
-        .paste-area {
-            width: 100%;
-            height: 100px;
-            border: 2px dashed #ccc;
-            border-radius: 5px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            background-color: #f9f9f9;
-            margin-bottom: 10px;
-        }
-        .paste-area:hover {
-            border-color: #2a2a72;
-            background-color: #f1f1f9;
-        }
-        .paste-area p {
-            margin: 0;
-            color: #666;
-        }
-        .paste-img-preview {
-            max-width: 100%;
-            max-height: 100px;
-            margin-top: 10px;
-            border-radius: 4px;
-            display: none;
-        }
-        .message img {
-            max-width: 100%;
-            max-height: 200px;
-            border-radius: 4px;
-            margin-top: 5px;
         }
         .typing-indicator {
             color: #888;
@@ -509,6 +487,13 @@
             visibility: visible !important;
             opacity: 1 !important;
         }
+        .message img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 4px;
+            margin-top: 5px;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -545,8 +530,6 @@
                         <option value="gpt-4.1">GPT-4.1</option>
                         <option value="gpt-4o-mini">GPT-4o-mini</option>
                         <option value="gpt-4o">GPT-4o</option>
-                        <option value="o3">o3</option>
-                        <option value="o3-mini-high">o3-mini-high</option>
                     </select>
                 </div>
                 
@@ -607,25 +590,18 @@
         <div class="status" id="status">Ready to chat</div>
         
         <div class="message-input">
-            <textarea id="messageInput" placeholder="Type your message here..."></textarea>
-            
-            <!-- 添加图片粘贴区域 -->
-            <div class="paste-area" id="pasteArea">
-                <img id="pastePreview" class="paste-img-preview" alt="粘贴预览">
-            </div>
-            
-            <div class="input-actions">
-                <button id="sendBtn">Send</button>
-                <button id="clearImageBtn" style="display: none;">Clear Image</button>
-            </div>
+            <div id="messageInput" contenteditable="true" data-placeholder="Type your message here..."></div>
+            <button id="sendBtn">发送</button>
+ 
         </div>
         
         <div class="voice-buttons" style="display: flex; justify-content: space-between; gap: 10px; margin-top: 15px;">
-            <button id="startRecordBtn" style="flex: 1; background-color: #2a2a72;">开始录音</button>
-            <button id="stopRecordBtn" style="flex: 1; background-color: #6c757d;" disabled>停止录音</button>
+            <button id="startRecordBtn" style="flex: 1; background-color: #2a2a72; display: none;">开始录音</button>
+            <button id="stopRecordBtn" style="flex: 1; background-color: #6c757d; display: none;" disabled>停止录音</button>
             <button id="speakResponseBtn" style="flex: 1; background-color: #2a2a72;">朗读回复</button>
-            <button id="historyToggleBtn" style="flex: 1; background-color: #2a2a72;" onclick="document.getElementById('historyPanel').classList.add('active'); document.getElementById('historyToggle').classList.add('active');">历史记录</button>
-            <button id="closeHistoryBtn" style="flex: 1; background-color: #dc3545;" onclick="document.getElementById('historyPanel').classList.remove('active'); document.getElementById('historyToggle').classList.remove('active'); document.getElementById('historyPanel').style.right = '-100%';">关闭历史</button>
+            <button id="stopSpeakBtn" style="flex: 1; background-color: #dc3545; display: none;">停止朗读</button>
+            <button id="historyToggleBtn" style="flex: 1; background-color: #2a2a72;">历史记录</button>
+
         </div>
 
     </div>
@@ -663,12 +639,11 @@
             let recognition;
             let speechSynthesis = window.speechSynthesis;
             let lastAiResponse = '';
-            let pastedImageData = null; // 存储粘贴的图片数据
             let lastAutoSaveTime = null; // 最后自动保存时间
             
             // 提示词模板
             const PROMPT_TEMPLATES = {
-                "math-teacher": "你是一位有20年经验的数学老师，擅长通过简单易懂的方式讲解复杂的数学概念。请提供清晰的解释和例子来帮助理解。使用LaTeX表示数学公式。",
+                "math-teacher": "你是一位有20年经验的数学老师，当你接收到用户图片时，进行识别，并进行讲解，擅长通过简单易懂的方式讲解复杂的数学概念。请提供清晰的解释和例子来帮助理解。使用LaTeX表示数学公式。",
                 "math-competition": "你是一位数学竞赛教练，擅长解决各种复杂的竞赛题目。请提供多种解法，尤其是巧妙、简洁的方法，并分析每种解法的思路和技巧。使用LaTeX表示数学公式。",
                 "step-by-step": "请提供详细的逐步解析，解释每一步背后的原理和思路。使用LaTeX表示数学公式，并在关键步骤添加说明。",
                 "concise": "请简洁地回答问题，直接给出结论和必要的步骤，不需要冗长的解释。使用LaTeX表示数学公式。",
@@ -761,13 +736,11 @@
             }
             
             // Send message to API
-            async function sendMessageToAPI(text) {
+            async function sendMessageToAPI(content) {
                 const apiKey = apiKeyInput.value.trim();
                 const baseUrl = baseUrlInput.value.trim();
                 const model = modelSelect.value;
                 
-                // 添加消息到聊天区域，如果有图片则包含图片
-                addMessage(text, false, pastedImageData);
                 updateStatus('Waiting for response...');
                 
                 // 预先创建AI消息占位符，以便流式更新
@@ -783,28 +756,19 @@
                     // 准备请求体
                     const requestBody = {
                         model: model,
-                        max_tokens: 12000, // 增加token上限以确保完整的数学公式渲染
-                        stream: true // 启用流式响应
+                        max_tokens: 12000,
+                        stream: true
                     };
                     
                     // 构建消息数组，确保包含系统消息
-                    let messagesList = [];
-                    // 首先添加系统消息
-                    messagesList.push(currentSystemMessage);
-                    // 然后添加历史消息，但跳过第一条系统消息（如果存在）
+                    let messagesList = [currentSystemMessage];
+                    // 添加历史消息
                     for (let i = 0; i < messages.length; i++) {
                         if (i === 0 && messages[i].role === 'system') continue;
                         messagesList.push(messages[i]);
                     }
                     
-                    // 根据是否有图片使用不同的消息格式
-                    if (messagesList.length > 0 && Array.isArray(messagesList[messagesList.length - 1].content)) {
-                        // 最新消息是多模态格式（包含图片）
-                        requestBody.messages = messagesList;
-                    } else {
-                        // 使用传统消息格式
-                        requestBody.messages = messagesList;
-                    }
+                    requestBody.messages = messagesList;
                     
                     const response = await fetch(endpoint, {
                         method: 'POST',
@@ -834,15 +798,11 @@
                     
                     let fullResponse = '';
                     
-                    // 处理数据流
                     while (true) {
                         const { done, value } = await reader.read();
                         if (done) break;
                         
-                        // 解码字节流为文本
                         const chunk = decoder.decode(value, { stream: true });
-                        
-                        // 处理SSE（Server-Sent Events）格式的数据
                         const lines = chunk.split('\n');
                         for (const line of lines) {
                             if (line.startsWith('data: ') && line !== 'data: [DONE]') {
@@ -852,11 +812,7 @@
                                         const contentDelta = data.choices[0].delta?.content || '';
                                         if (contentDelta) {
                                             fullResponse += contentDelta;
-                                            
-                                            // 更新UI显示的文本内容
                                             contentElement.innerHTML = fullResponse;
-                                            
-                                            // 滚动到底部
                                             chatContainer.scrollTop = chatContainer.scrollHeight;
                                         }
                                     }
@@ -867,29 +823,19 @@
                         }
                     }
                     
-                    // 所有内容接收完毕后，完整渲染LaTeX
-                    try {
-                        if (window.MathJax) {
-                            await window.MathJax.typesetPromise([contentElement]);
-                            console.log('LaTeX渲染完成');
-                        }
-                    } catch (err) {
-                        console.error('LaTeX渲染错误:', err);
+                    // 渲染LaTeX
+                    if (window.MathJax) {
+                        await window.MathJax.typesetPromise([contentElement]);
                     }
                     
-                    // 流处理完成后，添加到消息历史
+                    // 添加到消息历史
                     messages.push({
                         role: 'assistant',
                         content: fullResponse
                     });
                     
-                    // 保存最后的AI响应用于语音播放
                     lastAiResponse = fullResponse;
-                    
                     updateStatus('Response received');
-                    
-                    // 清除粘贴的图片
-                    clearPastedImage();
                     
                 } catch (error) {
                     updateStatus(`Error: ${error.message}`, true);
@@ -897,24 +843,208 @@
                 }
             }
             
-            // 清除粘贴的图片
-            function clearPastedImage() {
-                pastedImageData = null;
-                pastePreview.style.display = 'none';
-                pastePreview.src = '';
-                document.getElementById('clearImageBtn').style.display = 'none';
+            // 语音识别和录音相关代码
+            let mediaRecorder = null;
+            let audioChunks = [];
+
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'zh-CN';
+
+                let finalTranscript = '';
+
+                // 开始录音和语音识别
+                async function startRecording() {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        mediaRecorder = new MediaRecorder(stream);
+                        audioChunks = [];
+
+                        mediaRecorder.ondataavailable = (event) => {
+                            audioChunks.push(event.data);
+                        };
+
+                        mediaRecorder.onstop = () => {
+                            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                            const audioUrl = URL.createObjectURL(audioBlob);
+                            
+                            // 创建音频元素
+                            const audioElement = document.createElement('audio');
+                            audioElement.src = audioUrl;
+                            audioElement.controls = true;
+                            
+                            // 将音频添加到输入框
+                            messageInput.appendChild(audioElement);
+                            
+                            // 如果有文字内容，自动发送
+                            if (finalTranscript.trim()) {
+                                setTimeout(() => {
+                                    sendBtn.click();
+                                }, 500);
+                            }
+                        };
+
+                        mediaRecorder.start();
+                        recognition.start();
+                    } catch (error) {
+                        console.error('Error starting recording:', error);
+                        updateStatus('启动录音失败，请确保允许使用麦克风', true);
+                    }
+                }
+
+                // 停止录音和语音识别
+                function stopRecording() {
+                    if (mediaRecorder && mediaRecorder.state === 'recording') {
+                        mediaRecorder.stop();
+                        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                    }
+                    recognition.stop();
+                }
+
+                recognition.onstart = () => {
+                    updateStatus('正在录音...');
+                    startRecordBtn.disabled = true;
+                    stopRecordBtn.disabled = false;
+                    startRecordBtn.style.backgroundColor = '#cccccc';
+                    finalTranscript = '';
+                    messageInput.innerHTML = '';
+                };
+
+                recognition.onend = () => {
+                    updateStatus('录音已停止');
+                    startRecordBtn.disabled = false;
+                    stopRecordBtn.disabled = true;
+                    startRecordBtn.style.backgroundColor = '#2a2a72';
+                };
+
+                recognition.onresult = (event) => {
+                    let interimTranscript = '';
+
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript = transcript;
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+
+                    // 在不影响音频元素的情况下更新文字内容
+                    const audioElement = messageInput.querySelector('audio');
+                    messageInput.innerHTML = finalTranscript || interimTranscript;
+                    if (audioElement) {
+                        messageInput.appendChild(audioElement);
+                    }
+                };
+
+                recognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    updateStatus(`录音错误: ${event.error}`, true);
+                    startRecordBtn.disabled = false;
+                    stopRecordBtn.disabled = true;
+                    startRecordBtn.style.backgroundColor = '#2a2a72';
+                };
+
+                // 录音按钮事件
+                startRecordBtn.addEventListener('click', () => {
+                    startRecording();
+                });
+
+                stopRecordBtn.addEventListener('click', () => {
+                    stopRecording();
+                });
+
+                // 页面关闭时停止录音
+                window.addEventListener('beforeunload', () => {
+                    stopRecording();
+                });
+            } else {
+                startRecordBtn.disabled = true;
+                stopRecordBtn.disabled = true;
+                updateStatus('您的浏览器不支持语音识别功能', true);
             }
-            
-            // Handle send button click
+
+            // 修改发送按钮处理函数
             sendBtn.addEventListener('click', () => {
-                const text = messageInput.value.trim();
-                if (text || pastedImageData) {
-                    sendMessageToAPI(text);
-                    messageInput.value = '';
+                const inputDiv = document.getElementById('messageInput');
+                const text = inputDiv.innerText.trim();
+                const images = Array.from(inputDiv.getElementsByTagName('img'));
+                const audioElements = Array.from(inputDiv.getElementsByTagName('audio'));
+                
+                if (text || images.length > 0 || audioElements.length > 0) {
+                    // 构建消息内容
+                    let messageContent = [];
+                    if (text) {
+                        messageContent.push({
+                            type: "text",
+                            text: text
+                        });
+                    }
+                    
+                    // 添加图片
+                    images.forEach(img => {
+                        messageContent.push({
+                            type: "image_url",
+                            image_url: {
+                                url: img.src
+                            }
+                        });
+                    });
+
+                    // 添加音频
+                    audioElements.forEach(audio => {
+                        messageContent.push({
+                            type: "audio_url",
+                            audio_url: {
+                                url: audio.src
+                            }
+                        });
+                    });
+                    
+                    // 如果只有文本，使用简单格式
+                    const finalContent = messageContent.length === 1 && messageContent[0].type === "text" 
+                        ? messageContent[0].text 
+                        : messageContent;
+                    
+                    // 显示消息在聊天区域
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message user-message';
+                    if (text) {
+                        messageDiv.innerHTML = text;
+                    }
+                    images.forEach(img => {
+                        const imgClone = img.cloneNode(true);
+                        messageDiv.appendChild(imgClone);
+                    });
+                    audioElements.forEach(audio => {
+                        const audioClone = audio.cloneNode(true);
+                        messageDiv.appendChild(audioClone);
+                    });
+                    chatContainer.appendChild(messageDiv);
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                    
+                    // 清空输入区域
+                    inputDiv.innerHTML = '';
+                    
+                    // 更新消息历史
+                    messages.push({
+                        role: 'user',
+                        content: finalContent
+                    });
+                    
+                    // 发送到API并等待响应
+                    try {
+                        sendMessageToAPI(finalContent);
+                    } catch (error) {
+                        console.error('Error sending message:', error);
+                        updateStatus('发送消息时出错', true);
+                    }
                 }
             });
-            
-            // Handle Enter key in textarea
+
+            // Handle Enter key in input div
             messageInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -922,65 +1052,10 @@
                 }
             });
             
-            // Handle speech recognition
-            if (recognition) {
-                let finalTranscript = '';
-                
-                recognition.onstart = () => {
-                    updateStatus('Listening...');
-                    finalTranscript = '';
-                };
-                
-                recognition.onresult = (event) => {
-                    let interimTranscript = '';
-                    
-                    for (let i = event.resultIndex; i < event.results.length; i++) {
-                        const transcript = event.results[i][0].transcript;
-                        
-                        if (event.results[i].isFinal) {
-                            finalTranscript += transcript;
-                        } else {
-                            interimTranscript += transcript;
-                        }
-                    }
-                    
-                    messageInput.value = finalTranscript + interimTranscript;
-                };
-                
-                recognition.onerror = (event) => {
-                    updateStatus(`Error in speech recognition: ${event.error}`, true);
-                    stopRecordBtn.disabled = true;
-                    startRecordBtn.disabled = false;
-                };
-                
-                recognition.onend = () => {
-                    updateStatus('Speech recognition ended');
-                    stopRecordBtn.disabled = true;
-                    startRecordBtn.disabled = false;
-                };
-                
-                startRecordBtn.addEventListener('click', () => {
-                    try {
-                        recognition.start();
-                        startRecordBtn.disabled = true;
-                        stopRecordBtn.disabled = false;
-                    } catch (error) {
-                        updateStatus(`Error starting recognition: ${error.message}`, true);
-                    }
-                });
-                
-                stopRecordBtn.addEventListener('click', () => {
-                    recognition.stop();
-                    stopRecordBtn.disabled = true;
-                    startRecordBtn.disabled = false;
-                    
-                    if (finalTranscript) {
-                        messageInput.value = finalTranscript;
-                    }
-                });
-            }
-            
             // Handle text-to-speech
+            const stopSpeakBtn = document.getElementById('stopSpeakBtn');
+            let currentUtterance = null;
+
             speakResponseBtn.addEventListener('click', () => {
                 if (!lastAiResponse) {
                     updateStatus('No AI response to speak', true);
@@ -992,102 +1067,48 @@
                     return;
                 }
                 
-                // Stop any current speech
+                // 停止当前正在播放的语音
                 speechSynthesis.cancel();
                 
-                // Create a new utterance
+                // 创建新的语音
                 const utterance = new SpeechSynthesisUtterance(lastAiResponse);
-                utterance.lang = 'zh-CN'; // Set language to Chinese
+                utterance.lang = 'zh-CN';
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
                 
                 utterance.onstart = () => {
                     updateStatus('Speaking...');
+                    speakResponseBtn.style.display = 'none';
+                    stopSpeakBtn.style.display = 'block';
                 };
                 
                 utterance.onend = () => {
                     updateStatus('Finished speaking');
+                    speakResponseBtn.style.display = 'block';
+                    stopSpeakBtn.style.display = 'none';
+                    currentUtterance = null;
                 };
                 
                 utterance.onerror = (event) => {
                     updateStatus(`Speech synthesis error: ${event.error}`, true);
+                    speakResponseBtn.style.display = 'block';
+                    stopSpeakBtn.style.display = 'none';
+                    currentUtterance = null;
                 };
                 
-                // Speak the utterance
+                currentUtterance = utterance;
                 speechSynthesis.speak(utterance);
             });
             
-            // 处理图片粘贴功能
-            document.addEventListener('paste', function(e) {
-                // 检查粘贴的内容是否包含图片
-                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-                let blob = null;
-                
-                for (let i = 0; i < items.length; i++) {
-                    if (items[i].type.indexOf('image') === 0) {
-                        blob = items[i].getAsFile();
-                        break;
-                    }
-                }
-                
-                if (blob) {
-                    handlePastedImage(blob);
+            stopSpeakBtn.addEventListener('click', () => {
+                if (speechSynthesis && currentUtterance) {
+                    speechSynthesis.cancel();
+                    updateStatus('已停止朗读');
+                    speakResponseBtn.style.display = 'block';
+                    stopSpeakBtn.style.display = 'none';
+                    currentUtterance = null;
                 }
             });
-
-            // 处理拖放功能
-            const pasteArea = document.getElementById('pasteArea');
-            const pastePreview = document.getElementById('pastePreview');
-            const clearImageBtn = document.getElementById('clearImageBtn');
-            
-            pasteArea.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                this.style.borderColor = '#2a2a72';
-                this.style.backgroundColor = '#f0f0f9';
-            });
-
-            pasteArea.addEventListener('dragleave', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                this.style.borderColor = '#ccc';
-                this.style.backgroundColor = '#f9f9f9';
-            });
-
-            pasteArea.addEventListener('drop', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                this.style.borderColor = '#ccc';
-                this.style.backgroundColor = '#f9f9f9';
-                
-                const dt = e.dataTransfer;
-                const files = dt.files;
-                
-                if (files.length > 0 && files[0].type.indexOf('image') === 0) {
-                    handlePastedImage(files[0]);
-                }
-            });
-
-            // 点击粘贴区域时触发粘贴操作
-            pasteArea.addEventListener('click', function() {
-                updateStatus('请按 Ctrl+V 粘贴图片...');
-            });
-            
-            // 清除图片按钮
-            clearImageBtn.addEventListener('click', clearPastedImage);
-
-            // 处理粘贴或拖放的图片
-            function handlePastedImage(blob) {
-                // 创建图片URL并显示预览
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    pastedImageData = e.target.result;
-                    pastePreview.src = pastedImageData;
-                    pastePreview.style.display = 'block';
-                    clearImageBtn.style.display = 'inline-block';
-                    
-                    updateStatus('图片已添加! 发送消息时将包含此图片。');
-                };
-                reader.readAsDataURL(blob);
-            }
             
             // Initialize
             window.onload = () => {
@@ -1139,7 +1160,7 @@
                 // 初始化自动保存指示器
                 updateAutoSaveIndicator();
                 // Add an initial greeting message
-                addMessage("你好！我是玖数学AI，一个专注于数学教育的AI助手。我可以帮助你回答问题，包括数学问题。我也支持语音交互，点击\"开始录音\"开始录音。", true, null);
+                addMessage("你好！我是玖数学AI", true, null);
             };
 
             // 设置面板控制
@@ -1239,7 +1260,6 @@
 
             // 为新的历史记录按钮添加事件监听器
             const historyToggleBtn = document.getElementById('historyToggleBtn');
-            const closeHistoryBtn = document.getElementById('closeHistoryBtn');
             
             historyToggleBtn.addEventListener('click', () => {
                 console.log('History toggle button clicked');
@@ -1254,17 +1274,6 @@
                 historyPanel.style.visibility = 'visible';
                 historyPanel.style.opacity = '1';
                 loadHistoryList();
-            });
-            
-            closeHistoryBtn.addEventListener('click', () => {
-                console.log('Close history button clicked');
-                historyPanel.classList.remove('active');
-                historyToggle.classList.remove('active');
-                if (historyToggle.querySelector('span')) {
-                    historyToggle.querySelector('span').style.transform = 'rotate(0deg)';
-                }
-                // 强制关闭面板
-                historyPanel.style.right = '-100%';
             });
             
             // 保存当前聊天历史
