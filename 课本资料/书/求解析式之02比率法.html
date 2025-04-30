@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>求解析式之02比率法</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+        }
+        .content-left {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .content-right {
+            padding: 20px;
+            overflow-y: auto;
+            min-width: 300px;
+        }
+        .handle {
+            width: 10px;
+            background: #ccc;
+            cursor: col-resize;
+            position: relative;
+        }
+        .handle::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 4px;
+            height: 30px;
+            background: #888;
+            border-radius: 2px;
+        }
+        .problem { margin-bottom: 20px; }
+        .solution { margin-top: 20px; }
+        svg { 
+            border: 1px solid #ddd; 
+            display: block;
+            width: 100%;
+            height: 100%;
+            min-height: 400px;
+        }
+        .step { margin: 10px 0; }
+        .hint { color: #0066cc; font-style: italic; }
+        .math { font-style: italic; }
+    </style>
+    <!-- 添加MathJax支持 -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="content-left">
+            <svg id="coordinate-system" width="800" height="600"></svg>
+        </div>
+
+        <div class="handle"></div>
+
+        <div class="content-right">
+            <div class="problem">
+                <h1>两点求解直线解析式02比率法</h1>
+                <h2>已知：点A$(3,6)$，点B$(6,1)$，求解直线AB解析式</h2>
+            </div>
+
+            <div class="solution">
+                <h3>比率法求解析式</h3>
+                
+                <div class="step">
+                    <p>1、已知：$A(3,6)$，$B(6,1)$</p>
+                    <p>2、利用点斜式 $\frac{y-y_1}{x-x_1}=\frac{y_2-y_1}{x_2-x_1}$</p>
+                    <p>3、代入点坐标：$\frac{y-6}{x-3}=\frac{1-6}{6-3}$</p>
+                    <p>4、化简：$\frac{y-6}{x-3}=-\frac{5}{3}$</p>
+                    <p>5、通分：$3(y-6)=-5(x-3)$</p>
+                    <p>6、展开：$3y-18=-5x+15$</p>
+                    <p>7、移项：$3y+5x=33$</p>
+                    <p>8、标准化：$5x+3y-33=0$</p>
+                </div>
+                
+                <div class="hint">
+                    <p>要点：</p>
+                    <ul>
+                        <li>比率法利用斜率的定义求解直线方程</li>
+                        <li>适合于已知两点坐标的情况</li>
+                        <li>计算过程清晰，易于理解</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 添加拖动手柄功能
+        const handle = document.querySelector('.handle');
+        const rightContent = document.querySelector('.content-right');
+        let isResizing = false;
+
+        handle.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', () => {
+                isResizing = false;
+                document.removeEventListener('mousemove', handleMouseMove);
+            });
+        });
+
+        function handleMouseMove(e) {
+            if (!isResizing) return;
+            
+            const containerWidth = document.querySelector('.container').offsetWidth;
+            const newWidth = containerWidth - e.clientX;
+            const minWidth = 300;
+            const maxWidth = containerWidth - 400;
+            
+            if (newWidth >= minWidth && newWidth <= maxWidth) {
+                rightContent.style.width = newWidth + 'px';
+            }
+        }
+
+        // 设置中心点和缩放比例
+        const svgWidth = 800;
+        const svgHeight = 600;
+        const centerX = svgWidth / 2;
+        const centerY = svgHeight / 2;
+        const scale = 25; // 每个单位对应的像素数
+        
+        // 坐标点（数学坐标系中）
+        const pointA = {x: 3, y: 6};
+        const pointB = {x: 6, y: 1};
+        
+        // 转换为SVG坐标
+        function toSvgX(x) {
+            return centerX + x * scale;
+        }
+        
+        function toSvgY(y) {
+            return centerY - y * scale;
+        }
+        
+        // 创建SVG元素
+        function createSVGElement(tag) {
+            return document.createElementNS("http://www.w3.org/2000/svg", tag);
+        }
+        
+        // 绘制坐标系和图形
+        function drawCoordinateSystem() {
+            const svg = document.getElementById('coordinate-system');
+            svg.innerHTML = '';
+            
+            // 创建所有需要的组
+            const gridGroup = createSVGElement('g');
+            const axisGroup = createSVGElement('g');
+            const labelsGroup = createSVGElement('g');
+            const shapeGroup = createSVGElement('g');
+            const pointsGroup = createSVGElement('g');
+            const markersGroup = createSVGElement('g');
+            
+            gridGroup.setAttribute('stroke', '#eee');
+            gridGroup.setAttribute('stroke-width', '1');
+            axisGroup.setAttribute('stroke', '#999');
+            axisGroup.setAttribute('stroke-width', '1');
+            labelsGroup.setAttribute('font-size', '12');
+            markersGroup.setAttribute('font-size', '12');
+
+            // 计算可见范围
+            const visibleWidth = svgWidth / scale;
+            const visibleHeight = svgHeight / scale;
+            const xMin = -visibleWidth / 2;
+            const xMax = visibleWidth / 2;
+            const yMin = -visibleHeight / 2;
+            const yMax = visibleHeight / 2;
+            
+            // 横向网格线
+            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+                if (y === 0) continue;
+                const line = createSVGElement('line');
+                line.setAttribute('x1', toSvgX(xMin));
+                line.setAttribute('y1', toSvgY(y));
+                line.setAttribute('x2', toSvgX(xMax));
+                line.setAttribute('y2', toSvgY(y));
+                gridGroup.appendChild(line);
+            }
+            
+            // 纵向网格线
+            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+                if (x === 0) continue;
+                const line = createSVGElement('line');
+                line.setAttribute('x1', toSvgX(x));
+                line.setAttribute('y1', toSvgY(yMin));
+                line.setAttribute('x2', toSvgX(x));
+                line.setAttribute('y2', toSvgY(yMax));
+                gridGroup.appendChild(line);
+            }
+            
+            // x轴
+            const xAxis = createSVGElement('line');
+            xAxis.setAttribute('x1', toSvgX(xMin));
+            xAxis.setAttribute('y1', toSvgY(0));
+            xAxis.setAttribute('x2', toSvgX(xMax));
+            xAxis.setAttribute('y2', toSvgY(0));
+            axisGroup.appendChild(xAxis);
+            
+            // y轴
+            const yAxis = createSVGElement('line');
+            yAxis.setAttribute('x1', toSvgX(0));
+            yAxis.setAttribute('y1', toSvgY(yMin));
+            yAxis.setAttribute('x2', toSvgX(0));
+            yAxis.setAttribute('y2', toSvgY(yMax));
+            axisGroup.appendChild(yAxis);
+            
+            // x轴刻度标签
+            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+                if (x === 0) continue;
+                const text = createSVGElement('text');
+                text.setAttribute('x', toSvgX(x));
+                text.setAttribute('y', toSvgY(0) + 15);
+                text.setAttribute('text-anchor', 'middle');
+                text.textContent = x;
+                labelsGroup.appendChild(text);
+            }
+            
+            // y轴刻度标签
+            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+                if (y === 0) continue;
+                const text = createSVGElement('text');
+                text.setAttribute('x', toSvgX(0) - 10);
+                text.setAttribute('y', toSvgY(y) + 5);
+                text.setAttribute('text-anchor', 'end');
+                text.textContent = y;
+                labelsGroup.appendChild(text);
+            }
+
+            // 直线AB
+            const lineAB = createSVGElement('line');
+            // 计算直线的端点
+            // 使用直线方程 5x+3y-33=0
+            // 求与可视区域边界的交点
+            const k = -5/3; // 斜率
+            const b = 11; // y截距
+            
+            // 计算与可视区域左右边界的交点
+            const leftX = xMin;
+            const leftY = k * leftX + b;
+            const rightX = xMax;
+            const rightY = k * rightX + b;
+            
+            lineAB.setAttribute('x1', toSvgX(leftX));
+            lineAB.setAttribute('y1', toSvgY(leftY));
+            lineAB.setAttribute('x2', toSvgX(rightX));
+            lineAB.setAttribute('y2', toSvgY(rightY));
+            lineAB.setAttribute('stroke', '#000');
+            lineAB.setAttribute('stroke-width', '2');
+            shapeGroup.appendChild(lineAB);
+
+            // 点A
+            const circleA = createSVGElement('circle');
+            circleA.setAttribute('cx', toSvgX(pointA.x));
+            circleA.setAttribute('cy', toSvgY(pointA.y));
+            circleA.setAttribute('r', '5');
+            circleA.setAttribute('fill', 'blue');
+            pointsGroup.appendChild(circleA);
+            
+            // 点B
+            const circleB = createSVGElement('circle');
+            circleB.setAttribute('cx', toSvgX(pointB.x));
+            circleB.setAttribute('cy', toSvgY(pointB.y));
+            circleB.setAttribute('r', '5');
+            circleB.setAttribute('fill', 'blue');
+            pointsGroup.appendChild(circleB);
+
+            // 标记A
+            const textA = createSVGElement('text');
+            textA.setAttribute('x', toSvgX(pointA.x) + 10);
+            textA.setAttribute('y', toSvgY(pointA.y) - 10);
+            textA.textContent = 'A(3,6)';
+            markersGroup.appendChild(textA);
+            
+            // 标记B
+            const textB = createSVGElement('text');
+            textB.setAttribute('x', toSvgX(pointB.x) + 10);
+            textB.setAttribute('y', toSvgY(pointB.y) - 10);
+            textB.textContent = 'B(6,1)';
+            markersGroup.appendChild(textB);
+            
+            // 按顺序添加所有组到SVG
+            svg.appendChild(gridGroup);
+            svg.appendChild(axisGroup);
+            svg.appendChild(labelsGroup);
+            svg.appendChild(shapeGroup);
+            svg.appendChild(pointsGroup);
+            svg.appendChild(markersGroup);
+        }
+
+        // 监听窗口大小变化
+        window.addEventListener('resize', function() {
+            const svg = document.getElementById('coordinate-system');
+            const container = document.querySelector('.content-left');
+            const containerWidth = container.offsetWidth - 40;
+            const containerHeight = Math.max(container.offsetHeight - 80, 400);
+            
+            svg.setAttribute('width', containerWidth);
+            svg.setAttribute('height', containerHeight);
+            
+            // 更新SVG视图框，保持坐标系比例
+            const viewBoxWidth = containerWidth;
+            const viewBoxHeight = containerHeight;
+            svg.setAttribute('viewBox', `0 0 ${viewBoxWidth} ${viewBoxHeight}`);
+            
+            // 更新中心点
+            centerX = viewBoxWidth / 2;
+            centerY = viewBoxHeight / 2;
+            
+            drawCoordinateSystem();
+        });
+        
+        // 初始化绘图
+        drawCoordinateSystem();
+
+        // 初始化时触发一次resize事件以调整SVG大小
+        window.dispatchEvent(new Event('resize'));
+    </script>
+</body>
+</html> 

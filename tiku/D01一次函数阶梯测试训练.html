@@ -2064,8 +2064,8 @@
         }
 
         function generateLevel6Question() {
-            // Helper function to compute GCD of two numbers
-            function gcd(a, b) {
+           // Helper function to compute GCD of two numbers
+           function gcd(a, b) {
                 if (!b) return Math.abs(a);
                 return gcd(b, a % b);
             }
@@ -2144,9 +2144,26 @@
 
             equation += `= 0`;
 
-            // Set the correct answer
-            correctAnswer = [equation];
-            const textq = `\\(\\begin{array}{lll}直角坐标系中点O(0,0),A(${xa},${ya}),B(${xb},${yb});\\\\SΔOAB=?\\\\你可以用多少不同的方法来运算，\\\\你可以先用ggb画一下的;\\\\铅垂？割补？点到线距离？三角函数？行列式？ \\end{array}\\)`;
+            // 构造相反形式的方程
+            let oppositeEquation = `${formatCoefficient(-a, 'x')} `;
+
+            // Handle the sign for the y term (opposite)
+            if (-b >= 0) {
+                oppositeEquation += `+ ${formatCoefficient(-b, 'y')} `;
+            } else {
+                oppositeEquation += `- ${formatCoefficient(b, 'y')} `;
+            }
+
+            // Handle the constant term (opposite)
+            if (-c !== 0) {
+                oppositeEquation += `${formatConstant(-c)} `;
+            }
+
+            oppositeEquation += `= 0`;
+
+            // Set both forms as correct answers
+            correctAnswer = [equation, oppositeEquation];
+            const textq = `\\(\\begin{array}{lll}直角坐标系中点O(0,0),A(${xa},${ya}),B(${xb},${yb});\\\\求直线AB的解析式(ax+by+c=0) \\\\你可以用多少不同的方法来运算，\\\\你可以先用ggb画一下的;\\\\铅垂？割补？点到线距离？三角函数？行列式？ \\end{array}\\)`;
             // 创建SVG坐标系和直线
             let svgWidth = 400;
             let svgHeight = 400;
@@ -2255,7 +2272,7 @@ let svg = `
     
     <!-- 方程提示 -->
     <text x="15" y="20" font-size="14" fill="blue">ax + by + c = 0</text>
-    <text x="15" y="40" font-size="12" fill="blue">求系数a, b, c的互质整数解</text>
+    <text x="15" y="40" font-size="12" fill="blue">系数a, b, c为互质整数解</text>
 </svg>`;
 
             // Return the formatted question in LaTeX
@@ -2267,6 +2284,7 @@ let svg = `
             ${svg}
         </div>
      </div>`;
+
         }
 
         function generateLevel7Question() {
