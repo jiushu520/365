@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>求圆切线之05矩阵旋转法</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+        }
+        .content-left {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .content-right {
+            padding: 20px;
+            overflow-y: auto;
+            min-width: 300px;
+        }
+        .handle {
+            width: 10px;
+            background: #ccc;
+            cursor: col-resize;
+            position: relative;
+        }
+        .handle::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 4px;
+            height: 30px;
+            background: #888;
+            border-radius: 2px;
+        }
+        .problem { margin-bottom: 20px; }
+        .solution { margin-top: 20px; }
+        svg { 
+            border: 1px solid #ddd; 
+            display: block;
+            width: 100%;
+            height: 100%;
+            min-height: 400px;
+        }
+        .step { margin: 10px 0; }
+        .hint { color: #0066cc; font-style: italic; }
+        .math { font-style: italic; }
+        #controls {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            text-align: center;
+        }
+    </style>
+    <!-- 添加MathJax支持 -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady().then(function() {
+                        console.log('MathJax initial typesetting complete');
+                    });
+                }
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="content-left">
+            <div id="controls">
+                <label>坐标缩放: <input type="range" id="scale" min="20" max="100" value="25"></label>
+                <span id="scaleValue">25</span>
+            </div>
+            
+            <svg id="coordinate-system" width="800" height="600"></svg>
+        </div>
+
+        <div class="handle"></div>
+
+        <div class="content-right">
+            <div class="problem">
+                <h1>求圆的切线之05矩阵旋转法</h1>
+                <h2>已知：圆方程 $x^2+y^2=25$，点A$(4,3)$，求过点A的切线方程</h2>
+            </div>
+
+            <div class="solution">
+                <h3>矩阵旋转法求解圆的切线方程</h3>
+                
+                <div class="step">
+                    <p>1、已知：圆 $x^2+y^2=25$，点A$(4,3)$</p>
+                    <p>2、确认点A在圆上：$4^2+3^2=16+9=25$ ✓</p>
+                    <p>3、圆心为原点O$(0,0)$，圆半径$r=5$</p>
+                    <p>4、圆的切线垂直于半径OA，也就是垂直于向量$(4,3)$</p>
+                    <p>5、矩阵旋转法：我们将点A顺时针旋转90°得到一个方向向量，即切线的方向向量</p>
+                    <p>6、顺时针旋转90°的矩阵为：$\begin{pmatrix} 0 & 1 \\ -1 & 0 \end{pmatrix}$</p>
+                    <p>7、将点A$(4,3)$旋转：$\begin{pmatrix} 0 & 1 \\ -1 & 0 \end{pmatrix} \begin{pmatrix} 4 \\ 3 \end{pmatrix} = \begin{pmatrix} 3 \\ -4 \end{pmatrix}$</p>
+                    <p>8、得到切线的方向向量为$(3,-4)$，因此切线的斜率为$k = \frac{-4}{3}$</p>
+                    <p>9、使用点斜式：$y - 3 = \frac{-4}{3}(x - 4)$</p>
+                    <p>10、化简：$y - 3 = \frac{-4x + 16}{3}$</p>
+                    <p>11、$3y - 9 = -4x + 16$</p>
+                    <p>12、$4x + 3y - 25 = 0$</p>
+                </div>
+                
+                <div class="step">
+                    <p>另一种旋转角度的理解：</p>
+                    <p>1、点A$(4,3)$的极坐标角度为$\theta = \arctan(\frac{3}{4})$</p>
+                    <p>2、将点A顺时针旋转$\theta$角度，使其落在x轴正半轴上，即旋转后x坐标为5，y坐标为0</p>
+                    <p>3、切线在旋转后与y轴平行，方程为$x=5$</p>
+                    <p>4、将这条切线逆时针旋转$\theta$角度，即可得到原切线方程</p>
+                    <p>5、旋转矩阵：$\begin{pmatrix} \cos\theta & \sin\theta \\ -\sin\theta & \cos\theta \end{pmatrix}$，其中$\cos\theta = \frac{4}{5}$，$\sin\theta = \frac{3}{5}$</p>
+                    <p>6、应用旋转后，可以得到切线方程：$4x + 3y - 25 = 0$</p>
+                </div>
+                
+                <div class="hint">
+                    <p>要点：</p>
+                    <ul>
+                        <li>矩阵旋转法可以找到垂直于半径的方向向量</li>
+                        <li>顺时针旋转90°矩阵：$\begin{pmatrix} 0 & 1 \\ -1 & 0 \end{pmatrix}$</li>
+                        <li>将点顺时针旋转特定角度，使其落在坐标轴上，可以简化切线方程的求解</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 添加拖动手柄功能
+        const handle = document.querySelector('.handle');
+        const rightContent = document.querySelector('.content-right');
+        let isResizing = false;
+
+        handle.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', () => {
+                isResizing = false;
+                document.removeEventListener('mousemove', handleMouseMove);
+            });
+        });
+
+        function handleMouseMove(e) {
+            if (!isResizing) return;
+            
+            const containerWidth = document.querySelector('.container').offsetWidth;
+            const newWidth = containerWidth - e.clientX;
+            const minWidth = 300;
+            const maxWidth = containerWidth - 400;
+            
+            if (newWidth >= minWidth && newWidth <= maxWidth) {
+                rightContent.style.width = newWidth + 'px';
+            }
+        }
+
+        // 设置中心点和缩放比例
+        let svgWidth = 800;
+        let svgHeight = 600;
+        let centerX = svgWidth / 2;
+        let centerY = svgHeight / 2;
+        let scale = 25; // 每个单位对应的像素数
+
+        // 坐标点（数学坐标系中）
+        const pointA = {x: 4, y: 3};
+        const circleCenter = {x: 0, y: 0};
+        const radius = 5;
+        
+        // 旋转后的点（顺时针旋转arctan(3/4)角度）
+        const theta = Math.atan(3/4);
+        const cosTheta = Math.cos(theta);
+        const sinTheta = Math.sin(theta);
+        
+        // 旋转矩阵：[cos(θ), sin(θ); -sin(θ), cos(θ)]
+        const rotatedPoint = {
+            x: pointA.x * cosTheta + pointA.y * sinTheta,
+            y: -pointA.x * sinTheta + pointA.y * cosTheta
+        };
+        
+        // 转换为SVG坐标
+        function toSvgX(x) {
+            return centerX + x * scale;
+        }
+        
+        function toSvgY(y) {
+            return centerY - y * scale;
+        }
+        
+        // 创建SVG元素
+        function createSVGElement(tag) {
+            return document.createElementNS("http://www.w3.org/2000/svg", tag);
+        }
+        
+        // 绘制坐标系和图形
+        function drawCoordinateSystem() {
+            const svg = document.getElementById('coordinate-system');
+            svg.innerHTML = '';
+            
+            // 创建所有需要的组
+            const gridGroup = createSVGElement('g');
+            const axisGroup = createSVGElement('g');
+            const labelsGroup = createSVGElement('g');
+            const shapeGroup = createSVGElement('g');
+            const pointsGroup = createSVGElement('g');
+            const markersGroup = createSVGElement('g');
+            const vectorGroup = createSVGElement('g');
+            
+            gridGroup.setAttribute('stroke', '#eee');
+            gridGroup.setAttribute('stroke-width', '0.5');
+            axisGroup.setAttribute('stroke', '#000');
+            axisGroup.setAttribute('stroke-width', '1.5');
+            labelsGroup.setAttribute('font-size', '14');
+            labelsGroup.setAttribute('font-family', 'Arial');
+            markersGroup.setAttribute('font-size', '14');
+            markersGroup.setAttribute('font-family', 'Arial');
+            vectorGroup.setAttribute('stroke', '#ff4444');
+            vectorGroup.setAttribute('stroke-width', '2');
+
+            // 计算可见范围
+            const margin = 2; // 边距单位
+            const visibleWidth = svgWidth / scale;
+            const visibleHeight = svgHeight / scale;
+            const xMin = Math.floor(-visibleWidth / 2) - margin;
+            const xMax = Math.ceil(visibleWidth / 2) + margin;
+            const yMin = Math.floor(-visibleHeight / 2) - margin;
+            const yMax = Math.ceil(visibleHeight / 2) + margin;
+            
+            // 横向网格线
+            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+                if (y === 0) continue;
+                const line = createSVGElement('line');
+                line.setAttribute('x1', toSvgX(xMin));
+                line.setAttribute('y1', toSvgY(y));
+                line.setAttribute('x2', toSvgX(xMax));
+                line.setAttribute('y2', toSvgY(y));
+                line.setAttribute('vector-effect', 'non-scaling-stroke');
+                gridGroup.appendChild(line);
+            }
+            
+            // 纵向网格线
+            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+                if (x === 0) continue;
+                const line = createSVGElement('line');
+                line.setAttribute('x1', toSvgX(x));
+                line.setAttribute('y1', toSvgY(yMin));
+                line.setAttribute('x2', toSvgX(x));
+                line.setAttribute('y2', toSvgY(yMax));
+                line.setAttribute('vector-effect', 'non-scaling-stroke');
+                gridGroup.appendChild(line);
+            }
+            
+            // x轴
+            const xAxis = createSVGElement('line');
+            xAxis.setAttribute('x1', toSvgX(xMin));
+            xAxis.setAttribute('y1', toSvgY(0));
+            xAxis.setAttribute('x2', toSvgX(xMax));
+            xAxis.setAttribute('y2', toSvgY(0));
+            xAxis.setAttribute('vector-effect', 'non-scaling-stroke');
+            axisGroup.appendChild(xAxis);
+            
+            // y轴
+            const yAxis = createSVGElement('line');
+            yAxis.setAttribute('x1', toSvgX(0));
+            yAxis.setAttribute('y1', toSvgY(yMin));
+            yAxis.setAttribute('x2', toSvgX(0));
+            yAxis.setAttribute('y2', toSvgY(yMax));
+            yAxis.setAttribute('vector-effect', 'non-scaling-stroke');
+            axisGroup.appendChild(yAxis);
+            
+            // x轴刻度标签
+            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+                if (x === 0) continue;
+                const text = createSVGElement('text');
+                text.setAttribute('x', toSvgX(x));
+                text.setAttribute('y', toSvgY(0) + 20);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('fill', '#666');
+                text.textContent = x;
+                labelsGroup.appendChild(text);
+            }
+            
+            // y轴刻度标签
+            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+                if (y === 0) continue;
+                const text = createSVGElement('text');
+                text.setAttribute('x', toSvgX(0) - 10);
+                text.setAttribute('y', toSvgY(y) + 5);
+                text.setAttribute('text-anchor', 'end');
+                text.setAttribute('fill', '#666');
+                text.textContent = y;
+                labelsGroup.appendChild(text);
+            }
+
+            // 绘制圆
+            const circle = createSVGElement('circle');
+            circle.setAttribute('cx', toSvgX(circleCenter.x));
+            circle.setAttribute('cy', toSvgY(circleCenter.y));
+            circle.setAttribute('r', radius * scale);
+            circle.setAttribute('stroke', '#2196F3');
+            circle.setAttribute('stroke-width', '2');
+            circle.setAttribute('fill', 'none');
+            shapeGroup.appendChild(circle);
+
+            // 计算圆的切线
+            // 切线方程：4x + 3y - 25 = 0
+            // 转换为 y = (-4x + 25)/3 形式
+            const tangentLine = createSVGElement('line');
+            const k = -4/3; // 斜率
+            const b = 25/3; // y截距
+            
+            const leftX = xMin;
+            const leftY = k * leftX + b;
+            const rightX = xMax;
+            const rightY = k * rightX + b;
+            
+            tangentLine.setAttribute('x1', toSvgX(leftX));
+            tangentLine.setAttribute('y1', toSvgY(leftY));
+            tangentLine.setAttribute('x2', toSvgX(rightX));
+            tangentLine.setAttribute('y2', toSvgY(rightY));
+            tangentLine.setAttribute('stroke', '#2196F3');
+            tangentLine.setAttribute('stroke-width', '2');
+            tangentLine.setAttribute('vector-effect', 'non-scaling-stroke');
+            shapeGroup.appendChild(tangentLine);
+
+            // 绘制半径OA
+            const radiusLine = createSVGElement('line');
+            radiusLine.setAttribute('x1', toSvgX(circleCenter.x));
+            radiusLine.setAttribute('y1', toSvgY(circleCenter.y));
+            radiusLine.setAttribute('x2', toSvgX(pointA.x));
+            radiusLine.setAttribute('y2', toSvgY(pointA.y));
+            radiusLine.setAttribute('stroke', '#4CAF50');
+            radiusLine.setAttribute('stroke-width', '2');
+            radiusLine.setAttribute('vector-effect', 'non-scaling-stroke');
+            shapeGroup.appendChild(radiusLine);
+
+            // 绘制旋转后的线段（顺时针旋转arctan(3/4)角度）
+            const rotatedLine = createSVGElement('line');
+            rotatedLine.setAttribute('x1', toSvgX(circleCenter.x));
+            rotatedLine.setAttribute('y1', toSvgY(circleCenter.y));
+            rotatedLine.setAttribute('x2', toSvgX(rotatedPoint.x));
+            rotatedLine.setAttribute('y2', toSvgY(rotatedPoint.y));
+            rotatedLine.setAttribute('stroke', '#ff9800');
+            rotatedLine.setAttribute('stroke-width', '2');
+            rotatedLine.setAttribute('stroke-dasharray', '5,5');
+            rotatedLine.setAttribute('vector-effect', 'non-scaling-stroke');
+            shapeGroup.appendChild(rotatedLine);
+
+            // 绘制旋转后的垂直线（x=5）
+            const verticalLine = createSVGElement('line');
+            verticalLine.setAttribute('x1', toSvgX(5));
+            verticalLine.setAttribute('y1', toSvgY(yMin));
+            verticalLine.setAttribute('x2', toSvgX(5));
+            verticalLine.setAttribute('y2', toSvgY(yMax));
+            verticalLine.setAttribute('stroke', '#9c27b0');
+            verticalLine.setAttribute('stroke-width', '2');
+            verticalLine.setAttribute('stroke-dasharray', '5,5');
+            verticalLine.setAttribute('vector-effect', 'non-scaling-stroke');
+            shapeGroup.appendChild(verticalLine);
+
+            // 绘制旋转角度弧
+            const arcRadius = 1.5 * scale;
+            const arcPath = createSVGElement('path');
+            const arcStart = {x: arcRadius, y: 0}; // 从x轴正方向开始
+            const arcEnd = {
+                x: arcRadius * Math.cos(-theta),
+                y: arcRadius * Math.sin(-theta)
+            }; // 到OA方向结束
+            arcPath.setAttribute('d', `M ${toSvgX(arcStart.x)},${toSvgY(arcStart.y)} A ${arcRadius},${arcRadius} 0 0,0 ${toSvgX(arcEnd.x)},${toSvgY(arcEnd.y)}`);
+            arcPath.setAttribute('fill', 'none');
+            arcPath.setAttribute('stroke', '#ff9800');
+            arcPath.setAttribute('stroke-width', '2');
+            arcPath.setAttribute('vector-effect', 'non-scaling-stroke');
+            shapeGroup.appendChild(arcPath);
+
+            // 绘制顺时针90度旋转后的向量
+            const rotatedVector = createSVGElement('line');
+            rotatedVector.setAttribute('x1', toSvgX(pointA.x));
+            rotatedVector.setAttribute('y1', toSvgY(pointA.y));
+            rotatedVector.setAttribute('x2', toSvgX(pointA.x + 3));
+            rotatedVector.setAttribute('y2', toSvgY(pointA.y - 4));
+            rotatedVector.setAttribute('vector-effect', 'non-scaling-stroke');
+            vectorGroup.appendChild(rotatedVector);
+
+            // 绘制向量箭头
+            const arrowSize = 15;
+            const arrowAngle = Math.atan2(-4, 3);
+            const arrowTipX = pointA.x + 3;
+            const arrowTipY = pointA.y - 4;
+            const arrowPath = createSVGElement('path');
+            arrowPath.setAttribute('d', `M ${toSvgX(arrowTipX)} ${toSvgY(arrowTipY)} 
+                L ${toSvgX(arrowTipX) - arrowSize * Math.cos(arrowAngle - Math.PI/6)} 
+                  ${toSvgY(arrowTipY) + arrowSize * Math.sin(arrowAngle - Math.PI/6)}
+                L ${toSvgX(arrowTipX) - arrowSize * Math.cos(arrowAngle + Math.PI/6)}
+                  ${toSvgY(arrowTipY) + arrowSize * Math.sin(arrowAngle + Math.PI/6)} Z`);
+            arrowPath.setAttribute('fill', '#ff4444');
+            vectorGroup.appendChild(arrowPath);
+
+            // 点A
+            const circleA = createSVGElement('circle');
+            circleA.setAttribute('cx', toSvgX(pointA.x));
+            circleA.setAttribute('cy', toSvgY(pointA.y));
+            circleA.setAttribute('r', '6');
+            circleA.setAttribute('fill', '#4CAF50');
+            pointsGroup.appendChild(circleA);
+            
+            // 圆心O
+            const circleO = createSVGElement('circle');
+            circleO.setAttribute('cx', toSvgX(circleCenter.x));
+            circleO.setAttribute('cy', toSvgY(circleCenter.y));
+            circleO.setAttribute('r', '6');
+            circleO.setAttribute('fill', '#4CAF50');
+            pointsGroup.appendChild(circleO);
+
+            // 旋转后的点
+            const circleRotated = createSVGElement('circle');
+            circleRotated.setAttribute('cx', toSvgX(rotatedPoint.x));
+            circleRotated.setAttribute('cy', toSvgY(rotatedPoint.y));
+            circleRotated.setAttribute('r', '6');
+            circleRotated.setAttribute('fill', '#ff9800');
+            pointsGroup.appendChild(circleRotated);
+
+            // 标记A
+            const textA = createSVGElement('text');
+            textA.setAttribute('x', toSvgX(pointA.x) + 15);
+            textA.setAttribute('y', toSvgY(pointA.y) - 15);
+            textA.setAttribute('fill', '#4CAF50');
+            textA.setAttribute('font-weight', 'bold');
+            textA.textContent = 'A(4,3)';
+            markersGroup.appendChild(textA);
+            
+            // 标记O
+            const textO = createSVGElement('text');
+            textO.setAttribute('x', toSvgX(circleCenter.x) + 15);
+            textO.setAttribute('y', toSvgY(circleCenter.y) - 15);
+            textO.setAttribute('fill', '#4CAF50');
+            textO.setAttribute('font-weight', 'bold');
+            textO.textContent = 'O(0,0)';
+            markersGroup.appendChild(textO);
+
+            // 标记旋转后的点
+            const textRotated = createSVGElement('text');
+            textRotated.setAttribute('x', toSvgX(rotatedPoint.x) + 15);
+            textRotated.setAttribute('y', toSvgY(rotatedPoint.y) - 15);
+            textRotated.setAttribute('fill', '#ff9800');
+            textRotated.setAttribute('font-weight', 'bold');
+            textRotated.textContent = 'A\'(5,0)';
+            markersGroup.appendChild(textRotated);
+
+            // 标记旋转角度
+            const textTheta = createSVGElement('text');
+            textTheta.setAttribute('x', toSvgX(arcRadius * Math.cos(-theta/2)) + 5);
+            textTheta.setAttribute('y', toSvgY(arcRadius * Math.sin(-theta/2)) - 5);
+            textTheta.setAttribute('fill', '#ff9800');
+            textTheta.setAttribute('font-weight', 'bold');
+            textTheta.textContent = 'θ';
+            markersGroup.appendChild(textTheta);
+
+            // 标记旋转向量
+            const textRotatedVector = createSVGElement('text');
+            textRotatedVector.setAttribute('x', toSvgX(pointA.x + 3) + 10);
+            textRotatedVector.setAttribute('y', toSvgY(pointA.y - 4));
+            textRotatedVector.setAttribute('fill', '#ff4444');
+            textRotatedVector.setAttribute('font-weight', 'bold');
+            textRotatedVector.textContent = 'v=(3,-4)';
+            markersGroup.appendChild(textRotatedVector);
+
+            // 标记切线
+            const textTangent = createSVGElement('text');
+            textTangent.setAttribute('x', toSvgX(pointA.x) - 50);
+            textTangent.setAttribute('y', toSvgY(pointA.y) - 40);
+            textTangent.setAttribute('fill', '#2196F3');
+            textTangent.setAttribute('font-weight', 'bold');
+            textTangent.textContent = '4x+3y-25=0';
+            markersGroup.appendChild(textTangent);
+
+            // 标记x=5垂直线
+            const textVertical = createSVGElement('text');
+            textVertical.setAttribute('x', toSvgX(5) + 10);
+            textVertical.setAttribute('y', toSvgY(2));
+            textVertical.setAttribute('fill', '#9c27b0');
+            textVertical.setAttribute('font-weight', 'bold');
+            textVertical.textContent = 'x=5';
+            markersGroup.appendChild(textVertical);
+            
+            // 按顺序添加所有组到SVG
+            svg.appendChild(gridGroup);
+            svg.appendChild(axisGroup);
+            svg.appendChild(labelsGroup);
+            svg.appendChild(shapeGroup);
+            svg.appendChild(pointsGroup);
+            svg.appendChild(vectorGroup);
+            svg.appendChild(markersGroup);
+        }
+        
+        // 监听缩放变化
+        document.getElementById('scale').addEventListener('input', function() {
+            scale = parseInt(this.value);
+            document.getElementById('scaleValue').textContent = scale;
+            drawCoordinateSystem();
+        });
+
+        // 监听窗口大小变化
+        window.addEventListener('resize', function() {
+            const svg = document.getElementById('coordinate-system');
+            const container = document.querySelector('.content-left');
+            svgWidth = container.offsetWidth - 40;
+            svgHeight = Math.max(container.offsetHeight - 80, 400);
+            
+            svg.setAttribute('width', svgWidth);
+            svg.setAttribute('height', svgHeight);
+            
+            // 更新中心点
+            centerX = svgWidth / 2;
+            centerY = svgHeight / 2;
+            
+            drawCoordinateSystem();
+        });
+        
+        // 初始化绘图
+        drawCoordinateSystem();
+
+        // 初始化时触发一次resize事件以调整SVG大小
+        window.dispatchEvent(new Event('resize'));
+    </script>
+</body>
+</html> 

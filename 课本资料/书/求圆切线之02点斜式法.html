@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>求圆切线之02点斜式法</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+        }
+        .content-left {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .content-right {
+            padding: 20px;
+            overflow-y: auto;
+            min-width: 300px;
+        }
+        .handle {
+            width: 10px;
+            background: #ccc;
+            cursor: col-resize;
+            position: relative;
+        }
+        .handle::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 4px;
+            height: 30px;
+            background: #888;
+            border-radius: 2px;
+        }
+        .problem { margin-bottom: 20px; }
+        .solution { margin-top: 20px; }
+        svg { 
+            border: 1px solid #ddd; 
+            display: block;
+            width: 100%;
+            height: 100%;
+            min-height: 400px;
+        }
+        .step { margin: 10px 0; }
+        .hint { color: #0066cc; font-style: italic; }
+        .math { font-style: italic; }
+        #controls {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            text-align: center;
+        }
+    </style>
+    <!-- 添加MathJax支持 -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="content-left">
+            <div id="controls">
+                <label>坐标缩放: <input type="range" id="scale" min="20" max="100" value="25"></label>
+                <span id="scaleValue">25</span>
+            </div>
+            
+            <svg id="coordinate-system" width="800" height="600"></svg>
+        </div>
+
+        <div class="handle"></div>
+
+        <div class="content-right">
+            <div class="problem">
+                <h1>求圆的切线之02点斜式法</h1>
+                <h2>已知：圆方程 $x^2+y^2=25$，点A$(4,3)$，求过点A的切线方程</h2>
+            </div>
+
+            <div class="solution">
+                <h3>点斜式法求解圆的切线方程</h3>
+                
+                <div class="step">
+                    <p>1、已知：圆 $x^2+y^2=25$，点A$(4,3)$</p>
+                    <p>2、确认点A在圆上：$4^2+3^2=16+9=25$ ✓</p>
+                    <p>3、切线与过切点的半径垂直</p>
+                    <p>4、半径向量：$\overrightarrow{OA}=(4,3)$</p>
+                    <p>5、切线斜率为半径斜率的负倒数：
+                       $k_{\text{切线}} = -\frac{1}{k_{\text{半径}}} = -\frac{1}{\frac{3}{4}} = -\frac{4}{3}$</p>
+                    <p>6、用点斜式写出切线方程：$y - y_A = k(x - x_A)$</p>
+                    <p>7、代入点A$(4,3)$和斜率$k = -\frac{4}{3}$：$y - 3 = -\frac{4}{3}(x - 4)$</p>
+                    <p>8、整理得：$y - 3 = -\frac{4}{3}x + \frac{16}{3}$</p>
+                    <p>9、整理得：$y = -\frac{4}{3}x + \frac{16}{3} + 3 = -\frac{4}{3}x + \frac{16 + 9}{3} = -\frac{4}{3}x + \frac{25}{3}$</p>
+                    <p>10、化为一般式：$4x + 3y - 25 = 0$</p>
+                </div>
+                
+                <div class="hint">
+                    <p>要点：</p>
+                    <ul>
+                        <li>切线与半径垂直，因此切线斜率是半径斜率的负倒数</li>
+                        <li>已知切点坐标和切线斜率，可直接写出点斜式方程</li>
+                        <li>将点斜式转换为一般式，更方便表示</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 添加拖动手柄功能
+        const handle = document.querySelector('.handle');
+        const rightContent = document.querySelector('.content-right');
+        let isResizing = false;
+
+        handle.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', () => {
+                isResizing = false;
+                document.removeEventListener('mousemove', handleMouseMove);
+            });
+        });
+
+        function handleMouseMove(e) {
+            if (!isResizing) return;
+            
+            const containerWidth = document.querySelector('.container').offsetWidth;
+            const newWidth = containerWidth - e.clientX;
+            const minWidth = 300;
+            const maxWidth = containerWidth - 400;
+            
+            if (newWidth >= minWidth && newWidth <= maxWidth) {
+                rightContent.style.width = newWidth + 'px';
+            }
+        }
+
+        // 设置中心点和缩放比例
+        let svgWidth = 800;
+        let svgHeight = 600;
+        let centerX = svgWidth / 2;
+        let centerY = svgHeight / 2;
+        let scale = 25; // 每个单位对应的像素数
+
+        // 坐标点（数学坐标系中）
+        const pointA = {x: 4, y: 3};
+        const circleCenter = {x: 0, y: 0};
+        const radius = 5;
+        
+        // 转换为SVG坐标
+        function toSvgX(x) {
+            return centerX + x * scale;
+        }
+        
+        function toSvgY(y) {
+            return centerY - y * scale;
+        }
+        
+        // 创建SVG元素
+        function createSVGElement(tag) {
+            return document.createElementNS("http://www.w3.org/2000/svg", tag);
+        }
+        
+        // 绘制坐标系和图形
+        function drawCoordinateSystem() {
+            const svg = document.getElementById('coordinate-system');
+            svg.innerHTML = '';
+            
+            // 创建所有需要的组
+            const gridGroup = createSVGElement('g');
+            const axisGroup = createSVGElement('g');
+            const labelsGroup = createSVGElement('g');
+            const shapeGroup = createSVGElement('g');
+            const pointsGroup = createSVGElement('g');
+            const markersGroup = createSVGElement('g');
+            const vectorGroup = createSVGElement('g');
+            
+            gridGroup.setAttribute('stroke', '#eee');
+            gridGroup.setAttribute('stroke-width', '0.5');
+            axisGroup.setAttribute('stroke', '#000');
+            axisGroup.setAttribute('stroke-width', '1.5');
+            labelsGroup.setAttribute('font-size', '14');
+            labelsGroup.setAttribute('font-family', 'Arial');
+            markersGroup.setAttribute('font-size', '14');
+            markersGroup.setAttribute('font-family', 'Arial');
+            vectorGroup.setAttribute('stroke', '#ff4444');
+            vectorGroup.setAttribute('stroke-width', '2');
+
+            // 计算可见范围
+            const margin = 2; // 边距单位
+            const visibleWidth = svgWidth / scale;
+            const visibleHeight = svgHeight / scale;
+            const xMin = Math.floor(-visibleWidth / 2) - margin;
+            const xMax = Math.ceil(visibleWidth / 2) + margin;
+            const yMin = Math.floor(-visibleHeight / 2) - margin;
+            const yMax = Math.ceil(visibleHeight / 2) + margin;
+            
+            // 横向网格线
+            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+                if (y === 0) continue;
+                const line = createSVGElement('line');
+                line.setAttribute('x1', toSvgX(xMin));
+                line.setAttribute('y1', toSvgY(y));
+                line.setAttribute('x2', toSvgX(xMax));
+                line.setAttribute('y2', toSvgY(y));
+                line.setAttribute('vector-effect', 'non-scaling-stroke');
+                gridGroup.appendChild(line);
+            }
+            
+            // 纵向网格线
+            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+                if (x === 0) continue;
+                const line = createSVGElement('line');
+                line.setAttribute('x1', toSvgX(x));
+                line.setAttribute('y1', toSvgY(yMin));
+                line.setAttribute('x2', toSvgX(x));
+                line.setAttribute('y2', toSvgY(yMax));
+                line.setAttribute('vector-effect', 'non-scaling-stroke');
+                gridGroup.appendChild(line);
+            }
+            
+            // x轴
+            const xAxis = createSVGElement('line');
+            xAxis.setAttribute('x1', toSvgX(xMin));
+            xAxis.setAttribute('y1', toSvgY(0));
+            xAxis.setAttribute('x2', toSvgX(xMax));
+            xAxis.setAttribute('y2', toSvgY(0));
+            xAxis.setAttribute('vector-effect', 'non-scaling-stroke');
+            axisGroup.appendChild(xAxis);
+            
+            // y轴
+            const yAxis = createSVGElement('line');
+            yAxis.setAttribute('x1', toSvgX(0));
+            yAxis.setAttribute('y1', toSvgY(yMin));
+            yAxis.setAttribute('x2', toSvgX(0));
+            yAxis.setAttribute('y2', toSvgY(yMax));
+            yAxis.setAttribute('vector-effect', 'non-scaling-stroke');
+            axisGroup.appendChild(yAxis);
+            
+            // x轴刻度标签
+            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+                if (x === 0) continue;
+                const text = createSVGElement('text');
+                text.setAttribute('x', toSvgX(x));
+                text.setAttribute('y', toSvgY(0) + 20);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('fill', '#666');
+                text.textContent = x;
+                labelsGroup.appendChild(text);
+            }
+            
+            // y轴刻度标签
+            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+                if (y === 0) continue;
+                const text = createSVGElement('text');
+                text.setAttribute('x', toSvgX(0) - 10);
+                text.setAttribute('y', toSvgY(y) + 5);
+                text.setAttribute('text-anchor', 'end');
+                text.setAttribute('fill', '#666');
+                text.textContent = y;
+                labelsGroup.appendChild(text);
+            }
+
+            // 绘制圆
+            const circle = createSVGElement('circle');
+            circle.setAttribute('cx', toSvgX(circleCenter.x));
+            circle.setAttribute('cy', toSvgY(circleCenter.y));
+            circle.setAttribute('r', radius * scale);
+            circle.setAttribute('stroke', '#2196F3');
+            circle.setAttribute('stroke-width', '2');
+            circle.setAttribute('fill', 'none');
+            shapeGroup.appendChild(circle);
+
+            // 绘制半径OA
+            const radiusLine = createSVGElement('line');
+            radiusLine.setAttribute('x1', toSvgX(circleCenter.x));
+            radiusLine.setAttribute('y1', toSvgY(circleCenter.y));
+            radiusLine.setAttribute('x2', toSvgX(pointA.x));
+            radiusLine.setAttribute('y2', toSvgY(pointA.y));
+            radiusLine.setAttribute('stroke', '#4CAF50');
+            radiusLine.setAttribute('stroke-width', '2');
+            radiusLine.setAttribute('vector-effect', 'non-scaling-stroke');
+            shapeGroup.appendChild(radiusLine);
+
+            // 计算圆的切线
+            // 切线方程：4x + 3y - 25 = 0
+            // 转换为 y = (-4x + 25)/3 形式
+            const tangentLine = createSVGElement('line');
+            const k = -4/3; // 斜率
+            const b = 25/3; // y截距
+            
+            const leftX = xMin;
+            const leftY = k * leftX + b;
+            const rightX = xMax;
+            const rightY = k * rightX + b;
+            
+            tangentLine.setAttribute('x1', toSvgX(leftX));
+            tangentLine.setAttribute('y1', toSvgY(leftY));
+            tangentLine.setAttribute('x2', toSvgX(rightX));
+            tangentLine.setAttribute('y2', toSvgY(rightY));
+            tangentLine.setAttribute('stroke', '#2196F3');
+            tangentLine.setAttribute('stroke-width', '2');
+            tangentLine.setAttribute('vector-effect', 'non-scaling-stroke');
+            shapeGroup.appendChild(tangentLine);
+
+            // 显示半径斜率
+            const radiusSlope = 3/4;
+            const radiusSlopeText = createSVGElement('text');
+            radiusSlopeText.setAttribute('x', toSvgX((pointA.x + circleCenter.x) / 2) - 40);
+            radiusSlopeText.setAttribute('y', toSvgY((pointA.y + circleCenter.y) / 2) - 10);
+            radiusSlopeText.setAttribute('fill', '#4CAF50');
+            radiusSlopeText.setAttribute('font-weight', 'bold');
+            radiusSlopeText.textContent = 'k半径 = 3/4';
+            markersGroup.appendChild(radiusSlopeText);
+
+            // 显示切线斜率
+            const tangentSlopeText = createSVGElement('text');
+            tangentSlopeText.setAttribute('x', toSvgX(pointA.x) + 20);
+            tangentSlopeText.setAttribute('y', toSvgY(k * pointA.x + b) - 15);
+            tangentSlopeText.setAttribute('fill', '#2196F3');
+            tangentSlopeText.setAttribute('font-weight', 'bold');
+            tangentSlopeText.textContent = 'k切线 = -4/3';
+            markersGroup.appendChild(tangentSlopeText);
+
+            // 在A点绘制垂直符号（表示半径和切线垂直）
+            const perpendicularSymbol = createSVGElement('path');
+            const size = 10;
+            perpendicularSymbol.setAttribute('d', `M ${toSvgX(pointA.x) - size} ${toSvgY(pointA.y)}
+                L ${toSvgX(pointA.x)} ${toSvgY(pointA.y)}
+                L ${toSvgX(pointA.x)} ${toSvgY(pointA.y) + size}`);
+            perpendicularSymbol.setAttribute('stroke', '#666');
+            perpendicularSymbol.setAttribute('stroke-width', '2');
+            perpendicularSymbol.setAttribute('fill', 'none');
+            shapeGroup.appendChild(perpendicularSymbol);
+
+            // 点A
+            const circleA = createSVGElement('circle');
+            circleA.setAttribute('cx', toSvgX(pointA.x));
+            circleA.setAttribute('cy', toSvgY(pointA.y));
+            circleA.setAttribute('r', '6');
+            circleA.setAttribute('fill', '#4CAF50');
+            pointsGroup.appendChild(circleA);
+            
+            // 圆心O
+            const circleO = createSVGElement('circle');
+            circleO.setAttribute('cx', toSvgX(circleCenter.x));
+            circleO.setAttribute('cy', toSvgY(circleCenter.y));
+            circleO.setAttribute('r', '6');
+            circleO.setAttribute('fill', '#4CAF50');
+            pointsGroup.appendChild(circleO);
+
+            // 标记A
+            const textA = createSVGElement('text');
+            textA.setAttribute('x', toSvgX(pointA.x) + 15);
+            textA.setAttribute('y', toSvgY(pointA.y) - 15);
+            textA.setAttribute('fill', '#4CAF50');
+            textA.setAttribute('font-weight', 'bold');
+            textA.textContent = 'A(4,3)';
+            markersGroup.appendChild(textA);
+            
+            // 标记O
+            const textO = createSVGElement('text');
+            textO.setAttribute('x', toSvgX(circleCenter.x) + 15);
+            textO.setAttribute('y', toSvgY(circleCenter.y) - 15);
+            textO.setAttribute('fill', '#4CAF50');
+            textO.setAttribute('font-weight', 'bold');
+            textO.textContent = 'O(0,0)';
+            markersGroup.appendChild(textO);
+
+            // 标记切线
+            const textTangent = createSVGElement('text');
+            textTangent.setAttribute('x', toSvgX(pointA.x) - 50);
+            textTangent.setAttribute('y', toSvgY(pointA.y) - 40);
+            textTangent.setAttribute('fill', '#2196F3');
+            textTangent.setAttribute('font-weight', 'bold');
+            textTangent.textContent = '4x+3y-25=0';
+            markersGroup.appendChild(textTangent);
+            
+            // 按顺序添加所有组到SVG
+            svg.appendChild(gridGroup);
+            svg.appendChild(axisGroup);
+            svg.appendChild(labelsGroup);
+            svg.appendChild(shapeGroup);
+            svg.appendChild(pointsGroup);
+            svg.appendChild(vectorGroup);
+            svg.appendChild(markersGroup);
+        }
+        
+        // 监听缩放变化
+        document.getElementById('scale').addEventListener('input', function() {
+            scale = parseInt(this.value);
+            document.getElementById('scaleValue').textContent = scale;
+            drawCoordinateSystem();
+        });
+
+        // 监听窗口大小变化
+        window.addEventListener('resize', function() {
+            const svg = document.getElementById('coordinate-system');
+            const container = document.querySelector('.content-left');
+            svgWidth = container.offsetWidth - 40;
+            svgHeight = Math.max(container.offsetHeight - 80, 400);
+            
+            svg.setAttribute('width', svgWidth);
+            svg.setAttribute('height', svgHeight);
+            
+            // 更新中心点
+            centerX = svgWidth / 2;
+            centerY = svgHeight / 2;
+            
+            drawCoordinateSystem();
+        });
+        
+        // 初始化绘图
+        drawCoordinateSystem();
+
+        // 初始化时触发一次resize事件以调整SVG大小
+        window.dispatchEvent(new Event('resize'));
+    </script>
+</body>
+</html> 
