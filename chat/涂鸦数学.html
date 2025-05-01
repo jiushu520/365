@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>数学解题工具</title>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
+
     <script>
         window.MathJax = {
             tex: {
@@ -21,6 +20,7 @@
             }
         };
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -221,6 +221,7 @@
             margin-top: 30px;
             text-align: center;
             width: 100%;
+            min-height: 900px; /* 添加最小高度 */
         }
         .result-image {
             max-width: 100%;
@@ -532,7 +533,9 @@
             white-space: pre-wrap;
             overflow-wrap: break-word;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-height: 500px;
+            max-height: 1600px;
+            min-height: 750px; /* 添加最小高度 */
+            height: 750px; /* 添加初始高度 */
             overflow-y: auto;
             position: relative;
         }
@@ -694,14 +697,106 @@
             margin: 0;
             white-space: nowrap;
         }
+        .initial-message {
+            color: #666;
+            text-align: center;
+            padding: 20px;
+            font-style: normal;
+            line-height: 1.6;
+        }
+        .initial-message p {
+            margin: 10px 0;
+        }
+        .initial-message ul {
+            margin: 15px 0;
+        }
+        .initial-message li {
+            margin: 8px 0;
+            color: #2a2a72;
+        }
+        .prompt-container {
+            position: relative;
+            width: 100%;
+            min-height: 100px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+            margin-bottom: 15px;
+        }
+
+        #prompt {
+            width: 100%;
+            min-height: 100px;
+            border: none;
+            resize: vertical;
+            padding: 10px;
+            font-size: 16px;
+            background: transparent;
+        }
+
+        .prompt-image-preview {
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .prompt-image-item {
+            position: relative;
+            width: 200px;
+            margin: 5px;
+        }
+
+        .prompt-image-item img {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .prompt-image-item .remove-image {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 20px;
+            height: 20px;
+            background-color: #ff4444;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .prompt-image-item .remove-image:hover {
+            background-color: #ff0000;
+        }
+        /* 其他样式 */
+        .message img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 5px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         
         <div class="left-panel">
-            <h3 class="panel-title">数学问题绘图板</h3>
-            <p class="panel-description">在画布上绘制或粘贴(Ctrl+V)图片进行解答</p>
+            <h3 class="panel-title">玖数学手绘问题</h3>
+            <div class="form-group">
+                <div class="prompt-container">
+                    <textarea id="prompt" placeholder="请输入您的数学问题，可以直接粘贴(Ctrl+V)图片...">如图,求解图中的数学问题</textarea>
+                    <div id="promptImagePreview" class="prompt-image-preview"></div>
+                    <button id="generateBtn">解答问题</button>
+                </div>
+
+            </div>
             <div class="canvas-container">
                 <canvas id="drawingCanvas" tabindex="0"></canvas>
             </div>
@@ -730,7 +825,7 @@
             
             <div class="form-group" style="display: none;">
                 <label for="apiKey">OpenAI API Key:</label>
-                <input type="password" id="apiKey" value="sk-NKAwMaji6Elw3bXeAxTbkbaQ4zwwhFLKmhCySLJYDPp9tlTZ" placeholder="Enter your OpenAI API key here">
+                <input type="password" id="apiKey" value="sk-X5kUt2ZnRTwu13srkgRYsZljHS4G8SdJNkA3iZYheaFDkiK5" placeholder="Enter your OpenAI API key here">
             </div>
             
             <div class="form-group" style="display: none;">
@@ -738,83 +833,15 @@
                 <input type="text" id="baseUrl" value="https://aigc.x-see.cn/v1/" placeholder="API base URL">
             </div>
             
-            <div class="form-group">
-                <label for="prompt">问题描述:</label>
-                <textarea id="prompt" placeholder="请输入您的数学问题...">如图,求解图中的数学问题</textarea>
-            </div>
-            
-            <div class="form-group">
-                <label for="promptCategory">问题类型:</label>
-                <select id="promptCategory" onchange="showSubcategory()">
-                    <option value="">-- 选择问题类型 --</option>
-                    <option value="algebra">一、代数</option>
-                    <option value="calculus">二、微积分</option>
-                    <option value="geometry">三、几何</option>
-                    <option value="trigonometry">四、三角函数</option>
-                    <option value="statistics">五、统计概率</option>
-                    <option value="number_theory">六、数论</option>
-                    <option value="linear_algebra">七、线性代数</option>
-                    <option value="discrete_math">八、离散数学</option>
-                    <option value="complex_analysis">九、复分析</option>
-                    <option value="applied_math">十、应用数学</option>
-                </select>
-            </div>
-            
-            <div class="form-group" id="subcategoryContainer" style="display: none;">
-                <label for="promptSubcategory">具体问题类型:</label>
-                <select id="promptSubcategory" onchange="addPromptToTextarea()">
-                    <option value="">-- 选择具体问题类型 --</option>
-                </select>
-            </div>
-            
-            <div class="form-group"style="display: true;">
-                <label for="model">解答方式:</label>
-                <select id="model">
-                    <option value="combined">文字+图像综合解答</option>
-                    <option value="claude-3-7-sonnet-20250219">文字解答(支持图片输入)</option>
-                    <option value="gpt-4o-image">仅图像解答</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="size">图像大小:</label>
-                <select id="size">
-                    <option value="1024x1024">1024x1024</option>
-                    <option value="1024x1792">1024x1792</option>
-                    <option value="1792x1024">1792x1024</option>
-                </select>
-            </div>
-            
-            <div id="inputImageOptions" class="form-group" style="display: none;">
-                
-                <div id="pasteImage" class="form-group">
-                    <label>粘贴图片 (点击或直接Ctrl+V):</label>
-                    <div class="paste-area" id="pasteArea">
-
-
-                        <img id="pastePreview" class="paste-img-preview" alt="粘贴预览">
-                    </div>
-                    <button id="clearImageBtn" style="margin-top: 10px; background-color: #f44336;">清除图片</button>
-                </div>
-                
-                <div id="inputImage" class="form-group">
-                    <label for="imageUrl">或输入图片URL:</label>
-                    <input type="text" id="imageUrl" placeholder="Enter URL of an image to use as reference">
-                </div>
-            </div>
-            
-            
-
+          
+        
         </div>
         
         <div class="right-panel">
-            <div class="result-area" id="resultArea" style="display: none;">
-                <h2>问题解答</h2>
+            <div class="result-area" id="resultArea">
                 <div id="textResult" class="text-result">
-                    <div class="loading-indicator" id="textLoadingIndicator"></div>
+                  
                 </div>
-                <div id="imageLoadingMessage" class="image-loading">正在生成图像解答，请稍候...</div>
-                <img id="resultImage" class="result-image" alt="解答图示将显示在这里">
                 
                 <!-- 添加对话区域 -->
                 <div class="conversation-container" id="conversationContainer" style="display: none;">
@@ -835,7 +862,7 @@
 
             <!-- 历史记录面板 -->
             <div class="history-panel">
-                <div class="status-area" id="statusArea">
+                <div class="status-area" id="statusArea"style="display: none;">
                     <div class="status-message">可直接生成图像。</div>
                 </div>
                 <div class="history-header">
@@ -856,29 +883,10 @@
     <script>
         // Model configurations
         const MODEL_CONFIGS = {
-            "combined": {
-                "sizes": ["1024x1024", "1024x1792", "1792x1024"],
-                "api_endpoint": "chat/completions",
-                "supports_image_input": true,
-                "description": "同时生成文字和图像解答"
-            },
             "claude-3-7-sonnet-20250219": {
-                "sizes": ["1024x1024", "1024x1792", "1792x1024"],
                 "api_endpoint": "chat/completions",
                 "supports_image_input": true,
                 "description": "文字解答(支持图片输入)"
-            },
-            "gpt-4o-image": {
-                "sizes": ["1024x1024", "1024x1792", "1792x1024"],
-                "api_endpoint": "chat/completions",
-                "supports_image_input": true,
-                "description": "仅提供图像解答"
-            },
-            "dall-e-3": {
-                "sizes": ["1024x1024", "1024x1792", "1792x1024"],
-                "api_endpoint": "images/generations",
-                "supports_image_input": false,
-                "description": "DALL-E 3图像模型"
             }
         };
 
@@ -917,6 +925,9 @@
         
         // 存储粘贴的图片数据
         let pastedImageData = null;
+        
+        // 存储多个图片数据的数组
+        let pastedImagesData = [];
         
         // Canvas drawing functionality
         const ctx = drawingCanvas.getContext('2d');
@@ -1200,83 +1211,7 @@
         });
 
         // 提示词分类和内容
-        let promptsData = {};
-        
-        // 初始化提示词数据
-        function initPromptsData() {
-            promptsData = {
-                'algebra': [
-                    {value: '求解一元二次方程：ax² + bx + c = 0，其中a=1, b=5, c=6', label: '1. 一元二次方程'},
-                    {value: '分解因式：x² - 9', label: '2. 多项式因式分解'},
-                    {value: '简化表达式：(3x + 2)² - 4x(3x + 2) + 4x²', label: '3. 代数式化简'},
-                    {value: '求解不等式：2x - 5 > 7', label: '4. 线性不等式'},
-                    {value: '求函数f(x) = x² - 4x + 3的零点', label: '5. 函数零点'}
-                ],
-                'calculus': [
-                    {value: '求函数f(x) = x³ - 3x² + 2的导数', label: '1. 求导数'},
-                    {value: '计算定积分∫(0,1) x²dx', label: '2. 定积分计算'},
-                    {value: '求曲线y = x² + 2x在点(1,3)处的切线方程', label: '3. 切线方程'},
-                    {value: '判断级数Σ(n=1,∞) 1/n²是否收敛', label: '4. 级数收敛性'},
-                    {value: '求函数f(x) = x²e^x的极值', label: '5. 函数极值'}
-                ],
-                'geometry': [
-                    {value: '在三角形ABC中，角A=30°，角B=45°，边c=10，求三角形的面积', label: '1. 三角形面积'},
-                    {value: '求圆(x-2)² + (y+1)² = 25的面积和周长', label: '2. 圆的面积周长'},
-                    {value: '证明：三角形中位线平行于第三边且等于第三边的一半', label: '3. 三角形中位线'},
-                    {value: '求两点A(1,2)和B(4,6)之间的距离', label: '4. 两点距离'},
-                    {value: '求直线2x + 3y - 6 = 0与直线x - y + 2 = 0的交点', label: '5. 直线交点'}
-                ],
-                'trigonometry': [
-                    {value: '验证恒等式：sin²θ + cos²θ = 1', label: '1. 三角恒等式'},
-                    {value: '求解三角方程：2sinx + 1 = 0', label: '2. 三角方程'},
-                    {value: '化简表达式：sin(x+π/4) + cos(x-π/4)', label: '3. 三角式化简'},
-                    {value: '在三角形ABC中，a=4, b=5, c=6，求角A', label: '4. 三角形角度'},
-                    {value: '证明：sin(2x) = 2sinx·cosx', label: '5. 倍角公式'}
-                ],
-                'statistics': [
-                    {value: '计算数据集{2, 4, 6, 8, 10}的均值、中位数和标准差', label: '1. 描述统计'},
-                    {value: '掷两个骰子，求和为7的概率', label: '2. 概率计算'},
-                    {value: '若X~N(0,1)，求P(X<1.96)', label: '3. 正态分布'},
-                    {value: '在袋子中有5个红球和3个蓝球，随机抽取2个球，求抽到2个红球的概率', label: '4. 组合概率'},
-                    {value: '假设检验：样本均值为52，总体标准差为10，样本量为100，检验总体均值是否大于50', label: '5. 假设检验'}
-                ],
-                'number_theory': [
-                    {value: '判断367是否为质数', label: '1. 质数判定'},
-                    {value: '计算最大公约数：gcd(48, 36)', label: '2. 最大公约数'},
-                    {value: '解同余方程：3x ≡ 5 (mod 7)', label: '3. 同余方程'},
-                    {value: '找出100以内的所有完全数', label: '4. 完全数'},
-                    {value: '使用欧拉函数计算φ(24)', label: '5. 欧拉函数'}
-                ],
-                'linear_algebra': [
-                    {value: '计算行列式：|1 2 3; 4 5 6; 7 8 9|', label: '1. 行列式计算'},
-                    {value: '解线性方程组：x + 2y = 5, 3x - y = 7', label: '2. 线性方程组'},
-                    {value: '求矩阵A = [[1,2],[3,4]]的特征值和特征向量', label: '3. 特征值与特征向量'},
-                    {value: '判断向量组{(1,0,1), (0,1,1), (1,1,0)}是否线性相关', label: '4. 线性相关性'},
-                    {value: '将二次型x² + 4xy + y²化为标准形式', label: '5. 二次型化标准形'}
-                ],
-                'discrete_math': [
-                    {value: '证明：对于所有自然数n，n³-n能被6整除', label: '1. 数论证明'},
-                    {value: '计算组合数C(10,3)', label: '2. 组合计算'},
-                    {value: '用归纳法证明：1+3+5+...+(2n-1) = n²', label: '3. 数学归纳法'},
-                    {value: '求解递推关系：a_n = 3a_{n-1} - 2a_{n-2}，初始条件a_0 = 1, a_1 = 2', label: '4. 递推关系'},
-                    {value: '证明：一个图的所有顶点的度数之和等于边数的两倍', label: '5. 图论证明'}
-                ],
-                'complex_analysis': [
-                    {value: '计算复数z = 2 + 3i的模和辐角', label: '1. 复数运算'},
-                    {value: '求函数f(z) = z²的复导数', label: '2. 复导数'},
-                    {value: '计算积分∫|z|=1 (1/z²)dz', label: '3. 复变函数积分'},
-                    {value: '求z = 2 + 3i的所有平方根', label: '4. 复数根'},
-                    {value: '使用留数定理计算积分∫|z|=2 (1/(z-1))dz', label: '5. 留数计算'}
-                ],
-                'applied_math': [
-                    {value: '一个物体从10米高处自由落下，求落地时间和速度', label: '1. 物理应用'},
-                    {value: '100元以年利率5%复利存款，5年后本息合计多少？', label: '2. 金融计算'},
-                    {value: '用欧拉法以步长h=0.1求解微分方程y\'=y，y(0)=1，求y(0.3)的近似值', label: '3. 数值方法'},
-                    {value: 'A地到B地有3条路，B地到C地有4条路，从A地到C地共有多少种不同路线？', label: '4. 计数问题'},
-                    {value: '已知商品需求函数p = 100 - 2q，求消费者剩余', label: '5. 经济应用'}
-                ]
-            };
-        }
+
         
         // 显示子分类
         function showSubcategory() {
@@ -1521,81 +1456,6 @@
                 const historyItem = document.createElement('div');
                 historyItem.className = 'history-item';
                 
-                // 创建图片元素
-                const imgContainer = document.createElement('div');
-                imgContainer.className = 'history-img-container';
-                
-                const img = document.createElement('img');
-                img.className = 'history-img';
-                
-                if (item.imageUrl) {
-                    img.src = item.imageUrl;
-                    img.alt = `解答图示 ${index + 1}`;
-                } else {
-                    // 如果没有图片，显示文字预览
-                    img.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22200%22%20height%3D%22150%22%3E%3Crect%20fill%3D%22%23ddd%22%20width%3D%22200%22%20height%3D%22150%22%2F%3E%3Ctext%20fill%3D%22%23666%22%20font-family%3D%22sans-serif%22%20font-size%3D%2214%22%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%3E%E6%96%87%E5%AD%97%E8%A7%A3%E7%AD%94%3C%2Ftext%3E%3C%2Fsvg%3E';
-                    img.alt = `仅文字解答 ${index + 1}`;
-                }
-                
-                // 显示答案类型标签
-                const typeLabel = document.createElement('div');
-                typeLabel.className = 'history-type-label';
-                
-                if (item.textResponse && item.imageUrl) {
-                    typeLabel.textContent = '文字+图像';
-                    typeLabel.className += ' combined-label';
-                } else if (item.imageUrl) {
-                    typeLabel.textContent = '图像';
-                    typeLabel.className += ' image-label';
-                } else if (item.textResponse) {
-                    typeLabel.textContent = '文字';
-                    typeLabel.className += ' text-label';
-                }
-                
-                imgContainer.appendChild(img);
-                imgContainer.appendChild(typeLabel);
-                
-                // 点击事件
-                historyItem.onclick = () => {
-                    // 准备显示结果区域
-                    resultArea.style.display = 'block';
-
-                    // 重置显示内容
-                    document.getElementById('textResult').innerHTML = '';
-                    document.getElementById('resultImage').style.display = 'none';
-                    document.getElementById('imageLoadingMessage').style.display = 'none';
-                    
-                    // 显示文字答案
-                    if (item.textResponse) {
-                        const textResult = document.getElementById('textResult');
-                        textResult.style.display = 'block';
-                        
-                        // 创建一个新的容器元素
-                        const responseContainer = document.createElement('div');
-                        responseContainer.innerHTML = item.textResponse;
-                        textResult.appendChild(responseContainer);
-                        
-                        // 处理可能包含的SVG内容
-                        processSvgContent(responseContainer);
-                        
-                        // 渲染数学公式
-                        setTimeout(() => {
-                            if (window.MathJax) {
-                                window.MathJax.typeset();
-                            }
-                        }, 100);
-                    } else {
-                        document.getElementById('textResult').style.display = 'none';
-                    }
-                    
-                    // 显示图片答案
-                    if (item.imageUrl) {
-                        const resultImage = document.getElementById('resultImage');
-                        resultImage.src = item.imageUrl;
-                        resultImage.style.display = 'block';
-                    }
-                };
-                
                 // 创建信息区域
                 const infoDiv = document.createElement('div');
                 infoDiv.className = 'history-info';
@@ -1636,6 +1496,38 @@
                     addStatus(`已加载问题: "${item.prompt}"`);
                 };
                 
+                // 点击事件
+                historyItem.onclick = () => {
+                    // 准备显示结果区域
+                    resultArea.style.display = 'block';
+
+                    // 重置显示内容
+                    document.getElementById('textResult').innerHTML = '';
+                    
+                    // 显示文字答案
+                    if (item.textResponse) {
+                        const textResult = document.getElementById('textResult');
+                        textResult.style.display = 'block';
+                        
+                        // 创建一个新的容器元素
+                        const responseContainer = document.createElement('div');
+                        responseContainer.innerHTML = item.textResponse;
+                        textResult.appendChild(responseContainer);
+                        
+                        // 处理可能包含的SVG内容
+                        processSvgContent(responseContainer);
+                        
+                        // 渲染数学公式
+                        setTimeout(() => {
+                            if (window.MathJax) {
+                                window.MathJax.typeset();
+                            }
+                        }, 100);
+                    } else {
+                        document.getElementById('textResult').style.display = 'none';
+                    }
+                };
+                
                 // 组装各个元素
                 actionsDiv.appendChild(usePromptBtn);
                 actionsDiv.appendChild(deleteBtn);
@@ -1643,7 +1535,6 @@
                 infoDiv.appendChild(promptP);
                 infoDiv.appendChild(dateP);
                 
-                historyItem.appendChild(imgContainer);
                 historyItem.appendChild(infoDiv);
                 historyItem.appendChild(actionsDiv);
                 
@@ -1977,20 +1868,6 @@
                                 image_url: { url: imageUrl } 
                             });
                         }
-                    } else {
-                        addStatus(`使用URL图片作为参考生成文字解答: ${imageUrl}`);
-                        // 图片添加到第一条消息
-                        if (typeof messages[0].content === 'string') {
-                            messages[0].content = [
-                                { type: "text", text: messages[0].content },
-                                { type: "image_url", image_url: { url: imageUrl } }
-                            ];
-                        } else {
-                            messages[0].content.push({ 
-                                type: "image_url", 
-                                image_url: { url: imageUrl } 
-                            });
-                        }
                     }
                 }
                 
@@ -2174,281 +2051,182 @@
             followupQuestion.focus();
         });
         
-        // 添加生成图像按钮的事件监听器
+        // 修改生成按钮的事件处理，支持纯图片发送
         generateBtn.addEventListener('click', async function() {
             const apiKey = apiKeyInput.value.trim();
             const baseUrl = baseUrlInput.value.trim();
             const promptText = promptInput.value.trim();
-            const model = modelSelect.value;
-            const size = sizeSelect.value;
-            const imageUrl = imageUrlInput.value.trim();
+            const model = 'claude-3-7-sonnet-20250219';
             
-            if (!promptText) {
-                addStatus('请输入问题描述。', true);
+            // 检查是否有图片或文字输入
+            if (!promptText && pastedImagesData.length === 0) {
+                addStatus('请输入问题描述或添加图片。', true);
                 return;
             }
+
+            // 检查画布是否为空白
+            const blankCanvas = document.createElement('canvas');
+            blankCanvas.width = drawingCanvas.width;
+            blankCanvas.height = drawingCanvas.height;
+            const blankCtx = blankCanvas.getContext('2d');
+            blankCtx.fillStyle = '#ffffff';
+            blankCtx.fillRect(0, 0, blankCanvas.width, blankCanvas.height);
             
-            // 如果没有上传图片，自动从画布中获取
-            if (!pastedImageData && !imageUrl) {
-                // 检查画布是否为空白
-                const blankCanvas = document.createElement('canvas');
-                blankCanvas.width = drawingCanvas.width;
-                blankCanvas.height = drawingCanvas.height;
-                const blankCtx = blankCanvas.getContext('2d');
-                blankCtx.fillStyle = '#ffffff';
-                blankCtx.fillRect(0, 0, blankCanvas.width, blankCanvas.height);
-                
-                // 比较当前画布与空白画布是否不同
-                const currentImageData = ctx.getImageData(0, 0, drawingCanvas.width, drawingCanvas.height).data;
-                const blankImageData = blankCtx.getImageData(0, 0, blankCanvas.width, blankCanvas.height).data;
-                
-                let isDifferent = false;
-                for (let i = 0; i < currentImageData.length; i += 4) {
-                    if (currentImageData[i] !== blankImageData[i] || 
-                        currentImageData[i+1] !== blankImageData[i+1] || 
-                        currentImageData[i+2] !== blankImageData[i+2] || 
-                        currentImageData[i+3] !== blankImageData[i+3]) {
-                        isDifferent = true;
-                        break;
-                    }
-                }
-                
-                // 如果画布不是空白的，自动上传图片
-                if (isDifferent) {
-                    addStatus('自动从画布获取图片...');
-                    drawingCanvas.toBlob((blob) => {
-                        const reader = new FileReader();
-                        reader.onloadend = function() {
-                            pastedImageData = reader.result;
-                            // 确保我们使用支持图像输入的模型
-                            if (!MODEL_CONFIGS[model].supports_image_input) {
-                                modelSelect.value = 'gpt-4o-image';
-                                const event = new Event('change');
-                                modelSelect.dispatchEvent(event);
-                            }
-                            
-                            // 继续生成过程
-                            continueGeneration();
-                        };
-                        reader.readAsDataURL(blob);
-                    });
-                    return; // 等待图片处理完成后再继续
+            // 比较当前画布与空白画布
+            const currentImageData = ctx.getImageData(0, 0, drawingCanvas.width, drawingCanvas.height).data;
+            const blankImageData = blankCtx.getImageData(0, 0, blankCanvas.width, blankCanvas.height).data;
+            
+            let isDifferent = false;
+            for (let i = 0; i < currentImageData.length; i += 4) {
+                if (currentImageData[i] !== blankImageData[i] || 
+                    currentImageData[i+1] !== blankImageData[i+1] || 
+                    currentImageData[i+2] !== blankImageData[i+2] || 
+                    currentImageData[i+3] !== blankImageData[i+3]) {
+                    isDifferent = true;
+                    break;
                 }
             }
+
+            // 如果画布不是空白的，获取画布图片数据
+            if (isDifferent) {
+                addStatus('检测到画布有内容，将包含画布图片...');
+                const canvasImageData = drawingCanvas.toDataURL('image/png');
+                pastedImagesData.unshift(canvasImageData);
+            }
             
-            // 直接继续生成过程
-            continueGeneration();
+            // 准备所有图片数据
+            let allImages = [...pastedImagesData];
             
-            // 继续生成过程的函数
-            async function continueGeneration() {
-                // 按行分割提示词
-                const prompts = promptText.split('\n').filter(p => p.trim().length > 0);
+            generateBtn.disabled = true;
+            
+            try {
+                // 如果没有文字输入但有图片，使用默认提示词
+                const finalPromptText = promptText || "请分析并解答图片中的数学问题";
                 
-                if (prompts.length === 0) {
-                    addStatus('没有有效的问题描述。', true);
-                    return;
+                // 生成文字回答(流式)，包含所有图片
+                const textResponse = await generateGPT41TextResponse(apiKey, baseUrl, finalPromptText, allImages.length > 0 ? allImages[0] : null);
+                
+                if (textResponse.success) {
+                    addStatus('文字解答生成成功!');
+                    
+                    resultArea.style.display = 'block';
+                    
+                    const textResult = document.getElementById('textResult');
+                    textResult.innerHTML = textResponse.textResponse;
+                    
+                    setTimeout(() => {
+                        if (window.MathJax) {
+                            window.MathJax.typeset();
+                        }
+                    }, 100);
+                    
+                    saveToHistory({
+                        prompt: finalPromptText,
+                        timestamp: Date.now(),
+                        model: model,
+                        textResponse: textResponse.textResponse,
+                        hasImage: allImages.length > 0
+                    });
+                    
+                    saveBtn.style.display = 'inline-block';
+                } else {
+                    addStatus(`生成答案时发生错误: ${textResponse.error}`, true);
                 }
-                
-                // Disable button during generation
-                generateBtn.disabled = true;
-                
-                // 创建批量处理进度显示
-                const batchProgressDiv = document.createElement('div');
-                batchProgressDiv.className = 'batch-progress';
-                
-                const progressTitle = document.createElement('div');
-                const totalCount = prompts.length;
-                progressTitle.innerHTML = `<strong>问题解答进度</strong>: 0/${totalCount} 完成`;
-                
-                const progressBarContainer = document.createElement('div');
-                progressBarContainer.className = 'progress-bar-container';
-                
-                const progressBar = document.createElement('div');
-                progressBar.className = 'progress-bar';
-                progressBar.style.width = '0%';
-                
-                progressBarContainer.appendChild(progressBar);
-                batchProgressDiv.appendChild(progressTitle);
-                batchProgressDiv.appendChild(progressBarContainer);
-                
-                statusArea.appendChild(batchProgressDiv);
-                addStatus(`开始解答 ${totalCount} 个问题...`);
-                
-                // 存储所有成功生成的答案
-                const generatedResults = [];
-                
-                try {
-                    for (let i = 0; i < prompts.length; i++) {
-                        const prompt = prompts[i].trim();
-                        if (prompt.length === 0) continue;
-                        
-                        // 更新进度显示
-                        progressTitle.innerHTML = `<strong>问题解答进度</strong>: ${i}/${totalCount} 完成`;
-                        progressBar.style.width = `${(i / totalCount) * 100}%`;
-                        
-                        addStatus(`[${i+1}/${totalCount}] 正在解答: "${prompt}" 使用模式: ${MODEL_CONFIGS[model].description}`);
-                        
-                        // 结果对象
-                        let result = {
-                            prompt: prompt,
-                            timestamp: Date.now(),
-                            model: model,
-                            textResponse: null,
-                            imageUrl: null
-                        };
-                        
-                        // 为combined和文字模式先生成文字回答
-                        if (model === 'combined' || model === 'claude-3-7-sonnet-20250219') {
-                            // 准备图片输入
-                            let inputImageUrl = null;
-                            if (pastedImageData && pastedImageData.startsWith('data:image')) {
-                                inputImageUrl = pastedImageData;
-                                addStatus(`[${i+1}/${totalCount}] 使用上传的图片作为输入生成文字解答...`);
-                            } else if (imageUrl) {
-                                inputImageUrl = imageUrl;
-                                addStatus(`[${i+1}/${totalCount}] 使用URL图片作为输入生成文字解答...`);
-                            }
-                            
-                            // 生成文字回答(流式)
-                            const textResponse = await generateGPT41TextResponse(apiKey, baseUrl, prompt, inputImageUrl);
-                            
-                            if (textResponse.success) {
-                                addStatus(`[${i+1}/${totalCount}] 文字解答生成成功!`);
-                                result.textResponse = textResponse.textResponse;
-                            } else {
-                                addStatus(`[${i+1}/${totalCount}] 文字解答生成错误: ${textResponse.error}`, true);
-                            }
-                        }
-                        
-                        // 根据模式生成图片
-                        if (model === 'combined' || model === 'gpt-4o-image') {
-                            // 生成图像答案
-                            let imageResponse;
-                            
-                            if (pastedImageData && pastedImageData.startsWith('data:image')) {
-                                addStatus(`[${i+1}/${totalCount}] 使用上传的图片作为输入生成图形解答...`);
-                                imageResponse = await generateGPT4oImage(apiKey, baseUrl, prompt, size, pastedImageData);
-                            } else if (imageUrl) {
-                                addStatus(`[${i+1}/${totalCount}] 使用URL图片作为输入生成图形解答...`);
-                                imageResponse = await generateGPT4oImage(apiKey, baseUrl, prompt, size, imageUrl);
-                            } else {
-                                addStatus(`[${i+1}/${totalCount}] 根据文本描述生成图形解答...`);
-                                imageResponse = await generateGPT4oImage(apiKey, baseUrl, prompt, size);
-                            }
-                            
-                            if (imageResponse.success) {
-                                addStatus(`[${i+1}/${totalCount}] 图形解答生成成功!`);
-                                result.imageUrl = imageResponse.imageUrl;
-                                
-                                // 显示图片
-                                resultImage.src = imageResponse.imageUrl;
-                            } else {
-                                addStatus(`[${i+1}/${totalCount}] 图形解答生成错误: ${imageResponse.error}`, true);
-                            }
-                        }
-                        
-                        // 添加到结果列表并保存到历史记录
-                        if (result.textResponse || result.imageUrl) {
-                            generatedResults.push(result);
-                            saveToHistory(result);
-                        }
-                    }
-                    
-                    // 完成所有生成
-                    progressTitle.innerHTML = `<strong>问题解答进度</strong>: ${totalCount}/${totalCount} 完成`;
-                    progressBar.style.width = '100%';
-                    
-                    // 显示结果摘要
-                    if (generatedResults.length > 0) {
-                        addStatus(`问题解答完成！成功解答 ${generatedResults.length}/${totalCount} 个问题。`);
-                        
-                        // 显示最后一个生成的答案
-                        const lastResult = generatedResults[generatedResults.length - 1];
-                        
-                        if (lastResult.textResponse) {
-                            document.getElementById('textResult').innerHTML = lastResult.textResponse;
-                            
-                            // 渲染数学公式
-                            setTimeout(() => {
-                                if (window.MathJax) {
-                                    window.MathJax.typeset();
-                                }
-                            }, 100);
-                        }
-                        
-                        if (lastResult.imageUrl) {
-                            resultImage.src = lastResult.imageUrl;
-                            resultImage.style.display = 'block';
-                        } else {
-                            resultImage.style.display = 'none';
-                        }
-                        
-                        // 确保结果区域是显示的
-                        resultArea.style.display = 'block';
-                        // 根据是否有内容展示保存按钮
-                        saveBtn.style.display = (lastResult.textResponse || lastResult.imageUrl) ? 'inline-block' : 'none';
-                        
-                        // Set up save button for last generated answer
-                        saveBtn.onclick = function() {
-                            // Instead of creating HTML, just save the image if available
-                            if (lastResult.imageUrl) {
-                                const a = document.createElement('a');
-                                a.href = lastResult.imageUrl;
-                                a.download = `math_solution_image_${new Date().getTime()}.png`;
-                                document.body.appendChild(a);
-                                a.click();
-                                document.body.removeChild(a);
-                            }
-                            
-                            // Create a text file with the solution
-                            if (lastResult.textResponse) {
-                                const blob = new Blob([lastResult.prompt + "\n\n" + lastResult.textResponse], {type: 'text/plain'});
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = `math_solution_text_${new Date().getTime()}.txt`;
-                                document.body.appendChild(a);
-                                a.click();
-                                document.body.removeChild(a);
-                                URL.revokeObjectURL(url);
-                            }
-                        };
-                    } else {
-                        addStatus('解答完成，但没有成功生成任何答案。', true);
-                    }
-                } catch (error) {
-                    addStatus(`生成答案过程中发生错误: ${error.message}`, true);
-                    console.error(error);
-                } finally {
-                    generateBtn.disabled = false;
+            } catch (error) {
+                addStatus(`生成答案过程中发生错误: ${error.message}`, true);
+                console.error(error);
+            } finally {
+                generateBtn.disabled = false;
+                if (isDifferent) {
+                    pastedImagesData.shift();
                 }
             }
         });
 
-        // 添加对话历史和继续对话的JavaScript代码
-        sendFollowupBtn.addEventListener('click', async function() {
-            await sendFollowupQuestion();
-        });
-        
-        // 支持Enter键发送问题
-        followupQuestion.addEventListener('keypress', function(e) {
+        // 添加问题输入框的回车处理
+        promptInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault(); // 阻止默认行为
-                sendFollowupBtn.click(); // 触发发送按钮点击
+                e.preventDefault(); // 阻止默认的换行行为
+                generateBtn.click(); // 触发生成按钮点击
             }
         });
-        
-        // 发送后续问题的函数
-        async function sendFollowupQuestion() {
+
+        // 修改继续对话的输入框，支持图片粘贴和回车发送
+        followupQuestion.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendFollowupBtn.click();
+            }
+        });
+
+        // 为继续对话的输入框添加图片粘贴支持
+        followupQuestion.addEventListener('paste', async function(e) {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            let blob = null;
+            
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') === 0) {
+                    blob = items[i].getAsFile();
+                    break;
+                }
+            }
+            
+            if (blob) {
+                e.preventDefault(); // 阻止默认粘贴行为
+                
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const imageData = e.target.result;
+                    
+                    // 直接发送图片作为后续问题
+                    currentConversation.push({
+                        role: 'user',
+                        content: [
+                            {
+                                type: "image_url",
+                                image_url: {
+                                    url: imageData
+                                }
+                            },
+                            {
+                                type: "text",
+                                text: "请分析这张新图片中的问题"
+                            }
+                        ]
+                    });
+                    
+                    // 在UI中添加图片消息
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message user-message';
+                    const img = document.createElement('img');
+                    img.src = imageData;
+                    img.style.maxWidth = '200px';
+                    img.style.maxHeight = '200px';
+                    messageDiv.appendChild(img);
+                    messageDiv.innerHTML += '<span class="message-time">' + new Date().toLocaleTimeString() + '</span>';
+                    conversationMessages.appendChild(messageDiv);
+                    
+                    // 自动发送
+                    await sendFollowupQuestion(true);
+                };
+                reader.readAsDataURL(blob);
+            }
+        });
+
+        // 修改发送后续问题的函数，支持图片
+        async function sendFollowupQuestion(isImage = false) {
             const followupQuestionText = followupQuestion.value.trim();
-            if (followupQuestionText) {
-                // 添加用户问题到对话历史
-                currentConversation.push({
-                    role: 'user',
-                    content: followupQuestionText
-                });
-                // 在UI中添加消息
-                addConversationMessage(followupQuestionText, 'user');
+            if (followupQuestionText || isImage) {
+                if (!isImage) {
+                    // 添加文字问题到对话历史
+                    currentConversation.push({
+                        role: 'user',
+                        content: followupQuestionText
+                    });
+                    // 在UI中添加消息
+                    addConversationMessage(followupQuestionText, 'user');
+                }
+                
                 followupQuestion.value = '';
                 
                 // 禁用按钮，显示加载状态
@@ -2459,7 +2237,6 @@
                 conversationMessages.appendChild(tempMessageDiv);
                 conversationMessages.scrollTop = conversationMessages.scrollHeight;
                 
-                // 发送请求
                 try {
                     const response = await fetch(`${baseUrlInput.value.replace(/\/$/, '')}/chat/completions`, {
                         method: 'POST',
@@ -2471,7 +2248,7 @@
                             model: 'claude-3-7-sonnet-20250219',
                             messages: currentConversation.map(msg => ({
                                 role: msg.role,
-                                content: typeof msg.content === 'string' ? msg.content : msg.content
+                                content: Array.isArray(msg.content) ? msg.content : msg.content
                             })),
                             stream: false,
                             max_tokens: 10000
@@ -2516,17 +2293,14 @@
                     // 滚动到最新消息
                     conversationMessages.scrollTop = conversationMessages.scrollHeight;
                     
-                    // 记录状态
                     addStatus('回复已生成');
                     
                 } catch (error) {
                     console.error('Error in conversation:', error);
-                    // 显示错误消息
                     conversationMessages.removeChild(tempMessageDiv);
                     addConversationMessage(`回答生成失败: ${error.message}`, 'assistant');
                     addStatus(`生成答案时发生错误: ${error.message}`, true);
                 } finally {
-                    // 重新启用按钮
                     sendFollowupBtn.disabled = false;
                 }
             }
@@ -2539,6 +2313,67 @@
             messageDiv.innerHTML = '<p>' + message + '</p><span class="message-time">' + new Date().toLocaleTimeString() + '</span>';
             conversationMessages.appendChild(messageDiv);
             conversationMessages.scrollTop = conversationMessages.scrollHeight;
+        }
+
+        // 处理问题输入框的粘贴事件
+        promptInput.addEventListener('paste', function(e) {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            let blob = null;
+            
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') === 0) {
+                    blob = items[i].getAsFile();
+                    break;
+                }
+            }
+            
+            if (blob) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageData = e.target.result;
+                    
+                    // 添加到图片数组
+                    pastedImagesData.push(imageData);
+                    
+                    // 更新预览区域
+                    updateImagePreviews();
+                    
+                    showNotification('图片已添加到问题描述中');
+                    addStatus('图片已添加到问题描述中');
+                };
+                reader.readAsDataURL(blob);
+            }
+        });
+
+        // 更新图片预览
+        function updateImagePreviews() {
+            const previewDiv = document.getElementById('promptImagePreview');
+            previewDiv.innerHTML = '';
+            
+            pastedImagesData.forEach((imageData, index) => {
+                const imageItem = document.createElement('div');
+                imageItem.className = 'prompt-image-item';
+                
+                const img = document.createElement('img');
+                img.src = imageData;
+                
+                const removeBtn = document.createElement('div');
+                removeBtn.className = 'remove-image';
+                removeBtn.innerHTML = '×';
+                removeBtn.onclick = () => removeImage(index);
+                
+                imageItem.appendChild(img);
+                imageItem.appendChild(removeBtn);
+                previewDiv.appendChild(imageItem);
+            });
+        }
+
+        // 移除图片
+        function removeImage(index) {
+            pastedImagesData.splice(index, 1);
+            updateImagePreviews();
+            showNotification('图片已移除');
+            addStatus('已移除一张图片');
         }
     </script>
 </body>
