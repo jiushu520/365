@@ -588,10 +588,28 @@
             border-radius: 5px;
             border: 1px solid #eee;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: relative;
+            min-height: 50px; /* 确保有足够的空间放置按钮 */
         }
         .svg-container svg {
             max-width: 100%;
             height: auto;
+            display: block;
+            margin: 10px auto;
+        }
+        .svg-copy-btn {
+            margin-top: 5px;
+            padding: 4px 8px;
+            background-color: #2a2a72;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .svg-copy-btn:hover {
+            background-color: #1a1a62;
         }
         .loading-indicator {
             display: none;
@@ -793,7 +811,7 @@
                 <div class="prompt-container">
                     <textarea id="prompt" placeholder="请输入您的数学问题，可以直接粘贴(Ctrl+V)图片...">如图,求解图中的数学问题</textarea>
                     <div id="promptImagePreview" class="prompt-image-preview"></div>
-                    <button id="generateBtn">解答问题</button>
+
                 </div>
 
             </div>
@@ -883,7 +901,7 @@
     <script>
         // Model configurations
         const MODEL_CONFIGS = {
-            "claude-3-7-sonnet-20250219": {
+            "o4-mini": {
                 "api_endpoint": "chat/completions",
                 "supports_image_input": true,
                 "description": "文字解答(支持图片输入)"
@@ -1879,7 +1897,7 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        model: 'claude-3-7-sonnet-20250219',
+                        model: 'o4-mini',
                         messages: messages,
                         stream: true,
                         max_tokens: 10000
@@ -2003,32 +2021,82 @@
                         
                         // 替换代码块为SVG显示
                         block.parentNode.replaceChild(svgContainer, block);
+                        
+                        // 处理新创建的SVG
+                        addCopyButtonsToSvgs(svgContainer);
                     } catch (err) {
                         console.error('Error processing SVG:', err);
                     }
                 }
             });
             
-            // 检查直接包含在回答中的SVG标签
-            const content = container.innerHTML;
-            const svgRegex = /<svg[\s\S]*?<\/svg>/g;
-            const matches = content.match(svgRegex);
-            
-            if (matches) {
-                // 确保所有SVG都有正确的尺寸和样式
-                matches.forEach(svgStr => {
-                    // 只处理尚未处理过的SVG
-                    if (!svgStr.includes('class="processed-svg"')) {
-                        const processedSvg = svgStr
-                            .replace(/<svg/, '<svg class="processed-svg" style="max-width:100%; height:auto;"')
-                            .replace(/width="(\d+)"/, 'width="100%"');
-                        
-                        container.innerHTML = container.innerHTML.replace(svgStr, processedSvg);
-                    }
-                });
-            }
+            // 处理可能已存在的SVG
+            addCopyButtonsToSvgs(container);
         }
-
+        
+        /** 
+         * 在给定容器内查找所有 <svg> 并在其后插入"复制 SVG"按钮 
+         * @param {HTMLElement} container - 包含 SVG 的父容器
+         */
+        function addCopyButtonsToSvgs(container) {
+            // 找到所有未处理过的 SVG
+            const svgs = container.querySelectorAll('svg:not([data-copy-initialized])');
+            svgs.forEach(svg => {
+                // 标记为已处理，避免重复添加按钮
+                svg.setAttribute('data-copy-initialized', 'true');
+        
+                // 创建按钮
+                const btn = document.createElement('button');
+                btn.className = 'svg-copy-btn';
+                btn.textContent = '复制SVG';
+        
+                // 点击事件：复制 outerHTML
+                btn.addEventListener('click', () => {
+                    const svgCode = svg.outerHTML;
+                    navigator.clipboard.writeText(svgCode)
+                        .then(() => {
+                            btn.textContent = '已复制!';
+                            showNotification('SVG代码已复制到剪贴板', 'success');
+                            setTimeout(() => btn.textContent = '复制SVG', 1500);
+                        })
+                        .catch(err => {
+                            console.error('复制失败', err);
+                            btn.textContent = '复制失败';
+                            showNotification('复制失败，请重试', 'error');
+                            setTimeout(() => btn.textContent = '复制SVG', 1500);
+                        });
+                });
+        
+                // 把按钮插入到 SVG 之后
+                svg.parentNode.insertBefore(btn, svg.nextSibling);
+            });
+        }
+        
+        // 在window加载时初始化MathJax处理
+        window.addEventListener('load', function() {
+            // 当MathJax排版完成后添加SVG复制按钮
+            if (window.MathJax) {
+                // 在MathJax加载完成后调用一次
+                if (window.MathJax.startup && window.MathJax.startup.promise) {
+                    window.MathJax.startup.promise.then(() => {
+                        processSvgContent(document.body);
+                    });
+                }
+                
+                // 替换typesetPromise方法以在每次排版后调用
+                if (window.MathJax.typesetPromise) {
+                    const origTypesetPromise = window.MathJax.typesetPromise;
+                    window.MathJax.typesetPromise = function(...args) {
+                        return origTypesetPromise.apply(this, args).then(() => {
+                            setTimeout(() => {
+                                processSvgContent(document.body);
+                            }, 100); // 稍微延迟确保DOM已更新
+                        });
+                    };
+                }
+            }
+        });
+        
         // 继续对话按钮事件处理
         continueConversationBtn.addEventListener('click', function() {
             // 显示对话容器
@@ -2056,7 +2124,7 @@
             const apiKey = apiKeyInput.value.trim();
             const baseUrl = baseUrlInput.value.trim();
             const promptText = promptInput.value.trim();
-            const model = 'claude-3-7-sonnet-20250219';
+            const model = 'o4-mini';
             
             // 检查是否有图片或文字输入
             if (!promptText && pastedImagesData.length === 0) {
@@ -2245,7 +2313,7 @@
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            model: 'claude-3-7-sonnet-20250219',
+                            model: 'o4-mini',
                             messages: currentConversation.map(msg => ({
                                 role: msg.role,
                                 content: Array.isArray(msg.content) ? msg.content : msg.content
