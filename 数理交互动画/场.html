@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>向量场可视化: f(x,y) = x² + y²</title>
+    <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 900px;
+        }
+        .title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .controls {
+            margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .control-label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .svg-container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        svg {
+            background-color: white;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #666;
+        }
+        .slider {
+            width: 150px;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">
+            <h1>向量场可视化</h1>
+            <div>函数: \(f(x,y) = x^2 + y^2\)</div>
+            <div>梯度: \(\nabla f(x,y) = (2x, 2y)\)</div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <div class="control-label">网格密度</div>
+                <input type="range" id="density" min="3" max="25" value="12" class="slider">
+                <span id="densityValue">12</span>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">缩放</div>
+                <input type="range" id="scale" min="10" max="100" value="40" class="slider">
+                <span id="scaleValue">40</span>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">向量长度缩放</div>
+                <input type="range" id="vectorScale" min="1" max="40" value="15" class="slider">
+                <span id="vectorScaleValue">15</span>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">等高线数量</div>
+                <input type="range" id="contourCount" min="5" max="30" value="15" class="slider">
+                <span id="contourCountValue">15</span>
+            </div>
+            
+            <div class="control-group checkbox-group">
+                <input type="checkbox" id="showContours" checked>
+                <label for="showContours">显示等高线</label>
+            </div>
+            
+            <div class="control-group">
+                <button id="reset">重置视图</button>
+            </div>
+        </div>
+        
+        <div class="svg-container">
+            <svg id="vectorField" width="800" height="600"></svg>
+        </div>
+        
+        <div class="footer">
+            <p>向量场表示函数 \(f(x,y) = x^2 + y^2\) 的梯度，等高线表示函数值相等的点</p>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const svg = document.getElementById('vectorField');
+        const densitySlider = document.getElementById('density');
+        const densityValue = document.getElementById('densityValue');
+        const scaleSlider = document.getElementById('scale');
+        const scaleValue = document.getElementById('scaleValue');
+        const vectorScaleSlider = document.getElementById('vectorScale');
+        const vectorScaleValue = document.getElementById('vectorScaleValue');
+        const contourCountSlider = document.getElementById('contourCount');
+        const contourCountValue = document.getElementById('contourCountValue');
+        const showContoursCheckbox = document.getElementById('showContours');
+        const resetButton = document.getElementById('reset');
+
+        // 初始化变量
+        let svgWidth = parseInt(svg.getAttribute('width'));
+        let svgHeight = parseInt(svg.getAttribute('height'));
+        let centerX = svgWidth / 2;
+        let centerY = svgHeight / 2;
+        let scale = parseInt(scaleSlider.value);
+        let density = parseInt(densitySlider.value);
+        let vectorScale = parseInt(vectorScaleSlider.value);
+        let contourCount = parseInt(contourCountSlider.value);
+        let showContours = showContoursCheckbox.checked;
+        
+        // 创建SVG元素的辅助函数
+        function createSVGElement(tagName) {
+            return document.createElementNS('http://www.w3.org/2000/svg', tagName);
+        }
+        
+        // 计算函数值 f(x,y) = x^2 + y^2
+        function functionValue(x, y) {
+            return x * x + y * y;
+        }
+        
+        // 计算函数的梯度
+        function gradient(x, y) {
+            // 梯度 ∇f(x,y) = (2x, 2y)
+            return {
+                x: 2 * x,
+                y: 2 * y
+            };
+        }
+        
+        // 生成颜色函数 - 根据函数值返回颜色
+        function getColorForValue(value, min, max) {
+            // 将值映射到0-1之间
+            const normalizedValue = (value - min) / (max - min);
+            
+            // 使用HSL颜色模型，色相从240(蓝色)到0(红色)
+            const hue = 240 - normalizedValue * 240;
+            return `hsl(${hue}, 70%, 50%)`;
+        }
+        
+        // 绘制坐标系
+        function drawCoordinateSystem() {
+            // 清除SVG内容
+            svg.innerHTML = '';
+            
+            // 创建分组
+            const gridGroup = createSVGElement('g');
+            const axisGroup = createSVGElement('g');
+            const contourGroup = createSVGElement('g');
+            const labelsGroup = createSVGElement('g');
+            const vectorGroup = createSVGElement('g');
+            
+            // 添加分组到SVG
+            svg.appendChild(gridGroup);
+            svg.appendChild(axisGroup);
+            svg.appendChild(contourGroup);
+            svg.appendChild(labelsGroup);
+            svg.appendChild(vectorGroup);
+            
+            // 绘制网格线
+            const gridSize = scale;
+            const xCount = Math.floor(svgWidth / gridSize);
+            const yCount = Math.floor(svgHeight / gridSize);
+            
+            // 水平网格线
+            for (let i = -yCount; i <= yCount; i++) {
+                const y = centerY + i * gridSize;
+                if (y < 0 || y > svgHeight) continue;
+                
+                const line = createSVGElement('line');
+                line.setAttribute('x1', 0);
+                line.setAttribute('y1', y);
+                line.setAttribute('x2', svgWidth);
+                line.setAttribute('y2', y);
+                line.setAttribute('stroke', '#eee');
+                line.setAttribute('stroke-width', '0.5');
+                line.setAttribute('vector-effect', 'non-scaling-stroke');
+                gridGroup.appendChild(line);
+            }
+            
+            // 垂直网格线
+            for (let i = -xCount; i <= xCount; i++) {
+                const x = centerX + i * gridSize;
+                if (x < 0 || x > svgWidth) continue;
+                
+                const line = createSVGElement('line');
+                line.setAttribute('x1', x);
+                line.setAttribute('y1', 0);
+                line.setAttribute('x2', x);
+                line.setAttribute('y2', svgHeight);
+                line.setAttribute('stroke', '#eee');
+                line.setAttribute('stroke-width', '0.5');
+                line.setAttribute('vector-effect', 'non-scaling-stroke');
+                gridGroup.appendChild(line);
+            }
+            
+            // 绘制坐标轴
+            // X轴
+            const xAxis = createSVGElement('line');
+            xAxis.setAttribute('x1', 0);
+            xAxis.setAttribute('y1', centerY);
+            xAxis.setAttribute('x2', svgWidth);
+            xAxis.setAttribute('y2', centerY);
+            xAxis.setAttribute('stroke', '#000');
+            xAxis.setAttribute('stroke-width', '1.5');
+            xAxis.setAttribute('vector-effect', 'non-scaling-stroke');
+            axisGroup.appendChild(xAxis);
+            
+            // Y轴
+            const yAxis = createSVGElement('line');
+            yAxis.setAttribute('x1', centerX);
+            yAxis.setAttribute('y1', 0);
+            yAxis.setAttribute('x2', centerX);
+            yAxis.setAttribute('y2', svgHeight);
+            yAxis.setAttribute('stroke', '#000');
+            yAxis.setAttribute('stroke-width', '1.5');
+            yAxis.setAttribute('vector-effect', 'non-scaling-stroke');
+            axisGroup.appendChild(yAxis);
+            
+            // 添加坐标轴标签
+            // X轴标签
+            const xLabel = createSVGElement('text');
+            xLabel.setAttribute('x', svgWidth - 20);
+            xLabel.setAttribute('y', centerY - 10);
+            xLabel.setAttribute('fill', '#666');
+            xLabel.setAttribute('font-size', '14px');
+            xLabel.textContent = 'x';
+            labelsGroup.appendChild(xLabel);
+            
+            // Y轴标签
+            const yLabel = createSVGElement('text');
+            yLabel.setAttribute('x', centerX + 10);
+            yLabel.setAttribute('y', 20);
+            yLabel.setAttribute('fill', '#666');
+            yLabel.setAttribute('font-size', '14px');
+            yLabel.textContent = 'y';
+            labelsGroup.appendChild(yLabel);
+            
+            // 添加坐标刻度
+            for (let i = -10; i <= 10; i++) {
+                if (i === 0) continue;
+                
+                // X轴刻度
+                const xTick = createSVGElement('text');
+                xTick.setAttribute('x', centerX + i * gridSize);
+                xTick.setAttribute('y', centerY + 20);
+                xTick.setAttribute('text-anchor', 'middle');
+                xTick.setAttribute('fill', '#666');
+                xTick.setAttribute('font-size', '12px');
+                xTick.textContent = i;
+                labelsGroup.appendChild(xTick);
+                
+                // Y轴刻度
+                const yTick = createSVGElement('text');
+                yTick.setAttribute('x', centerX - 20);
+                yTick.setAttribute('y', centerY - i * gridSize + 5);
+                yTick.setAttribute('text-anchor', 'middle');
+                yTick.setAttribute('fill', '#666');
+                yTick.setAttribute('font-size', '12px');
+                yTick.textContent = i;
+                labelsGroup.appendChild(yTick);
+            }
+            
+            // 显示原点
+            const originText = createSVGElement('text');
+            originText.setAttribute('x', centerX - 15);
+            originText.setAttribute('y', centerY + 15);
+            originText.setAttribute('fill', '#666');
+            originText.setAttribute('font-size', '12px');
+            originText.textContent = 'O';
+            labelsGroup.appendChild(originText);
+            
+            // 计算坐标范围
+            const xMin = -Math.floor(svgWidth / (2 * scale));
+            const xMax = Math.floor(svgWidth / (2 * scale));
+            const yMin = -Math.floor(svgHeight / (2 * scale));
+            const yMax = Math.floor(svgHeight / (2 * scale));
+            
+            // 计算在该范围内的函数值范围
+            let minValue = Infinity;
+            let maxValue = -Infinity;
+            
+            // 采样网格点来确定函数值范围
+            const sampleCount = 50;
+            const sampleStepX = (xMax - xMin) / sampleCount;
+            const sampleStepY = (yMax - yMin) / sampleCount;
+            
+            for (let x = xMin; x <= xMax; x += sampleStepX) {
+                for (let y = yMin; y <= yMax; y += sampleStepY) {
+                    const value = functionValue(x, y);
+                    minValue = Math.min(minValue, value);
+                    maxValue = Math.max(maxValue, value);
+                }
+            }
+            
+            // 创建等高线层级
+            const contourLevels = [];
+            const step = (maxValue - minValue) / contourCount;
+            
+            for (let i = 0; i < contourCount; i++) {
+                contourLevels.push(minValue + i * step);
+            }
+            
+            // 定义箭头标记
+            const defs = createSVGElement('defs');
+            svg.appendChild(defs);
+            
+            // 绘制等高线并在其上放置向量
+            for (let i = 0; i < contourLevels.length; i++) {
+                const level = contourLevels[i];
+                const color = getColorForValue(level, minValue, maxValue);
+                
+                // 构建等高线点集
+                const contourPoints = marchingSquares(xMin, xMax, yMin, yMax, 100, level);
+                
+                // 绘制等高线
+                for (const pointSet of contourPoints) {
+                    if (pointSet.length < 2) continue;
+                    
+                    // 创建路径
+                    const path = createSVGElement('path');
+                    let d = `M ${svgX(pointSet[0].x)} ${svgY(pointSet[0].y)}`;
+                    
+                    for (let j = 1; j < pointSet.length; j++) {
+                        d += ` L ${svgX(pointSet[j].x)} ${svgY(pointSet[j].y)}`;
+                    }
+                    
+                    path.setAttribute('d', d);
+                    path.setAttribute('stroke', color);
+                    path.setAttribute('stroke-width', '1.5');
+                    path.setAttribute('fill', 'none');
+                    path.setAttribute('vector-effect', 'non-scaling-stroke');
+                    
+                    contourGroup.appendChild(path);
+                    
+                    // 添加等高线值标签
+                    if (pointSet.length > 5) {
+                        const midIndex = Math.floor(pointSet.length / 2);
+                        const labelX = svgX(pointSet[midIndex].x);
+                        const labelY = svgY(pointSet[midIndex].y);
+                        
+                        const label = createSVGElement('text');
+                        label.setAttribute('x', labelX);
+                        label.setAttribute('y', labelY - 5);
+                        label.setAttribute('text-anchor', 'middle');
+                        label.setAttribute('fill', color);
+                        label.setAttribute('font-size', '10px');
+                        label.setAttribute('font-weight', 'bold');
+                        label.textContent = level.toFixed(1);
+                        
+                        contourGroup.appendChild(label);
+                    }
+                    
+                    // 在等高线上放置向量
+                    const vectorSpacing = Math.max(5, Math.floor(pointSet.length / 15)); // 控制向量密度
+                    
+                    for (let j = 0; j < pointSet.length; j += vectorSpacing) {
+                        const point = pointSet[j];
+                        const x = point.x;
+                        const y = point.y;
+                        
+                        // 为每种颜色创建一个独特的箭头标记
+                        const markerId = `arrowhead-${color.replace(/[^\w]/g, '-')}`;
+                        
+                        // 检查是否已经存在相同颜色的箭头标记
+                        if (!document.getElementById(markerId)) {
+                            const marker = createSVGElement('marker');
+                            marker.setAttribute('id', markerId);
+                            marker.setAttribute('markerWidth', '6');
+                            marker.setAttribute('markerHeight', '4');
+                            marker.setAttribute('refX', '6');
+                            marker.setAttribute('refY', '2');
+                            marker.setAttribute('orient', 'auto');
+                            
+                            const polygon = createSVGElement('polygon');
+                            polygon.setAttribute('points', '0 0, 6 2, 0 4');
+                            polygon.setAttribute('fill', color);
+                            
+                            marker.appendChild(polygon);
+                            defs.appendChild(marker);
+                        }
+                        
+                        // 计算梯度值
+                        const grad = gradient(x, y);
+                        
+                        // 计算向量长度
+                        const length = Math.sqrt(grad.x * grad.x + grad.y * grad.y);
+                        
+                        // 跳过太小的向量
+                        if (length < 0.1) continue;
+                        
+                        // 根据函数值调整向量长度 - 越远离原点向量越长
+                        const functionVal = functionValue(x, y);
+                        const distanceScale = Math.sqrt(functionVal) / 2; // 使用函数值的平方根，即到原点的距离
+                        
+                        // 标准化向量并应用缩放 - 根据到原点的距离进行缩放
+                        const scaleFactor = Math.min(Math.max(distanceScale, 0.5), 2); // 限制缩放范围在0.5到2之间
+                        const dx = (grad.x / length) * vectorScale * scaleFactor;
+                        const dy = (grad.y / length) * vectorScale * scaleFactor;
+                        
+                        // 转换到SVG坐标
+                        const svgX1 = svgX(x);
+                        const svgY1 = svgY(y);
+                        
+                        // 创建向量线段
+                        const vector = createSVGElement('line');
+                        vector.setAttribute('x1', svgX1);
+                        vector.setAttribute('y1', svgY1);
+                        vector.setAttribute('x2', svgX1 + dx);
+                        vector.setAttribute('y2', svgY1 - dy);
+                        vector.setAttribute('stroke', color);
+                        vector.setAttribute('stroke-width', '0.8');
+                        vector.setAttribute('marker-end', `url(#${markerId})`);
+                        vector.setAttribute('vector-effect', 'non-scaling-stroke');
+                        
+                        vectorGroup.appendChild(vector);
+                        
+                        // 添加一个表示向量起点的小圆点
+                        const dot = createSVGElement('circle');
+                        dot.setAttribute('cx', svgX1);
+                        dot.setAttribute('cy', svgY1);
+                        dot.setAttribute('r', '1');
+                        dot.setAttribute('fill', color);
+                        
+                        vectorGroup.appendChild(dot);
+                    }
+                }
+            }
+        }
+        
+        // Marching Squares 算法 - 用于绘制等高线
+        function marchingSquares(xMin, xMax, yMin, yMax, resolution, level) {
+            const dx = (xMax - xMin) / resolution;
+            const dy = (yMax - yMin) / resolution;
+            
+            // 创建网格
+            const grid = [];
+            for (let i = 0; i <= resolution; i++) {
+                grid[i] = [];
+                for (let j = 0; j <= resolution; j++) {
+                    const x = xMin + i * dx;
+                    const y = yMin + j * dy;
+                    grid[i][j] = functionValue(x, y);
+                }
+            }
+            
+            // 寻找等高线交点
+            const lines = [];
+            let currentLine = [];
+            
+            for (let i = 0; i < resolution; i++) {
+                for (let j = 0; j < resolution; j++) {
+                    const x = xMin + i * dx;
+                    const y = yMin + j * dy;
+                    
+                    // 获取网格单元四个角的值
+                    const topLeft = grid[i][j];
+                    const topRight = grid[i + 1][j];
+                    const bottomLeft = grid[i][j + 1];
+                    const bottomRight = grid[i + 1][j + 1];
+                    
+                    // 判断等高线是否穿过当前网格单元
+                    const case1 = topLeft > level;
+                    const case2 = topRight > level;
+                    const case3 = bottomRight > level;
+                    const case4 = bottomLeft > level;
+                    
+                    // 计算 Marching Squares 的情况
+                    const caseIndex = (case1 ? 1 : 0) + (case2 ? 2 : 0) + (case3 ? 4 : 0) + (case4 ? 8 : 0);
+                    
+                    if (caseIndex === 0 || caseIndex === 15) {
+                        // 没有等高线穿过，或者全都穿过
+                        continue;
+                    }
+                    
+                    // 线性插值获取等高线与网格边界的交点
+                    const points = [];
+                    
+                    // 左边线
+                    if ((case1 && !case4) || (!case1 && case4)) {
+                        const t = (level - topLeft) / (bottomLeft - topLeft);
+                        points.push({
+                            x: x,
+                            y: y + t * dy
+                        });
+                    }
+                    
+                    // 右边线
+                    if ((case2 && !case3) || (!case2 && case3)) {
+                        const t = (level - topRight) / (bottomRight - topRight);
+                        points.push({
+                            x: x + dx,
+                            y: y + t * dy
+                        });
+                    }
+                    
+                    // 上边线
+                    if ((case1 && !case2) || (!case1 && case2)) {
+                        const t = (level - topLeft) / (topRight - topLeft);
+                        points.push({
+                            x: x + t * dx,
+                            y: y
+                        });
+                    }
+                    
+                    // 下边线
+                    if ((case4 && !case3) || (!case4 && case3)) {
+                        const t = (level - bottomLeft) / (bottomRight - bottomLeft);
+                        points.push({
+                            x: x + t * dx,
+                            y: y + dy
+                        });
+                    }
+                    
+                    // 添加找到的点到当前线段
+                    if (points.length === 2) {
+                        currentLine.push(points[0], points[1]);
+                        lines.push(currentLine);
+                        currentLine = [];
+                    }
+                }
+            }
+            
+            return lines;
+        }
+        
+        // 转换函数坐标 x 到 SVG 坐标
+        function svgX(x) {
+            return centerX + x * scale;
+        }
+        
+        // 转换函数坐标 y 到 SVG 坐标
+        function svgY(y) {
+            return centerY - y * scale;
+        }
+        
+        // 初始化
+        function initialize() {
+            // 设置SVG尺寸
+            svgWidth = Math.min(window.innerWidth - 40, 800);
+            svgHeight = Math.min(window.innerHeight - 250, 600);
+            svg.setAttribute('width', svgWidth);
+            svg.setAttribute('height', svgHeight);
+            centerX = svgWidth / 2;
+            centerY = svgHeight / 2;
+            
+            drawCoordinateSystem();
+            
+            // 更新控件值的显示
+            densityValue.textContent = density;
+            scaleValue.textContent = scale;
+            vectorScaleValue.textContent = vectorScale;
+            contourCountValue.textContent = contourCount;
+        }
+        
+        // 重置视图
+        function resetView() {
+            scale = 40;
+            density = 12;
+            vectorScale = 15;
+            contourCount = 15;
+            showContours = true;
+            
+            scaleSlider.value = scale;
+            densitySlider.value = density;
+            vectorScaleSlider.value = vectorScale;
+            contourCountSlider.value = contourCount;
+            showContoursCheckbox.checked = showContours;
+            
+            densityValue.textContent = density;
+            scaleValue.textContent = scale;
+            vectorScaleValue.textContent = vectorScale;
+            contourCountValue.textContent = contourCount;
+            
+            drawCoordinateSystem();
+        }
+        
+        // 事件监听器
+        densitySlider.addEventListener('input', function() {
+            density = parseInt(this.value);
+            densityValue.textContent = density;
+            drawCoordinateSystem();
+        });
+        
+        scaleSlider.addEventListener('input', function() {
+            scale = parseInt(this.value);
+            scaleValue.textContent = scale;
+            drawCoordinateSystem();
+        });
+        
+        vectorScaleSlider.addEventListener('input', function() {
+            vectorScale = parseInt(this.value);
+            vectorScaleValue.textContent = vectorScale;
+            drawCoordinateSystem();
+        });
+        
+        contourCountSlider.addEventListener('input', function() {
+            contourCount = parseInt(this.value);
+            contourCountValue.textContent = contourCount;
+            drawCoordinateSystem();
+        });
+        
+        showContoursCheckbox.addEventListener('change', function() {
+            showContours = this.checked;
+            drawCoordinateSystem();
+        });
+        
+        resetButton.addEventListener('click', resetView);
+        window.addEventListener('resize', initialize);
+        
+        // 初始化
+        initialize();
+    </script>
+</body>
+</html>

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D向量场可视化: f(x,y,z) = x² + y² + z²</title>
+    <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 900px;
+        }
+        .title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .controls {
+            margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .control-label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .canvas-container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+            width: 800px;
+            height: 600px;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #666;
+        }
+        .slider {
+            width: 150px;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-size: 14px;
+            padding: 10px;
+            z-index: 100;
+            pointer-events: none;
+            text-shadow: 0 0 4px black;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">
+            <h1>3D向量场可视化</h1>
+            <div>函数: \(f(x,y,z) = x^2 + y^2 + z^2\)</div>
+            <div>梯度: \(\nabla f(x,y,z) = (2x, 2y, 2z)\)</div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <div class="control-label">网格密度</div>
+                <input type="range" id="density" min="2" max="10" value="5" class="slider">
+                <span id="densityValue">5</span>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">向量长度缩放</div>
+                <input type="range" id="vectorScale" min="0.1" max="1.0" value="0.5" step="0.1" class="slider">
+                <span id="vectorScaleValue">2</span>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">等值面数量</div>
+                <input type="range" id="sphereCount" min="1" max="10" value="9" step="3" class="slider">
+                <span id="sphereCountValue">9</span>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">球体透明度</div>
+                <input type="range" id="sphereOpacity" min="0.1" max="0.9" value="0.4" step="0.1" class="slider">
+                <span id="sphereOpacityValue">1</span>
+            </div>
+            
+            <div class="control-group">
+                <button id="reset">重置视图</button>
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <div id="info">拖动鼠标旋转视图 | 滚轮缩放 | 按住右键平移</div>
+            <div id="canvas"></div>
+        </div>
+        
+        <div class="footer">
+            <p>3D向量场表示函数 \(f(x,y,z) = x^2 + y^2 + z^2\) 的梯度</p>
+        </div>
+    </div>
+
+    <script>
+        // DOM元素
+        const densitySlider = document.getElementById('density');
+        const densityValue = document.getElementById('densityValue');
+        const vectorScaleSlider = document.getElementById('vectorScale');
+        const vectorScaleValue = document.getElementById('vectorScaleValue');
+        const sphereCountSlider = document.getElementById('sphereCount');
+        const sphereCountValue = document.getElementById('sphereCountValue');
+        const sphereOpacitySlider = document.getElementById('sphereOpacity');
+        const sphereOpacityValue = document.getElementById('sphereOpacityValue');
+        const resetButton = document.getElementById('reset');
+        const canvasContainer = document.querySelector('.canvas-container');
+
+        // Three.js变量
+        let scene, camera, renderer, controls;
+        let vectorField;
+        let levelSurfaces;
+        
+        // 配置参数
+        let density = parseInt(densitySlider.value);
+        let vectorScale = parseFloat(vectorScaleSlider.value);
+        let sphereCount = parseInt(sphereCountSlider.value);
+        let sphereOpacity = parseFloat(sphereOpacitySlider.value);
+        const gridSize = 10;  // 场的大小
+        
+        // 初始化Three.js场景
+        function initScene() {
+            // 创建场景
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xffffff);
+            
+            // 创建相机
+            const width = canvasContainer.clientWidth;
+            const height = canvasContainer.clientHeight;
+            camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
+            camera.position.set(15, 15, 15);
+            camera.lookAt(0, 0, 0);
+            
+            // 创建渲染器
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            renderer.setClearColor(0xffffff);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            // 启用透明度
+            renderer.sortObjects = true;
+            renderer.alpha = true;
+            document.getElementById('canvas').innerHTML = '';
+            document.getElementById('canvas').appendChild(renderer.domElement);
+            
+            // 创建轨道控制器
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.25;
+            
+            // 添加坐标轴和网格
+            addCoordinates();
+            
+            // 添加向量场
+            createVectorField();
+            
+            // 添加等值面（球体）
+            createLevelSurfaces();
+            
+            // 渲染循环
+            animate();
+        }
+        
+        // 添加坐标轴和网格
+        function addCoordinates() {
+            // 坐标轴
+            const axesHelper = new THREE.AxesHelper(gridSize);
+            scene.add(axesHelper);
+            
+            // 添加坐标轴标签
+            addAxisLabels();
+            
+            // 添加网格
+            const gridHelper = new THREE.GridHelper(gridSize * 2, gridSize * 2, 0x888888, 0xcccccc);
+            gridHelper.rotation.x = Math.PI / 2;
+            scene.add(gridHelper);
+            
+            // 添加XZ平面网格
+            const gridHelperXZ = new THREE.GridHelper(gridSize * 2, gridSize * 2, 0x888888, 0xcccccc);
+            scene.add(gridHelperXZ);
+            
+            // 添加YZ平面网格
+            const gridHelperYZ = new THREE.GridHelper(gridSize * 2, gridSize * 2, 0x888888, 0xcccccc);
+            gridHelperYZ.rotation.z = Math.PI / 2;
+            scene.add(gridHelperYZ);
+        }
+        
+        // 添加坐标轴标签
+        function addAxisLabels() {
+            // X轴标签
+            const xLabel = document.createElement('div');
+            xLabel.className = 'axis-label';
+            xLabel.textContent = 'X';
+            xLabel.style.color = 'red';
+            
+            // Y轴标签
+            const yLabel = document.createElement('div');
+            yLabel.className = 'axis-label';
+            yLabel.textContent = 'Y';
+            yLabel.style.color = 'green';
+            
+            // Z轴标签
+            const zLabel = document.createElement('div');
+            zLabel.className = 'axis-label';
+            zLabel.textContent = 'Z';
+            zLabel.style.color = 'blue';
+        }
+        
+        // 计算梯度函数
+        function gradient(x, y, z) {
+            // 梯度 ∇f(x,y,z) = (2x, 2y, 2z)
+            return {
+                x: 2 * x,
+                y: 2 * y,
+                z: 2 * z
+            };
+        }
+        
+        // 创建向量场
+        function createVectorField() {
+            if (vectorField) {
+                scene.remove(vectorField);
+            }
+            
+            vectorField = new THREE.Group();
+            
+            // 计算步长
+            const step = gridSize / density;
+            
+            // 创建向量箭头
+            for (let x = -gridSize / 2; x <= gridSize / 2; x += step) {
+                for (let y = -gridSize / 2; y <= gridSize / 2; y += step) {
+                    for (let z = -gridSize / 2; z <= gridSize / 2; z += step) {
+                        // 计算梯度值
+                        const grad = gradient(x, y, z);
+                        
+                        // 计算向量长度
+                        const length = Math.sqrt(grad.x * grad.x + grad.y * grad.y + grad.z * grad.z);
+                        
+                        // 跳过太小的向量
+                        if (length < 0.1) continue;
+                        
+                        // 计算点到原点的距离(半径)
+                        const radius = Math.sqrt(x*x + y*y + z*z);
+                        // 标准化半径，最大为gridSize*0.7，与球体半径一致
+                        const normalizedRadius = Math.min(radius / (gridSize * 0.7), 1);
+                        
+                        // 标准化向量并应用缩放 - 使用更小的向量缩放因子
+                        const actualScale = vectorScale * 0.3; // 缩小箭头长度
+                        const dx = (grad.x / length) * actualScale;
+                        const dy = (grad.y / length) * actualScale;
+                        const dz = (grad.z / length) * actualScale;
+                        
+                        // 创建起点
+                        const origin = new THREE.Vector3(x, y, z);
+                        
+                        // 创建方向
+                        const direction = new THREE.Vector3(dx, dy, dz);
+                        
+                        // 根据半径确定颜色，与等值面球体颜色一致
+                        // 计算hue值，范围在0-0.8之间
+                        const hue = 0.8 * normalizedRadius;
+                        const color = new THREE.Color().setHSL(hue, 0.7, 0.5);
+                        
+                        // 创建箭头 - 减小箭头的尺寸
+                        const arrowHelper = new THREE.ArrowHelper(
+                            direction.normalize(),
+                            origin,
+                            direction.length() * step * 1.0, // 减小长度比例
+                            color,
+                            direction.length() * step * 0.3, // 减小头部长度
+                            direction.length() * step * 0.2  // 减小头部宽度
+                        );
+                        
+                        vectorField.add(arrowHelper);
+                        
+                        // 添加一个更小的球表示向量起点，颜色也与半径相关
+                        const dotGeometry = new THREE.SphereGeometry(0.03, 8, 8);
+                        const dotMaterial = new THREE.MeshBasicMaterial({ color: color });
+                        const dot = new THREE.Mesh(dotGeometry, dotMaterial);
+                        dot.position.copy(origin);
+                        vectorField.add(dot);
+                    }
+                }
+            }
+            
+            scene.add(vectorField);
+        }
+        
+        // 创建等值面（球体）
+        function createLevelSurfaces() {
+            // 如果已存在，先移除
+            if (levelSurfaces) {
+                scene.remove(levelSurfaces);
+            }
+            
+            levelSurfaces = new THREE.Group();
+            
+            // 创建不同半径的球体
+            const maxRadius = gridSize * 0.7; // 增大最大半径，从 gridSize/2 变为 gridSize*0.7
+            
+            for (let i = 1; i <= sphereCount; i++) {
+                // 计算半径，使用二次曲线分布，使内部球体间距更小，外部球体间距更大
+                const t = i / sphereCount;
+                const radius = maxRadius * t;
+                
+                // 创建球体几何体，增加细分以获得更平滑的外观
+                const sphereGeometry = new THREE.SphereGeometry(radius, 32, 32);
+                
+                // 创建材质，使用不同颜色并设置透明度
+                const hue = i / (sphereCount + 1); // 在色相环上均匀分布颜色
+                const color = new THREE.Color().setHSL(hue, 0.7, 0.5);
+                
+                const sphereMaterial = new THREE.MeshBasicMaterial({
+                    color: color,
+                    transparent: true,
+                    opacity: sphereOpacity,
+                    wireframe: false,
+                    depthWrite: false,  // 避免半透明物体之间的渲染问题
+                    side: THREE.DoubleSide
+                });
+                
+                // 创建球体网格
+                const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+                
+                // 添加到场景
+                levelSurfaces.add(sphere);
+            }
+            
+            scene.add(levelSurfaces);
+        }
+        
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        // 窗口大小调整
+        function onWindowResize() {
+            const width = canvasContainer.clientWidth;
+            const height = canvasContainer.clientHeight;
+            
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+        
+        // 重置视图
+        function resetView() {
+            density = 5;
+            vectorScale = 0.5;
+            sphereCount = 3;
+            sphereOpacity = 0.4;
+            
+            densitySlider.value = density;
+            vectorScaleSlider.value = vectorScale;
+            sphereCountSlider.value = sphereCount;
+            sphereOpacitySlider.value = sphereOpacity;
+            
+            densityValue.textContent = density;
+            vectorScaleValue.textContent = vectorScale;
+            sphereCountValue.textContent = sphereCount;
+            sphereOpacityValue.textContent = sphereOpacity;
+            
+            camera.position.set(15, 15, 15);
+            camera.lookAt(0, 0, 0);
+            controls.reset();
+            
+            createVectorField();
+            createLevelSurfaces();
+        }
+        
+        // 事件监听器
+        densitySlider.addEventListener('input', function() {
+            density = parseInt(this.value);
+            densityValue.textContent = density;
+            createVectorField();
+        });
+        
+        vectorScaleSlider.addEventListener('input', function() {
+            vectorScale = parseFloat(this.value);
+            vectorScaleValue.textContent = vectorScale;
+            createVectorField();
+        });
+        
+        sphereCountSlider.addEventListener('input', function() {
+            sphereCount = parseInt(this.value);
+            sphereCountValue.textContent = sphereCount;
+            createLevelSurfaces();
+        });
+        
+        sphereOpacitySlider.addEventListener('input', function() {
+            sphereOpacity = parseFloat(this.value);
+            sphereOpacityValue.textContent = sphereOpacity;
+            createLevelSurfaces();
+        });
+        
+        resetButton.addEventListener('click', resetView);
+        window.addEventListener('resize', onWindowResize);
+        
+        // 初始化
+        initScene();
+    </script>
+</body>
+</html> 
