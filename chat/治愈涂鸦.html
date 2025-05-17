@@ -395,7 +395,6 @@
             <div class="canvas-buttons">
                 <button id="clearCanvasBtn">清除</button>
                 <button id="eraserBtn">橡皮擦</button>
-                <button id="sendCanvasBtn">发送草图</button>
                 <button id="generateBtn">生成图像</button>
             </div>
             
@@ -417,7 +416,7 @@
             
             <div class="form-group" style="display: none;">
                 <label for="apiKey">OpenAI API Key:</label>
-                <input type="password" id="apiKey" value="sk-NKAwMaji6Elw3bXeAxTbkbaQ4zwwhFLKmhCySLJYDPp9tlTZ" placeholder="Enter your OpenAI API key here">
+                <input type="password" id="apiKey" value="sk-X5kUt2ZnRTwu13srkgRYsZljHS4G8SdJNkA3iZYheaFDkiK5" placeholder="Enter your OpenAI API key here">
             </div>
             
             <div class="form-group" style="display: none;">
@@ -559,7 +558,6 @@
         const drawingCanvas = document.getElementById('drawingCanvas');
         const clearCanvasBtn = document.getElementById('clearCanvasBtn');
         const eraserBtn = document.getElementById('eraserBtn');
-        const sendCanvasBtn = document.getElementById('sendCanvasBtn');
         const notification = document.getElementById('notification');
 
         // 存储粘贴的图片数据
@@ -576,6 +574,59 @@
         const MIN_LINE_WIDTH = 0.5;
         const MAX_LINE_WIDTH = 16;
         let currentColor = '#000000'; // 当前选择的颜色
+
+        // Helper function to check if canvas is blank
+        function isCanvasBlank(targetCanvas) {
+            const context = targetCanvas.getContext('2d', { willReadFrequently: true });
+            const canvasWidth = targetCanvas.width;
+            const canvasHeight = targetCanvas.height;
+
+            if (canvasWidth === 0 || canvasHeight === 0) return true; // Canvas has no dimensions
+
+            const imageData = context.getImageData(0, 0, canvasWidth, canvasHeight);
+            const data = imageData.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+                // Check if pixel is not opaque white (R=255, G=255, B=255, A=255)
+                // We consider it "not blank" if any pixel is not fully opaque white.
+                // This means any drawing or even a partially transparent pixel over the white background.
+                if (data[i] !== 255 || data[i+1] !== 255 || data[i+2] !== 255 || data[i+3] !== 255) {
+                     // If a pixel has color or is not fully opaque, it's not blank.
+                     // However, an eraser makes pixels opaque white. So, main check is for non-white RGB.
+                     // If alpha is 0, it's fully transparent, could be part of a "blank" canvas state.
+                     // Given fillRect with white, we look for non-white pixels that are not fully transparent.
+                    if ((data[i] !== 255 || data[i+1] !== 255 || data[i+2] !== 255) && data[i+3] !== 0) {
+                        return false; // Found a non-white, non-fully-transparent pixel
+                    }
+                }
+            }
+            return true; // All pixels are opaque white or fully transparent
+        }
+
+        // Helper function to convert canvas to base64
+        function getCanvasBase64(canvas) {
+            return new Promise((resolve) => {
+                if (isCanvasBlank(canvas)) {
+                    resolve(null);
+                    return;
+                }
+                canvas.toBlob((blob) => {
+                    if (!blob) {
+                        resolve(null); // Should not happen if not blank, but for safety
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onloadend = function() {
+                        resolve(reader.result);
+                    };
+                    reader.onerror = () => {
+                        console.error("Error converting canvas blob to base64.");
+                        resolve(null);
+                    };
+                    reader.readAsDataURL(blob);
+                }, 'image/png'); // Specify image format
+            });
+        }
 
         // Initialize canvas
         function initializeCanvas() {
@@ -772,45 +823,16 @@
             isEraser = !isEraser;
             
             if (isEraser) {
-                ctx.strokeStyle = '#ffffff';
-                drawingCanvas.style.cursor = 'not-allowed';
+                // ctx.strokeStyle = '#ffffff'; // Eraser draws in white
+                drawingCanvas.style.cursor = 'not-allowed'; // Or a custom eraser cursor
                 showNotification('橡皮擦模式已启用');
                 eraserBtn.classList.add('active');
             } else {
-                ctx.strokeStyle = currentColor; // 恢复为当前选择的颜色
+                ctx.strokeStyle = currentColor; // Restore current drawing color
                 drawingCanvas.style.cursor = 'crosshair';
                 showNotification('绘图模式已启用');
                 eraserBtn.classList.remove('active');
             }
-        });
-
-        sendCanvasBtn.addEventListener('click', () => {
-            drawingCanvas.toBlob((blob) => {
-                const reader = new FileReader();
-                reader.onloadend = function() {
-                    // Convert canvas to base64 image data
-                    const base64data = reader.result;
-                    
-                    // Set this as the input image
-                    pastedImageData = base64data;
-                    
-                    // Make sure we're using a model that supports image input
-                    if (!MODEL_CONFIGS[modelSelect.value].supports_image_input) {
-                        modelSelect.value = 'gpt-4o-image';
-                        const event = new Event('change');
-                        modelSelect.dispatchEvent(event);
-                    }
-                    
-                    // Update UI to show the image is selected
-                    pastePreview.src = base64data;
-                    pastePreview.style.display = 'block';
-                    inputImageOptionsDiv.style.display = 'block';
-                    
-                    showNotification('草图已准备好，可以生成图像了');
-                    addStatus('草图已添加! 准备好生成图像了。');
-                };
-                reader.readAsDataURL(blob);
-            });
         });
 
         // Notification function
@@ -1508,135 +1530,174 @@
             const apiKey = apiKeyInput.value.trim();
             const baseUrl = baseUrlInput.value.trim();
             const promptText = promptInput.value.trim();
-            const model = modelSelect.value;
-            const size = sizeSelect.value;
-            const imageUrl = imageUrlInput.value.trim();
+            let currentModel = modelSelect.value; // Use a local var that can be updated
+            const currentSize = sizeSelect.value;
+            const imageUrlFromInput = imageUrlInput.value.trim(); // Image from URL input field
             
             if (!promptText) {
                 addStatus('请输入提示词。', true);
+                showNotification('请输入提示词', 'error');
                 return;
             }
             
-            // 按行分割提示词
             const prompts = promptText.split('\n').filter(p => p.trim().length > 0);
-            
             if (prompts.length === 0) {
                 addStatus('没有有效的提示词。', true);
+                showNotification('没有有效的提示词', 'error');
                 return;
             }
             
-            // Disable button during generation
             generateBtn.disabled = true;
+            resultArea.style.display = 'none'; // Hide previous result
+            saveBtn.style.display = 'none';
             
-            // 创建批量处理进度显示
+            // Create and append batch progress UI
             const batchProgressDiv = document.createElement('div');
             batchProgressDiv.className = 'batch-progress';
-            
             const progressTitle = document.createElement('div');
             const totalCount = prompts.length;
             progressTitle.innerHTML = `<strong>批量生成进度</strong>: 0/${totalCount} 完成`;
-            
             const progressBarContainer = document.createElement('div');
             progressBarContainer.className = 'progress-bar-container';
-            
             const progressBar = document.createElement('div');
             progressBar.className = 'progress-bar';
             progressBar.style.width = '0%';
-            
             progressBarContainer.appendChild(progressBar);
             batchProgressDiv.appendChild(progressTitle);
             batchProgressDiv.appendChild(progressBarContainer);
-            
             statusArea.appendChild(batchProgressDiv);
             addStatus(`开始批量生成 ${totalCount} 张图片...`);
             
-            // 存储所有成功生成的图片URL
-            const generatedImages = [];
+            let imageInputForApi = null;
+
+            // Priority for image input: 1. Canvas, 2. Pasted Image Data (from dedicated paste area), 3. Image URL Input
+            const canvasBase64Data = await getCanvasBase64(drawingCanvas);
+
+            if (canvasBase64Data) {
+                imageInputForApi = canvasBase64Data;
+                addStatus('使用画布草图作为输入图像。');
+                if (!MODEL_CONFIGS[currentModel].supports_image_input) {
+                    modelSelect.value = 'gpt-4o-image'; // Switch model
+                    currentModel = modelSelect.value;    // Update local currentModel
+                    const event = new Event('change');
+                    modelSelect.dispatchEvent(event);   // This updates UI (sizes, etc.) and triggers modelSelect's own status messages
+                    addStatus('检测到画布图像，已自动切换到支持图像输入的模型 gpt-4o-image。');
+                }
+            } else if (pastedImageData && pastedImageData.startsWith('data:image')) { // Check if pastedImageData is valid base64
+                imageInputForApi = pastedImageData;
+                addStatus('使用粘贴区域的图片作为输入图像。');
+                if (!MODEL_CONFIGS[currentModel].supports_image_input) {
+                    modelSelect.value = 'gpt-4o-image';
+                    currentModel = modelSelect.value;
+                    const event = new Event('change');
+                    modelSelect.dispatchEvent(event);
+                    addStatus('检测到粘贴图片，已自动切换到支持图像输入的模型 gpt-4o-image。');
+                }
+            } else if (imageUrlFromInput) {
+                imageInputForApi = imageUrlFromInput;
+                addStatus('使用URL输入框的图片作为输入图像。');
+                if (!MODEL_CONFIGS[currentModel].supports_image_input) {
+                    modelSelect.value = 'gpt-4o-image';
+                    currentModel = modelSelect.value;
+                    const event = new Event('change');
+                    modelSelect.dispatchEvent(event);
+                    addStatus('检测到图片URL，已自动切换到支持图像输入的模型 gpt-4o-image。');
+                }
+            }
+
+            // Final check: if an image is prepared but the (potentially updated) model doesn't support it
+            if (imageInputForApi && !MODEL_CONFIGS[currentModel].supports_image_input) {
+                addStatus(`警告: 模型 ${currentModel} 不支持图像输入。图像将不会被使用。`, true);
+                showNotification(`模型 ${currentModel} 不支持图像输入，图像将忽略`, 'error');
+                imageInputForApi = null; // Ensure image is not sent
+            }
             
+            const generatedImages = [];
             try {
                 for (let i = 0; i < prompts.length; i++) {
                     const prompt = prompts[i].trim();
                     if (prompt.length === 0) continue;
                     
-                    // 更新进度显示
                     progressTitle.innerHTML = `<strong>批量生成进度</strong>: ${i}/${totalCount} 完成`;
                     progressBar.style.width = `${(i / totalCount) * 100}%`;
                     
-                    addStatus(`[${i+1}/${totalCount}] 正在生成: "${prompt}" 使用模型 ${model} 尺寸 ${size}...`);
+                    addStatus(`[${i+1}/${totalCount}] 正在生成: "${prompt}" 使用模型 ${currentModel} 尺寸 ${currentSize}...`);
                     
                     let response;
-                    
-                    if (model === 'dall-e-3') {
-                        // Use DALL-E 3 API
-                        response = await generateDallE3Image(apiKey, baseUrl, prompt, size);
-                    } else {
-                        // Use GPT-4o API
-                        // 优先使用画布图像，其次粘贴的图片，最后使用URL
-                        if (pastedImageData && pastedImageData.startsWith('data:image')) {
-                            addStatus(`[${i+1}/${totalCount}] 使用粘贴的图片或草图作为输入...`);
-                            response = await generateGPT4oImage(apiKey, baseUrl, prompt, size, pastedImageData);
-                        } else if (imageUrl) {
-                            addStatus(`[${i+1}/${totalCount}] 使用URL图片作为输入...`);
-                            response = await generateGPT4oImage(apiKey, baseUrl, prompt, size, imageUrl);
+                    if (currentModel === 'dall-e-3') {
+                         // DALL-E 3 does not support image input via this API structure
+                        if (imageInputForApi) {
+                            addStatus(`[${i+1}/${totalCount}] 警告: DALL-E 3 模型不支持图像输入，图像将被忽略。`, true);
+                        }
+                        response = await generateDallE3Image(apiKey, baseUrl, prompt, currentSize);
+                    } else { // Assumes gpt-4o-image or other models that might support image input via chat completions
+                        if (MODEL_CONFIGS[currentModel].supports_image_input) {
+                            if (imageInputForApi) {
+                                addStatus(`[${i+1}/${totalCount}] 使用图像输入进行生成...`);
+                            } else {
+                                addStatus(`[${i+1}/${totalCount}] 仅使用文本提示进行生成...`);
+                            }
+                            response = await generateGPT4oImage(apiKey, baseUrl, prompt, currentSize, imageInputForApi);
                         } else {
-                            addStatus(`[${i+1}/${totalCount}] 没有输入图片，只使用文本提示...`);
-                            response = await generateGPT4oImage(apiKey, baseUrl, prompt, size);
+                             // This case should have been handled by auto-switching or the warning above.
+                            addStatus(`[${i+1}/${totalCount}] 模型 ${currentModel} 不支持图像输入，仅使用文本提示...`);
+                            response = await generateGPT4oImage(apiKey, baseUrl, prompt, currentSize, null); // Explicitly pass null
                         }
                     }
                     
                     if (response.success) {
                         addStatus(`[${i+1}/${totalCount}] 生成成功!`);
-                        
-                        // 添加到结果列表
-                        generatedImages.push({
-                            prompt: prompt,
-                            imageUrl: response.imageUrl
-                        });
-                        
-                        // 保存到历史记录
+                        generatedImages.push({ prompt: prompt, imageUrl: response.imageUrl });
                         saveToHistory({
                             prompt: prompt,
                             imageUrl: response.imageUrl,
-                            model: model,
-                            size: size,
+                            model: currentModel, 
+                            size: currentSize,
                             timestamp: Date.now()
                         });
                     } else {
                         addStatus(`[${i+1}/${totalCount}] 错误: ${response.error}`, true);
+                        showNotification(`生成失败: ${response.error}`, 'error');
                     }
                 }
                 
-                // 完成所有生成
                 progressTitle.innerHTML = `<strong>批量生成进度</strong>: ${totalCount}/${totalCount} 完成`;
                 progressBar.style.width = '100%';
                 
-                // 显示结果摘要
                 if (generatedImages.length > 0) {
                     addStatus(`批量生成完成！成功生成 ${generatedImages.length}/${totalCount} 张图片。`);
-                    
-                    // 显示最后一张生成的图片
                     const lastImage = generatedImages[generatedImages.length - 1];
                     resultImage.src = lastImage.imageUrl;
                     resultArea.style.display = 'block';
                     saveBtn.style.display = 'inline-block';
-                    
-                    // Set up save button for last generated image
                     saveBtn.onclick = function() {
                         const a = document.createElement('a');
                         a.href = lastImage.imageUrl;
-                        a.download = `openai_image_${new Date().getTime()}.png`;
+                        // Sanitize prompt for filename
+                        const safePrompt = lastImage.prompt.replace(/[^a-z0-9_\-]+/gi, '_').substring(0, 50);
+                        a.download = `image_${safePrompt}_${new Date().getTime()}.png`;
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
                     };
+                    showNotification('图像生成完成!', 'success');
                 } else {
                     addStatus('批量生成完成，但没有成功生成任何图片。', true);
+                    if (prompts.length > 0 && !statusArea.textContent.includes('错误:')) { // Avoid double notification if specific errors shown
+                        showNotification('未能生成任何图片。请检查提示词或API设置。', 'error');
+                    }
                 }
             } catch (error) {
-                addStatus(`生成图片过程中发生错误: ${error.message}`, true);
+                addStatus(`生成图片过程中发生严重错误: ${error.message}`, true);
+                showNotification(`严重错误: ${error.message}`, 'error');
                 console.error(error);
             } finally {
                 generateBtn.disabled = false;
+                setTimeout(() => { // Remove progress bar after a delay
+                    if (batchProgressDiv.parentNode) {
+                        batchProgressDiv.remove();
+                    }
+                }, 5000); 
             }
         });
     </script>
