@@ -525,11 +525,16 @@
                 <div class="form-group">
                     <label for="model">Model:</label>
                     <select id="model">
+
+                        <option value="gemini-2.5-pro-preview-05-06">gemini-2.5-pro-preview-05-06</option>
                         <option value="gpt-4.1-nano">GPT-4.1-nano</option>
                         <option value="gpt-4.1-mini">GPT-4.1-mini</option>
                         <option value="gpt-4.1">GPT-4.1</option>
                         <option value="gpt-4o-mini">GPT-4o-mini</option>
                         <option value="gpt-4o">GPT-4o</option>
+
+
+
                     </select>
                 </div>
                 
@@ -540,10 +545,12 @@
                     <select id="promptTemplates">
                         <option value="">-- 选择模板 --</option>
                         <option value="math-teacher">数学老师模式</option>
+                        <option value="homework-analysis">作业分析</option>
                         <option value="math-competition">数学竞赛模式</option>
                         <option value="step-by-step">详细步骤解析</option>
                         <option value="concise">简洁模式</option>
                         <option value="creative">创意思考模式</option>
+
                     </select>
                 </div>
                 
@@ -647,13 +654,14 @@
                 "math-competition": "你是一位数学竞赛教练，擅长解决各种复杂的竞赛题目。请提供多种解法，尤其是巧妙、简洁的方法，并分析每种解法的思路和技巧。使用LaTeX表示数学公式。",
                 "step-by-step": "请提供详细的逐步解析，解释每一步背后的原理和思路。使用LaTeX表示数学公式，并在关键步骤添加说明。",
                 "concise": "请简洁地回答问题，直接给出结论和必要的步骤，不需要冗长的解释。使用LaTeX表示数学公式。",
-                "creative": "请以创新的视角思考问题，提供常规方法之外的解决思路。尝试用不同的概念或领域的知识来解释。使用LaTeX表示数学公式。"
+                "creative": "请以创新的视角思考问题，提供常规方法之外的解决思路。尝试用不同的概念或领域的知识来解释。使用LaTeX表示数学公式。",
+                "homework-analysis": "你是一位经验丰富的老师，当用户提供学生作业图片和学生姓名时，请针对图片中的作业内容进行分析点评。点评应主要关注作业的逻辑性、条理性，并根据分析结果给出具体的改进建议。请使用LaTeX表示数学公式（如果适用）。用中文回答。"
             };
             
             // 初始化系统消息
             const DEFAULT_SYSTEM_MESSAGE = {
                 "role": "system",
-                "content": "你是一个专业的数学助手，擅长解答数学问题和讲解数学概念。每一道题都用多种方法。从各个角度来理解问题，每一道题尽可能从线性代数，向量，三角，复数等方面来解答。请使用简洁清晰的语言，并正确使用LaTeX表示数学公式。"
+                "content": "你是一个专业的数学助手，擅长解答数学问题和讲解数学概念。每一道题都用多种方法。从各个角度来理解问题，每一道题尽可能从线性代数，向量，三角，复数等方面来解答。请使用简洁清晰的语言，并正确使用LaTeX表示数学公式。当用户提供学生作业图片和学生姓名时，请对图片中的作业内容进行分析点评，主要评价逻辑性和条理性，并给出改进建议。"
             };
             
             // 当前系统消息
