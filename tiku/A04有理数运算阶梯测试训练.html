@@ -645,8 +645,10 @@
             "08绝对值倒数分数",
             "09分配律",
             "10混合",
-            "11综合",
-            "12挑战自招"
+            "11化简",
+            "12化简求值",
+            "13综合",
+            "14挑战自招"
         ];
 
         // 初始化
@@ -1486,6 +1488,8 @@
                 case 10: return generateLevel10Question();
                 case 11: return generateLevel11Question();
                 case 12: return generateLevel12Question();
+                case 13: return generateLevel13Question();
+                case 14: return generateLevel14Question();
                 default: return "";
             }
         }
@@ -2016,7 +2020,391 @@
             return questionHtml;
         }
 
+
         function generateLevel11Question() {
+            return generateAlgebraicSimplificationQuestion();
+        }
+
+        // 格式化多项式系数的函数
+        // "多项式首项系数为1，不显示;-1，显示-;中间项+1，显示+，-1，显示-；
+        // 正数时多加一个+，负数不要加正号；常数项正数加+，负数不要加。
+        // 如果多项式系数为0 ，则变量也不显示；"
+        function formatCoefficient(coef, variable = "", isFirst = false) {
+            if (coef === 0) return "";
+
+            let termString = "";
+
+            if (isFirst) {
+                if (coef === 1) {
+                    termString = variable; 
+                    if (!variable) termString = "1"; // Constant 1
+                } else if (coef === -1) {
+                    termString = "-" + variable; 
+                    if (!variable) termString = "-1"; // Constant -1
+                } else {
+                    termString = coef.toString() + variable; 
+                }
+            } else { // Not the first term
+                if (coef === 1) {
+                    termString = "+" + variable; 
+                    if (!variable) termString = "+1"; // Constant +1
+                } else if (coef === -1) {
+                    termString = "-" + variable; 
+                    if (!variable) termString = "-1"; // Constant -1
+                } else if (coef > 0) {
+                    termString = "+" + coef.toString() + variable; 
+                } else { // coef < 0
+                    termString = coef.toString() + variable; 
+                }
+            }
+            return termString;
+        }
+
+        // Generates a random integer between min and max (inclusive).
+        // Ensures the number is not zero unless allowZero is true.
+        // Can also exclude specific numbers.
+        function getRandomCoefficient(min, max, allowZero = false, excludeList = []) {
+            let num;
+            do {
+                num = Math.floor(Math.random() * (max - min + 1)) + min;
+            } while ((!allowZero && num === 0) || excludeList.includes(num));
+            return num;
+        }
+
+
+        function generateAlgebraicSimplificationQuestion() {
+            // 生成随机的代数式和其化简形式
+            const questionData = generateRandomExpressionAndSimplifiedForm();
+            const { expression, simplified } = questionData;
+            
+            correctAnswer = [simplified]; 
+            
+            // 返回格式化的 LaTeX 问题
+            return `化简: \\(${expression}\\)`;
+        }
+
+        function generateRandomExpressionAndSimplifiedForm() {
+            const expressionTypes = [
+                // Type 0: (x² + Axy) ÷ x - By  => x + (A-B)y
+                function() {
+                    const A = getRandomCoefficient(-3, 3, false); // Non-zero A
+                    const B = getRandomCoefficient(-3, 3, false); // Non-zero B
+
+                    const expr_num_p1 = formatCoefficient(1, "x^2", true); 
+                    const expr_num_p2 = formatCoefficient(A, "xy", false);  
+                    const expr_den = formatCoefficient(1, "x", true);    
+                    const expr_sub_term = formatCoefficient(-B, "y", false); 
+
+                    const expr = `(${expr_num_p1} ${expr_num_p2}) \\div (${expr_den}) ${expr_sub_term}`;
+                    
+                    let simplified_str = "";
+                    simplified_str += formatCoefficient(1, "x", true); 
+                    
+                    const y_coeff_simp = A - B;
+                    if (y_coeff_simp !== 0) {
+                       simplified_str += formatCoefficient(y_coeff_simp, "y", false); 
+                    }
+                    if (simplified_str === "") simplified_str = "0"; 
+
+                    return { expression: expr, simplified: simplified_str };
+                },
+                // Type 1: (x + Ey)^N where N is 2 (or 3, but 2 for now)
+                function() {
+                    const E = getRandomCoefficient(-2, 2, false); 
+                    const N = 2; 
+
+                    let inner_expr_terms = [formatCoefficient(1,"x",true)];
+                    if (E !== 0) {
+                        inner_expr_terms.push(formatCoefficient(E,"y",false));
+                    }
+                    const inner_expr = inner_expr_terms.join("");
+
+                    const expr = `(${inner_expr})^${N}`;
+                    
+                    let simplified_str = "";
+                    if (N === 2) {
+                        // (x + Ey)^2 = x^2 + 2Exy + E^2y^2
+                        simplified_str += formatCoefficient(1, "x^2", true);
+                        if (E !== 0) { // only add xy and y^2 terms if E is not zero
+                           simplified_str += formatCoefficient(2 * E, "xy", false);
+                           simplified_str += formatCoefficient(E * E, "y^2", false);
+                        }
+                    }
+                    // Add N=3 case if desired later
+                    if (simplified_str === "") simplified_str = "0";
+                    return { expression: expr, simplified: simplified_str };
+                },
+                // Type 2: Ax(Bx+Cy) + Dx(Ex-Fy) => (AB+DE)x^2 + (AC-DF)xy
+                function() {
+                    const A = getRandomCoefficient(-2, 2, false);
+                    const B = getRandomCoefficient(-2, 2, true); // Allow zero for B,C,E,F
+                    const C = getRandomCoefficient(-2, 2, true);
+                    const D = getRandomCoefficient(-2, 2, false);
+                    const E = getRandomCoefficient(-2, 2, true);
+                    const F = getRandomCoefficient(-2, 2, true);
+
+                    // Constructing terms like Ax(Bx+Cy)
+                    let term1_inner_p1 = B === 0 ? "" : formatCoefficient(B,"x",true);
+                    let term1_inner_p2 = C === 0 ? "" : formatCoefficient(C,"y", term1_inner_p1 === "");
+                    if (term1_inner_p1 === "" && term1_inner_p2 === "") term1_inner_p1 = "0"; // if Bx+Cy is 0
+                    let expr_term1 = `${formatCoefficient(A,"x",true)}(${term1_inner_p1}${term1_inner_p2})`;
+                    if (B === 0 && C === 0) expr_term1 = `${formatCoefficient(A,"x",true)}(0)`;
+
+
+                    let term2_inner_p1 = E === 0 ? "" : formatCoefficient(E,"x",true);
+                    let term2_inner_p2 = F === 0 ? "" : formatCoefficient(F,"y", term2_inner_p1 === "");
+                    if (term2_inner_p1 === "" && term2_inner_p2 === "") term2_inner_p1 = "0";
+                    let expr_term2 = `${formatCoefficient(D,"x",false)}(${term2_inner_p1}${term2_inner_p2})`;
+                     if (E === 0 && F === 0) expr_term2 = `${formatCoefficient(D,"x",false)}(0)`;
+
+
+                    const expr = `${expr_term1} ${expr_term2}`;
+
+                    const x2_coeff = A * B + D * E;
+                    const xy_coeff = A * C - D * F;
+
+                    let simplified_str = "";
+                    if (x2_coeff !== 0) {
+                        simplified_str += formatCoefficient(x2_coeff, "x^2", true);
+                    }
+                    if (xy_coeff !== 0) {
+                        simplified_str += formatCoefficient(xy_coeff, "xy", simplified_str === "");
+                    }
+                    if (simplified_str === "") simplified_str = "0";
+                    
+                    return { expression: expr, simplified: simplified_str };
+                },
+                // Type 3: Simple combination like Ax + By + Cx + Dy => (A+C)x + (B+D)y
+                function() {
+                    const A = getRandomCoefficient(-3,3, true); 
+                    const B = getRandomCoefficient(-3,3, true);
+                    const C = getRandomCoefficient(-3,3, true);
+                    const D = getRandomCoefficient(-3,3, true);
+
+                    let terms_expr_list = [];
+                    if (A!==0) terms_expr_list.push(formatCoefficient(A, "x", true));
+                    if (B!==0) terms_expr_list.push(formatCoefficient(B, "y", terms_expr_list.length === 0));
+                    if (C!==0) terms_expr_list.push(formatCoefficient(C, "x", terms_expr_list.length === 0));
+                    if (D!==0) terms_expr_list.push(formatCoefficient(D, "y", terms_expr_list.length === 0));
+                    
+                    let expr = terms_expr_list.join("");
+                    if (expr === "" && (A !==0 || B !== 0 || C !== 0 || D !== 0 )) { // If some non-zero coefs made empty strings initially (e.g. first term coef 1)
+                        // This case should be handled by formatCoefficient logic.
+                        // Let's rebuild expr more carefully if needed.
+                        // The join("") should be fine if formatCoefficient is correct.
+                    }
+                     if (expr === "") expr = "0";
+
+
+                    let simplified_str = "";
+                    const x_coeff_simp = A + C;
+                    const y_coeff_simp = B + D;
+
+                    if (x_coeff_simp !== 0) {
+                        simplified_str += formatCoefficient(x_coeff_simp, "x", true);
+                    }
+                    if (y_coeff_simp !== 0) {
+                        simplified_str += formatCoefficient(y_coeff_simp, "y", simplified_str === "");
+                    }
+                    if (simplified_str === "") simplified_str = "0";
+
+                    return { expression: expr, simplified: simplified_str };
+                }
+            ];
+            
+            const choice = Math.floor(Math.random() * expressionTypes.length);
+            const data = expressionTypes[choice]();
+            
+            return {
+                expression: data.expression,
+                simplified: data.simplified
+            };
+
+
+        }
+
+
+
+        function generateLevel12Question() {
+                      // 随机选择 x 和 y 的值
+                      let x = Math.floor(Math.random() * 5) - 2; // -2 到 2
+            let y = Math.floor(Math.random() * 5) - 2; // -2 到 2
+            
+            // 确保 x 和 y 不为零（避免除零错误）
+            if (x === 0) x = Math.random() > 0.5 ? 1 : -1;
+            if (y === 0) y = Math.random() > 0.5 ? 1 : -1;
+            
+            // 格式化多项式系数的函数
+            function formatCoefficient(coef, isFirstTerm = false, hasVariable = true) {
+                if (coef === 0) return ""; // 如果系数为0，不显示该项
+                
+                if (isFirstTerm) {
+                    // 首项处理
+                    if (coef === 1 && hasVariable) return ""; // 首项系数为1且有变量，不显示1
+                    if (coef === -1 && hasVariable) return "-"; // 首项系数为-1且有变量，只显示负号
+                    return coef.toString(); // 其他情况显示系数
+                } else {
+                    // 中间项和常数项处理
+                    if (coef > 0) {
+                        if (coef === 1 && hasVariable) return "+"; // 系数为1且有变量，只显示+号
+                        return `+${coef}`; // 正系数，显示+号和系数
+                    } else {
+                        if (coef === -1 && hasVariable) return "-"; // 系数为-1且有变量，只显示负号
+                        return coef.toString(); // 负系数，保留负号
+                    }
+                }
+            }
+            
+            // 创建几种不同类型的表达式模板
+            const expressionTypes = [
+                // 类型0: (x² + 2xy) ÷ (1x) - 1y
+                function() {
+                    // 使用固定系数
+                    let x2Coef = formatCoefficient(1, true);
+                    let xyCoef = formatCoefficient(2, false);
+                    let xCoef = formatCoefficient(1, true);
+                    let yCoef = formatCoefficient(1, true);
+                    
+                    const expr = `(${x2Coef}x^2${xyCoef}xy) \\div (${xCoef}x) - ${yCoef}y`;
+                    
+                    // 计算结果
+                    const numerator = Math.pow(x, 2) + 2 * x * y;
+                    const denominator = 1 * x; // x已确保不为0
+                    const division = numerator / denominator;
+                    const result = division - 1 * y;
+                    
+                    return { expression: expr, result };
+                },
+                
+                // 类型1: (x + y)^n 类型
+                function() {
+                    const n = Math.floor(Math.random() * 2) + 2; // 2 或 3
+                    
+                    // 格式化处理(x + y)项
+                    let xTerm = "x";
+                    let ySign = y >= 0 ? "+" : "";
+                    let yTerm = y !== 1 ? `${ySign}${y}y` : `+y`;
+                    
+                    const expr = `(${xTerm}${yTerm})^${n}`;
+                    
+                    // 计算结果
+                    const result = Math.pow(x + y, n);
+                    return { expression: expr, result };
+                },
+                
+                // 类型2: 复合代数式
+                function() {
+                    const a = Math.floor(Math.random() * 5) + 1;
+                    const b = Math.floor(Math.random() * 5) + 1;
+                    const signType1 = Math.random() > 0.5 ? 1 : -1;
+                    const signType2 = Math.random() > 0.5 ? 1 : -1;
+                    
+                    // 格式化处理
+                    let xTerm = "x";
+                    let yTerm = signType1 > 0 ? "+y" : "-y";
+                    
+                    let aCoef = formatCoefficient(a, true);
+                    
+                    const expr = `(${xTerm}${yTerm})^2 ${signType2 > 0 ? "+" : "-"} (${aCoef}x^2y)`;
+                    
+                    // 计算结果
+                    const part1 = Math.pow(x + (signType1 * y), 2);
+                    const part2 = a * Math.pow(x, 2) * y;
+                    const result = signType2 > 0 ? part1 + part2 : part1 - part2;
+                    
+                    return { expression: expr, result };
+                },
+                
+                // 类型3: 带有除法的代数式
+                function() {
+                    const a = Math.floor(Math.random() * 3) + 1;
+                    const b = Math.floor(Math.random() * 3) + 1;
+                    const c = Math.floor(Math.random() * 3) + 1;
+                    
+                    // 格式化处理
+                    let x2Coef = formatCoefficient(1, true);
+                    let xyCoef = formatCoefficient(a, false);
+                    let bxCoef = formatCoefficient(b, true);
+                    let cyCoef = formatCoefficient(c, true);
+                    
+                    const expr = `(${x2Coef}x^2${xyCoef}xy) \\div (${bxCoef}x) - ${cyCoef}y`;
+                    
+                    // 计算结果
+                    const numerator = Math.pow(x, 2) + a * x * y;
+                    const denominator = b * x; // x已确保不为0
+                    const division = numerator / denominator;
+                    const result = division - c * y;
+                    
+                    return { expression: expr, result };
+                },
+                
+                // 类型4: 带有乘方和多项式的代数式
+                function() {
+                    // 生成随机系数
+                    const a = Math.floor(Math.random() * 3) + 1;
+                    const b = Math.floor(Math.random() * 3) + 1;
+                    const useSample = Math.random() > 0.5;
+                    
+                    let expr;
+                    let part1, part2Numerator, part2Denominator, part2, result;
+                    
+                    if (useSample) {
+                        expr = `(x+y)^2-(-xy^3-3x^2y^2)\\div(-xy)`;
+                        
+                        // 计算结果
+                        part1 = Math.pow(x + y, 2);
+                        part2Numerator = -x * Math.pow(y, 3) - 3 * Math.pow(x, 2) * Math.pow(y, 2);
+                        part2Denominator = -x * y; // x和y已确保不为0
+                        part2 = part2Numerator / part2Denominator;
+                        result = part1 - part2;
+                    } else {
+                        // 格式化系数
+                        const aCoef = formatCoefficient(a, true);
+                        const bCoef = formatCoefficient(b, true);
+                        
+                        expr = `(x^2${aCoef && "+"}${aCoef}xy) \\div (${bCoef}x) - ${formatCoefficient(1, true)}y`;
+                        
+                        // 计算结果
+                        part1 = Math.pow(x, 2) + a * x * y;
+                        part2Numerator = part1;
+                        part2Denominator = b * x; // x已确保不为0
+                        part2 = part2Numerator / part2Denominator;
+                        result = part2 - y;
+                    }
+                    
+                    return { expression: expr, result };
+                }
+            ];
+            
+            // 随机选择一种表达式类型
+            let randomExpressionType;
+            if (Math.random() < 0.5) {
+                // 50% 的概率选择用户提供的示例
+                randomExpressionType = 0;
+            } else {
+                // 50% 的概率随机选择其他表达式类型
+                randomExpressionType = Math.floor(Math.random() * (expressionTypes.length - 1)) + 1;
+            }
+            const { expression, result } = expressionTypes[randomExpressionType]();
+            
+            // 设置正确答案
+            const resultStr = result.toString();
+            correctAnswer = [resultStr];
+            if (result > 0) {
+                correctAnswer.push(`+${resultStr}`);
+            }
+            
+            // 格式化问题，添加代入值信息
+            const questionText = `\\begin{gather} ${expression} \\end{gather}`;
+            const substitutionText = `\\begin{gather} x = ${x}, y = ${y} \\end{gather}`;
+            
+            // 返回格式化的HTML字符串
+            return `\\(${questionText}\\), 其中 \\(${substitutionText}\\)`;
+
+
+        }
+
+        function generateLevel13Question() {
             const levelFunctions = [
                 generateLevel1Question,
                 generateLevel2Question,
@@ -2028,6 +2416,8 @@
                 generateLevel8Question,
                 generateLevel9Question,
                 generateLevel10Question,
+                generateLevel11Question,
+                generateLevel12Question,
             ];
 
             const randomIndex = Math.floor(Math.random() * levelFunctions.length);
@@ -2036,7 +2426,7 @@
             return selectedFunction();
         }
 
-        function generateLevel12Question() {
+        function generateLevel14Question() {
             const Questions = [
                 { question: " \\begin{array}{l}&(1)、如图，正三角形的边长为1，点C与原点重合，\\\\&现将正三角形向右翻转2023次，\\\\&求点B在数轴上对应的数字\\end{array}" ,   img: "https://img.jyeoo.net/quiz/images/svg/202403/285/458742e5.png",answers: ["2023"] },
                 { question: "\\begin{array}{l} (2)、如果在数轴上表示a,b两个实数的点的位置如图所示，\\\\   那么|a-b|+|a+b|化简的结果为\\textup{(    )}      \\end{array}",img: "https://img.jyeoo.net/quiz/images/201201/70/831967e5.png", answers: ["-2a"] },

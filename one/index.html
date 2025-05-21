@@ -230,13 +230,7 @@
             </div>
 
 
-            <div class="canvas-switch">
-                <label for="canvasSwitch">画布</label>
-                <input type="checkbox" id="canvasSwitch" onchange="toggleCanvas()">
-                <label for="canvasHeight">高度(px):</label>
-                <input type="range" id="canvasHeight" value="500" min="0" max="1000" oninput="setCanvasHeight()">
-                <span id="heightValue">500</span> px
-            </div>
+
 
         </div>
 
@@ -297,7 +291,9 @@
                     { text: 'A0408有理数运算绝对值倒数分数', url: 'A0408有理数运算绝对值倒数分数.html' },
                     { text: 'A0409有理数运算分配律', url: 'A0409有理数运算分配律.html' },
                     { text: 'A0410有理数运算混合', url: 'A0410有理数运算混合.html' },
-                    { text: 'A0411有理数运算综合', url: 'A0411有理数运算综合.html' },
+                    { text: 'A0411有理数运算化简', url: 'A0411有理数运算化简.html' },
+                    { text: 'A0412有理数运算化简求值', url: 'A0412有理数运算化简求值.html' },
+                    { text: 'A0413有理数运算综合', url: 'A0413有理数运算综合.html' },
                 ]
             },
             {
@@ -724,20 +720,7 @@
             menu.classList.toggle('hidden');
         }
 
-        function toggleCanvas() {
-            const isChecked = document.getElementById('canvasSwitch').checked;
-            const canvasContainer = document.getElementById('canvasContainer');
-            const canvasIframe = document.getElementById('canvasIframe');
-
-            if (isChecked) {
-                setCanvasHeight();
-                canvasIframe.src = '画布.html';
-            } else {
-                canvasContainer.style.height = '0';
-                canvasIframe.src = '';
-            }
-        }
-
+  
         function setCanvasHeight() {
             const canvasContainer = document.getElementById('canvasContainer');
             const height = document.getElementById('canvasHeight').value;

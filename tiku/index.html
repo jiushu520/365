@@ -89,6 +89,11 @@
             background-color: #e0f2f1;
             color: #00695c;
         }
+        .menu-item.selected {
+            background-color: #009688;
+            color: white;
+            font-weight: bold;
+        }
         iframe {
             width: 100%;
             height: 100%;
@@ -225,13 +230,7 @@
             </div>
 
 
-            <div class="canvas-switch">
-                <label for="canvasSwitch">画布</label>
-                <input type="checkbox" id="canvasSwitch" onchange="toggleCanvas()">
-                <label for="canvasHeight">高度(px):</label>
-                <input type="range" id="canvasHeight" value="500" min="0" max="1000" oninput="setCanvasHeight()">
-                <span id="heightValue">500</span> px
-            </div>
+
 
         </div>
 
@@ -396,7 +395,16 @@
                     link.href = 'javascript:void(0);';
                     link.className = 'menu-item';
                     link.textContent = item.text;
-                    link.onclick = () => showContent(item.url);
+                    link.setAttribute('data-url', item.url);
+                    link.onclick = () => {
+                        // Remove selected class from all menu items
+                        document.querySelectorAll('.menu-item').forEach(menuItem => {
+                            menuItem.classList.remove('selected');
+                        });
+                        // Add selected class to clicked item
+                        link.classList.add('selected');
+                        showContent(item.url);
+                    };
                     content.appendChild(link);
                 });
 
@@ -474,26 +482,7 @@
             menu.classList.toggle('hidden');
         }
 
-        function toggleCanvas() {
-            const isChecked = document.getElementById('canvasSwitch').checked;
-            const canvasContainer = document.getElementById('canvasContainer');
-            const canvasIframe = document.getElementById('canvasIframe');
 
-            if (isChecked) {
-                setCanvasHeight();
-                canvasIframe.src = '画布.html';
-            } else {
-                canvasContainer.style.height = '0';
-                canvasIframe.src = '';
-            }
-        }
-
-        function setCanvasHeight() {
-            const canvasContainer = document.getElementById('canvasContainer');
-            const height = document.getElementById('canvasHeight').value;
-            canvasContainer.style.height = height + 'px';
-            document.getElementById('heightValue').textContent = height;
-        }
 
         document.addEventListener('DOMContentLoaded', () => {
             generateMenu();
