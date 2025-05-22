@@ -2150,18 +2150,18 @@
                     let expr_term1 = `${formatCoefficient(A,"x",true)}(${term1_inner_p1}${term1_inner_p2})`;
                     if (B === 0 && C === 0) expr_term1 = `${formatCoefficient(A,"x",true)}(0)`;
 
-
+                    // Always use negative F for the second term to match the simplified formula
+                    const negF = F > 0 ? -F : F;
                     let term2_inner_p1 = E === 0 ? "" : formatCoefficient(E,"x",true);
-                    let term2_inner_p2 = F === 0 ? "" : formatCoefficient(F,"y", term2_inner_p1 === "");
+                    let term2_inner_p2 = F === 0 ? "" : formatCoefficient(negF,"y", term2_inner_p1 === "");
                     if (term2_inner_p1 === "" && term2_inner_p2 === "") term2_inner_p1 = "0";
                     let expr_term2 = `${formatCoefficient(D,"x",false)}(${term2_inner_p1}${term2_inner_p2})`;
-                     if (E === 0 && F === 0) expr_term2 = `${formatCoefficient(D,"x",false)}(0)`;
-
+                    if (E === 0 && F === 0) expr_term2 = `${formatCoefficient(D,"x",false)}(0)`;
 
                     const expr = `${expr_term1} ${expr_term2}`;
 
                     const x2_coeff = A * B + D * E;
-                    const xy_coeff = A * C - D * F;
+                    const xy_coeff = A * C + D * negF; // Use negF here for consistency
 
                     let simplified_str = "";
                     if (x2_coeff !== 0) {
@@ -2181,31 +2181,50 @@
                     const C = getRandomCoefficient(-3,3, true);
                     const D = getRandomCoefficient(-3,3, true);
 
-                    let terms_expr_list = [];
-                    if (A!==0) terms_expr_list.push(formatCoefficient(A, "x", true));
-                    if (B!==0) terms_expr_list.push(formatCoefficient(B, "y", terms_expr_list.length === 0));
-                    if (C!==0) terms_expr_list.push(formatCoefficient(C, "x", terms_expr_list.length === 0));
-                    if (D!==0) terms_expr_list.push(formatCoefficient(D, "y", terms_expr_list.length === 0));
-                    
-                    let expr = terms_expr_list.join("");
-                    if (expr === "" && (A !==0 || B !== 0 || C !== 0 || D !== 0 )) { // If some non-zero coefs made empty strings initially (e.g. first term coef 1)
-                        // This case should be handled by formatCoefficient logic.
-                        // Let's rebuild expr more carefully if needed.
-                        // The join("") should be fine if formatCoefficient is correct.
+                    // Make sure at least one coefficient is non-zero
+                    if (A === 0 && B === 0 && C === 0 && D === 0) {
+                        A = 1; // Ensure we have at least one term
                     }
-                     if (expr === "") expr = "0";
 
+                    // Build expression more carefully tracking if it's the first term
+                    let expr = "";
+                    let isFirst = true;
+
+                    if (A !== 0) {
+                        expr += formatCoefficient(A, "x", isFirst);
+                        isFirst = false;
+                    }
+                    
+                    if (B !== 0) {
+                        expr += formatCoefficient(B, "y", isFirst);
+                        isFirst = false;
+                    }
+                    
+                    if (C !== 0) {
+                        expr += formatCoefficient(C, "x", isFirst);
+                        isFirst = false;
+                    }
+                    
+                    if (D !== 0) {
+                        expr += formatCoefficient(D, "y", isFirst);
+                    }
+                    
+                    if (expr === "") expr = "0";
 
                     let simplified_str = "";
                     const x_coeff_simp = A + C;
                     const y_coeff_simp = B + D;
-
+                    
+                    isFirst = true;
                     if (x_coeff_simp !== 0) {
-                        simplified_str += formatCoefficient(x_coeff_simp, "x", true);
+                        simplified_str += formatCoefficient(x_coeff_simp, "x", isFirst);
+                        isFirst = false;
                     }
+                    
                     if (y_coeff_simp !== 0) {
-                        simplified_str += formatCoefficient(y_coeff_simp, "y", simplified_str === "");
+                        simplified_str += formatCoefficient(y_coeff_simp, "y", isFirst);
                     }
+                    
                     if (simplified_str === "") simplified_str = "0";
 
                     return { expression: expr, simplified: simplified_str };
