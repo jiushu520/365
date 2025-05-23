@@ -24,6 +24,8 @@ const userPasswordMap =
 "莫珂": { "page": "./chat/1", "password": "jiushu", "avatar": "https://jiu.cpolar.cn/avatars/玖数.jpg", "expirationDate": "2025-07-01" },
 "董德": { "page": "./chat/1", "password": "jiushu", "avatar": "https://jiu.cpolar.cn/avatars/玖数.jpg", "expirationDate": "2025-07-01" },
 "张皓": { "page": "./chat/1", "password": "jiushu", "avatar": "https://jiu.cpolar.cn/avatars/玖数.jpg", "expirationDate": "2025-07-01" },
+"吴梓茏": { "page": "./chat/1", "password": "jiushu", "avatar": "https://jiu.cpolar.cn/avatars/玖数.jpg", "expirationDate": "2025-07-01" },
+
 
 
 "罗安乔": { "page": "./chat/1", "password": "jiushu", "avatar": "https://jiu.cpolar.cn/avatars/玖数.jpg", "expirationDate": "2025-07-01" },
