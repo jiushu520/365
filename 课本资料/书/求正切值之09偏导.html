@@ -4,23 +4,147 @@
     <meta charset="UTF-8">
     <title>求解 tan∠BAC之09偏导</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .problem { margin-bottom: 20px; }
-        .solution { margin-top: 20px; }
-        svg { 
-            border: 1px solid #ddd; 
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* 左右分栏布局 */
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 左栏 - 图形区域 */
+        .content-left {
+            width: 50%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: #f9f9f9;
+            overflow-y: auto;
+        }
+        
+        /* 右栏 - 解题区域 */
+        .content-right {
+            width: 50%;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: white;
+            border-left: 1px solid #ddd;
+        }
+        
+        .problem { 
+            margin-bottom: 20px; 
+        }
+        
+        .problem h2 {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .solution { 
+            margin-top: 20px; 
+        }
+        
+        .solution h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        svg {
+            border: 1px solid #ddd;
             display: block;
             margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .step { margin: 10px 0; }
-        .hint { color: #0066cc; font-style: italic; }
-        .math { font-style: italic; }
+        
+        .step { 
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+        
+        .hint { 
+            color: #0066cc; 
+            font-style: italic;
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-left: 4px solid #0066cc;
+            margin: 20px 0;
+        }
+        
+        .hint ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .hint li {
+            margin: 5px 0;
+        }
+        
         #controls {
-            margin-bottom: 10px;
-            padding: 10px;
-            background-color: #f5f5f5;
-            border-radius: 5px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #ffffff;
+            border-radius: 8px;
             text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        #controls label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        #controls input[type="range"] {
+            width: 200px;
+            margin: 0 10px;
+        }
+        
+        #scaleValue {
+            display: inline-block;
+            width: 30px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+            .content-left, .content-right {
+                width: 100%;
+                height: 50%;
+            }
+            .content-right {
+                border-left: none;
+                border-top: 1px solid #ddd;
+            }
+            .handle {
+                display: none !important;
+            }
+        }
+        /* 拖拽手柄样式 */
+        .handle {
+            width: 8px;
+            background: #ddd;
+            cursor: col-resize;
+            position: relative;
+            z-index: 10;
+            transition: background 0.2s;
+        }
+        .handle:hover {
+            background: #bbb;
         }
     </style>
     <!-- 添加MathJax支持 -->
@@ -36,88 +160,95 @@
     </script>
 </head>
 <body>
-    <div class="problem">
-        <h2>已知：$A(0,0)$，$B(6,1)$，$C(3,6)$，求解 $\tan\angle BAC$</h2>
-        
-        <div id="controls">
-            <label>坐标缩放: <input type="range" id="scale" min="20" max="100" value="25"></label>
-            <span id="scaleValue">25</span>
+    <div class="container">
+        <!-- 左栏：控制区和图形 -->
+        <div class="content-left">
+            <div id="controls">
+                <label>坐标缩放: <input type="range" id="scale" min="20" max="100" value="25"></label>
+                <span id="scaleValue">25</span>
+            </div>
+            <svg id="coordinate-system" width="100%" height="600"></svg>
         </div>
-        
-        <svg id="coordinate-system" width="800" height="600"></svg>
-    </div>
+        <div class="handle"></div>
+        <!-- 右栏：问题和解题步骤 -->
+        <div class="content-right">
+            <div class="problem">
+                <h2>已知：$A(0,0)$，$B(6,1)$，$C(3,6)$，求解 $\tan\angle BAC$</h2>
+            </div>
 
-    <div class="solution">
-        <h3>偏导法解题</h3>
-        
-        <div class="step">
-            <p>已知：$A(0,0)$，$B(6,1)$，$C(3,6)$</p>
-            
-            <p>1. 设圆的方程和直线方程：
-               <br>• 圆的方程：$f(x,y) = (x-3)^2 + (y-6)^2 = r^2$
-               <br>• 直线方程：$g(x,y) = x - 6y = 0$</p>
-            
-            <p>2. 求各自的偏导数：
-               <br>• 对于圆的方程 $f(x,y)$：
-               <br>$\frac{\partial f}{\partial x} = 2(x-3)$
-               <br>$\frac{\partial f}{\partial y} = 2(y-6)$
-               <br>• 对于直线方程 $g(x,y)$：
-               <br>$\frac{\partial g}{\partial x} = 1$
-               <br>$\frac{\partial g}{\partial y} = -6$</p>
-               
-            <p>3. 构建雅可比矩阵并令其行列式为0：
-               <br>$\begin{vmatrix} 
-               2(x-3) & 2(y-6) \\
-               1 & -6
-               \end{vmatrix} = 0$</p>
-               
-            <p>4. 展开行列式：
-               <br>$-12(x-3) - 2(y-6) = 0$</p>
-               
-            <p>5. 将直线方程 $x = 6y$ 代入：
-               <br>$-12(6y-3) - 2(y-6) = 0$
-               <br>$-72y + 36 - 2y + 12 = 0$
-               <br>$-74y + 48 = 0$
-               <br>$y = \frac{48}{74} = \frac{24}{37}$</p>
-               
-            <p>6. 代回直线方程得到 $x$：
-               <br>$x = 6y = 6 \cdot \frac{24}{37} = \frac{144}{37}$</p>
-               
-            <p>7. 切点坐标为 $T(\frac{144}{37}, \frac{24}{37})$</p>
-            
-            <p>8. 将切点坐标代入圆的方程求 $r$：
-               <br>$(\frac{144}{37}-3)^2 + (\frac{24}{37}-6)^2 = r^2$
-               <br>$(\frac{33}{37})^2 + (\frac{-198}{37})^2 = r^2$
-               <br>$\frac{1089}{1369} + \frac{39204}{1369} = r^2$
-               <br>$r^2 = \frac{40293}{1369} = (\frac{33}{\sqrt{37}})^2$
-               <br>因此 $r = \frac{33}{\sqrt{37}}$</p>
-               
-            <p>9. 切点到原点的距离：
-               <br>$\sqrt{(\frac{144}{37})^2 + (\frac{24}{37})^2} = \frac{\sqrt{20736 + 576}}{37} = \frac{\sqrt{21312}}{37} = \frac{6\sqrt{592}}{37}$</p>
+            <div class="solution">
+                <h3>偏导法解题</h3>
+                
+                <div class="step">
+                    <p>已知：$A(0,0)$，$B(6,1)$，$C(3,6)$</p>
+                    
+                    <p>1. 设圆的方程和直线方程：
+                       <br>• 圆的方程：$f(x,y) = (x-3)^2 + (y-6)^2 = r^2$
+                       <br>• 直线方程：$g(x,y) = x - 6y = 0$</p>
+                    
+                    <p>2. 求各自的偏导数：
+                       <br>• 对于圆的方程 $f(x,y)$：
+                       <br>$\frac{\partial f}{\partial x} = 2(x-3)$
+                       <br>$\frac{\partial f}{\partial y} = 2(y-6)$
+                       <br>• 对于直线方程 $g(x,y)$：
+                       <br>$\frac{\partial g}{\partial x} = 1$
+                       <br>$\frac{\partial g}{\partial y} = -6$</p>
+                       
+                    <p>3. 构建雅可比矩阵并令其行列式为0：
+                       <br>$\begin{vmatrix} 
+                       2(x-3) & 2(y-6) \\
+                       1 & -6
+                       \end{vmatrix} = 0$</p>
+                       
+                    <p>4. 展开行列式：
+                       <br>$-12(x-3) - 2(y-6) = 0$</p>
+                       
+                    <p>5. 将直线方程 $x = 6y$ 代入：
+                       <br>$-12(6y-3) - 2(y-6) = 0$
+                       <br>$-72y + 36 - 2y + 12 = 0$
+                       <br>$-74y + 48 = 0$
+                       <br>$y = \frac{48}{74} = \frac{24}{37}$</p>
+                       
+                    <p>6. 代回直线方程得到 $x$：
+                       <br>$x = 6y = 6 \cdot \frac{24}{37} = \frac{144}{37}$</p>
+                       
+                    <p>7. 切点坐标为 $T(\frac{144}{37}, \frac{24}{37})$</p>
+                    
+                    <p>8. 将切点坐标代入圆的方程求 $r$：
+                       <br>$(\frac{144}{37}-3)^2 + (\frac{24}{37}-6)^2 = r^2$
+                       <br>$(\frac{33}{37})^2 + (\frac{-198}{37})^2 = r^2$
+                       <br>$\frac{1089}{1369} + \frac{39204}{1369} = r^2$
+                       <br>$r^2 = \frac{40293}{1369} = (\frac{33}{\sqrt{37}})^2$
+                       <br>因此 $r = \frac{33}{\sqrt{37}}$</p>
+                       
+                    <p>9. 切点到原点的距离：
+                       <br>$\sqrt{(\frac{144}{37})^2 + (\frac{24}{37})^2} = \frac{\sqrt{20736 + 576}}{37} = \frac{\sqrt{21312}}{37} = \frac{6\sqrt{592}}{37}$</p>
 
-            <p>10. 求 $\tan\angle BAC$：
-               <br>根据圆的性质，$\tan\angle BAC = \frac{r}{切点到原点的距离}$
-               <br>$\tan\angle BAC = \frac{\frac{33}{\sqrt{37}}}{\frac{6\sqrt{592}}{37}} = \frac{33}{\sqrt{37}} \cdot \frac{37}{6\sqrt{592}} = \frac{33}{6\sqrt{592}} \cdot \frac{37}{37} = \frac{11}{8}$</p>
-        </div>
-        
-        <div class="hint">
-            <p>要点：</p>
-            <ul>
-                <li>偏导法利用了切点处圆的切线方向与半径垂直的性质</li>
-                <li>通过构建雅可比矩阵并令其行列式为0来找到切点</li>
-                <li>将切点代入圆的方程可以求出圆的半径</li>
-                <li>最后可以计算切点到原点的距离</li>
-                <li>这种方法在处理圆与直线相切问题时特别有效</li>
-            </ul>
+                    <p>10. 求 $\tan\angle BAC$：
+                       <br>根据圆的性质，$\tan\angle BAC = \frac{r}{切点到原点的距离}$
+                       <br>$\tan\angle BAC = \frac{\frac{33}{\sqrt{37}}}{\frac{6\sqrt{592}}{37}} = \frac{33}{\sqrt{37}} \cdot \frac{37}{6\sqrt{592}} = \frac{33}{6\sqrt{592}} \cdot \frac{37}{37} = \frac{11}{8}$</p>
+                </div>
+                
+                <div class="hint">
+                    <p>要点：</p>
+                    <ul>
+                        <li>偏导法利用了切点处圆的切线方向与半径垂直的性质</li>
+                        <li>通过构建雅可比矩阵并令其行列式为0来找到切点</li>
+                        <li>将切点代入圆的方程可以求出圆的半径</li>
+                        <li>最后可以计算切点到原点的距离</li>
+                        <li>这种方法在处理圆与直线相切问题时特别有效</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // 设置中心点和缩放比例
-        const svgWidth = 800;
-        const svgHeight = 600;
-        const centerX = svgWidth / 2;
-        const centerY = svgHeight / 2;
+        // 设置变量
+        let svgWidth = 800;
+        let svgHeight = 600;
+        let centerX = svgWidth / 2;
+        let centerY = svgHeight / 2;
         let scale = 20; // 每个单位对应的像素数
         
         // 坐标点（数学坐标系中）
@@ -165,38 +296,52 @@
             const svg = document.getElementById('coordinate-system');
             svg.innerHTML = ''; // 清空已有内容
             
+            // 更新SVG尺寸
+            const container = document.querySelector('.content-left');
+            svgWidth = container.offsetWidth - 40;
+            svgHeight = Math.max(container.offsetHeight - 80, 400);
+            
+            svg.setAttribute('width', svgWidth);
+            svg.setAttribute('height', svgHeight);
+            
+            centerX = svgWidth / 2;
+            centerY = svgHeight / 2;
+            
             // 计算可见范围（单位）
+            const margin = 2;
             const visibleWidth = svgWidth / scale;
             const visibleHeight = svgHeight / scale;
-            const xMin = -visibleWidth / 2;
-            const xMax = visibleWidth / 2;
-            const yMin = -visibleHeight / 2;
-            const yMax = visibleHeight / 2;
+            const xMin = Math.floor(-visibleWidth / 2) - margin;
+            const xMax = Math.ceil(visibleWidth / 2) + margin;
+            const yMin = Math.floor(-visibleHeight / 2) - margin;
+            const yMax = Math.ceil(visibleHeight / 2) + margin;
             
             // 绘制网格线
             const gridGroup = createSVGElement('g');
             gridGroup.setAttribute('stroke', '#eee');
-            gridGroup.setAttribute('stroke-width', '1');
+            gridGroup.setAttribute('stroke-width', '0.5');
             
             // 横向网格线
-            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+            for (let y = yMin; y <= yMax; y++) {
                 if (y === 0) continue; // 坐标轴单独绘制
                 const line = createSVGElement('line');
                 line.setAttribute('x1', toSvgX(xMin));
                 line.setAttribute('y1', toSvgY(y));
                 line.setAttribute('x2', toSvgX(xMax));
                 line.setAttribute('y2', toSvgY(y));
+                line.setAttribute('vector-effect', 'non-scaling-stroke');
                 gridGroup.appendChild(line);
             }
             
             // 纵向网格线
-            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+            for (let x = xMin; x <= xMax; x++) {
                 if (x === 0) continue; // 坐标轴单独绘制
                 const line = createSVGElement('line');
                 line.setAttribute('x1', toSvgX(x));
                 line.setAttribute('y1', toSvgY(yMin));
                 line.setAttribute('x2', toSvgX(x));
                 line.setAttribute('y2', toSvgY(yMax));
+                line.setAttribute('vector-effect', 'non-scaling-stroke');
                 gridGroup.appendChild(line);
             }
             
@@ -204,8 +349,8 @@
             
             // 绘制坐标轴
             const axisGroup = createSVGElement('g');
-            axisGroup.setAttribute('stroke', '#999');
-            axisGroup.setAttribute('stroke-width', '1');
+            axisGroup.setAttribute('stroke', '#000');
+            axisGroup.setAttribute('stroke-width', '1.5');
             
             // x轴
             const xAxis = createSVGElement('line');
@@ -213,6 +358,7 @@
             xAxis.setAttribute('y1', toSvgY(0));
             xAxis.setAttribute('x2', toSvgX(xMax));
             xAxis.setAttribute('y2', toSvgY(0));
+            xAxis.setAttribute('vector-effect', 'non-scaling-stroke');
             axisGroup.appendChild(xAxis);
             
             // y轴
@@ -221,16 +367,19 @@
             yAxis.setAttribute('y1', toSvgY(yMin));
             yAxis.setAttribute('x2', toSvgX(0));
             yAxis.setAttribute('y2', toSvgY(yMax));
+            yAxis.setAttribute('vector-effect', 'non-scaling-stroke');
             axisGroup.appendChild(yAxis);
             
             svg.appendChild(axisGroup);
             
             // 绘制刻度标签
             const labelsGroup = createSVGElement('g');
-            labelsGroup.setAttribute('font-size', '12');
+            labelsGroup.setAttribute('font-size', '14');
+            labelsGroup.setAttribute('font-family', 'Arial');
+            labelsGroup.setAttribute('fill', '#666');
             
             // x轴刻度标签
-            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+            for (let x = xMin; x <= xMax; x++) {
                 if (x === 0) continue;
                 const text = createSVGElement('text');
                 text.setAttribute('x', toSvgX(x));
@@ -241,7 +390,7 @@
             }
             
             // y轴刻度标签
-            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+            for (let y = yMin; y <= yMax; y++) {
                 if (y === 0) continue;
                 const text = createSVGElement('text');
                 text.setAttribute('x', toSvgX(0) - 10);
@@ -251,12 +400,20 @@
                 labelsGroup.appendChild(text);
             }
             
+            // 原点标签
+            const originText = createSVGElement('text');
+            originText.setAttribute('x', toSvgX(0) - 15);
+            originText.setAttribute('y', toSvgY(0) + 15);
+            originText.textContent = '0';
+            labelsGroup.appendChild(originText);
+            
             svg.appendChild(labelsGroup);
             
             // 绘制三角形
             const triangleGroup = createSVGElement('g');
-            triangleGroup.setAttribute('stroke', '#000');
+            triangleGroup.setAttribute('stroke', '#2196F3');
             triangleGroup.setAttribute('stroke-width', '2');
+            triangleGroup.setAttribute('vector-effect', 'non-scaling-stroke');
             
             // 线段AB
             const lineAB = createSVGElement('line');
@@ -286,9 +443,10 @@
             circleC.setAttribute('cx', toSvgX(pointC.x));
             circleC.setAttribute('cy', toSvgY(pointC.y));
             circleC.setAttribute('r', radius * scale); // 转换半径到SVG比例
-            circleC.setAttribute('stroke', '#cc6600');
-            circleC.setAttribute('stroke-width', '1');
+            circleC.setAttribute('stroke', '#FF5722');
+            circleC.setAttribute('stroke-width', '1.5');
             circleC.setAttribute('fill', 'none');
+            circleC.setAttribute('vector-effect', 'non-scaling-stroke');
             svg.appendChild(circleC);
             
             // 计算切点T
@@ -300,9 +458,10 @@
             lineCT.setAttribute('y1', toSvgY(pointC.y));
             lineCT.setAttribute('x2', toSvgX(pointT.x));
             lineCT.setAttribute('y2', toSvgY(pointT.y));
-            lineCT.setAttribute('stroke', '#cc6600');
-            lineCT.setAttribute('stroke-width', '1');
+            lineCT.setAttribute('stroke', '#FF5722');
+            lineCT.setAttribute('stroke-width', '1.5');
             lineCT.setAttribute('stroke-dasharray', '4');
+            lineCT.setAttribute('vector-effect', 'non-scaling-stroke');
             svg.appendChild(lineCT);
             
             // 绘制单位圆上的点P和Q
@@ -312,24 +471,24 @@
             const circlePointA = createSVGElement('circle');
             circlePointA.setAttribute('cx', toSvgX(pointA.x));
             circlePointA.setAttribute('cy', toSvgY(pointA.y));
-            circlePointA.setAttribute('r', '5');
-            circlePointA.setAttribute('fill', 'blue');
+            circlePointA.setAttribute('r', '6');
+            circlePointA.setAttribute('fill', '#4CAF50');
             pointsGroup.appendChild(circlePointA);
             
             // 点B
             const circlePointB = createSVGElement('circle');
             circlePointB.setAttribute('cx', toSvgX(pointB.x));
             circlePointB.setAttribute('cy', toSvgY(pointB.y));
-            circlePointB.setAttribute('r', '5');
-            circlePointB.setAttribute('fill', 'blue');
+            circlePointB.setAttribute('r', '6');
+            circlePointB.setAttribute('fill', '#4CAF50');
             pointsGroup.appendChild(circlePointB);
             
             // 点C
             const circlePointC = createSVGElement('circle');
             circlePointC.setAttribute('cx', toSvgX(pointC.x));
             circlePointC.setAttribute('cy', toSvgY(pointC.y));
-            circlePointC.setAttribute('r', '5');
-            circlePointC.setAttribute('fill', 'blue');
+            circlePointC.setAttribute('r', '6');
+            circlePointC.setAttribute('fill', '#4CAF50');
             pointsGroup.appendChild(circlePointC);
             
 
@@ -338,14 +497,18 @@
             const circleT = createSVGElement('circle');
             circleT.setAttribute('cx', toSvgX(pointT.x));
             circleT.setAttribute('cy', toSvgY(pointT.y));
-            circleT.setAttribute('r', '3');
-            circleT.setAttribute('fill', 'orange');
+            circleT.setAttribute('r', '4');
+            circleT.setAttribute('fill', '#FF5722');
             pointsGroup.appendChild(circleT);
             
             svg.appendChild(pointsGroup);
             
             // 标记点
             const markersGroup = createSVGElement('g');
+            markersGroup.setAttribute('font-size', '14');
+            markersGroup.setAttribute('font-family', 'Arial');
+            markersGroup.setAttribute('font-weight', 'bold');
+            markersGroup.setAttribute('fill', '#666');
             
             // 标记A
             const textA = createSVGElement('text');
@@ -374,6 +537,7 @@
             textT.setAttribute('x', toSvgX(pointT.x) + 10);
             textT.setAttribute('y', toSvgY(pointT.y) - 5);
             textT.textContent = 'T';
+            textT.setAttribute('fill', '#FF5722');
             markersGroup.appendChild(textT);
             
             svg.appendChild(markersGroup);
@@ -385,6 +549,38 @@
             document.getElementById('scaleValue').textContent = scale;
             drawCoordinateSystem();
         });
+        
+        // 监听窗口大小变化
+        window.addEventListener('resize', function() {
+            drawCoordinateSystem();
+        });
+        
+        // 拖拽手柄JS
+        (function() {
+            const handle = document.querySelector('.handle');
+            const left = document.querySelector('.content-left');
+            const right = document.querySelector('.content-right');
+            let dragging = false;
+            handle.addEventListener('mousedown', function(e) {
+                dragging = true;
+                document.body.style.cursor = 'col-resize';
+            });
+            document.addEventListener('mousemove', function(e) {
+                if (!dragging) return;
+                const container = document.querySelector('.container');
+                const rect = container.getBoundingClientRect();
+                let percent = (e.clientX - rect.left) / rect.width;
+                percent = Math.max(0.15, Math.min(0.85, percent));
+                left.style.width = (percent * 100) + '%';
+                right.style.width = ((1 - percent) * 100) + '%';
+            });
+            document.addEventListener('mouseup', function() {
+                if (dragging) {
+                    dragging = false;
+                    document.body.style.cursor = '';
+                }
+            });
+        })();
         
         // 初始化绘图
         drawCoordinateSystem();

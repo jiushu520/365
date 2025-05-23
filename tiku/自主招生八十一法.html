@@ -6,6 +6,7 @@
     <title>自主招生八十一法</title>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -510,6 +511,387 @@
             70% { box-shadow: 0 0 0 10px rgba(0, 123, 255, 0); }
             100% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0); }
         }
+        
+        /* 预览窗口样式 */
+        .preview-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .preview-content {
+            background-color: white;
+            margin: 2% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 1000px;
+            height: 90%;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .preview-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .preview-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .preview-btn {
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            color: white;
+        }
+        
+        .print-btn {
+            background-color: #007bff;
+        }
+        
+        .print-btn:hover {
+            background-color: #0056b3;
+        }
+        
+        .close-btn {
+            background-color: #6c757d;
+        }
+        
+        .close-btn:hover {
+            background-color: #545b62;
+        }
+        
+        .category-section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+        
+        .category-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+        }
+        
+        .question-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        
+        .question-number {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+        
+        .question-content {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .question-answer {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .question-type {
+            color: #6c757d;
+            font-style: italic;
+            font-size: 12px;
+        }
+        
+        /* 打印样式 */
+        @media print {
+            /* 隐藏所有不需要打印的元素 */
+            body > *:not(#previewModal) {
+                display: none !important;
+            }
+            
+            .preview-modal {
+                display: block !important;
+                position: static !important;
+                background: none !important;
+                width: 100% !important;
+                height: auto !important;
+            }
+            
+            .preview-content {
+                margin: 0 !important;
+                padding: 20px !important;
+                width: 100% !important;
+                height: auto !important;
+                max-width: none !important;
+                max-height: none !important;
+                overflow: visible !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                background: white !important;
+            }
+            
+            .preview-header {
+                display: none !important;
+            }
+            
+            .preview-body {
+                overflow: visible !important;
+                height: auto !important;
+                max-height: none !important;
+            }
+            
+            .category-section {
+                page-break-inside: avoid;
+                margin-bottom: 30px;
+            }
+            
+            .category-title {
+                page-break-after: avoid;
+            }
+            
+            .question-item {
+                page-break-inside: avoid;
+                margin-bottom: 20px;
+            }
+            
+            /* 确保数学公式正确显示 */
+            .MathJax {
+                page-break-inside: avoid;
+            }
+            
+            /* SVG图形打印样式 */
+            .svg-container {
+                page-break-inside: avoid;
+                margin: 10px 0;
+            }
+            
+            .svg-container svg {
+                max-width: 100%;
+                height: auto;
+            }
+        }
+        
+        /* SVG图形样式 */
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #fafafa;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .svg-container svg {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        /* 题目框中的SVG样式 */
+        .question-box .svg-container {
+            background-color: white;
+            border: none;
+            margin: 10px 0;
+            padding: 5px;
+        }
+        
+        /* 响应式SVG */
+        @media (max-width: 768px) {
+            .svg-container {
+                margin: 10px 0;
+                padding: 5px;
+            }
+            
+            .svg-container svg {
+                width: 100%;
+                max-width: 400px;
+            }
+        }
+        
+        /* 题目与SVG的布局样式 */
+        .question-with-svg {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .question-text {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        .question-text .MathJax {
+            font-size: inherit !important;
+        }
+        
+        /* 题目框中的特殊样式 */
+        .question-box .question-with-svg {
+            margin: 0;
+        }
+        
+        .question-box .question-text {
+            background-color: white;
+            border: none;
+            border-left: 3px solid #007bff;
+            margin-bottom: 10px;
+            padding: 8px;
+        }
+        
+        .question-box .svg-container {
+            background-color: white;
+            border: 1px solid #eee;
+            margin: 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        /* 预览模式中的样式 */
+        .preview-body .question-with-svg {
+            margin-bottom: 20px;
+        }
+        
+        .preview-body .question-text {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+        }
+        
+        .preview-body .svg-container {
+            border: 1px solid #ddd;
+            background-color: #fafafa;
+        }
+        
+        /* 外部图片样式 */
+        .image-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #fafafa;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .question-image {
+            max-width: 100%;
+            max-height: 400px;
+            height: auto;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .question-image:hover {
+            transform: scale(1.02);
+            cursor: pointer;
+        }
+        
+        .image-error {
+            color: #dc3545;
+            font-style: italic;
+            padding: 20px;
+            text-align: center;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        /* 题目框中的图片样式 */
+        .question-box .image-container {
+            background-color: white;
+            border: 1px solid #eee;
+            margin: 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .question-box .question-image {
+            max-height: 300px;
+        }
+        
+        /* 预览模式中的图片样式 */
+        .preview-body .image-container {
+            border: 1px solid #ddd;
+            background-color: #fafafa;
+            margin: 15px 0;
+        }
+        
+        /* 响应式图片 */
+        @media (max-width: 768px) {
+            .image-container {
+                margin: 10px 0;
+                padding: 5px;
+            }
+            
+            .question-image {
+                max-height: 250px;
+            }
+        }
+        
+        /* 图片放大功能 */
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            cursor: pointer;
+        }
+        
+        .image-modal img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 5px;
+        }
+        
+        .image-modal .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -581,6 +963,7 @@
     <div class="history-container">
         <div class="history-controls">
             <button class="copy-button" onclick="copyHistory()">复制历史记录</button>
+            <button class="copy-button" onclick="previewQuestions()">预览题目</button>
             
             <!-- 模式切换按钮移到这里 -->
             <div class="mode-switch">
@@ -608,6 +991,28 @@
             </thead>
             <tbody id="history"></tbody>
         </table>
+    </div>
+
+    <!-- 预览模态窗口 -->
+    <div id="previewModal" class="preview-modal">
+        <div class="preview-content">
+            <div class="preview-header">
+                <div class="preview-title">自主招生八十一法 - 题目预览</div>
+                <div class="preview-controls">
+                    <button class="preview-btn print-btn" onclick="printQuestions()">打印PDF</button>
+                    <button class="preview-btn close-btn" onclick="closePreview()">关闭</button>
+                </div>
+            </div>
+            <div id="previewBody" class="preview-body">
+                <!-- 预览内容将在这里动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 图片放大模态窗口 -->
+    <div id="imageModal" class="image-modal" onclick="closeImageModal()">
+        <span class="close-modal" onclick="closeImageModal()">&times;</span>
+        <img id="modalImage" src="" alt="放大图片">
     </div>
 
     <script>
@@ -659,6 +1064,867 @@
             "08立体几何",
             "09概率统计"
         ];
+
+        // 统一的题目数据结构
+        const questionDatabase = {
+            "01代数": [
+                {
+                    question: "3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}",
+                    answers: ["24"],
+                    type: "equation"
+                },
+                {
+                    question: "已知x, y, z是大于1的正整数，且\\left(x+\\frac{1}{y}\\right)\\left(y+\\frac{1}{z}\\right)\\left(z+\\frac{1}{x}\\right)为整数，则x+y+z=\\_\\_\\_\\_。",
+                    answers: ["12"],
+                    type: "algebra"
+                }
+            ],
+            "02方程": [
+                {
+                    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}",
+                    answers: ["9"],
+                    type: "calculation"
+                },
+                {
+                    question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}",
+                    answers: ["2500"],
+                    type: "calculation"
+                },
+                {
+                    question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}",
+                    answers: ["24"],
+                    type: "equation"
+                },
+                {
+                    question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.",
+                    answers: ["1"],
+                    type: "equation"
+                },
+                {
+                    question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.",
+                    answers: ["18,2", "18;2", "x=18,y=2", "x=18;y=2"],
+                    type: "system"
+                }
+            ],
+            "03函数": [
+                {
+                    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}",
+                    answers: ["9"],
+                    type: "calculation"
+                },
+                {
+                    question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}",
+                    answers: ["2500"],
+                    type: "calculation"
+                }
+            ],
+            "04不等式": [
+                {
+                    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}",
+                    answers: ["9"],
+                    type: "calculation"
+                },
+                {
+                    question: "已知x, y, z满足xy+yz+zx=18，则x^2+y^2+z^2的最小值为\\_\\_\\_\\_。",
+                    answers: ["18"],
+                    type: "inequality"
+                },
+                {
+                    question: "已知x, y, z满足x^2+y^2=1，则3x+4y的最大值为\\_\\_\\_\\_。",
+                    answers: ["5"],
+                    type: "inequality"
+                },
+                {
+                    question: "\\begin{array}{l}柯西是法国伟大的数学家，他的一生在数学领域有着很高的建树，\\\\很多数学定理和公式都用他的名字来命名，如著名的柯西不等式：\\\\(ac+bd)^2 \\leq (a^2+b^2)(c^2+d^2)，\\\\在该式中，a,b,c,d可以是任意实数，当且仅当ad=bc时等号成立。\\\\根据该式，对于正实数a,b，如果a+2b=1，则(\\sqrt{a}+\\sqrt{4b})^2的最大值为\\_\\_\\_\\_。 \\end{array}",
+                    answers: ["3"],
+                    type: "inequality"
+                }
+            ],
+            "05导数": [
+                {
+                    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}",
+                    answers: ["9"],
+                    type: "calculation"
+                }
+            ],
+            "06线性代数": [
+                {
+                    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}",
+                    answers: ["9"],
+                    type: "calculation"
+                }
+            ],
+            "07解析几何": [
+                {
+                    question: "如图所示，在坐标系中，已知点A(0,0)、B(6,0)、C(6,6)、D(0,6)、E(6,3)，求点F的坐标。",
+                    answers: ["(2,6)", "2,6"],
+                    type: "coordinate_geometry",
+                    svgGenerator: function() {
+                        let svgWidth = 500;
+                        let svgHeight = 400;
+                        let scale = 40; // 每个单位的像素数
+                        
+                        // 创建SVG元素
+                        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                        svg.setAttribute('width', svgWidth);
+                        svg.setAttribute('height', svgHeight);
+                        svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
+                        svg.style.border = '1px solid #ddd';
+                        svg.style.backgroundColor = '#fafafa';
+                        
+                        // 创建分组
+                        const gridGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                        const axisGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                        const labelsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                        const shapeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                        const pointsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                        const markersGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                        
+                        // 绘制网格线
+                        for (let i = 0; i <= 8; i++) {
+                            // 垂直网格线
+                            const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                            vLine.setAttribute('x1', 50 + i * scale);
+                            vLine.setAttribute('y1', 50);
+                            vLine.setAttribute('x2', 50 + i * scale);
+                            vLine.setAttribute('y2', 350);
+                            vLine.setAttribute('stroke', '#eee');
+                            vLine.setAttribute('stroke-width', '0.5');
+                            vLine.setAttribute('vector-effect', 'non-scaling-stroke');
+                            gridGroup.appendChild(vLine);
+                            
+                            // 水平网格线
+                            const hLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                            hLine.setAttribute('x1', 50);
+                            hLine.setAttribute('y1', 50 + i * scale);
+                            hLine.setAttribute('x2', 370);
+                            hLine.setAttribute('y2', 50 + i * scale);
+                            hLine.setAttribute('stroke', '#eee');
+                            hLine.setAttribute('stroke-width', '0.5');
+                            hLine.setAttribute('vector-effect', 'non-scaling-stroke');
+                            gridGroup.appendChild(hLine);
+                        }
+                        
+                        // 绘制坐标轴
+                        const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        xAxis.setAttribute('x1', 50);
+                        xAxis.setAttribute('y1', 350);
+                        xAxis.setAttribute('x2', 370);
+                        xAxis.setAttribute('y2', 350);
+                        xAxis.setAttribute('stroke', '#000');
+                        xAxis.setAttribute('stroke-width', '1.5');
+                        xAxis.setAttribute('vector-effect', 'non-scaling-stroke');
+                        axisGroup.appendChild(xAxis);
+                        
+                        const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        yAxis.setAttribute('x1', 50);
+                        yAxis.setAttribute('y1', 50);
+                        yAxis.setAttribute('x2', 50);
+                        yAxis.setAttribute('y2', 350);
+                        yAxis.setAttribute('stroke', '#000');
+                        yAxis.setAttribute('stroke-width', '1.5');
+                        yAxis.setAttribute('vector-effect', 'non-scaling-stroke');
+                        axisGroup.appendChild(yAxis);
+                        
+                        // 添加坐标轴标签
+                        for (let i = 0; i <= 8; i++) {
+                            if (i > 0) {
+                                // X轴标签
+                                const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                                xLabel.setAttribute('x', 50 + i * scale);
+                                xLabel.setAttribute('y', 365);
+                                xLabel.setAttribute('text-anchor', 'middle');
+                                xLabel.setAttribute('font-size', '12');
+                                xLabel.setAttribute('font-family', 'Arial');
+                                xLabel.setAttribute('fill', '#666');
+                                xLabel.textContent = i;
+                                labelsGroup.appendChild(xLabel);
+                                
+                                // Y轴标签
+                                const yLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                                yLabel.setAttribute('x', 35);
+                                yLabel.setAttribute('y', 350 - i * scale + 5);
+                                yLabel.setAttribute('text-anchor', 'middle');
+                                yLabel.setAttribute('font-size', '12');
+                                yLabel.setAttribute('font-family', 'Arial');
+                                yLabel.setAttribute('fill', '#666');
+                                yLabel.textContent = i;
+                                labelsGroup.appendChild(yLabel);
+                            }
+                        }
+                        
+                        // 定义点的坐标
+                        const points = {
+                            A: {x: 0, y: 0, label: 'A = (0, 0)'},
+                            B: {x: 6, y: 0, label: 'B = (6, 0)'},
+                            C: {x: 6, y: 6, label: 'C = (6, 6)'},
+                            D: {x: 0, y: 6, label: 'D = (0, 6)'},
+                            E: {x: 6, y: 3, label: 'E = (6, 3)'},
+                            F: {x: 2, y: 6, label: 'F(?,6)', color: '#ff4444'}
+                        };
+                        
+                        // 绘制矩形ABCD
+                        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                        rect.setAttribute('x', 50);
+                        rect.setAttribute('y', 350 - 6 * scale);
+                        rect.setAttribute('width', 6 * scale);
+                        rect.setAttribute('height', 6 * scale);
+                        rect.setAttribute('fill', 'rgba(255, 182, 193, 0.3)');
+                        rect.setAttribute('stroke', '#CD853F');
+                        rect.setAttribute('stroke-width', '2');
+                        rect.setAttribute('vector-effect', 'non-scaling-stroke');
+                        shapeGroup.appendChild(rect);
+                        
+                        // 绘制对角线AF
+                        const diagonalAF = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        diagonalAF.setAttribute('x1', 50);
+                        diagonalAF.setAttribute('y1', 350);
+                        diagonalAF.setAttribute('x2', 50 + 2 * scale);
+                        diagonalAF.setAttribute('y2', 350 - 6 * scale);
+                        diagonalAF.setAttribute('stroke', '#333');
+                        diagonalAF.setAttribute('stroke-width', '2');
+                        diagonalAF.setAttribute('vector-effect', 'non-scaling-stroke');
+                        shapeGroup.appendChild(diagonalAF);
+                        
+                        // 绘制线段AE
+                        const lineAE = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        lineAE.setAttribute('x1', 50);
+                        lineAE.setAttribute('y1', 350);
+                        lineAE.setAttribute('x2', 50 + 6 * scale);
+                        lineAE.setAttribute('y2', 350 - 3 * scale);
+                        lineAE.setAttribute('stroke', '#333');
+                        lineAE.setAttribute('stroke-width', '2');
+                        lineAE.setAttribute('vector-effect', 'non-scaling-stroke');
+                        shapeGroup.appendChild(lineAE);
+                        
+                        // 绘制点和标签
+                        Object.keys(points).forEach(pointName => {
+                            const point = points[pointName];
+                            const pixelX = 50 + point.x * scale;
+                            const pixelY = 350 - point.y * scale;
+                            
+                            // 绘制点
+                            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                            circle.setAttribute('cx', pixelX);
+                            circle.setAttribute('cy', pixelY);
+                            circle.setAttribute('r', '6');
+                            circle.setAttribute('fill', point.color || '#4CAF50');
+                            circle.setAttribute('stroke', '#fff');
+                            circle.setAttribute('stroke-width', '2');
+                            pointsGroup.appendChild(circle);
+                            
+                            // 添加点标签
+                            const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                            let labelX = pixelX;
+                            let labelY = pixelY;
+                            
+                            // 根据点的位置调整标签位置
+                            if (pointName === 'A') {
+                                labelX -= 25;
+                                labelY += 20;
+                            } else if (pointName === 'B') {
+                                labelX += 15;
+                                labelY += 20;
+                                label.setAttribute('fill', '#2196F3');
+                            } else if (pointName === 'C') {
+                                labelX += 15;
+                                labelY -= 10;
+                            } else if (pointName === 'D') {
+                                labelX -= 25;
+                                labelY -= 10;
+                            } else if (pointName === 'E') {
+                                labelX += 15;
+                                labelY += 5;
+                                label.setAttribute('fill', '#2196F3');
+                            } else if (pointName === 'F') {
+                                labelX -= 10;
+                                labelY -= 15;
+                                label.setAttribute('fill', '#ff4444');
+                                label.setAttribute('font-weight', 'bold');
+                            }
+                            
+                            label.setAttribute('x', labelX);
+                            label.setAttribute('y', labelY);
+                            label.setAttribute('font-size', '14');
+                            label.setAttribute('font-family', 'Arial');
+                            label.setAttribute('fill', label.getAttribute('fill') || '#666');
+                            label.textContent = point.label;
+                            markersGroup.appendChild(label);
+                        });
+                        
+                        // 按顺序添加所有分组
+                        svg.appendChild(gridGroup);
+                        svg.appendChild(axisGroup);
+                        svg.appendChild(labelsGroup);
+                        svg.appendChild(shapeGroup);
+                        svg.appendChild(pointsGroup);
+                        svg.appendChild(markersGroup);
+                        
+                        return svg;
+                    }
+                },
+                {
+                    question: "如图所示，在坐标系中有一个三角形ABC，其中A(1,1)、B(5,1)、C(3,4)，求三角形的重心坐标。",
+                    answers: ["(3,2)", "3,2"],
+                    type: "coordinate_geometry",
+                    svgGenerator: function() {
+                        return svgGenerators.createCoordinateSystem({
+                            width: 400,
+                            height: 350,
+                            scale: 50,
+                            maxX: 6,
+                            maxY: 5,
+                            points: {
+                                A: {x: 1, y: 1, label: 'A(1,1)', color: '#4CAF50', labelOffset: {x: -30, y: 20}},
+                                B: {x: 5, y: 1, label: 'B(5,1)', color: '#4CAF50', labelOffset: {x: 10, y: 20}},
+                                C: {x: 3, y: 4, label: 'C(3,4)', color: '#4CAF50', labelOffset: {x: 10, y: -10}},
+                                G: {x: 3, y: 2, label: 'G(?,?)', color: '#ff4444', labelColor: '#ff4444', labelBold: true, labelOffset: {x: 10, y: -10}}
+                            },
+                            lines: [
+                                {x1: 1, y1: 1, x2: 5, y2: 1, color: '#2196F3'},
+                                {x1: 5, y1: 1, x2: 3, y2: 4, color: '#2196F3'},
+                                {x1: 3, y1: 4, x2: 1, y2: 1, color: '#2196F3'},
+                                {x1: 1, y1: 1, x2: 4, y2: 2.5, color: '#999', strokeDasharray: '5,5'},
+                                {x1: 5, y1: 1, x2: 2, y2: 2.5, color: '#999', strokeDasharray: '5,5'},
+                                {x1: 3, y1: 4, x2: 3, y2: 1, color: '#999', strokeDasharray: '5,5'}
+                            ]
+                        });
+                    }
+                },
+                {
+                    question: "如图所示的几何图形中，求阴影部分的面积。",
+                    answers: ["12", "12平方单位"],
+                    type: "geometry",
+                    imageUrl: "./images/zz06.png"
+                },
+                {
+                    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}",
+                    answers: ["9"],
+                    type: "calculation"
+                }
+            ],
+            "08立体几何": [
+                {
+                    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}",
+                    answers: ["9"],
+                    type: "calculation"
+                }
+            ],
+            "09概率统计": [
+                {
+                    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}",
+                    answers: ["9"],
+                    type: "calculation"
+                }
+            ]
+        };
+
+        // SVG图形生成器
+        const svgGenerators = {
+            coordinateGeometry1: function() {
+                let svgWidth = 500;
+                let svgHeight = 400;
+                let centerX = svgWidth / 2;
+                let centerY = svgHeight / 2;
+                let scale = 40; // 每个单位的像素数
+                
+                // 创建SVG元素
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('width', svgWidth);
+                svg.setAttribute('height', svgHeight);
+                svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
+                svg.style.border = '1px solid #ddd';
+                svg.style.backgroundColor = '#fafafa';
+                
+                // 创建分组
+                const gridGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                const axisGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                const labelsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                const shapeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                const pointsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                const markersGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                
+                // 绘制网格线
+                for (let i = 0; i <= 8; i++) {
+                    // 垂直网格线
+                    const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    vLine.setAttribute('x1', 50 + i * scale);
+                    vLine.setAttribute('y1', 50);
+                    vLine.setAttribute('x2', 50 + i * scale);
+                    vLine.setAttribute('y2', 350);
+                    vLine.setAttribute('stroke', '#eee');
+                    vLine.setAttribute('stroke-width', '0.5');
+                    vLine.setAttribute('vector-effect', 'non-scaling-stroke');
+                    gridGroup.appendChild(vLine);
+                    
+                    // 水平网格线
+                    const hLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    hLine.setAttribute('x1', 50);
+                    hLine.setAttribute('y1', 50 + i * scale);
+                    hLine.setAttribute('x2', 370);
+                    hLine.setAttribute('y2', 50 + i * scale);
+                    hLine.setAttribute('stroke', '#eee');
+                    hLine.setAttribute('stroke-width', '0.5');
+                    hLine.setAttribute('vector-effect', 'non-scaling-stroke');
+                    gridGroup.appendChild(hLine);
+                }
+                
+                // 绘制坐标轴
+                // X轴
+                const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                xAxis.setAttribute('x1', 50);
+                xAxis.setAttribute('y1', 350);
+                xAxis.setAttribute('x2', 370);
+                xAxis.setAttribute('y2', 350);
+                xAxis.setAttribute('stroke', '#000');
+                xAxis.setAttribute('stroke-width', '1.5');
+                xAxis.setAttribute('vector-effect', 'non-scaling-stroke');
+                axisGroup.appendChild(xAxis);
+                
+                // Y轴
+                const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                yAxis.setAttribute('x1', 50);
+                yAxis.setAttribute('y1', 50);
+                yAxis.setAttribute('x2', 50);
+                yAxis.setAttribute('y2', 350);
+                yAxis.setAttribute('stroke', '#000');
+                yAxis.setAttribute('stroke-width', '1.5');
+                yAxis.setAttribute('vector-effect', 'non-scaling-stroke');
+                axisGroup.appendChild(yAxis);
+                
+                // 添加坐标轴标签
+                for (let i = 0; i <= 8; i++) {
+                    if (i > 0) {
+                        // X轴标签
+                        const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        xLabel.setAttribute('x', 50 + i * scale);
+                        xLabel.setAttribute('y', 365);
+                        xLabel.setAttribute('text-anchor', 'middle');
+                        xLabel.setAttribute('font-size', '12');
+                        xLabel.setAttribute('font-family', 'Arial');
+                        xLabel.setAttribute('fill', '#666');
+                        xLabel.textContent = i;
+                        labelsGroup.appendChild(xLabel);
+                        
+                        // Y轴标签
+                        const yLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        yLabel.setAttribute('x', 35);
+                        yLabel.setAttribute('y', 350 - i * scale + 5);
+                        yLabel.setAttribute('text-anchor', 'middle');
+                        yLabel.setAttribute('font-size', '12');
+                        yLabel.setAttribute('font-family', 'Arial');
+                        yLabel.setAttribute('fill', '#666');
+                        yLabel.textContent = i;
+                        labelsGroup.appendChild(yLabel);
+                    }
+                }
+                
+                // 定义点的坐标
+                const points = {
+                    A: {x: 0, y: 0, label: 'A = (0, 0)'},
+                    B: {x: 6, y: 0, label: 'B = (6, 0)'},
+                    C: {x: 6, y: 6, label: 'C = (6, 6)'},
+                    D: {x: 0, y: 6, label: 'D = (0, 6)'},
+                    E: {x: 6, y: 3, label: 'E = (6, 3)'},
+                    F: {x: 2, y: 6, label: 'F(?,6)', color: '#ff4444'}
+                };
+                
+                // 绘制矩形ABCD
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('x', 50);
+                rect.setAttribute('y', 350 - 6 * scale);
+                rect.setAttribute('width', 6 * scale);
+                rect.setAttribute('height', 6 * scale);
+                rect.setAttribute('fill', 'rgba(255, 182, 193, 0.3)');
+                rect.setAttribute('stroke', '#CD853F');
+                rect.setAttribute('stroke-width', '2');
+                rect.setAttribute('vector-effect', 'non-scaling-stroke');
+                shapeGroup.appendChild(rect);
+                
+                // 绘制对角线AF
+                const diagonalAF = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                diagonalAF.setAttribute('x1', 50);
+                diagonalAF.setAttribute('y1', 350);
+                diagonalAF.setAttribute('x2', 50 + 2 * scale);
+                diagonalAF.setAttribute('y2', 350 - 6 * scale);
+                diagonalAF.setAttribute('stroke', '#333');
+                diagonalAF.setAttribute('stroke-width', '2');
+                diagonalAF.setAttribute('vector-effect', 'non-scaling-stroke');
+                shapeGroup.appendChild(diagonalAF);
+                
+                // 绘制线段AE
+                const lineAE = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                lineAE.setAttribute('x1', 50);
+                lineAE.setAttribute('y1', 350);
+                lineAE.setAttribute('x2', 50 + 6 * scale);
+                lineAE.setAttribute('y2', 350 - 3 * scale);
+                lineAE.setAttribute('stroke', '#333');
+                lineAE.setAttribute('stroke-width', '2');
+                lineAE.setAttribute('vector-effect', 'non-scaling-stroke');
+                shapeGroup.appendChild(lineAE);
+                
+                // 绘制点和标签
+                Object.keys(points).forEach(pointName => {
+                    const point = points[pointName];
+                    const pixelX = 50 + point.x * scale;
+                    const pixelY = 350 - point.y * scale;
+                    
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', pixelX);
+                    circle.setAttribute('cy', pixelY);
+                    circle.setAttribute('r', '6');
+                    circle.setAttribute('fill', point.color || '#4CAF50');
+                    circle.setAttribute('stroke', '#fff');
+                    circle.setAttribute('stroke-width', '2');
+                    pointsGroup.appendChild(circle);
+                    
+                    if (point.label) {
+                        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        label.setAttribute('x', pixelX + (point.labelOffset?.x || 15));
+                        label.setAttribute('y', pixelY + (point.labelOffset?.y || -10));
+                        label.setAttribute('font-size', '14');
+                        label.setAttribute('font-family', 'Arial');
+                        label.setAttribute('fill', point.labelColor || '#666');
+                        if (point.labelBold) label.setAttribute('font-weight', 'bold');
+                        label.textContent = point.label;
+                        markersGroup.appendChild(label);
+                    }
+                });
+                
+                // 按顺序添加所有分组
+                svg.appendChild(gridGroup);
+                svg.appendChild(axisGroup);
+                svg.appendChild(labelsGroup);
+                svg.appendChild(shapeGroup);
+                svg.appendChild(pointsGroup);
+                svg.appendChild(markersGroup);
+                
+                return svg;
+            },
+            
+            // 使用通用坐标系生成器的三角形示例
+            triangleExample: function() {
+                return svgGenerators.createCoordinateSystem({
+                    width: 400,
+                    height: 350,
+                    scale: 50,
+                    maxX: 6,
+                    maxY: 5,
+                    points: {
+                        A: {
+                            x: 1, y: 1, 
+                            label: 'A(1,1)', 
+                            color: '#4CAF50',
+                            labelOffset: {x: -30, y: 20}
+                        },
+                        B: {
+                            x: 5, y: 1, 
+                            label: 'B(5,1)', 
+                            color: '#4CAF50',
+                            labelOffset: {x: 10, y: 20}
+                        },
+                        C: {
+                            x: 3, y: 4, 
+                            label: 'C(3,4)', 
+                            color: '#4CAF50',
+                            labelOffset: {x: 10, y: -10}
+                        },
+                        G: {
+                            x: 3, y: 2, 
+                            label: 'G(?,?)', 
+                            color: '#ff4444',
+                            labelColor: '#ff4444',
+                            labelBold: true,
+                            labelOffset: {x: 10, y: -10}
+                        }
+                    },
+                    lines: [
+                        {x1: 1, y1: 1, x2: 5, y2: 1, color: '#2196F3'}, // AB
+                        {x1: 5, y1: 1, x2: 3, y2: 4, color: '#2196F3'}, // BC
+                        {x1: 3, y1: 4, x2: 1, y2: 1, color: '#2196F3'}, // CA
+                        {x1: 1, y1: 1, x2: 3, y2: 2.5, color: '#999', strokeDasharray: '5,5'}, // 中线1
+                        {x1: 5, y1: 1, x2: 2, y2: 2.5, color: '#999', strokeDasharray: '5,5'}, // 中线2
+                        {x1: 3, y1: 4, x2: 3, y2: 1, color: '#999', strokeDasharray: '5,5'}  // 中线3
+                    ]
+                });
+            },
+            // 通用坐标系生成器
+            createCoordinateSystem: function(config) {
+                const {
+                    width = 500,
+                    height = 400,
+                    scale = 40,
+                    maxX = 8,
+                    maxY = 8,
+                    points = {},
+                    lines = [],
+                    shapes = []
+                } = config;
+                
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('width', width);
+                svg.setAttribute('height', height);
+                svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+                svg.style.border = '1px solid #ddd';
+                svg.style.backgroundColor = '#fafafa';
+                
+                const margin = 50;
+                
+                // 创建分组
+                const gridGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                const axisGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                const labelsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                const shapeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                const pointsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                const markersGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                
+                // 绘制网格线
+                for (let i = 0; i <= maxX; i++) {
+                    const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    vLine.setAttribute('x1', margin + i * scale);
+                    vLine.setAttribute('y1', margin);
+                    vLine.setAttribute('x2', margin + i * scale);
+                    vLine.setAttribute('y2', height - margin);
+                    vLine.setAttribute('stroke', '#eee');
+                    vLine.setAttribute('stroke-width', '0.5');
+                    vLine.setAttribute('vector-effect', 'non-scaling-stroke');
+                    gridGroup.appendChild(vLine);
+                }
+                
+                for (let i = 0; i <= maxY; i++) {
+                    const hLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    hLine.setAttribute('x1', margin);
+                    hLine.setAttribute('y1', margin + i * scale);
+                    hLine.setAttribute('x2', width - margin);
+                    hLine.setAttribute('y2', margin + i * scale);
+                    hLine.setAttribute('stroke', '#eee');
+                    hLine.setAttribute('stroke-width', '0.5');
+                    hLine.setAttribute('vector-effect', 'non-scaling-stroke');
+                    gridGroup.appendChild(hLine);
+                }
+                
+                // 绘制坐标轴
+                const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                xAxis.setAttribute('x1', margin);
+                xAxis.setAttribute('y1', height - margin);
+                xAxis.setAttribute('x2', width - margin);
+                xAxis.setAttribute('y2', height - margin);
+                xAxis.setAttribute('stroke', '#000');
+                xAxis.setAttribute('stroke-width', '1.5');
+                xAxis.setAttribute('vector-effect', 'non-scaling-stroke');
+                axisGroup.appendChild(xAxis);
+                
+                const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                yAxis.setAttribute('x1', margin);
+                yAxis.setAttribute('y1', margin);
+                yAxis.setAttribute('x2', margin);
+                yAxis.setAttribute('y2', height - margin);
+                yAxis.setAttribute('stroke', '#000');
+                yAxis.setAttribute('stroke-width', '1.5');
+                yAxis.setAttribute('vector-effect', 'non-scaling-stroke');
+                axisGroup.appendChild(yAxis);
+                
+                // 添加坐标轴标签
+                for (let i = 1; i <= maxX; i++) {
+                    const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    xLabel.setAttribute('x', margin + i * scale);
+                    xLabel.setAttribute('y', height - margin + 15);
+                    xLabel.setAttribute('text-anchor', 'middle');
+                    xLabel.setAttribute('font-size', '12');
+                    xLabel.setAttribute('font-family', 'Arial');
+                    xLabel.setAttribute('fill', '#666');
+                    xLabel.textContent = i;
+                    labelsGroup.appendChild(xLabel);
+                }
+                
+                for (let i = 1; i <= maxY; i++) {
+                    const yLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    yLabel.setAttribute('x', margin - 15);
+                    yLabel.setAttribute('y', height - margin - i * scale + 5);
+                    yLabel.setAttribute('text-anchor', 'middle');
+                    yLabel.setAttribute('font-size', '12');
+                    yLabel.setAttribute('font-family', 'Arial');
+                    yLabel.setAttribute('fill', '#666');
+                    yLabel.textContent = i;
+                    labelsGroup.appendChild(yLabel);
+                }
+                
+                // 绘制形状
+                shapes.forEach(shape => {
+                    if (shape.type === 'rectangle') {
+                        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                        rect.setAttribute('x', margin + shape.x * scale);
+                        rect.setAttribute('y', height - margin - (shape.y + shape.height) * scale);
+                        rect.setAttribute('width', shape.width * scale);
+                        rect.setAttribute('height', shape.height * scale);
+                        rect.setAttribute('fill', shape.fill || 'rgba(255, 182, 193, 0.3)');
+                        rect.setAttribute('stroke', shape.stroke || '#CD853F');
+                        rect.setAttribute('stroke-width', '2');
+                        rect.setAttribute('vector-effect', 'non-scaling-stroke');
+                        shapeGroup.appendChild(rect);
+                    }
+                });
+                
+                // 绘制线段
+                lines.forEach(line => {
+                    const lineElement = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    lineElement.setAttribute('x1', margin + line.x1 * scale);
+                    lineElement.setAttribute('y1', height - margin - line.y1 * scale);
+                    lineElement.setAttribute('x2', margin + line.x2 * scale);
+                    lineElement.setAttribute('y2', height - margin - line.y2 * scale);
+                    lineElement.setAttribute('stroke', line.color || '#333');
+                    lineElement.setAttribute('stroke-width', '2');
+                    lineElement.setAttribute('vector-effect', 'non-scaling-stroke');
+                    if (line.strokeDasharray) {
+                        lineElement.setAttribute('stroke-dasharray', line.strokeDasharray);
+                    }
+                    shapeGroup.appendChild(lineElement);
+                });
+                
+                // 绘制点和标签
+                Object.keys(points).forEach(pointName => {
+                    const point = points[pointName];
+                    const pixelX = margin + point.x * scale;
+                    const pixelY = height - margin - point.y * scale;
+                    
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', pixelX);
+                    circle.setAttribute('cy', pixelY);
+                    circle.setAttribute('r', '6');
+                    circle.setAttribute('fill', point.color || '#4CAF50');
+                    circle.setAttribute('stroke', '#fff');
+                    circle.setAttribute('stroke-width', '2');
+                    pointsGroup.appendChild(circle);
+                    
+                    if (point.label) {
+                        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        label.setAttribute('x', pixelX + (point.labelOffset?.x || 15));
+                        label.setAttribute('y', pixelY + (point.labelOffset?.y || -10));
+                        label.setAttribute('font-size', '14');
+                        label.setAttribute('font-family', 'Arial');
+                        label.setAttribute('fill', point.labelColor || '#666');
+                        if (point.labelBold) label.setAttribute('font-weight', 'bold');
+                        label.textContent = point.label;
+                        markersGroup.appendChild(label);
+                    }
+                });
+                
+                // 按顺序添加所有分组
+                svg.appendChild(gridGroup);
+                svg.appendChild(axisGroup);
+                svg.appendChild(labelsGroup);
+                svg.appendChild(shapeGroup);
+                svg.appendChild(pointsGroup);
+                svg.appendChild(markersGroup);
+                
+                return svg;
+            }
+        };
+
+        // PDF导出功能
+        function exportQuestionsPDF() {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // 设置中文字体支持
+                doc.setFont("helvetica");
+                
+                let yPosition = 20;
+                const pageHeight = doc.internal.pageSize.height;
+                const margin = 20;
+                const lineHeight = 10;
+                
+                // 添加标题
+                doc.setFontSize(16);
+                doc.text("自主招生八十一法 - 题目集", margin, yPosition);
+                yPosition += 20;
+                
+                // 遍历每个类别
+                Object.keys(questionDatabase).forEach((category, categoryIndex) => {
+                    // 检查是否需要新页面
+                    if (yPosition > pageHeight - 60) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                    
+                    // 添加类别标题
+                    doc.setFontSize(14);
+                    doc.text(`${category}`, margin, yPosition);
+                    yPosition += 15;
+                    
+                    // 添加该类别的题目
+                    questionDatabase[category].forEach((questionObj, questionIndex) => {
+                        // 检查是否需要新页面
+                        if (yPosition > pageHeight - 40) {
+                            doc.addPage();
+                            yPosition = 20;
+                        }
+                        
+                        doc.setFontSize(12);
+                        
+                        // 题目编号
+                        const questionNumber = `${categoryIndex + 1}.${questionIndex + 1}`;
+                        doc.text(`题目 ${questionNumber}:`, margin, yPosition);
+                        yPosition += lineHeight;
+                        
+                        // 题目内容（去除LaTeX标记，简化显示）
+                        const questionText = questionObj.question
+                            .replace(/\\begin\{array\}\{l\}/g, '')
+                            .replace(/\\end\{array\}/g, '')
+                            .replace(/\\\\/g, ' ')
+                            .replace(/\\sqrt\{([^}]+)\}/g, 'sqrt($1)')
+                            .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1)/($2)')
+                            .replace(/\\left\\?\{/g, '{')
+                            .replace(/\\right\\?\}/g, '}')
+                            .replace(/\\_\\_\\_\\_/g, '____')
+                            .replace(/\\quad/g, ' ')
+                            .replace(/\\\(/g, '')
+                            .replace(/\\\)/g, '');
+                        
+                        // 分行显示长题目
+                        const lines = doc.splitTextToSize(questionText, 170);
+                        lines.forEach(line => {
+                            if (yPosition > pageHeight - 20) {
+                                doc.addPage();
+                                yPosition = 20;
+                            }
+                            doc.text(line, margin + 10, yPosition);
+                            yPosition += lineHeight;
+                        });
+                        
+                        // 答案
+                        doc.text(`答案: ${questionObj.answers.join(' 或 ')}`, margin + 10, yPosition);
+                        yPosition += lineHeight;
+                        
+                        // 题目类型
+                        doc.text(`类型: ${questionObj.type}`, margin + 10, yPosition);
+                        yPosition += 15;
+                    });
+                    
+                    yPosition += 10; // 类别间距
+                });
+                
+                // 添加页脚
+                const totalPages = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= totalPages; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(10);
+                    doc.text(`第 ${i} 页，共 ${totalPages} 页`, margin, pageHeight - 10);
+                    doc.text(`生成时间: ${new Date().toLocaleString()}`, pageHeight - 80, pageHeight - 10);
+                }
+                
+                // 保存PDF
+                doc.save('自主招生八十一法题目集.pdf');
+                
+                // 显示成功提示
+                alert('PDF导出成功！');
+                
+            } catch (error) {
+                console.error('PDF导出失败:', error);
+                alert('PDF导出失败，请检查浏览器是否支持PDF生成功能。');
+            }
+        }
 
         // 初始化
         document.addEventListener("DOMContentLoaded", () => {
@@ -1018,6 +2284,10 @@
             
             // 重新渲染数学公式
             MathJax.typesetPromise([document.getElementById('playerQuestion')])
+                .then(() => {
+                    // MathJax渲染完成后，绑定图片点击事件
+                    attachImageEvents();
+                })
                 .catch((err) => console.log(err));
         }
         
@@ -1567,19 +2837,9 @@
         }
 
         function generateLevel1Question() {
-            const factorizationQuestions = [
-    {
-    question: "3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
-    answers: ["24"] 
-    },
-   
-
-
-                // 可以添加更多题目
-            ];
-
-            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
-            const selectedQuestion = factorizationQuestions[randomIndex];
+            const questions = questionDatabase["01代数"];
+            const randomIndex = Math.floor(Math.random() * questions.length);
+            const selectedQuestion = questions[randomIndex];
 
             correctAnswer = selectedQuestion.answers;
 
@@ -1591,37 +2851,10 @@
             return questionHtml;
         }
 
-
-
-         function generateLevel2Question() {//解方程
-           const factorizationQuestions = [
-    { 
-    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["9"] 
-    },
-    { 
-    question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["2500"] 
-    },
-    {
-    question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
-    answers: ["24"] 
-    },
-    {
-    question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
-    answers: ["1"] 
-    },
-    {
-    question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
-    answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
-    },
-
-
-     // 可以添加更多题目
-            ];
-
-            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
-            const selectedQuestion = factorizationQuestions[randomIndex];
+        function generateLevel2Question() {
+            const questions = questionDatabase["02方程"];
+            const randomIndex = Math.floor(Math.random() * questions.length);
+            const selectedQuestion = questions[randomIndex];
 
             correctAnswer = selectedQuestion.answers;
 
@@ -1631,96 +2864,24 @@
             }
 
             return questionHtml;
-
         }
-
-
-
 
         function generateLevel3Question() {
-           const factorizationQuestions = [
-
-
-           { 
-    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["9"] 
-    },
-    { 
-    question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["2500"] 
-    },
-    {
-    question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
-    answers: ["24"] 
-    },
-    {
-    question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
-    answers: ["1"] 
-    },
-    {
-    question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
-    answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
-    },
-
-
-
-
-     // 可以添加更多题目
-            ];
-
-            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
-            const selectedQuestion = factorizationQuestions[randomIndex];
+            const questions = questionDatabase["03函数"];
+            const randomIndex = Math.floor(Math.random() * questions.length);
+            const selectedQuestion = questions[randomIndex];
 
             correctAnswer = selectedQuestion.answers;
 
             let questionHtml = `\\(${selectedQuestion.question} \\)`;
   
             return questionHtml;
-
         }
-
-
-
-
-
-
-
-
-        
-
 
         function generateLevel4Question() {
-           const factorizationQuestions = [
-
-           { 
-    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["9"] 
-    },
-    { 
-    question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["2500"] 
-    },
-    {
-    question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
-    answers: ["24"] 
-    },
-    {
-    question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
-    answers: ["1"] 
-    },
-    {
-    question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
-    answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
-    },
-
-
-
-
-     // 可以添加更多题目
-            ];
-
-            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
-            const selectedQuestion = factorizationQuestions[randomIndex];
+            const questions = questionDatabase["04不等式"];
+            const randomIndex = Math.floor(Math.random() * questions.length);
+            const selectedQuestion = questions[randomIndex];
 
             correctAnswer = selectedQuestion.answers;
 
@@ -1728,184 +2889,86 @@
   
             return questionHtml;
         }
-
-
-
-
-
-
-   
-
-
-
-
-
-
-
 
         function generateLevel5Question() {
-const factorizationQuestions = [
-{ 
-    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["9"] 
-    },
-    { 
-    question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["2500"] 
-    },
-    {
-    question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
-    answers: ["24"] 
-    },
-    {
-    question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
-    answers: ["1"] 
-    },
-    {
-    question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
-    answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
-    },
-
-     // 可以添加更多题目
-            ];
-
-            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
-            const selectedQuestion = factorizationQuestions[randomIndex];
+            const questions = questionDatabase["05导数"];
+            const randomIndex = Math.floor(Math.random() * questions.length);
+            const selectedQuestion = questions[randomIndex];
 
             correctAnswer = selectedQuestion.answers;
 
             let questionHtml = `\\(${selectedQuestion.question} \\)`;
   
             return questionHtml;
-
         }
-
-
-
-
-
-
-
-
-
-
-
 
         function generateLevel6Question() {
-const factorizationQuestions = [
-{ 
-    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["9"] 
-    },
-    { 
-    question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["2500"] 
-    },
-    {
-    question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
-    answers: ["24"] 
-    },
-    {
-    question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
-    answers: ["1"] 
-    },
-    {
-    question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
-    answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
-    },
-
-  // 可以添加更多题目
-            ];
-
-            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
-            const selectedQuestion = factorizationQuestions[randomIndex];
+            const questions = questionDatabase["06线性代数"];
+            const randomIndex = Math.floor(Math.random() * questions.length);
+            const selectedQuestion = questions[randomIndex];
 
             correctAnswer = selectedQuestion.answers;
 
             let questionHtml = `\\(${selectedQuestion.question} \\)`;
   
             return questionHtml;
-
         }
-
-
-
-
-
-
 
         function generateLevel7Question() {
-const factorizationQuestions = [
-{ 
-    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["9"] 
-    },
-    { 
-    question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["2500"] 
-    },
-    {
-    question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
-    answers: ["24"] 
-    },
-    {
-    question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
-    answers: ["1"] 
-    },
-    {
-    question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
-    answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
-    },
-
-
-  // 可以添加更多题目
-            ];
-
-            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
-            const selectedQuestion = factorizationQuestions[randomIndex];
+            const questions = questionDatabase["07解析几何"];
+            const randomIndex = Math.floor(Math.random() * questions.length);
+            const selectedQuestion = questions[randomIndex];
 
             correctAnswer = selectedQuestion.answers;
 
-            let questionHtml = `\\(${selectedQuestion.question} \\)`;
+            // 创建题目容器，分为文本部分和图形部分
+            const questionContainer = document.createElement('div');
+            questionContainer.className = 'question-with-svg';
+            
+            // 题目文本部分
+            const questionText = document.createElement('div');
+            questionText.className = 'question-text';
+            questionText.innerHTML = `\\(${selectedQuestion.question}\\)`;
+            questionContainer.appendChild(questionText);
+            
+            // 如果题目包含SVG图形生成器，则生成并添加SVG
+            if (selectedQuestion.svgGenerator && typeof selectedQuestion.svgGenerator === 'function') {
+                const svgElement = selectedQuestion.svgGenerator();
+                const svgContainer = document.createElement('div');
+                svgContainer.className = 'svg-container';
+                svgContainer.appendChild(svgElement);
+                questionContainer.appendChild(svgContainer);
+            }
+            // 如果题目包含外部图片URL，则创建图片元素
+            else if (selectedQuestion.imageUrl) {
+                const imageContainer = document.createElement('div');
+                imageContainer.className = 'image-container';
+                
+                const imageElement = document.createElement('img');
+                imageElement.src = selectedQuestion.imageUrl;
+                imageElement.alt = '题目图片';
+                imageElement.className = 'question-image';
+                
+                // 添加图片加载错误处理
+                imageElement.onerror = function() {
+                    this.style.display = 'none';
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'image-error';
+                    errorMsg.textContent = '图片加载失败: ' + selectedQuestion.imageUrl;
+                    imageContainer.appendChild(errorMsg);
+                };
+                
+                imageContainer.appendChild(imageElement);
+                questionContainer.appendChild(imageContainer);
+            }
   
-            return questionHtml;
+            return questionContainer.outerHTML;
         }
-
-
-
-
-
 
         function generateLevel8Question() {
-const factorizationQuestions = [
-{ 
-    question: "\\begin{array}{l}已知a=(\\sqrt{5}−\\sqrt{3})/(\\sqrt{5}+\\sqrt{3})，b=(\\sqrt{5}+\\sqrt{3})/(\\sqrt{5}−\\sqrt{3})，\\\\ 则二次根式\\sqrt{(a³b+ab³)+19}的值是\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["9"] 
-    },
-    { 
-    question: "\\begin{array}{l}若a + b - 2\\sqrt{a-1} - 4\\sqrt{b-2} = 3\\sqrt{c-3} - \\frac{1}{2}c - 5,则(b-c)^a的值为\\_\\_\\_\\_。 \\end{array}", 
-    answers: ["2500"] 
-    },
-    {
-    question: "解方程:3\\sqrt{x^2-9}+4\\sqrt{x^2-16}+5\\sqrt{x^2-25}=\\frac{120}{x}", 
-    answers: ["24"] 
-    },
-    {
-    question: "解方程:设[t]表示不超过实数t的最大整数，令\\{t\\}=t-[t].已知实数x满足x^3+\\frac{1}{x^3}=18，求\\{x\\}+\\left\\{\\frac{1}{x}\\right\\}的值.", 
-    answers: ["1"] 
-    },
-    {
-    question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.", 
-    answers: ["18,2","18;2","x=18,y=2","x=18;y=2"]
-    },
-
-
-
-  // 可以添加更多题目
-            ];
-
-            const randomIndex = Math.floor(Math.random() * factorizationQuestions.length);
-            const selectedQuestion = factorizationQuestions[randomIndex];
+            const questions = questionDatabase["08立体几何"];
+            const randomIndex = Math.floor(Math.random() * questions.length);
+            const selectedQuestion = questions[randomIndex];
 
             correctAnswer = selectedQuestion.answers;
 
@@ -1914,31 +2977,16 @@ const factorizationQuestions = [
             return questionHtml;
         }
 
-
-
-
-
-
-
-
-
         function generateLevel9Question() {
-            const levelFunctions = [
-                generateLevel1Question,
-                generateLevel2Question,
-                generateLevel3Question,
-                generateLevel4Question,
-                generateLevel5Question,
-                generateLevel6Question,
-                generateLevel7Question,
-                generateLevel8Question,
+            const questions = questionDatabase["09概率统计"];
+            const randomIndex = Math.floor(Math.random() * questions.length);
+            const selectedQuestion = questions[randomIndex];
 
-            ];
+            correctAnswer = selectedQuestion.answers;
 
-            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
-            const selectedFunction = levelFunctions[randomIndex];
-
-            return selectedFunction();
+            let questionHtml = `\\(${selectedQuestion.question} \\)`;
+  
+            return questionHtml;
         }
   
 
@@ -2047,6 +3095,172 @@ const factorizationQuestions = [
                     document.querySelector('.conquest-timer').textContent = `总用时: ${currentTime}秒`;
                 }
             }
+        }
+
+        // 预览功能
+        function previewQuestions() {
+            const modal = document.getElementById('previewModal');
+            const previewBody = document.getElementById('previewBody');
+            
+            // 清空预览内容
+            previewBody.innerHTML = '';
+            
+            // 生成预览内容
+            Object.keys(questionDatabase).forEach((category, categoryIndex) => {
+                // 创建类别区域
+                const categorySection = document.createElement('div');
+                categorySection.className = 'category-section';
+                
+                // 类别标题
+                const categoryTitle = document.createElement('div');
+                categoryTitle.className = 'category-title';
+                categoryTitle.textContent = category;
+                categorySection.appendChild(categoryTitle);
+                
+                // 添加该类别的题目
+                questionDatabase[category].forEach((questionObj, questionIndex) => {
+                    const questionItem = document.createElement('div');
+                    questionItem.className = 'question-item';
+                    
+                    // 题目编号
+                    const questionNumber = document.createElement('div');
+                    questionNumber.className = 'question-number';
+                    questionNumber.textContent = `题目 ${categoryIndex + 1}.${questionIndex + 1}:`;
+                    questionItem.appendChild(questionNumber);
+                    
+                    // 题目内容
+                    const questionContent = document.createElement('div');
+                    questionContent.className = 'question-content';
+                    
+                    // 创建题目容器
+                    const questionWithSvg = document.createElement('div');
+                    questionWithSvg.className = 'question-with-svg';
+                    
+                    // 题目文本部分
+                    const questionText = document.createElement('div');
+                    questionText.className = 'question-text';
+                    questionText.innerHTML = `\\(${questionObj.question}\\)`;
+                    questionWithSvg.appendChild(questionText);
+                    
+                    // 如果题目包含SVG图形生成器，则生成并添加SVG
+                    if (questionObj.svgGenerator && typeof questionObj.svgGenerator === 'function') {
+                        const svgElement = questionObj.svgGenerator();
+                        const svgContainer = document.createElement('div');
+                        svgContainer.className = 'svg-container';
+                        svgContainer.appendChild(svgElement);
+                        questionWithSvg.appendChild(svgContainer);
+                    }
+                    // 如果题目包含外部图片URL，则创建图片元素
+                    else if (questionObj.imageUrl) {
+                        const imageContainer = document.createElement('div');
+                        imageContainer.className = 'image-container';
+                        
+                        const imageElement = document.createElement('img');
+                        imageElement.src = questionObj.imageUrl;
+                        imageElement.alt = '题目图片';
+                        imageElement.className = 'question-image';
+                        
+                        // 添加图片加载错误处理
+                        imageElement.onerror = function() {
+                            this.style.display = 'none';
+                            const errorMsg = document.createElement('div');
+                            errorMsg.className = 'image-error';
+                            errorMsg.textContent = '图片加载失败: ' + questionObj.imageUrl;
+                            imageContainer.appendChild(errorMsg);
+                        };
+                        
+                        imageContainer.appendChild(imageElement);
+                        questionWithSvg.appendChild(imageContainer);
+                    }
+                    
+                    questionContent.appendChild(questionWithSvg);
+                    questionItem.appendChild(questionContent);
+                    
+                    // 答案
+                    const questionAnswer = document.createElement('div');
+                    questionAnswer.className = 'question-answer';
+                    questionAnswer.innerHTML = `答案: \\(${questionObj.answers.join('\\) 或 \\(')}\\)`;
+                    questionItem.appendChild(questionAnswer);
+                    
+                    // 题目类型
+                    const questionType = document.createElement('div');
+                    questionType.className = 'question-type';
+                    questionType.textContent = `类型: ${questionObj.type}`;
+                    questionItem.appendChild(questionType);
+                    
+                    categorySection.appendChild(questionItem);
+                });
+                
+                previewBody.appendChild(categorySection);
+            });
+            
+            // 显示模态窗口
+            modal.style.display = 'block';
+            
+            // 渲染数学公式
+            MathJax.typesetPromise([previewBody]).then(() => {
+                // MathJax渲染完成后，绑定图片点击事件
+                addImageClickEvents();
+            }).catch((err) => console.log(err));
+        }
+        
+        // 关闭预览
+        function closePreview() {
+            document.getElementById('previewModal').style.display = 'none';
+        }
+        
+        // 打印PDF
+        function printQuestions() {
+            // 等待MathJax渲染完成后再打印
+            MathJax.typesetPromise([document.getElementById('previewBody')]).then(() => {
+                // 短暂延迟确保渲染完成
+                setTimeout(() => {
+                    // 执行打印
+                    window.print();
+                }, 500);
+            }).catch((err) => {
+                console.log('MathJax渲染错误:', err);
+                // 即使MathJax出错也尝试打印
+                window.print();
+            });
+        }
+        
+        // 点击模态窗口外部关闭预览
+        window.onclick = function(event) {
+            const modal = document.getElementById('previewModal');
+            if (event.target === modal) {
+                closePreview();
+            }
+        }
+
+        // 关闭图片放大模态窗口
+        function closeImageModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+        
+        // 显示图片放大模态窗口
+        function showImageModal(imageSrc) {
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            modalImage.src = imageSrc;
+            modal.style.display = 'block';
+        }
+        
+        // 为图片添加点击放大事件
+        function addImageClickEvents() {
+            // 为所有题目图片添加点击事件
+            document.querySelectorAll('.question-image').forEach(img => {
+                img.onclick = function() {
+                    showImageModal(this.src);
+                };
+            });
+        }
+        
+        // 在题目生成后调用，为新生成的图片添加点击事件
+        function attachImageEvents() {
+            setTimeout(() => {
+                addImageClickEvents();
+            }, 100);
         }
     </script>
 </body>

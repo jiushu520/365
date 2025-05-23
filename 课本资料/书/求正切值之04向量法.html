@@ -4,22 +4,147 @@
     <meta charset="UTF-8">
     <title>求解 tan∠BAC之04向量法</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .problem { margin-bottom: 20px; }
-        .solution { margin-top: 20px; }
-        svg { 
-            border: 1px solid #ddd; 
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* 左右分栏布局 */
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 左栏 - 图形区域 */
+        .content-left {
+            width: 50%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: #f9f9f9;
+            overflow-y: auto;
+        }
+        
+        /* 右栏 - 解题区域 */
+        .content-right {
+            width: 50%;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: white;
+            border-left: 1px solid #ddd;
+        }
+        
+        .problem { 
+            margin-bottom: 20px; 
+        }
+        
+        .problem h2 {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .solution { 
+            margin-top: 20px; 
+        }
+        
+        .solution h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        svg {
+            border: 1px solid #ddd;
             display: block;
             margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .step { margin: 10px 0; }
-        .hint { color: #0066cc; font-style: italic; }
+        
+        .step { 
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+        
+        .hint { 
+            color: #0066cc; 
+            font-style: italic;
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-left: 4px solid #0066cc;
+            margin: 20px 0;
+        }
+        
+        .hint ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .hint li {
+            margin: 5px 0;
+        }
+        
         #controls {
-            margin-bottom: 10px;
-            padding: 10px;
-            background-color: #f5f5f5;
-            border-radius: 5px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #ffffff;
+            border-radius: 8px;
             text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        #controls label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        #controls input[type="range"] {
+            width: 200px;
+            margin: 0 10px;
+        }
+        
+        #scaleValue {
+            display: inline-block;
+            width: 30px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+            .content-left, .content-right {
+                width: 100%;
+                height: 50%;
+            }
+            .content-right {
+                border-left: none;
+                border-top: 1px solid #ddd;
+            }
+            .handle {
+                display: none !important;
+            }
+        }
+        /* 拖拽手柄样式 */
+        .handle {
+            width: 8px;
+            background: #ddd;
+            cursor: col-resize;
+            position: relative;
+            z-index: 10;
+            transition: background 0.2s;
+        }
+        .handle:hover {
+            background: #bbb;
         }
     </style>
     <!-- 添加MathJax支持 -->
@@ -35,90 +160,97 @@
     </script>
 </head>
 <body>
-    <div class="problem">
-        <h2>已知：$A(0,0)$，$B(6,1)$，$C(3,6)$，求解 $\tan\angle BAC$</h2>
-        
-        <div id="controls">
-            <label>坐标缩放: <input type="range" id="scale" min="20" max="100" value="25"></label>
-            <span id="scaleValue">25</span>
+    <div class="container">
+        <!-- 左栏：控制区和图形 -->
+        <div class="content-left">
+            <div id="controls">
+                <label>坐标缩放: <input type="range" id="scale" min="20" max="100" value="25"></label>
+                <span id="scaleValue">25</span>
+            </div>
+            <svg id="coordinate-system" width="100%" height="600"></svg>
         </div>
-        
-        <svg id="coordinate-system" width="800" height="600"></svg>
-    </div>
+        <div class="handle"></div>
+        <!-- 右栏：问题和解题步骤 -->
+        <div class="content-right">
+            <div class="problem">
+                <h2>已知：$A(0,0)$，$B(6,1)$，$C(3,6)$，求解 $\tan\angle BAC$</h2>
+            </div>
 
-    <div class="solution">
-        <h3>向量法解题</h3>
-        
-        <div class="step">
-            <p>已知：$A(0,0)$，$B(6,1)$，$C(3,6)$</p>
-            <p>1. 构造向量 $\overrightarrow{AB} = (6,1)$ 和 $\overrightarrow{AC} = (3,6)$</p>
-            <p>2. 向量的叉积（外积）：$\overrightarrow{AB} \times \overrightarrow{AC} = 6 \times 6 - 1 \times 3 = 36 - 3 = 33$</p>
-            <p>3. 向量的点积（内积）：$\overrightarrow{AB} \cdot \overrightarrow{AC} = 6 \times 3 + 1 \times 6 = 18 + 6 = 24$</p>
-            <p>4. 根据向量关系：$\tan\angle BAC = \frac{|\overrightarrow{AB} \times \overrightarrow{AC}|}{\overrightarrow{AB} \cdot \overrightarrow{AC}} = \frac{33}{24} = \frac{11}{8}$</p>
-        </div>
-        
-        <div class="hint">
-            <p>要点：</p>
-            <ul>
-                <li>向量叉积的模的几何意义是以两向量为邻边的平行四边形面积</li>
-                <li>对于二维向量叉积 $\vec{a} \times \vec{b} = |\vec{a}| \cdot |\vec{b}| \cdot \sin\theta = a_1b_2 - a_2b_1$</li>
-                <li>向量点积的几何意义是两向量长度乘积再乘以夹角余弦</li>
-                <li>对于二维向量点积 $\vec{a} \cdot \vec{b} = |\vec{a}| \cdot |\vec{b}| \cdot \cos\theta = a_1b_1 + a_2b_2$</li>
-                <li>正切值等于正弦值除以余弦值，所以 $\tan\theta = \frac{\vec{a} \times \vec{b}}{\vec{a} \cdot \vec{b}}$</li>
-            </ul>
-        </div>
-    </div>
+            <div class="solution">
+                <h3>向量法解题</h3>
+                
+                <div class="step">
+                    <p>已知：$A(0,0)$，$B(6,1)$，$C(3,6)$</p>
+                    <p>1. 构造向量 $\overrightarrow{AB} = (6,1)$ 和 $\overrightarrow{AC} = (3,6)$</p>
+                    <p>2. 向量的叉积（外积）：$\overrightarrow{AB} \times \overrightarrow{AC} = 6 \times 6 - 1 \times 3 = 36 - 3 = 33$</p>
+                    <p>3. 向量的点积（内积）：$\overrightarrow{AB} \cdot \overrightarrow{AC} = 6 \times 3 + 1 \times 6 = 18 + 6 = 24$</p>
+                    <p>4. 根据向量关系：$\tan\angle BAC = \frac{|\overrightarrow{AB} \times \overrightarrow{AC}|}{\overrightarrow{AB} \cdot \overrightarrow{AC}} = \frac{33}{24} = \frac{11}{8}$</p>
+                </div>
+                
+                <div class="hint">
+                    <p>要点：</p>
+                    <ul>
+                        <li>向量叉积的模的几何意义是以两向量为邻边的平行四边形面积</li>
+                        <li>对于二维向量叉积 $\vec{a} \times \vec{b} = |\vec{a}| \cdot |\vec{b}| \cdot \sin\theta = a_1b_2 - a_2b_1$</li>
+                        <li>向量点积的几何意义是两向量长度乘积再乘以夹角余弦</li>
+                        <li>对于二维向量点积 $\vec{a} \cdot \vec{b} = |\vec{a}| \cdot |\vec{b}| \cdot \cos\theta = a_1b_1 + a_2b_2$</li>
+                        <li>正切值等于正弦值除以余弦值，所以 $\tan\theta = \frac{\vec{a} \times \vec{b}}{\vec{a} \cdot \vec{b}}$</li>
+                    </ul>
+                </div>
+            </div>
 
-    <div class="solution">
-        <h3>法向量投影法解题</h3>
-        
-        <div class="step">
-            <p>已知：$A(0,0)$，$B(6,1)$，$C(3,6)$</p>
-            
-            <p>1. 求直线AB的方程：</p>
-            <p>直线AB的方向向量为 $\overrightarrow{AB} = (6,1)$</p>
-            <p>直线AB的法向量可以通过将方向向量的分量交换并改变一个分量的符号得到：</p>
-            <p>若方向向量为$(a,b)$，则其法向量可以是$(-b,a)$或$(b,-a)$。对于方向向量$(6,1)$，我们可以得到法向量$(-1,6)$</p>
-            <p>直线AB的法向量为 $\overrightarrow{n} = (-1,6)$，垂直于AB</p>
-            <p>验证垂直关系：$\overrightarrow{AB} \cdot \overrightarrow{n} = 6 \times (-1) + 1 \times 6 = -6 + 6 = 0$</p>
-            
-            <p>2. 计算向量投影：</p>
-            <p>向量AC在法向量n上的投影长度：$\text{proj}_{\overrightarrow{n}}\overrightarrow{AC} = \frac{\overrightarrow{AC} \cdot \overrightarrow{n}}{|\overrightarrow{n}|} = \frac{3 \times (-1) + 6 \times 6}{\sqrt{(-1)^2 + 6^2}} = \frac{-3 + 36}{\sqrt{37}} = \frac{33}{\sqrt{37}}$</p>
-            
-            <p>向量AB在法向量n上的投影长度：$\text{proj}_{\overrightarrow{n}}\overrightarrow{AB} = \frac{\overrightarrow{AB} \cdot \overrightarrow{n}}{|\overrightarrow{n}|} = \frac{6 \times (-1) + 1 \times 6}{\sqrt{(-1)^2 + 6^2}} = \frac{-6 + 6}{\sqrt{37}} = 0$</p>
-            <p>这验证了法向量n确实垂直于AB</p>
-            
-            <p>3. 求垂线CD与AB的交点D：</p>
-            <p>过点C作AB的垂线，垂线方向为法向量n</p>
-            <p>垂线方程：$y - 6 = \frac{6}{-1}(x - 3)$，整理得$6x + y = 24$</p>
-            <p>与AB的方程$6y - x = 0$联立求交点D</p>
-            <p>得到$D(\frac{144}{37}, \frac{24}{37})$</p>
-            
-            <p>4. 利用投影计算CD和AD：</p>
-            <p>点C到直线AB的距离就是向量AC在法向量n上的投影长度：$CD = \frac{33}{\sqrt{37}}$</p>
-            <p>点A到直线CD的距离可以用点到直线公式计算：$AD = \frac{|6 \cdot 0 + 1 \cdot 0 - 24|}{\sqrt{6^2 + 1^2}} = \frac{24}{\sqrt{37}}$</p>
-            
-            <p>5. 计算最终结果：</p>
-            <p>$\frac{CD}{AD} = \frac{33/\sqrt{37}}{24/\sqrt{37}} = \frac{33}{24} = \frac{11}{8}$</p>
-        </div>
-        
-        <div class="hint">
-            <p>要点：</p>
-            <ul>
-                <li>法向量是与直线垂直的向量，用于表示直线的方向和进行投影计算</li>
-                <li>向量在另一向量上的投影长度公式：$\text{proj}_{\vec{b}}\vec{a} = \frac{\vec{a} \cdot \vec{b}}{|\vec{b}|}$</li>
-                <li>点到直线距离可以表示为向量在法向量上投影的绝对值</li>
-                <li>点到直线距离公式：$d = \frac{|Ax_0 + By_0 + C|}{\sqrt{A^2+B^2}}$，其中$(x_0,y_0)$是点的坐标，$Ax+By+C=0$是直线方程</li>
-            </ul>
+            <div class="solution">
+                <h3>法向量投影法解题</h3>
+                
+                <div class="step">
+                    <p>已知：$A(0,0)$，$B(6,1)$，$C(3,6)$</p>
+                    
+                    <p>1. 求直线AB的方程：</p>
+                    <p>直线AB的方向向量为 $\overrightarrow{AB} = (6,1)$</p>
+                    <p>直线AB的法向量可以通过将方向向量的分量交换并改变一个分量的符号得到：</p>
+                    <p>若方向向量为$(a,b)$，则其法向量可以是$(-b,a)$或$(b,-a)$。对于方向向量$(6,1)$，我们可以得到法向量$(-1,6)$</p>
+                    <p>直线AB的法向量为 $\overrightarrow{n} = (-1,6)$，垂直于AB</p>
+                    <p>验证垂直关系：$\overrightarrow{AB} \cdot \overrightarrow{n} = 6 \times (-1) + 1 \times 6 = -6 + 6 = 0$</p>
+                    
+                    <p>2. 计算向量投影：</p>
+                    <p>向量AC在法向量n上的投影长度：$\text{proj}_{\overrightarrow{n}}\overrightarrow{AC} = \frac{\overrightarrow{AC} \cdot \overrightarrow{n}}{|\overrightarrow{n}|} = \frac{3 \times (-1) + 6 \times 6}{\sqrt{(-1)^2 + 6^2}} = \frac{-3 + 36}{\sqrt{37}} = \frac{33}{\sqrt{37}}$</p>
+                    
+                    <p>向量AB在法向量n上的投影长度：$\text{proj}_{\overrightarrow{n}}\overrightarrow{AB} = \frac{\overrightarrow{AB} \cdot \overrightarrow{n}}{|\overrightarrow{n}|} = \frac{6 \times (-1) + 1 \times 6}{\sqrt{(-1)^2 + 6^2}} = \frac{-6 + 6}{\sqrt{37}} = 0$</p>
+                    <p>这验证了法向量n确实垂直于AB</p>
+                    
+                    <p>3. 求垂线CD与AB的交点D：</p>
+                    <p>过点C作AB的垂线，垂线方向为法向量n</p>
+                    <p>垂线方程：$y - 6 = \frac{6}{-1}(x - 3)$，整理得$6x + y = 24$</p>
+                    <p>与AB的方程$6y - x = 0$联立求交点D</p>
+                    <p>得到$D(\frac{144}{37}, \frac{24}{37})$</p>
+                    
+                    <p>4. 利用投影计算CD和AD：</p>
+                    <p>点C到直线AB的距离就是向量AC在法向量n上的投影长度：$CD = \frac{33}{\sqrt{37}}$</p>
+                    <p>点A到直线CD的距离可以用点到直线公式计算：$AD = \frac{|6 \cdot 0 + 1 \cdot 0 - 24|}{\sqrt{6^2 + 1^2}} = \frac{24}{\sqrt{37}}$</p>
+                    
+                    <p>5. 计算最终结果：</p>
+                    <p>$\frac{CD}{AD} = \frac{33/\sqrt{37}}{24/\sqrt{37}} = \frac{33}{24} = \frac{11}{8}$</p>
+                </div>
+                
+                <div class="hint">
+                    <p>要点：</p>
+                    <ul>
+                        <li>法向量是与直线垂直的向量，用于表示直线的方向和进行投影计算</li>
+                        <li>向量在另一向量上的投影长度公式：$\text{proj}_{\vec{b}}\vec{a} = \frac{\vec{a} \cdot \vec{b}}{|\vec{b}|}$</li>
+                        <li>点到直线距离可以表示为向量在法向量上投影的绝对值</li>
+                        <li>点到直线距离公式：$d = \frac{|Ax_0 + By_0 + C|}{\sqrt{A^2+B^2}}$，其中$(x_0,y_0)$是点的坐标，$Ax+By+C=0$是直线方程</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // 设置中心点和缩放比例
-        const svgWidth = 800;
-        const svgHeight = 600;
-        const centerX = svgWidth / 2;
-        const centerY = svgHeight / 2;
+        // 设置变量
+        let svgWidth = 800;
+        let svgHeight = 600;
+        let centerX = svgWidth / 2;
+        let centerY = svgHeight / 2;
         let scale = 25; // 每个单位对应的像素数
         
         // 坐标点（数学坐标系中）
@@ -151,38 +283,52 @@
             const svg = document.getElementById('coordinate-system');
             svg.innerHTML = ''; // 清空已有内容
             
+            // 更新SVG尺寸
+            const container = document.querySelector('.content-left');
+            svgWidth = container.offsetWidth - 40;
+            svgHeight = Math.max(container.offsetHeight - 80, 400);
+            
+            svg.setAttribute('width', svgWidth);
+            svg.setAttribute('height', svgHeight);
+            
+            centerX = svgWidth / 2;
+            centerY = svgHeight / 2;
+            
             // 计算可见范围（单位）
+            const margin = 2;
             const visibleWidth = svgWidth / scale;
             const visibleHeight = svgHeight / scale;
-            const xMin = -visibleWidth / 2;
-            const xMax = visibleWidth / 2;
-            const yMin = -visibleHeight / 2;
-            const yMax = visibleHeight / 2;
+            const xMin = Math.floor(-visibleWidth / 2) - margin;
+            const xMax = Math.ceil(visibleWidth / 2) + margin;
+            const yMin = Math.floor(-visibleHeight / 2) - margin;
+            const yMax = Math.ceil(visibleHeight / 2) + margin;
             
             // 绘制网格线
             const gridGroup = createSVGElement('g');
             gridGroup.setAttribute('stroke', '#eee');
-            gridGroup.setAttribute('stroke-width', '1');
+            gridGroup.setAttribute('stroke-width', '0.5');
             
             // 横向网格线
-            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+            for (let y = yMin; y <= yMax; y++) {
                 if (y === 0) continue; // 坐标轴单独绘制
                 const line = createSVGElement('line');
                 line.setAttribute('x1', toSvgX(xMin));
                 line.setAttribute('y1', toSvgY(y));
                 line.setAttribute('x2', toSvgX(xMax));
                 line.setAttribute('y2', toSvgY(y));
+                line.setAttribute('vector-effect', 'non-scaling-stroke');
                 gridGroup.appendChild(line);
             }
             
             // 纵向网格线
-            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+            for (let x = xMin; x <= xMax; x++) {
                 if (x === 0) continue; // 坐标轴单独绘制
                 const line = createSVGElement('line');
                 line.setAttribute('x1', toSvgX(x));
                 line.setAttribute('y1', toSvgY(yMin));
                 line.setAttribute('x2', toSvgX(x));
                 line.setAttribute('y2', toSvgY(yMax));
+                line.setAttribute('vector-effect', 'non-scaling-stroke');
                 gridGroup.appendChild(line);
             }
             
@@ -190,8 +336,8 @@
             
             // 绘制坐标轴
             const axisGroup = createSVGElement('g');
-            axisGroup.setAttribute('stroke', '#999');
-            axisGroup.setAttribute('stroke-width', '1');
+            axisGroup.setAttribute('stroke', '#000');
+            axisGroup.setAttribute('stroke-width', '1.5');
             
             // x轴
             const xAxis = createSVGElement('line');
@@ -199,6 +345,7 @@
             xAxis.setAttribute('y1', toSvgY(0));
             xAxis.setAttribute('x2', toSvgX(xMax));
             xAxis.setAttribute('y2', toSvgY(0));
+            xAxis.setAttribute('vector-effect', 'non-scaling-stroke');
             axisGroup.appendChild(xAxis);
             
             // y轴
@@ -207,16 +354,19 @@
             yAxis.setAttribute('y1', toSvgY(yMin));
             yAxis.setAttribute('x2', toSvgX(0));
             yAxis.setAttribute('y2', toSvgY(yMax));
+            yAxis.setAttribute('vector-effect', 'non-scaling-stroke');
             axisGroup.appendChild(yAxis);
             
             svg.appendChild(axisGroup);
             
             // 绘制刻度标签
             const labelsGroup = createSVGElement('g');
-            labelsGroup.setAttribute('font-size', '12');
+            labelsGroup.setAttribute('font-size', '14');
+            labelsGroup.setAttribute('font-family', 'Arial');
+            labelsGroup.setAttribute('fill', '#666');
             
             // x轴刻度标签
-            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+            for (let x = xMin; x <= xMax; x++) {
                 if (x === 0) continue;
                 const text = createSVGElement('text');
                 text.setAttribute('x', toSvgX(x));
@@ -227,7 +377,7 @@
             }
             
             // y轴刻度标签
-            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+            for (let y = yMin; y <= yMax; y++) {
                 if (y === 0) continue;
                 const text = createSVGElement('text');
                 text.setAttribute('x', toSvgX(0) - 10);
@@ -237,12 +387,20 @@
                 labelsGroup.appendChild(text);
             }
             
+            // 原点标签
+            const originText = createSVGElement('text');
+            originText.setAttribute('x', toSvgX(0) - 15);
+            originText.setAttribute('y', toSvgY(0) + 15);
+            originText.textContent = '0';
+            labelsGroup.appendChild(originText);
+            
             svg.appendChild(labelsGroup);
             
             // 绘制三角形
             const triangleGroup = createSVGElement('g');
-            triangleGroup.setAttribute('stroke', '#000');
+            triangleGroup.setAttribute('stroke', '#2196F3');
             triangleGroup.setAttribute('stroke-width', '2');
+            triangleGroup.setAttribute('vector-effect', 'non-scaling-stroke');
             
             // 线段AB
             const lineAB = createSVGElement('line');
@@ -266,7 +424,7 @@
             lineCE.setAttribute('y1', toSvgY(pointC.y));
             lineCE.setAttribute('x2', toSvgX(pointE.x));
             lineCE.setAttribute('y2', toSvgY(pointE.y));
-            lineCE.setAttribute('stroke', 'blue');
+            lineCE.setAttribute('stroke', '#2196F3');
             lineCE.setAttribute('stroke-dasharray', '5,3');
             triangleGroup.appendChild(lineCE);
             
@@ -276,7 +434,7 @@
             lineCF.setAttribute('y1', toSvgY(pointC.y));
             lineCF.setAttribute('x2', toSvgX(pointF.x));
             lineCF.setAttribute('y2', toSvgY(pointF.y));
-            lineCF.setAttribute('stroke', 'purple');
+            lineCF.setAttribute('stroke', '#9C27B0');
             lineCF.setAttribute('stroke-dasharray', '5,3');
             triangleGroup.appendChild(lineCF);
 
@@ -286,7 +444,7 @@
             lineAD.setAttribute('y1', toSvgY(pointA.y));
             lineAD.setAttribute('x2', toSvgX(pointD.x));
             lineAD.setAttribute('y2', toSvgY(pointD.y));
-            lineAD.setAttribute('stroke', 'green');
+            lineAD.setAttribute('stroke', '#4CAF50');
             lineAD.setAttribute('stroke-dasharray', '3,2');
             triangleGroup.appendChild(lineAD);
             
@@ -299,54 +457,58 @@
             const circleA = createSVGElement('circle');
             circleA.setAttribute('cx', toSvgX(pointA.x));
             circleA.setAttribute('cy', toSvgY(pointA.y));
-            circleA.setAttribute('r', '5');
-            circleA.setAttribute('fill', 'blue');
+            circleA.setAttribute('r', '6');
+            circleA.setAttribute('fill', '#4CAF50');
             pointsGroup.appendChild(circleA);
             
             // 点B
             const circleB = createSVGElement('circle');
             circleB.setAttribute('cx', toSvgX(pointB.x));
             circleB.setAttribute('cy', toSvgY(pointB.y));
-            circleB.setAttribute('r', '5');
-            circleB.setAttribute('fill', 'blue');
+            circleB.setAttribute('r', '6');
+            circleB.setAttribute('fill', '#4CAF50');
             pointsGroup.appendChild(circleB);
             
             // 点C
             const circleC = createSVGElement('circle');
             circleC.setAttribute('cx', toSvgX(pointC.x));
             circleC.setAttribute('cy', toSvgY(pointC.y));
-            circleC.setAttribute('r', '5');
-            circleC.setAttribute('fill', 'blue');
+            circleC.setAttribute('r', '6');
+            circleC.setAttribute('fill', '#4CAF50');
             pointsGroup.appendChild(circleC);
             
             // 点D
             const circleD = createSVGElement('circle');
             circleD.setAttribute('cx', toSvgX(pointD.x));
             circleD.setAttribute('cy', toSvgY(pointD.y));
-            circleD.setAttribute('r', '5');
-            circleD.setAttribute('fill', 'red');
+            circleD.setAttribute('r', '6');
+            circleD.setAttribute('fill', '#ff4444');
             pointsGroup.appendChild(circleD);
             
             // 点E
             const circleE = createSVGElement('circle');
             circleE.setAttribute('cx', toSvgX(pointE.x));
             circleE.setAttribute('cy', toSvgY(pointE.y));
-            circleE.setAttribute('r', '5');
-            circleE.setAttribute('fill', 'blue');
+            circleE.setAttribute('r', '6');
+            circleE.setAttribute('fill', '#2196F3');
             pointsGroup.appendChild(circleE);
             
             // 点F
             const circleF = createSVGElement('circle');
             circleF.setAttribute('cx', toSvgX(pointF.x));
             circleF.setAttribute('cy', toSvgY(pointF.y));
-            circleF.setAttribute('r', '5');
-            circleF.setAttribute('fill', 'purple');
+            circleF.setAttribute('r', '6');
+            circleF.setAttribute('fill', '#9C27B0');
             pointsGroup.appendChild(circleF);
             
             svg.appendChild(pointsGroup);
             
             // 标记点
             const markersGroup = createSVGElement('g');
+            markersGroup.setAttribute('font-size', '14');
+            markersGroup.setAttribute('font-family', 'Arial');
+            markersGroup.setAttribute('font-weight', 'bold');
+            markersGroup.setAttribute('fill', '#666');
             
             // 标记A
             const textA = createSVGElement('text');
@@ -374,6 +536,7 @@
             textD.setAttribute('x', toSvgX(pointD.x) - 10);
             textD.setAttribute('y', toSvgY(pointD.y) - 10);
             textD.textContent = 'D(-1,6)';
+            textD.setAttribute('fill', '#ff4444');
             markersGroup.appendChild(textD);
             
             // 标记E
@@ -381,6 +544,7 @@
             textE.setAttribute('x', toSvgX(pointE.x) + 10);
             textE.setAttribute('y', toSvgY(pointE.y) - 10);
             textE.textContent = 'E(144/37,24/37)';
+            textE.setAttribute('fill', '#2196F3');
             markersGroup.appendChild(textE);
             
             // 标记F
@@ -388,6 +552,7 @@
             textF.setAttribute('x', toSvgX(pointF.x) - 10);
             textF.setAttribute('y', toSvgY(pointF.y) - 10);
             textF.textContent = 'F(-33/37,198/37)';
+            textF.setAttribute('fill', '#9C27B0');
             markersGroup.appendChild(textF);
             
             svg.appendChild(markersGroup);
@@ -399,6 +564,38 @@
             document.getElementById('scaleValue').textContent = scale;
             drawCoordinateSystem();
         });
+        
+        // 监听窗口大小变化
+        window.addEventListener('resize', function() {
+            drawCoordinateSystem();
+        });
+        
+        // 拖拽手柄JS
+        (function() {
+            const handle = document.querySelector('.handle');
+            const left = document.querySelector('.content-left');
+            const right = document.querySelector('.content-right');
+            let dragging = false;
+            handle.addEventListener('mousedown', function(e) {
+                dragging = true;
+                document.body.style.cursor = 'col-resize';
+            });
+            document.addEventListener('mousemove', function(e) {
+                if (!dragging) return;
+                const container = document.querySelector('.container');
+                const rect = container.getBoundingClientRect();
+                let percent = (e.clientX - rect.left) / rect.width;
+                percent = Math.max(0.15, Math.min(0.85, percent));
+                left.style.width = (percent * 100) + '%';
+                right.style.width = ((1 - percent) * 100) + '%';
+            });
+            document.addEventListener('mouseup', function() {
+                if (dragging) {
+                    dragging = false;
+                    document.body.style.cursor = '';
+                }
+            });
+        })();
         
         // 初始化绘图
         drawCoordinateSystem();

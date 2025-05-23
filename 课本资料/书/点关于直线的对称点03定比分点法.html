@@ -4,25 +4,154 @@
     <meta charset="UTF-8">
     <title>点关于直线的对称点03定比分点法</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .problem { margin-bottom: 20px; }
-        .solution { margin-top: 20px; }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* 左右分栏布局 */
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 左栏 - 图形区域 */
+        .content-left {
+            width: 50%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: #f9f9f9;
+            overflow-y: auto;
+        }
+        
+        /* 右栏 - 解题区域 */
+        .content-right {
+            width: 50%;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: white;
+            border-left: 1px solid #ddd;
+        }
+        
+        .problem { 
+            margin-bottom: 20px; 
+        }
+        
+        .problem h2 {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .solution { 
+            margin-top: 20px; 
+        }
+        
+        .solution h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
         svg {
             border: 1px solid #ddd;
             display: block;
             margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .step { margin: 10px 0; }
-        .hint { color: #0066cc; font-style: italic; }
-        .math { font-style: italic; }
+        
+        .step { 
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+        
+        .hint { 
+            color: #0066cc; 
+            font-style: italic;
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-left: 4px solid #0066cc;
+            margin: 20px 0;
+        }
+        
+        .hint ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .hint li {
+            margin: 5px 0;
+        }
+        
         #controls {
-            margin-bottom: 10px;
-            padding: 10px;
-            background-color: #f5f5f5;
-            border-radius: 5px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #ffffff;
+            border-radius: 8px;
             text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .reference { font-size: 0.9em; color: #555; margin-top: 15px; }
+        
+        #controls label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        #controls input[type="range"] {
+            width: 200px;
+            margin: 0 10px;
+        }
+        
+        #scaleValue {
+            display: inline-block;
+            width: 30px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .reference { 
+            font-size: 0.9em; 
+            color: #555; 
+            margin-top: 15px; 
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+            .content-left, .content-right {
+                width: 100%;
+                height: 50%;
+            }
+            .content-right {
+                border-left: none;
+                border-top: 1px solid #ddd;
+            }
+            .handle {
+                display: none !important;
+            }
+        }
+        /* 拖拽手柄样式 */
+        .handle {
+            width: 8px;
+            background: #ddd;
+            cursor: col-resize;
+            position: relative;
+            z-index: 10;
+            transition: background 0.2s;
+        }
+        .handle:hover {
+            background: #bbb;
+        }
     </style>
     <!-- 添加MathJax支持 -->
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -38,75 +167,82 @@
     </script>
 </head>
 <body>
-    <div class="problem">
-        <h2>已知：$B(0,0)$，$C(3,0)$，$A(3,1)$。点 $C'$ 是点 $C$ 关于直线 $AB$ 的对称点，求点 $C'$ 的坐标。</h2>
-
-        <div id="controls">
-            <label>坐标缩放: <input type="range" id="scale" min="20" max="100" value="60"></label>
-            <span id="scaleValue">60</span>
+    <div class="container">
+        <!-- 左栏：控制区和图形 -->
+        <div class="content-left">
+            <div id="controls">
+                <label>坐标缩放: <input type="range" id="scale" min="20" max="100" value="60"></label>
+                <span id="scaleValue">60</span>
+            </div>
+            <svg id="coordinate-system" width="100%" height="600"></svg>
         </div>
+        <div class="handle"></div>
+        <!-- 右栏：问题和解题步骤 -->
+        <div class="content-right">
+            <div class="problem">
+                <h2>已知：$B(0,0)$，$C(3,0)$，$A(3,1)$。点 $C'$ 是点 $C$ 关于直线 $AB$ 的对称点，求点 $C'$ 的坐标。</h2>
+            </div>
 
-        <svg id="coordinate-system" width="800" height="600"></svg>
-    </div>
+            <div class="solution">
+                <h3>定比分点法解题</h3>
+                <p class="reference">方法参考自 Bilibili 视频或相关笔记（如图所示）：<a href="https://www.bilibili.com/video/BV19u4m1u7Li?t=91.4" target="_blank">https://www.bilibili.com/video/BV19u4m1u7Li?t=91.4</a></p>
 
-    <div class="solution">
-        <h3>定比分点法解题</h3>
-        <p class="reference">方法参考自 Bilibili 视频或相关笔记（如图所示）：<a href="https://www.bilibili.com/video/BV19u4m1u7Li?t=91.4" target="_blank">https://www.bilibili.com/video/BV19u4m1u7Li?t=91.4</a></p>
+                <div class="step">
+                    <p>1. 计算点 $C(3,0)$ 到直线 $AB$ 端点 $A(3,1)$ 和 $B(0,0)$ 的距离平方：
+                       <br>• $AC^2 = (3-3)^2 + (1-0)^2 = 0^2 + 1^2 = 1$。
+                       <br>• $BC^2 = (3-0)^2 + (0-0)^2 = 3^2 + 0^2 = 9$。
+                    </p>
 
-        <div class="step">
-            <p>1. 计算点 $C(3,0)$ 到直线 $AB$ 端点 $A(3,1)$ 和 $B(0,0)$ 的距离平方：
-               <br>• $AC^2 = (3-3)^2 + (1-0)^2 = 0^2 + 1^2 = 1$。
-               <br>• $BC^2 = (3-0)^2 + (0-0)^2 = 3^2 + 0^2 = 9$。
-            </p>
+                    <p>2. 确定点 $M$ 在直线 $AB$ 上的分点比例：
+                       <br>• 点 $M$ 是 $C$ 到直线 $AB$ 的垂足，也是线段 $CC'$ 的中点。
+                       <br>• 根据点关于直线的对称性质，点 $M$ 在直线段 $AB$ 上的位置满足比例关系（定比分点公式推论）：
+                         \[ \frac{AM}{BM} = \frac{AC^2}{BC^2} = \frac{1}{9} \]
+                       <br>• 注意：这里 M 分线段 BA (从B到A) 的比例为 $BM : MA = 9 : 1$。对应的定比 $\lambda = \frac{BM}{MA} = 9$。
+                    </p>
 
-            <p>2. 确定点 $M$ 在直线 $AB$ 上的分点比例：
-               <br>• 点 $M$ 是 $C$ 到直线 $AB$ 的垂足，也是线段 $CC'$ 的中点。
-               <br>• 根据点关于直线的对称性质，点 $M$ 在直线段 $AB$ 上的位置满足比例关系（定比分点公式推论）：
-                 \[ \frac{AM}{BM} = \frac{AC^2}{BC^2} = \frac{1}{9} \]
-               <br>• 注意：这里 M 分线段 BA (从B到A) 的比例为 $BM : MA = 9 : 1$。对应的定比 $\lambda = \frac{BM}{MA} = 9$。
-            </p>
+                    <p>3. 使用定比分点公式计算点 $M$ 的坐标：
+                       <br>• 设点 $M$ 的坐标为 $(x_M, y_M)$。M 分线段 BA ( $B=(0,0)$, $A=(3,1)$ ) 的比为 $\lambda=9$。
+                         \[ M = \frac{1 \cdot B + \lambda \cdot A}{1 + \lambda} = \frac{1 \cdot (0,0) + 9 \cdot (3,1)}{1 + 9} \]
+                         \[ M = \frac{(0,0) + (27,9)}{10} = \left(\frac{27}{10}, \frac{9}{10}\right) \]
+                       <br>• 所以，交点 $M$ 的坐标为 $\left(\frac{27}{10}, \frac{9}{10}\right)$。
+                    </p>
 
-            <p>3. 使用定比分点公式计算点 $M$ 的坐标：
-               <br>• 设点 $M$ 的坐标为 $(x_M, y_M)$。M 分线段 BA ( $B=(0,0)$, $A=(3,1)$ ) 的比为 $\lambda=9$。
-                 \[ M = \frac{1 \cdot B + \lambda \cdot A}{1 + \lambda} = \frac{1 \cdot (0,0) + 9 \cdot (3,1)}{1 + 9} \]
-                 \[ M = \frac{(0,0) + (27,9)}{10} = \left(\frac{27}{10}, \frac{9}{10}\right) \]
-               <br>• 所以，交点 $M$ 的坐标为 $\left(\frac{27}{10}, \frac{9}{10}\right)$。
-            </p>
+                    <p>4. 利用中点 M 计算对称点 $C'$：
+                       <br>• 点 $M$ 是线段 $CC'$ 的中点， $C=(3,0)$，设 $C'=(x', y')$。
+                       <br>• 根据中点坐标公式 $M = \left(\frac{x_C + x'}{2}, \frac{y_C + y'}{2}\right)$，我们有：
+                         \[ C' = 2M - C \]
+                       <br>• 代入 $M$ 和 $C$ 的坐标：
+                         \[ C' = 2 \cdot \left(\frac{27}{10}, \frac{9}{10}\right) - (3, 0) \]
+                         \[ C' = \left(\frac{54}{10}, \frac{18}{10}\right) - (3, 0) \]
+                         \[ C' = \left(\frac{27}{5}, \frac{9}{5}\right) - \left(\frac{15}{5}, 0\right) \]
+                         \[ C' = \left(\frac{27-15}{5}, \frac{9}{5}-0\right) = \left(\frac{12}{5}, \frac{9}{5}\right) \]
+                    </p>
 
-            <p>4. 利用中点 M 计算对称点 $C'$：
-               <br>• 点 $M$ 是线段 $CC'$ 的中点， $C=(3,0)$，设 $C'=(x', y')$。
-               <br>• 根据中点坐标公式 $M = \left(\frac{x_C + x'}{2}, \frac{y_C + y'}{2}\right)$，我们有：
-                 \[ C' = 2M - C \]
-               <br>• 代入 $M$ 和 $C$ 的坐标：
-                 \[ C' = 2 \cdot \left(\frac{27}{10}, \frac{9}{10}\right) - (3, 0) \]
-                 \[ C' = \left(\frac{54}{10}, \frac{18}{10}\right) - (3, 0) \]
-                 \[ C' = \left(\frac{27}{5}, \frac{9}{5}\right) - \left(\frac{15}{5}, 0\right) \]
-                 \[ C' = \left(\frac{27-15}{5}, \frac{9}{5}-0\right) = \left(\frac{12}{5}, \frac{9}{5}\right) \]
-            </p>
+                    <p>5. 得到 $C'$ 的坐标：
+                       <br>• 对称点 $C'$ 的坐标为 $\left(\frac{12}{5}, \frac{9}{5}\right)$。
+                    </p>
+                </div>
 
-            <p>5. 得到 $C'$ 的坐标：
-               <br>• 对称点 $C'$ 的坐标为 $\left(\frac{12}{5}, \frac{9}{5}\right)$。
-            </p>
-        </div>
-
-        <div class="hint">
-            <p>要点：</p>
-            <ul>
-                <li>利用点到线段两端点距离的平方比确定垂足在线段上的分点比例。</li>
-                <li>应用定比分点公式 $P = \frac{1 \cdot P_1 + \lambda \cdot P_2}{1 + \lambda}$ 求出垂足 $M$ 的坐标，其中 $\lambda$ 是 $P$ 分线段 $P_1P_2$ 的比 $\vec{P_1P} = \lambda \vec{PP_2}$，或者 $P$ 分线段 $P_2P_1$ 的比 $\vec{P_2P} = \lambda \vec{PP_1}$。</li>
-                <li>本例中 $M$ 分线段 $BA$ 的比为 $9:1$，$\lambda=9$。</li>
-                <li>利用中点坐标公式 $C' = 2M - C$ 求得对称点 $C'$。</li>
-            </ul>
+                <div class="hint">
+                    <p>要点：</p>
+                    <ul>
+                        <li>利用点到线段两端点距离的平方比确定垂足在线段上的分点比例。</li>
+                        <li>应用定比分点公式 $P = \frac{1 \cdot P_1 + \lambda \cdot P_2}{1 + \lambda}$ 求出垂足 $M$ 的坐标，其中 $\lambda$ 是 $P$ 分线段 $P_1P_2$ 的比 $\vec{P_1P} = \lambda \vec{PP_2}$，或者 $P$ 分线段 $P_2P_1$ 的比 $\vec{P_2P} = \lambda \vec{PP_1}$。</li>
+                        <li>本例中 $M$ 分线段 $BA$ 的比为 $9:1$，$\lambda=9$。</li>
+                        <li>利用中点坐标公式 $C' = 2M - C$ 求得对称点 $C'$。</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // 设置中心点和缩放比例
-        const svgWidth = 800;
-        const svgHeight = 600;
-        const centerX = svgWidth / 2 - 50; // Adjust center for better view
-        const centerY = svgHeight / 2 + 50; // Adjust center for better view
-        let scale = 60; // 每个单位对应的像素数, Increased default scale
+        // 设置变量
+        let svgWidth = 800;
+        let svgHeight = 600;
+        let centerX = svgWidth / 2;
+        let centerY = svgHeight / 2;
+        let scale = 60;
 
         // 坐标点（数学坐标系中）
         const pointB = {x: 0, y: 0}; // zB = 0
@@ -136,38 +272,52 @@
             const svg = document.getElementById('coordinate-system');
             svg.innerHTML = ''; // 清空已有内容
 
+            // 更新SVG尺寸
+            const container = document.querySelector('.content-left');
+            svgWidth = container.offsetWidth - 40; // 减去padding
+            svgHeight = Math.max(container.offsetHeight - 80, 400); // 减去controls高度和padding
+            
+            svg.setAttribute('width', svgWidth);
+            svg.setAttribute('height', svgHeight);
+            
+            centerX = svgWidth / 2;
+            centerY = svgHeight / 2;
+
             // 计算可见范围（单位）
+            const margin = 2; // 边距单位
             const visibleWidth = svgWidth / scale;
             const visibleHeight = svgHeight / scale;
-            const xMin = -centerX / scale;
-            const xMax = (svgWidth - centerX) / scale;
-            const yMin = -(svgHeight - centerY) / scale;
-            const yMax = centerY / scale;
+            const xMin = Math.floor(-visibleWidth / 2) - margin;
+            const xMax = Math.ceil(visibleWidth / 2) + margin;
+            const yMin = Math.floor(-visibleHeight / 2) - margin;
+            const yMax = Math.ceil(visibleHeight / 2) + margin;
 
             // 绘制网格线
             const gridGroup = createSVGElement('g');
             gridGroup.setAttribute('stroke', '#eee');
-            gridGroup.setAttribute('stroke-width', '1');
+            gridGroup.setAttribute('stroke-width', '0.5');
 
             // 横向网格线
-            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+            for (let y = yMin; y <= yMax; y++) {
                 if (y === 0) continue; // 坐标轴单独绘制
                 const line = createSVGElement('line');
                 line.setAttribute('x1', toSvgX(xMin));
                 line.setAttribute('y1', toSvgY(y));
                 line.setAttribute('x2', toSvgX(xMax));
                 line.setAttribute('y2', toSvgY(y));
+                line.setAttribute('vector-effect', 'non-scaling-stroke');
                 gridGroup.appendChild(line);
             }
 
             // 纵向网格线
-            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+            for (let x = xMin; x <= xMax; x++) {
                 if (x === 0) continue; // 坐标轴单独绘制
                 const line = createSVGElement('line');
                 line.setAttribute('x1', toSvgX(x));
                 line.setAttribute('y1', toSvgY(yMin));
                 line.setAttribute('x2', toSvgX(x));
                 line.setAttribute('y2', toSvgY(yMax));
+                line.setAttribute('vector-effect', 'non-scaling-stroke');
                 gridGroup.appendChild(line);
             }
 
@@ -175,8 +325,8 @@
 
             // 绘制坐标轴
             const axisGroup = createSVGElement('g');
-            axisGroup.setAttribute('stroke', '#999');
-            axisGroup.setAttribute('stroke-width', '1');
+            axisGroup.setAttribute('stroke', '#000');
+            axisGroup.setAttribute('stroke-width', '1.5');
 
             // x轴
             const xAxis = createSVGElement('line');
@@ -184,6 +334,7 @@
             xAxis.setAttribute('y1', toSvgY(0));
             xAxis.setAttribute('x2', toSvgX(xMax));
             xAxis.setAttribute('y2', toSvgY(0));
+            xAxis.setAttribute('vector-effect', 'non-scaling-stroke');
             axisGroup.appendChild(xAxis);
 
             // y轴
@@ -192,16 +343,19 @@
             yAxis.setAttribute('y1', toSvgY(yMin));
             yAxis.setAttribute('x2', toSvgX(0));
             yAxis.setAttribute('y2', toSvgY(yMax));
+            yAxis.setAttribute('vector-effect', 'non-scaling-stroke');
             axisGroup.appendChild(yAxis);
 
             svg.appendChild(axisGroup);
 
             // 绘制刻度标签
             const labelsGroup = createSVGElement('g');
-            labelsGroup.setAttribute('font-size', '12');
+            labelsGroup.setAttribute('font-size', '14');
+            labelsGroup.setAttribute('font-family', 'Arial');
+            labelsGroup.setAttribute('fill', '#666');
 
             // x轴刻度标签
-            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+            for (let x = xMin; x <= xMax; x++) {
                 if (x === 0) continue;
                 const text = createSVGElement('text');
                 text.setAttribute('x', toSvgX(x));
@@ -212,7 +366,7 @@
             }
 
             // y轴刻度标签
-            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+            for (let y = yMin; y <= yMax; y++) {
                 if (y === 0) continue;
                 const text = createSVGElement('text');
                 text.setAttribute('x', toSvgX(0) - 10);
@@ -232,9 +386,7 @@
             svg.appendChild(labelsGroup);
 
             // 绘制图形元素
-            const mainGroup = createSVGElement('g');
-            mainGroup.setAttribute('stroke', '#000');
-            mainGroup.setAttribute('stroke-width', '2');
+            const shapeGroup = createSVGElement('g');
 
             // 直线 AB (作为对称轴，可以画长一点)
             const lineAB = createSVGElement('line');
@@ -249,9 +401,11 @@
             lineAB.setAttribute('y1', toSvgY(pointB.y - unitDy * ext));
             lineAB.setAttribute('x2', toSvgX(pointA.x + unitDx * ext));
             lineAB.setAttribute('y2', toSvgY(pointA.y + unitDy * ext));
-            lineAB.setAttribute('stroke', '#666'); // Lighter color for axis
+            lineAB.setAttribute('stroke', '#2196F3'); // Blue for symmetry axis
+            lineAB.setAttribute('stroke-width', '2');
             lineAB.setAttribute('stroke-dasharray', '4,4'); // Dashed line for axis
-            mainGroup.appendChild(lineAB);
+            lineAB.setAttribute('vector-effect', 'non-scaling-stroke');
+            shapeGroup.appendChild(lineAB);
 
             // 线段 BC
             const lineBC = createSVGElement('line');
@@ -259,7 +413,10 @@
             lineBC.setAttribute('y1', toSvgY(pointB.y));
             lineBC.setAttribute('x2', toSvgX(pointC.x));
             lineBC.setAttribute('y2', toSvgY(pointC.y));
-            mainGroup.appendChild(lineBC);
+            lineBC.setAttribute('stroke', '#2196F3');
+            lineBC.setAttribute('stroke-width', '2');
+            lineBC.setAttribute('vector-effect', 'non-scaling-stroke');
+            shapeGroup.appendChild(lineBC);
 
             // 线段 AC
             const lineAC = createSVGElement('line');
@@ -267,7 +424,10 @@
             lineAC.setAttribute('y1', toSvgY(pointA.y));
             lineAC.setAttribute('x2', toSvgX(pointC.x));
             lineAC.setAttribute('y2', toSvgY(pointC.y));
-            mainGroup.appendChild(lineAC);
+            lineAC.setAttribute('stroke', '#2196F3');
+            lineAC.setAttribute('stroke-width', '2');
+            lineAC.setAttribute('vector-effect', 'non-scaling-stroke');
+            shapeGroup.appendChild(lineAC);
 
              // 线段 AC'
             const lineACPrime = createSVGElement('line');
@@ -275,7 +435,10 @@
             lineACPrime.setAttribute('y1', toSvgY(pointA.y));
             lineACPrime.setAttribute('x2', toSvgX(pointCPrime.x));
             lineACPrime.setAttribute('y2', toSvgY(pointCPrime.y));
-            mainGroup.appendChild(lineACPrime);
+            lineACPrime.setAttribute('stroke', '#2196F3');
+            lineACPrime.setAttribute('stroke-width', '2');
+            lineACPrime.setAttribute('vector-effect', 'non-scaling-stroke');
+            shapeGroup.appendChild(lineACPrime);
 
              // 线段 BC'
             const lineBCPrime = createSVGElement('line');
@@ -283,23 +446,25 @@
             lineBCPrime.setAttribute('y1', toSvgY(pointB.y));
             lineBCPrime.setAttribute('x2', toSvgX(pointCPrime.x));
             lineBCPrime.setAttribute('y2', toSvgY(pointCPrime.y));
-            mainGroup.appendChild(lineBCPrime);
+            lineBCPrime.setAttribute('stroke', '#2196F3');
+            lineBCPrime.setAttribute('stroke-width', '2');
+            lineBCPrime.setAttribute('vector-effect', 'non-scaling-stroke');
+            shapeGroup.appendChild(lineBCPrime);
 
-            svg.appendChild(mainGroup);
+            svg.appendChild(shapeGroup);
 
             // 绘制垂线 CC'
             const perpGroup = createSVGElement('g');
-            perpGroup.setAttribute('stroke', '#cc0000'); // Red color for reflection line
-            perpGroup.setAttribute('stroke-width', '1');
-            perpGroup.setAttribute('stroke-dasharray', '3,3');
-
             const lineCCPrime = createSVGElement('line');
             lineCCPrime.setAttribute('x1', toSvgX(pointC.x));
             lineCCPrime.setAttribute('y1', toSvgY(pointC.y));
             lineCCPrime.setAttribute('x2', toSvgX(pointCPrime.x));
             lineCCPrime.setAttribute('y2', toSvgY(pointCPrime.y));
+            lineCCPrime.setAttribute('stroke', '#ff4444'); // Red for reflection line
+            lineCCPrime.setAttribute('stroke-width', '2');
+            lineCCPrime.setAttribute('stroke-dasharray', '3,3');
+            lineCCPrime.setAttribute('vector-effect', 'non-scaling-stroke');
             perpGroup.appendChild(lineCCPrime);
-
             svg.appendChild(perpGroup);
 
             // 绘制点
@@ -309,60 +474,62 @@
             const circleB = createSVGElement('circle');
             circleB.setAttribute('cx', toSvgX(pointB.x));
             circleB.setAttribute('cy', toSvgY(pointB.y));
-            circleB.setAttribute('r', '5');
-            circleB.setAttribute('fill', 'blue');
+            circleB.setAttribute('r', '6');
+            circleB.setAttribute('fill', '#4CAF50');
             pointsGroup.appendChild(circleB);
 
             // 点 C
             const circleC = createSVGElement('circle');
             circleC.setAttribute('cx', toSvgX(pointC.x));
             circleC.setAttribute('cy', toSvgY(pointC.y));
-            circleC.setAttribute('r', '5');
-            circleC.setAttribute('fill', 'blue');
+            circleC.setAttribute('r', '6');
+            circleC.setAttribute('fill', '#4CAF50');
             pointsGroup.appendChild(circleC);
 
             // 点 A
             const circleA = createSVGElement('circle');
             circleA.setAttribute('cx', toSvgX(pointA.x));
             circleA.setAttribute('cy', toSvgY(pointA.y));
-            circleA.setAttribute('r', '5');
-            circleA.setAttribute('fill', 'blue');
+            circleA.setAttribute('r', '6');
+            circleA.setAttribute('fill', '#4CAF50');
             pointsGroup.appendChild(circleA);
 
             // 点 M (交点)
             const circleM = createSVGElement('circle');
             circleM.setAttribute('cx', toSvgX(pointM.x));
             circleM.setAttribute('cy', toSvgY(pointM.y));
-            circleM.setAttribute('r', '3');
-            circleM.setAttribute('fill', 'green');
+            circleM.setAttribute('r', '4');
+            circleM.setAttribute('fill', '#4CAF50');
             pointsGroup.appendChild(circleM);
 
             // 点 C' (对称点)
             const circleCPrime = createSVGElement('circle');
             circleCPrime.setAttribute('cx', toSvgX(pointCPrime.x));
             circleCPrime.setAttribute('cy', toSvgY(pointCPrime.y));
-            circleCPrime.setAttribute('r', '5');
-            circleCPrime.setAttribute('fill', 'magenta'); // Different color for C'
+            circleCPrime.setAttribute('r', '6');
+            circleCPrime.setAttribute('fill', '#ff4444'); // Different color for C'
             pointsGroup.appendChild(circleCPrime);
 
             svg.appendChild(pointsGroup);
 
             // 标记点
             const markersGroup = createSVGElement('g');
-            markersGroup.setAttribute('font-size', '14'); // Slightly larger font
-            markersGroup.setAttribute('fill', '#333'); // Darker text
+            markersGroup.setAttribute('font-size', '14');
+            markersGroup.setAttribute('font-family', 'Arial');
+            markersGroup.setAttribute('font-weight', 'bold');
+            markersGroup.setAttribute('fill', '#666');
 
             // 标记 B
             const textB = createSVGElement('text');
-            textB.setAttribute('x', toSvgX(pointB.x) - 25); // Adjusted position
-            textB.setAttribute('y', toSvgY(pointB.y) + 15); // Adjusted position
+            textB.setAttribute('x', toSvgX(pointB.x) - 25);
+            textB.setAttribute('y', toSvgY(pointB.y) + 15);
             textB.textContent = 'B(0,0)';
             markersGroup.appendChild(textB);
 
             // 标记 C
             const textC = createSVGElement('text');
             textC.setAttribute('x', toSvgX(pointC.x) + 10);
-            textC.setAttribute('y', toSvgY(pointC.y) + 20); // Adjusted position
+            textC.setAttribute('y', toSvgY(pointC.y) + 20);
             textC.textContent = 'C(3,0)';
             markersGroup.appendChild(textC);
 
@@ -378,18 +545,18 @@
             textM.setAttribute('x', toSvgX(pointM.x) + 8);
             textM.setAttribute('y', toSvgY(pointM.y) - 8);
             textM.textContent = 'M';
-            textM.setAttribute('fill', 'green');
+            textM.setAttribute('fill', '#4CAF50');
             markersGroup.appendChild(textM);
 
             // 标记 C'
             const textCPrime = createSVGElement('text');
             textCPrime.setAttribute('x', toSvgX(pointCPrime.x) + 5);
-            textCPrime.setAttribute('y', toSvgY(pointCPrime.y) - 15); // Adjusted position
+            textCPrime.setAttribute('y', toSvgY(pointCPrime.y) - 15);
             // Display C' coordinates as fractions
             const cPrimeXText = '12/5';
             const cPrimeYText = '9/5';
             textCPrime.textContent = `C'(${cPrimeXText},${cPrimeYText})`;
-            textCPrime.setAttribute('fill', 'magenta');
+            textCPrime.setAttribute('fill', '#ff4444');
             markersGroup.appendChild(textCPrime);
 
             svg.appendChild(markersGroup);
@@ -401,6 +568,38 @@
             document.getElementById('scaleValue').textContent = scale;
             drawCoordinateSystem();
         });
+
+        // 监听窗口大小变化
+        window.addEventListener('resize', function() {
+            drawCoordinateSystem();
+        });
+
+        // 拖拽手柄JS
+        (function() {
+            const handle = document.querySelector('.handle');
+            const left = document.querySelector('.content-left');
+            const right = document.querySelector('.content-right');
+            let dragging = false;
+            handle.addEventListener('mousedown', function(e) {
+                dragging = true;
+                document.body.style.cursor = 'col-resize';
+            });
+            document.addEventListener('mousemove', function(e) {
+                if (!dragging) return;
+                const container = document.querySelector('.container');
+                const rect = container.getBoundingClientRect();
+                let percent = (e.clientX - rect.left) / rect.width;
+                percent = Math.max(0.15, Math.min(0.85, percent));
+                left.style.width = (percent * 100) + '%';
+                right.style.width = ((1 - percent) * 100) + '%';
+            });
+            document.addEventListener('mouseup', function() {
+                if (dragging) {
+                    dragging = false;
+                    document.body.style.cursor = '';
+                }
+            });
+        })();
 
         // 初始化绘图
         drawCoordinateSystem();

@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>点关于直线的对称点07向量分解法</title>
+    <title>点关于直线的对称点13相似面积法</title>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -155,7 +155,7 @@
     </style>
     <!-- 添加MathJax支持 -->
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script id="MathJax-script" async src="./mathjax/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src=".\\mathjax\\mathjax\\es5\\tex-mml-chtml.js"></script>
     <script>
         window.MathJax = {
             tex: {
@@ -184,50 +184,41 @@
             </div>
 
             <div class="solution">
-                <h3>向量分解法解题</h3>
-                <p class="reference">方法参考自 Bilibili 视频：<a href="https://www.bilibili.com/video/BV1FF4m1c7jE?t=13.6" target="_blank">https://www.bilibili.com/video/BV1FF4m1c7jE?t=13.6</a></p>
-
+                <h3>相似三角形面积法解题</h3>
                 <div class="step">
-                    <p>1. 定义相关点和向量：
-                       <br>• 点 $B = (0,0)$，$A = (3,1)$，$C = (3,0)$。
-                       <br>• 直线 $AB$ 的方向向量 $\vec{v} = \vec{BA} = A - B = (3, 1)$。
-                       <br>• 从直线外一点 $C$ 到直线上一点 $B$ 的向量 $\vec{u} = \vec{BC} = C - B = (3, 0)$。
-                       <br>• 设 $C$ 在直线 $AB$ 上的投影点为 $M$，对称点为 $C'$。</p>
-
-                    <p>2. 将向量 $\vec{u}$ 分解为平行于 $\vec{v}$ 和垂直于 $\vec{v}$ 的分量：
-                       <br>• 平行分量 $\vec{u}_{\parallel} = \text{proj}_{\vec{v}} \vec{u} = \frac{\vec{u} \cdot \vec{v}}{\|\vec{v}\|^2} \vec{v}$。
-                       <br>• $\vec{u} \cdot \vec{v} = (3)(3) + (0)(1) = 9$。
-                       <br>• $\|\vec{v}\|^2 = 3^2 + 1^2 = 10$。
-                       <br>• $\vec{u}_{\parallel} = \frac{9}{10} \vec{v} = \frac{9}{10} (3, 1) = (\frac{27}{10}, \frac{9}{10})$。
-                       <br>• 这个平行分量实际上就是向量 $\vec{BM}$，所以投影点 $M = B + \vec{u}_{\parallel} = (0,0) + (\frac{27}{10}, \frac{9}{10}) = (\frac{27}{10}, \frac{9}{10})$。
-                       <br>• 垂直分量 $\vec{u}_{\perp} = \vec{u} - \vec{u}_{\parallel} = \vec{BC} - \vec{BM} = \vec{MC}$。
-                       <br>• $\vec{MC} = (3, 0) - (\frac{27}{10}, \frac{9}{10}) = (\frac{30-27}{10}, \frac{0-9}{10}) = (\frac{3}{10}, -\frac{9}{10})$。
-                       <br>• 注意，这里算的是 $\vec{MC}$，而我们需要的是 $\vec{CM}$ 用于求 $C'$。 $\vec{CM} = -\vec{MC} = (-\frac{3}{10}, \frac{9}{10})$。
+                    <p>1. 分析题目条件：
+                       <br>• 已知点 $B(0,0)$，$C(3,0)$，$A(3,1)$
+                       <br>• 求点 $C$ 关于直线 $AB$ 的对称点 $C'$
                     </p>
 
-                    <p>3. 利用对称性求 $C'$：
-                       <br>• 对称点 $C'$ 满足 $\vec{BC'} = \vec{BM} + \vec{MC'}$。
-                       <br>• 由于对称性，$\vec{MC'} = \vec{CM} = (-\frac{3}{10}, \frac{9}{10})$。
-                       <br>• $\vec{BC'} = \vec{BM} + \vec{CM} = (\frac{27}{10}, \frac{9}{10}) + (-\frac{3}{10}, \frac{9}{10})$
-                       <br>• $\vec{BC'} = (\frac{27-3}{10}, \frac{9+9}{10}) = (\frac{24}{10}, \frac{18}{10}) = (\frac{12}{5}, \frac{9}{5})$。
-                       <br>• 因为 $B$ 是原点，所以 $C'$ 的坐标就是向量 $\vec{BC'}$ 的分量。
-                       <br>• 或者，直接用 $C' = M + \vec{MC'} = M + \vec{CM} = (\frac{27}{10}, \frac{9}{10}) + (-\frac{3}{10}, \frac{9}{10}) = (\frac{24}{10}, \frac{18}{10}) = (\frac{12}{5}, \frac{9}{5})$。
-                       <br>• 另一种理解：$\vec{CC'} = 2 \vec{CM} = 2(-\frac{3}{10}, \frac{9}{10}) = (-\frac{6}{10}, \frac{18}{10}) = (-\frac{3}{5}, \frac{9}{5})$。
-                       <br>• $C' = C + \vec{CC'} = (3, 0) + (-\frac{3}{5}, \frac{9}{5}) = (3 - \frac{3}{5}, 0 + \frac{9}{5}) = (\frac{15-3}{5}, \frac{9}{5}) = (\frac{12}{5}, \frac{9}{5})$。
+                    <p>2. 利用面积法的关键性质：
+                        <br>• 构造等腰三角形：$\triangle COC'$ 和 $\triangle AOA'$，其中 $O$ 为原点
+                        <br>• 这两个等腰三角形相似，且 $\triangle COC' \sim \triangle AOA'$，相似比为 $3 : \sqrt{10}$
+                        <br>• 由等腰三角形性质可知：$OC = OC'$，$OA = OA'$
+                        <br>• 由相似比可知面积比为 $9 : 10$（相似比的平方）
                     </p>
 
-                    <p>4. 结论：
-                       <br>• 对称点 $C'$ 的坐标为 $(\frac{12}{5}, \frac{9}{5})$。</p>
+                    <p>3. 建立面积关系：
+                        <br>• $S_{\triangle COC'} : S_{\triangle AOA'} = 9 : 10$
+                        <br>• 设 $\triangle COC'$ 的面积为 $9k$，则 $\triangle AOA'$ 的面积为 $10k$
+                        <br>• 由面积公式：$S_{\triangle COC'} = \frac{1}{2} \cdot CC' \cdot h = \frac{1}{2} \cdot 6 \cdot h = 9k$
+                        <br>• 解得：$h = 3k$
+                        <br>• 同理，$\triangle AOA'$ 的高为 $\frac{10k}{3}$
+                    </p>
+
+                    <p>4. 求解坐标：
+                        <br>• 由面积比 $9 : 10$ 得到：$k = \frac{1}{5}$
+                        <br>• 代入得：$h = \frac{9}{5}$
+                        <br>• 由此可得对称点 $C'$ 的坐标为 $(\frac{12}{5}, \frac{9}{5})$
+                    </p>
                 </div>
 
                 <div class="hint">
-                    <p>要点：</p>
+                    <p>解题要点：</p>
                     <ul>
-                        <li>将连接点到直线的向量 $\vec{BC}$ 分解为平行和垂直于直线方向向量 $\vec{v}$ 的分量。</li>
-                        <li>平行分量 $\vec{BM}$ 通过投影公式 $\frac{\vec{u} \cdot \vec{v}}{\|\vec{v}\|^2} \vec{v}$ 计算，它直接给出了投影点 $M$ (因为 $B$ 是原点)。</li>
-                        <li>垂直分量 $\vec{MC} = \vec{u} - \vec{u}_{\parallel}$。</li>
-                        <li>利用对称性 $\vec{MC'} = \vec{CM} = -\vec{MC}$。</li>
-                        <li>通过向量加法 $C' = M + \vec{MC'}$ 或 $C' = C + 2\vec{CM}$ 求得对称点。</li>
+                        <li>利用对称点的性质：对称点到对称轴的距离相等</li>
+                        <li>利用相似三角形的面积比关系</li>
+                        <li>通过面积等式求解对称点的坐标</li>
                     </ul>
                 </div>
             </div>
@@ -246,6 +237,7 @@
         const pointA = {x: 3, y: 1};
         const pointM = {x: 27/10, y: 9/10};
         const pointCPrime = {x: 12/5, y: 9/5};
+        const pointAPrime = {x: 3, y: -1};
         function toSvgX(x) { return centerX + x * scale; }
         function toSvgY(y) { return centerY - y * scale; }
         function createSVGElement(tag) { return document.createElementNS("http://www.w3.org/2000/svg", tag); }
@@ -331,6 +323,24 @@
             const mainGroup = createSVGElement('g');
             mainGroup.setAttribute('stroke', '#000');
             mainGroup.setAttribute('stroke-width', '2');
+
+            // 绘制等腰三角形 COC'（使用蓝色半透明填充）
+            const triangleCOCPrime = createSVGElement('path');
+            triangleCOCPrime.setAttribute('d', `M ${toSvgX(pointC.x)} ${toSvgY(pointC.y)} L ${toSvgX(pointB.x)} ${toSvgY(pointB.y)} L ${toSvgX(pointCPrime.x)} ${toSvgY(pointCPrime.y)} Z`);
+            triangleCOCPrime.setAttribute('fill', 'rgba(33, 150, 243, 0.1)');
+            triangleCOCPrime.setAttribute('stroke', '#2196F3');
+            triangleCOCPrime.setAttribute('vector-effect', 'non-scaling-stroke');
+            mainGroup.appendChild(triangleCOCPrime);
+
+            // 绘制等腰三角形 AOA'（使用绿色半透明填充）
+            const triangleAOAPrime = createSVGElement('path');
+            triangleAOAPrime.setAttribute('d', `M ${toSvgX(pointA.x)} ${toSvgY(pointA.y)} L ${toSvgX(pointB.x)} ${toSvgY(pointB.y)} L ${toSvgX(pointAPrime.x)} ${toSvgY(pointAPrime.y)} Z`);
+            triangleAOAPrime.setAttribute('fill', 'rgba(76, 175, 80, 0.1)');
+            triangleAOAPrime.setAttribute('stroke', '#4CAF50');
+            triangleAOAPrime.setAttribute('vector-effect', 'non-scaling-stroke');
+            mainGroup.appendChild(triangleAOAPrime);
+
+            // 原有的线段绘制
             const lineAB = createSVGElement('line');
             const ext = 10;
             const dx = pointA.x - pointB.x; const dy = pointA.y - pointB.y;
@@ -396,6 +406,12 @@
             circleCPrime.setAttribute('cx', toSvgX(pointCPrime.x)); circleCPrime.setAttribute('cy', toSvgY(pointCPrime.y));
             circleCPrime.setAttribute('r', '6'); circleCPrime.setAttribute('fill', '#ff4444');
             pointsGroup.appendChild(circleCPrime);
+            const circleAPrime = createSVGElement('circle');
+            circleAPrime.setAttribute('cx', toSvgX(pointAPrime.x));
+            circleAPrime.setAttribute('cy', toSvgY(pointAPrime.y));
+            circleAPrime.setAttribute('r', '6');
+            circleAPrime.setAttribute('fill', '#4CAF50');
+            pointsGroup.appendChild(circleAPrime);
             svg.appendChild(pointsGroup);
             const markersGroup = createSVGElement('g');
             markersGroup.setAttribute('font-size', '14'); markersGroup.setAttribute('fill', '#666');
@@ -413,6 +429,11 @@
             textA.setAttribute('x', toSvgX(pointA.x) + 10); textA.setAttribute('y', toSvgY(pointA.y) - 10);
             textA.textContent = 'A(3,1)';
             markersGroup.appendChild(textA);
+            const textAPrime = createSVGElement('text');
+            textAPrime.setAttribute('x', toSvgX(pointAPrime.x) + 10);
+            textAPrime.setAttribute('y', toSvgY(pointAPrime.y) + 20);
+            textAPrime.textContent = "A'(3,-1)";
+            markersGroup.appendChild(textAPrime);
             const textM = createSVGElement('text');
             textM.setAttribute('x', toSvgX(pointM.x) + 8); textM.setAttribute('y', toSvgY(pointM.y) - 8);
             textM.textContent = 'M'; textM.setAttribute('fill', '#4CAF50');

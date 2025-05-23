@@ -52,8 +52,9 @@
             border: 1px solid #ddd; 
             display: block;
             width: 100%;
-            height: 100%;
+            height: auto;
             min-height: 400px;
+            max-width: 100%;
         }
         .step { margin: 10px 0; }
         .hint { color: #0066cc; font-style: italic; }
@@ -303,31 +304,7 @@
             circle.setAttribute('fill', 'none');
             shapeGroup.appendChild(circle);
 
-            // 绘制参数角度（从0度到A点的角度）
-            const arcPath = createSVGElement('path');
-            const arcRadius = scale * 1; // 弧的半径为1个单位
-            const startX = toSvgX(arcRadius);
-            const startY = toSvgY(0);
-            const endX = toSvgX(arcRadius * Math.cos(parameterT));
-            const endY = toSvgY(arcRadius * Math.sin(parameterT));
-            const largeArcFlag = parameterT > Math.PI ? 1 : 0;
-            
-            arcPath.setAttribute('d', `M ${startX} ${startY} A ${arcRadius} ${arcRadius} 0 ${largeArcFlag} 1 ${endX} ${endY}`);
-            arcPath.setAttribute('stroke', '#9C27B0');
-            arcPath.setAttribute('stroke-width', '2');
-            arcPath.setAttribute('fill', 'none');
-            shapeGroup.appendChild(arcPath);
 
-            // 绘制角度标记t
-            const angleTextX = toSvgX(arcRadius * Math.cos(parameterT / 2) * 0.8);
-            const angleTextY = toSvgY(arcRadius * Math.sin(parameterT / 2) * 0.8);
-            const angleText = createSVGElement('text');
-            angleText.setAttribute('x', angleTextX);
-            angleText.setAttribute('y', angleTextY);
-            angleText.setAttribute('fill', '#9C27B0');
-            angleText.setAttribute('font-weight', 'bold');
-            angleText.textContent = 't ≈ 0.64';
-            markersGroup.appendChild(angleText);
 
             // 绘制半径OA
             const radiusLine = createSVGElement('line');
@@ -467,27 +444,46 @@
         });
 
         // 监听窗口大小变化
-        window.addEventListener('resize', function() {
+        function updateSvgSizeAndCenter() {
             const svg = document.getElementById('coordinate-system');
             const container = document.querySelector('.content-left');
-            svgWidth = container.offsetWidth - 40;
-            svgHeight = Math.max(container.offsetHeight - 80, 400);
+            const controls = document.getElementById('controls');
+            
+            // 获取容器实际可用尺寸，减去padding和controls的高度
+            svgWidth = container.offsetWidth - 40; // 减去左右padding
+            svgHeight = Math.max(container.offsetHeight - controls.offsetHeight - 40, 400); // 减去上下padding和控件高度
             
             svg.setAttribute('width', svgWidth);
             svg.setAttribute('height', svgHeight);
             
-            // 更新中心点
+            // 确保坐标原点居中
             centerX = svgWidth / 2;
             centerY = svgHeight / 2;
-            
+        }
+
+        window.addEventListener('resize', function() {
+            updateSvgSizeAndCenter();
             drawCoordinateSystem();
         });
-        
-        // 初始化绘图
-        drawCoordinateSystem();
 
-        // 初始化时触发一次resize事件以调整SVG大小
-        window.dispatchEvent(new Event('resize'));
+        // 页面加载完成后初始化
+        window.addEventListener('load', function() {
+            updateSvgSizeAndCenter();
+            drawCoordinateSystem();
+        });
+
+        // 立即初始化（防止load事件延迟）
+        document.addEventListener('DOMContentLoaded', function() {
+            // 延迟一点时间确保DOM完全渲染
+            setTimeout(function() {
+                updateSvgSizeAndCenter();
+                drawCoordinateSystem();
+            }, 100);
+        });
+
+        // 初始化绘图
+        updateSvgSizeAndCenter();
+        drawCoordinateSystem();
     </script>
 </body>
 </html> 

@@ -4,17 +4,93 @@
     <meta charset="UTF-8">
     <title>求解 tan∠BAC之03行列式</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .problem { margin-bottom: 20px; }
-        .solution { margin-top: 20px; }
-        svg { 
-            border: 1px solid #ddd; 
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* 左右分栏布局 */
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 左栏 - 图形区域 */
+        .content-left {
+            width: 50%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: #f9f9f9;
+            overflow-y: auto;
+        }
+        
+        /* 右栏 - 解题区域 */
+        .content-right {
+            width: 50%;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: white;
+            border-left: 1px solid #ddd;
+        }
+        
+        .problem { 
+            margin-bottom: 20px; 
+        }
+        
+        .problem h2 {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .solution { 
+            margin-top: 20px; 
+        }
+        
+        .solution h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        svg {
+            border: 1px solid #ddd;
             display: block;
             margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .step { margin: 10px 0; }
-        .hint { color: #0066cc; font-style: italic; }
-        .math { font-style: italic; }
+        
+        .step { 
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+        
+        .hint { 
+            color: #0066cc; 
+            font-style: italic;
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-left: 4px solid #0066cc;
+            margin: 20px 0;
+        }
+        
+        .hint ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .hint li {
+            margin: 5px 0;
+        }
+        
         .matrix {
             display: inline-block;
             vertical-align: middle;
@@ -31,12 +107,61 @@
             display: inline-block;
             vertical-align: middle;
         }
+        
         #controls {
-            margin-bottom: 10px;
-            padding: 10px;
-            background-color: #f5f5f5;
-            border-radius: 5px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #ffffff;
+            border-radius: 8px;
             text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        #controls label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        #controls input[type="range"] {
+            width: 200px;
+            margin: 0 10px;
+        }
+        
+        #scaleValue {
+            display: inline-block;
+            width: 30px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+            .content-left, .content-right {
+                width: 100%;
+                height: 50%;
+            }
+            .content-right {
+                border-left: none;
+                border-top: 1px solid #ddd;
+            }
+            .handle {
+                display: none !important;
+            }
+        }
+        /* 拖拽手柄样式 */
+        .handle {
+            width: 8px;
+            background: #ddd;
+            cursor: col-resize;
+            position: relative;
+            z-index: 10;
+            transition: background 0.2s;
+        }
+        .handle:hover {
+            background: #bbb;
         }
     </style>
     <!-- 添加MathJax支持 -->
@@ -52,60 +177,67 @@
     </script>
 </head>
 <body>
-    <div class="problem">
-        <h2>已知：$A(0,0)$，$B(6,1)$，$C(3,6)$，求解 $\tan\angle BAC$</h2>
-        
-        <div id="controls">
-            <label>坐标缩放: <input type="range" id="scale" min="20" max="100" value="25"></label>
-            <span id="scaleValue">25</span>
+    <div class="container">
+        <!-- 左栏：控制区和图形 -->
+        <div class="content-left">
+            <div id="controls">
+                <label>坐标缩放: <input type="range" id="scale" min="20" max="100" value="25"></label>
+                <span id="scaleValue">25</span>
+            </div>
+            <svg id="coordinate-system" width="100%" height="600"></svg>
         </div>
-        
-        <svg id="coordinate-system" width="800" height="600"></svg>
-    </div>
+        <div class="handle"></div>
+        <!-- 右栏：问题和解题步骤 -->
+        <div class="content-right">
+            <div class="problem">
+                <h2>已知：$A(0,0)$，$B(6,1)$，$C(3,6)$，求解 $\tan\angle BAC$</h2>
+            </div>
 
-    <div class="solution">
-        <h3>行列式法解题</h3>
-        
-        <div class="step">
-            <p>已知：$A(0,0)$，$B(6,1)$，$C(3,6)$，$D(-1,6)$</p>
-            <p>1. 构造三角形 ABC 和 ACD</p>
-            <p>2. 三角形 ABC 的面积（用行列式）：
-            $$S_{ABC} = \frac{1}{2}\begin{vmatrix} 
-            x_B-x_A & y_B-y_A \\
-            x_C-x_A & y_C-y_A
-            \end{vmatrix} = \frac{1}{2}\begin{vmatrix} 
-            6 & 1 \\
-            3 & 6
-            \end{vmatrix} = \frac{1}{2}(36-3) = \frac{33}{2}$$</p>
-            <p>3. 三角形 ACD 的面积（用行列式）：
-            $$S_{ACD} = \frac{1}{2}\begin{vmatrix} 
-            x_C-x_A & y_C-y_A \\
-            x_D-x_A & y_D-y_A
-            \end{vmatrix} = \frac{1}{2}\begin{vmatrix} 
-            3 & 6 \\
-            -1 & 6
-            \end{vmatrix} = \frac{1}{2}(18+6) = 12$$</p>
-            <p>4. 根据几何关系：$\tan\angle BAC = \frac{S_{ABC}}{S_{ACD}} = \frac{33/2}{12} = \frac{11}{8}$</p>
-        </div>
-        
-        <div class="hint">
-            <p>要点：</p>
-            <ul>
-                <li>行列式的几何意义是平行四边形的有向面积</li>
-                <li>三角形面积是平行四边形面积的一半</li>
-                <li>$\tan\angle BAC$ 等于三角形 ABC 与三角形 ACD 的面积比</li>
-                <li>点 D 是使得 ∠CAD = 90° 的点</li>
-                <li>二阶行列式计算： $\begin{vmatrix} a & b \\ c & d \end{vmatrix} = ad - bc$</li>
-            </ul>
+            <div class="solution">
+                <h3>行列式法解题</h3>
+                
+                <div class="step">
+                    <p>已知：$A(0,0)$，$B(6,1)$，$C(3,6)$，$D(-1,6)$</p>
+                    <p>1. 构造三角形 ABC 和 ACD</p>
+                    <p>2. 三角形 ABC 的面积（用行列式）：
+                    $$S_{ABC} = \frac{1}{2}\begin{vmatrix} 
+                    x_B-x_A & y_B-y_A \\
+                    x_C-x_A & y_C-y_A
+                    \end{vmatrix} = \frac{1}{2}\begin{vmatrix} 
+                    6 & 1 \\
+                    3 & 6
+                    \end{vmatrix} = \frac{1}{2}(36-3) = \frac{33}{2}$$</p>
+                    <p>3. 三角形 ACD 的面积（用行列式）：
+                    $$S_{ACD} = \frac{1}{2}\begin{vmatrix} 
+                    x_C-x_A & y_C-y_A \\
+                    x_D-x_A & y_D-y_A
+                    \end{vmatrix} = \frac{1}{2}\begin{vmatrix} 
+                    3 & 6 \\
+                    -1 & 6
+                    \end{vmatrix} = \frac{1}{2}(18+6) = 12$$</p>
+                    <p>4. 根据几何关系：$\tan\angle BAC = \frac{S_{ABC}}{S_{ACD}} = \frac{33/2}{12} = \frac{11}{8}$</p>
+                </div>
+                
+                <div class="hint">
+                    <p>要点：</p>
+                    <ul>
+                        <li>行列式的几何意义是平行四边形的有向面积</li>
+                        <li>三角形面积是平行四边形面积的一半</li>
+                        <li>$\tan\angle BAC$ 等于三角形 ABC 与三角形 ACD 的面积比</li>
+                        <li>点 D 是使得 ∠CAD = 90° 的点</li>
+                        <li>二阶行列式计算： $\begin{vmatrix} a & b \\ c & d \end{vmatrix} = ad - bc$</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // 设置中心点和缩放比例
-        const svgWidth = 800;
-        const svgHeight = 600;
-        const centerX = svgWidth / 2;
-        const centerY = svgHeight / 2;
+        // 设置变量
+        let svgWidth = 800;
+        let svgHeight = 600;
+        let centerX = svgWidth / 2;
+        let centerY = svgHeight / 2;
         let scale = 25; // 每个单位对应的像素数
         
         // 坐标点（数学坐标系中）
@@ -134,38 +266,52 @@
             const svg = document.getElementById('coordinate-system');
             svg.innerHTML = ''; // 清空已有内容
             
+            // 更新SVG尺寸
+            const container = document.querySelector('.content-left');
+            svgWidth = container.offsetWidth - 40;
+            svgHeight = Math.max(container.offsetHeight - 80, 400);
+            
+            svg.setAttribute('width', svgWidth);
+            svg.setAttribute('height', svgHeight);
+            
+            centerX = svgWidth / 2;
+            centerY = svgHeight / 2;
+            
             // 计算可见范围（单位）
+            const margin = 2;
             const visibleWidth = svgWidth / scale;
             const visibleHeight = svgHeight / scale;
-            const xMin = -visibleWidth / 2;
-            const xMax = visibleWidth / 2;
-            const yMin = -visibleHeight / 2;
-            const yMax = visibleHeight / 2;
+            const xMin = Math.floor(-visibleWidth / 2) - margin;
+            const xMax = Math.ceil(visibleWidth / 2) + margin;
+            const yMin = Math.floor(-visibleHeight / 2) - margin;
+            const yMax = Math.ceil(visibleHeight / 2) + margin;
             
             // 绘制网格线
             const gridGroup = createSVGElement('g');
             gridGroup.setAttribute('stroke', '#eee');
-            gridGroup.setAttribute('stroke-width', '1');
+            gridGroup.setAttribute('stroke-width', '0.5');
             
             // 横向网格线
-            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+            for (let y = yMin; y <= yMax; y++) {
                 if (y === 0) continue; // 坐标轴单独绘制
                 const line = createSVGElement('line');
                 line.setAttribute('x1', toSvgX(xMin));
                 line.setAttribute('y1', toSvgY(y));
                 line.setAttribute('x2', toSvgX(xMax));
                 line.setAttribute('y2', toSvgY(y));
+                line.setAttribute('vector-effect', 'non-scaling-stroke');
                 gridGroup.appendChild(line);
             }
             
             // 纵向网格线
-            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+            for (let x = xMin; x <= xMax; x++) {
                 if (x === 0) continue; // 坐标轴单独绘制
                 const line = createSVGElement('line');
                 line.setAttribute('x1', toSvgX(x));
                 line.setAttribute('y1', toSvgY(yMin));
                 line.setAttribute('x2', toSvgX(x));
                 line.setAttribute('y2', toSvgY(yMax));
+                line.setAttribute('vector-effect', 'non-scaling-stroke');
                 gridGroup.appendChild(line);
             }
             
@@ -173,8 +319,8 @@
             
             // 绘制坐标轴
             const axisGroup = createSVGElement('g');
-            axisGroup.setAttribute('stroke', '#999');
-            axisGroup.setAttribute('stroke-width', '1');
+            axisGroup.setAttribute('stroke', '#000');
+            axisGroup.setAttribute('stroke-width', '1.5');
             
             // x轴
             const xAxis = createSVGElement('line');
@@ -182,6 +328,7 @@
             xAxis.setAttribute('y1', toSvgY(0));
             xAxis.setAttribute('x2', toSvgX(xMax));
             xAxis.setAttribute('y2', toSvgY(0));
+            xAxis.setAttribute('vector-effect', 'non-scaling-stroke');
             axisGroup.appendChild(xAxis);
             
             // y轴
@@ -190,16 +337,19 @@
             yAxis.setAttribute('y1', toSvgY(yMin));
             yAxis.setAttribute('x2', toSvgX(0));
             yAxis.setAttribute('y2', toSvgY(yMax));
+            yAxis.setAttribute('vector-effect', 'non-scaling-stroke');
             axisGroup.appendChild(yAxis);
             
             svg.appendChild(axisGroup);
             
             // 绘制刻度标签
             const labelsGroup = createSVGElement('g');
-            labelsGroup.setAttribute('font-size', '12');
+            labelsGroup.setAttribute('font-size', '14');
+            labelsGroup.setAttribute('font-family', 'Arial');
+            labelsGroup.setAttribute('fill', '#666');
             
             // x轴刻度标签
-            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+            for (let x = xMin; x <= xMax; x++) {
                 if (x === 0) continue;
                 const text = createSVGElement('text');
                 text.setAttribute('x', toSvgX(x));
@@ -210,7 +360,7 @@
             }
             
             // y轴刻度标签
-            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+            for (let y = yMin; y <= yMax; y++) {
                 if (y === 0) continue;
                 const text = createSVGElement('text');
                 text.setAttribute('x', toSvgX(0) - 10);
@@ -220,11 +370,19 @@
                 labelsGroup.appendChild(text);
             }
             
+            // 原点标签
+            const originText = createSVGElement('text');
+            originText.setAttribute('x', toSvgX(0) - 15);
+            originText.setAttribute('y', toSvgY(0) + 15);
+            originText.textContent = '0';
+            labelsGroup.appendChild(originText);
+            
             svg.appendChild(labelsGroup);
             
             // 绘制三角形
             const triangleGroup = createSVGElement('g');
             triangleGroup.setAttribute('stroke-width', '2');
+            triangleGroup.setAttribute('vector-effect', 'non-scaling-stroke');
             
             // 三角形 ABC - 蓝色
             const triangleABC = createSVGElement('path');
@@ -232,8 +390,8 @@
                                          L ${toSvgX(pointB.x)} ${toSvgY(pointB.y)}
                                          L ${toSvgX(pointC.x)} ${toSvgY(pointC.y)}
                                          Z`);
-            triangleABC.setAttribute('fill', 'rgba(0, 0, 255, 0.2)');
-            triangleABC.setAttribute('stroke', 'blue');
+            triangleABC.setAttribute('fill', 'rgba(33, 150, 243, 0.2)');
+            triangleABC.setAttribute('stroke', '#2196F3');
             triangleGroup.appendChild(triangleABC);
             
             // 三角形 ACD - 红色
@@ -242,8 +400,8 @@
                                          L ${toSvgX(pointC.x)} ${toSvgY(pointC.y)}
                                          L ${toSvgX(pointD.x)} ${toSvgY(pointD.y)}
                                          Z`);
-            triangleACD.setAttribute('fill', 'rgba(255, 0, 0, 0.2)');
-            triangleACD.setAttribute('stroke', 'red');
+            triangleACD.setAttribute('fill', 'rgba(244, 67, 54, 0.2)');
+            triangleACD.setAttribute('stroke', '#ff4444');
             triangleGroup.appendChild(triangleACD);
             
             svg.appendChild(triangleGroup);
@@ -255,32 +413,32 @@
             const circleA = createSVGElement('circle');
             circleA.setAttribute('cx', toSvgX(pointA.x));
             circleA.setAttribute('cy', toSvgY(pointA.y));
-            circleA.setAttribute('r', '5');
-            circleA.setAttribute('fill', 'black');
+            circleA.setAttribute('r', '6');
+            circleA.setAttribute('fill', '#4CAF50');
             pointsGroup.appendChild(circleA);
             
             // 点B
             const circleB = createSVGElement('circle');
             circleB.setAttribute('cx', toSvgX(pointB.x));
             circleB.setAttribute('cy', toSvgY(pointB.y));
-            circleB.setAttribute('r', '5');
-            circleB.setAttribute('fill', 'blue');
+            circleB.setAttribute('r', '6');
+            circleB.setAttribute('fill', '#2196F3');
             pointsGroup.appendChild(circleB);
             
             // 点C
             const circleC = createSVGElement('circle');
             circleC.setAttribute('cx', toSvgX(pointC.x));
             circleC.setAttribute('cy', toSvgY(pointC.y));
-            circleC.setAttribute('r', '5');
-            circleC.setAttribute('fill', 'purple');  // 交点用紫色
+            circleC.setAttribute('r', '6');
+            circleC.setAttribute('fill', '#9C27B0');  // 交点用紫色
             pointsGroup.appendChild(circleC);
 
             // 点D
             const circleD = createSVGElement('circle');
             circleD.setAttribute('cx', toSvgX(pointD.x));
             circleD.setAttribute('cy', toSvgY(pointD.y));
-            circleD.setAttribute('r', '5');
-            circleD.setAttribute('fill', 'red');
+            circleD.setAttribute('r', '6');
+            circleD.setAttribute('fill', '#ff4444');
             pointsGroup.appendChild(circleD);
             
             svg.appendChild(pointsGroup);
@@ -288,12 +446,14 @@
             // 标记点
             const markersGroup = createSVGElement('g');
             markersGroup.setAttribute('font-weight', 'bold');
+            markersGroup.setAttribute('font-size', '14');
+            markersGroup.setAttribute('font-family', 'Arial');
             
             // 标记A
             const textA = createSVGElement('text');
             textA.setAttribute('x', toSvgX(pointA.x) + 10);
             textA.setAttribute('y', toSvgY(pointA.y) - 10);
-            textA.setAttribute('fill', 'black');
+            textA.setAttribute('fill', '#4CAF50');
             textA.textContent = 'A(0,0)';
             markersGroup.appendChild(textA);
             
@@ -301,7 +461,7 @@
             const textB = createSVGElement('text');
             textB.setAttribute('x', toSvgX(pointB.x) + 10);
             textB.setAttribute('y', toSvgY(pointB.y) - 10);
-            textB.setAttribute('fill', 'blue');
+            textB.setAttribute('fill', '#2196F3');
             textB.textContent = 'B(6,1)';
             markersGroup.appendChild(textB);
             
@@ -309,7 +469,7 @@
             const textC = createSVGElement('text');
             textC.setAttribute('x', toSvgX(pointC.x) + 10);
             textC.setAttribute('y', toSvgY(pointC.y) - 10);
-            textC.setAttribute('fill', 'purple');
+            textC.setAttribute('fill', '#9C27B0');
             textC.textContent = 'C(3,6)';
             markersGroup.appendChild(textC);
 
@@ -317,7 +477,7 @@
             const textD = createSVGElement('text');
             textD.setAttribute('x', toSvgX(pointD.x) + 10);
             textD.setAttribute('y', toSvgY(pointD.y) - 10);
-            textD.setAttribute('fill', 'red');
+            textD.setAttribute('fill', '#ff4444');
             textD.textContent = 'D(-1,6)';
             markersGroup.appendChild(textD);
             
@@ -330,6 +490,38 @@
             document.getElementById('scaleValue').textContent = scale;
             drawCoordinateSystem();
         });
+        
+        // 监听窗口大小变化
+        window.addEventListener('resize', function() {
+            drawCoordinateSystem();
+        });
+        
+        // 拖拽手柄JS
+        (function() {
+            const handle = document.querySelector('.handle');
+            const left = document.querySelector('.content-left');
+            const right = document.querySelector('.content-right');
+            let dragging = false;
+            handle.addEventListener('mousedown', function(e) {
+                dragging = true;
+                document.body.style.cursor = 'col-resize';
+            });
+            document.addEventListener('mousemove', function(e) {
+                if (!dragging) return;
+                const container = document.querySelector('.container');
+                const rect = container.getBoundingClientRect();
+                let percent = (e.clientX - rect.left) / rect.width;
+                percent = Math.max(0.15, Math.min(0.85, percent));
+                left.style.width = (percent * 100) + '%';
+                right.style.width = ((1 - percent) * 100) + '%';
+            });
+            document.addEventListener('mouseup', function() {
+                if (dragging) {
+                    dragging = false;
+                    document.body.style.cursor = '';
+                }
+            });
+        })();
         
         // 初始化绘图
         drawCoordinateSystem();

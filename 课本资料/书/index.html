@@ -301,7 +301,8 @@
             {
                 title: '二倍角',
                 items: [
-                    { text: '01复数法', url: './二倍角之01复数法.html' }
+                    { text: '01直线方程法', url: './二倍角之01直线方程法.html' },
+                    { text: '02复数法', url: './二倍角之02复数法.html' }
                 ]
             }
         ];
@@ -310,12 +311,12 @@
             const menu = document.getElementById('menu');
             menuData.forEach(section => {
                 const button = document.createElement('button');
-                button.className = 'collapsible active';
+                button.className = 'collapsible';
                 button.textContent = section.title;
 
                 const content = document.createElement('div');
                 content.className = 'content';
-                content.style.display = 'block';
+                content.style.display = 'none';
 
                 section.items.forEach((item, index) => {
                     const link = document.createElement('a');
@@ -325,13 +326,6 @@
                     link.setAttribute('data-url', item.url);
                     link.onclick = () => showContent(item.url, link);
                     content.appendChild(link);
-                    
-                    // 如果是第一个菜单项，设置为默认打开
-                    if (index === 0 && section === menuData[0]) {
-                        setTimeout(() => {
-                            showContent(item.url, link);
-                        }, 100);
-                    }
                 });
 
                 menu.appendChild(button);
@@ -425,7 +419,10 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             generateMenu();
-            
+            // 默认加载第一个页面到iframe
+            const firstUrl = menuData[0].items[0].url;
+            const iframe = document.getElementById('contentIframe');
+            iframe.src = firstUrl;
             // 全新的简单实现
             const menuBtn = document.getElementById('menuToggleBtn');
             const content = document.getElementById('content');

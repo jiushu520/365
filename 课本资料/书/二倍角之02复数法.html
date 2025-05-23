@@ -2,25 +2,21 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>点关于直线的对称点01比例法</title>
+    <title>二倍角之02复数法</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
+        body {
+            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
             height: 100vh;
             overflow: hidden;
         }
-        
-        /* 左右分栏布局 */
         .container {
             display: flex;
             width: 100%;
             height: 100%;
         }
-        
-        /* 左栏 - 图形区域 */
         .content-left {
             width: 50%;
             padding: 20px;
@@ -29,101 +25,78 @@
             background-color: #f9f9f9;
             overflow-y: auto;
         }
-        
-        /* 右栏 - 解题区域 */
         .content-right {
             width: 50%;
             padding: 20px;
             overflow-y: auto;
-            background-color: white;
+            background-color: #fff;
             border-left: 1px solid #ddd;
         }
-        
-        .problem { 
-            margin-bottom: 20px; 
+        .problem {
+            margin-bottom: 20px;
         }
-        
         .problem h2 {
             font-size: 1.2em;
             color: #333;
             margin-bottom: 15px;
         }
-        
-        .solution { 
-            margin-top: 20px; 
+        .solution {
+            margin-top: 20px;
         }
-        
         .solution h3 {
             color: #2c3e50;
             border-bottom: 2px solid #3498db;
             padding-bottom: 10px;
             margin-bottom: 20px;
         }
-        
-        svg {
-            border: 1px solid #ddd;
-            display: block;
-            margin: 0 auto;
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .step { 
+        .step {
             margin: 15px 0;
             line-height: 1.8;
         }
-        
-        .hint { 
-            color: #0066cc; 
+        .hint {
+            color: #0066cc;
             font-style: italic;
             background-color: #e7f3ff;
             padding: 15px;
             border-left: 4px solid #0066cc;
             margin: 20px 0;
         }
-        
         .hint ul {
             margin: 10px 0;
             padding-left: 20px;
         }
-        
         .hint li {
             margin: 5px 0;
         }
-        
         #controls {
             margin-bottom: 20px;
             padding: 15px;
-            background-color: #ffffff;
+            background-color: #fff;
             border-radius: 8px;
             text-align: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        
         #controls label {
             font-weight: bold;
             color: #555;
         }
-        
         #controls input[type="range"] {
             width: 200px;
             margin: 0 10px;
         }
-        
         #scaleValue {
             display: inline-block;
             width: 30px;
             font-weight: bold;
             color: #3498db;
         }
-        
-        .reference { 
-            font-size: 0.9em; 
-            color: #555; 
-            margin-top: 15px; 
+        svg {
+            border: 1px solid #ddd;
+            display: block;
+            margin: 0 auto;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        
-        /* 响应式设计 */
         @media (max-width: 1024px) {
             .container {
                 flex-direction: column;
@@ -155,7 +128,7 @@
     </style>
     <!-- 添加MathJax支持 -->
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script id="MathJax-script" async src=".\\mathjax\\mathjax\\es5\\tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
     <script>
         window.MathJax = {
             tex: {
@@ -171,8 +144,8 @@
         <!-- 左栏：控制区和图形 -->
         <div class="content-left">
             <div id="controls">
-                <label>坐标缩放: <input type="range" id="scale" min="20" max="100" value="60"></label>
-                <span id="scaleValue">60</span>
+                <label>坐标缩放: <input type="range" id="scale" min="20" max="100" value="40"></label>
+                <span id="scaleValue">40</span>
             </div>
             <svg id="coordinate-system" width="100%" height="600"></svg>
         </div>
@@ -182,110 +155,124 @@
             <div class="problem">
                 <h2>已知：$B(0,0)$，$C(3,0)$，$A(3,1)$。点 $C'$ 是点 $C$ 关于直线 $AB$ 的对称点，求点 $C'$ 的坐标。</h2>
             </div>
-
             <div class="solution">
-                <h3>比例法解题（图示测量与相似三角形）</h3>
+                <h3>解题步骤（复数法）</h3>
                 <div class="step">
-                    <p>1. 如图，对中点 \(M\) 和对称点 \(C'\) 分别向 x 轴作垂线，交 x 轴于点 P、Q。</p>
-                    <p>2. 先设 \(CP=1\) 份，\(MP=3\) 份，则 \(BP=MP*3=9\) 份；中位线原理得 \(C'Q=2*MP=6\) 份。\(BQ=8\) 份。</p>
-                    <p>3. 由图上整段 \(BC\) 的份数等于 \(BP+PQ=9+1=10 份，对应实际长度BC=3\)，故比例系数
-                       \[
-                         s=\frac{\text{实际 }BC}{\text{图上 }BC}
-                          =\frac{3}{10}.
-                       \]
-                    </p>
-                    <p>4. 按相同比例换算其他线段：
-                       \[
-                         x_{C'}=BQ\times s
-                                 =8\times\frac{3}{10}
-                                 =2.4,
-                         \quad
-                         y_{C'}=QC'\times s
-                                 =6\times\frac{3}{10}
-                                 =1.8.
-                       \]
-                    </p>
-                    <p>5. 校验结果：将计算得到的对称点 
-                       \[
-                         C'\bigl(\tfrac{12}{5},\,\tfrac{9}{5}\bigr)
-                       \]
-                       代入直线 \(AB\) 的对称关系，可通过距离公式验证点 \(C\) 和 \(C'\) 到直线 \(AB\) 的距离相等，且连线 \(CC'\) 垂直于 \(AB\)。</p>
-                    <div class="hint">
-                        <p>提示：</p>
-                        <ul>
-                            <li>点到直线距离公式：\(\displaystyle d=\frac{|Ax+By+C|}{\sqrt{A^2+B^2}}\)，可用来验证对称性。</li>
-                            <li>若图上测量误差较大，可采用解析法（如复数法或向量投影）进一步确认结果。</li>
-                        </ul>
-                    </div>
+                    <p>已知点：$B(0,0)$，$C(3,0)$，$A(3,1)$。我们使用复数旋转变换方法求点 $C$ 关于直线 $AB$ 的对称点 $C'$。</p>
+                    
+                    <p><strong>1. 将点表示为复数：</strong>
+                       <br>• 点 $B(0,0)$ 对应复数 $z_B = 0$
+                       <br>• 点 $C(3,0)$ 对应复数 $z_C = 3 + 0i$
+                       <br>• 点 $A(3,1)$ 对应复数 $z_A = 3 + i$</p>
+                    
+                    <p><strong>2. 求直线 $AB$ 与 $x$ 轴的夹角：</strong>
+                       <br>• 直线 $AB$ 的方向向量：$\overrightarrow{AB} = (3, 1)$
+                       <br>• 直线 $AB$ 与 $x$ 轴正方向的夹角：$\alpha = \arctan(\frac{1}{3})$
+                       <br>• 对应的复数表示：$e^{i\alpha} = \cos\alpha + i\sin\alpha$
+                       <br>• 其中 $\cos\alpha = \frac{3}{\sqrt{10}}$，$\sin\alpha = \frac{1}{\sqrt{10}}$</p>
+                    
+                    <p><strong>3. 复数旋转变换的核心思想：</strong>
+                       <br>• 点 $C$ 关于直线 $AB$ 的对称，等价于：
+                       <br>• 先将 $z_C$ 绕原点逆时针旋转角度 $-\alpha$，使直线 $AB$ 与 $x$ 轴重合
+                       <br>• 然后关于 $x$ 轴对称（即取共轭）
+                       <br>• 最后绕原点顺时针旋转角度 $\alpha$，恢复原来的方向</p>
+                    
+                    <p><strong>4. 第一步旋转：将坐标系旋转使直线 $AB$ 与 $x$ 轴重合</strong>
+                       <br>• 旋转复数：$w_1 = e^{-i\alpha} = \cos\alpha - i\sin\alpha = \frac{3}{\sqrt{10}} - i\frac{1}{\sqrt{10}}$
+                       <br>• 将 $z_C = 3$ 旋转：$z_C' = z_C \cdot w_1 = 3 \cdot (\frac{3}{\sqrt{10}} - i\frac{1}{\sqrt{10}})$
+                       <br>• $z_C' = \frac{9}{\sqrt{10}} - i\frac{3}{\sqrt{10}}$</p>
+                    
+                    <p><strong>5. 第二步：关于实轴对称（取共轭）</strong>
+                       <br>• 在新坐标系中，关于 $x$ 轴对称就是取共轭
+                       <br>• $z_C'' = \overline{z_C'} = \frac{9}{\sqrt{10}} + i\frac{3}{\sqrt{10}}$</p>
+                    
+                    <p><strong>6. 第三步旋转：恢复原坐标系</strong>
+                       <br>• 旋转复数：$w_2 = e^{i\alpha} = \cos\alpha + i\sin\alpha = \frac{3}{\sqrt{10}} + i\frac{1}{\sqrt{10}}$
+                       <br>• 最终结果：$z_{C'} = z_C'' \cdot w_2$
+                       <br>• $z_{C'} = (\frac{9}{\sqrt{10}} + i\frac{3}{\sqrt{10}}) \cdot (\frac{3}{\sqrt{10}} + i\frac{1}{\sqrt{10}})$</p>
+                    
+                    <p><strong>7. 计算最终结果：</strong>
+                       <br>• 展开复数乘法：
+                       <br>• $z_{C'} = \frac{9}{\sqrt{10}} \cdot \frac{3}{\sqrt{10}} + \frac{9}{\sqrt{10}} \cdot i\frac{1}{\sqrt{10}} + i\frac{3}{\sqrt{10}} \cdot \frac{3}{\sqrt{10}} + i\frac{3}{\sqrt{10}} \cdot i\frac{1}{\sqrt{10}}$
+                       <br>• $= \frac{27}{10} + i\frac{9}{10} + i\frac{9}{10} - \frac{3}{10}$
+                       <br>• $= (\frac{27}{10} - \frac{3}{10}) + i(\frac{9}{10} + \frac{9}{10})$
+                       <br>• $= \frac{24}{10} + i\frac{18}{10} = \frac{12}{5} + i\frac{9}{5}$</p>
+                    
+                    <p><strong>8. 简化计算方法（二倍角公式）：</strong>
+                       <br>• 实际上，关于过原点直线的对称可以用公式：$z' = e^{2i\alpha} \cdot \overline{z}$
+                       <br>• 其中 $\alpha$ 是直线与 $x$ 轴的夹角
+                       <br>• $e^{2i\alpha} = \cos(2\alpha) + i\sin(2\alpha)$
+                       <br>• 利用二倍角公式：$\cos(2\alpha) = \frac{8}{10} = \frac{4}{5}$，$\sin(2\alpha) = \frac{6}{10} = \frac{3}{5}$
+                       <br>• $z_{C'} = (\frac{4}{5} + i\frac{3}{5}) \cdot 3 = \frac{12}{5} + i\frac{9}{5}$</p>
+                    
+                    <p><strong>9. 验证结果：</strong>
+                       <br>• 对称点 $C'$ 的坐标为 $(\frac{12}{5}, \frac{9}{5}) = (2.4, 1.8)$
+                       <br>• 中点：$M = (\frac{3 + 2.4}{2}, \frac{0 + 1.8}{2}) = (2.7, 0.9)$
+                       <br>• 验证 $M$ 在直线 $AB$：$y = \frac{1}{3}x$ 上：$0.9 = \frac{1}{3} \times 2.7 = 0.9$ ✓
+                       <br>• 验证距离相等：$|CM| = |C'M|$ ✓</p>
+                </div>
+                <div class="hint">
+                    <p>复数法要点：</p>
+                    <ul>
+                        <li>将平面上的点表示为复数，利用复数的旋转性质。</li>
+                        <li>关于过原点直线的对称 = 旋转 + 共轭 + 反向旋转。</li>
+                        <li>复数乘以 $e^{i\theta}$ 表示绕原点逆时针旋转角度 $\theta$。</li>
+                        <li>复数的共轭表示关于实轴的对称。</li>
+                        <li>二倍角公式：$\cos(2\alpha) = \cos^2\alpha - \sin^2\alpha$，$\sin(2\alpha) = 2\sin\alpha\cos\alpha$。</li>
+                        <li>简化公式：关于过原点且与 $x$ 轴夹角为 $\alpha$ 的直线对称：$z' = e^{2i\alpha} \cdot \overline{z}$。</li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
-
     <script>
-        // 设置变量
+        // 变量声明
         let svgWidth = 800;
         let svgHeight = 600;
-        let centerX = svgWidth / 2;
-        let centerY = svgHeight / 2;
+        let centerX = svgWidth / 2 - 50;
+        let centerY = svgHeight / 2 + 50;
         let scale = 60;
-
-        // 坐标点（数学坐标系中）
-        const pointB = {x: 0, y: 0}; // zB = 0
-        const pointC = {x: 3, y: 0}; // zC = 3
-        const pointA = {x: 3, y: 1}; // zA = 3 + i
-        // 交点 M 和 对称点 C'
-        const pointM = {x: 2.7, y: 0.9}; // M = (C+C')/2 = (3 + 12/5)/2, (0 + 9/5)/2 = (27/10, 9/10)
-        const pointCPrime = {x: 12/5, y: 9/5}; // zC' = 12/5 + 9/5 i
-
-        // 转换为SVG坐标
-        function toSvgX(x) {
-            return centerX + x * scale;
-        }
-
-        function toSvgY(y) {
-            // SVG中y轴朝下为正，所以需要反转
-            return centerY - y * scale;
-        }
-
-        // 创建SVG元素
-        function createSVGElement(tag) {
-            return document.createElementNS("http://www.w3.org/2000/svg", tag);
-        }
-
-        // 绘制坐标系和图形
+        const pointB = {x: 0, y: 0};
+        const pointC = {x: 3, y: 0};
+        const pointA = {x: 3, y: 1};
+        const pointM = {x: 27/10, y: 9/10};
+        const pointCPrime = {x: 12/5, y: 9/5};
+        
+        // 坐标变换
+        function toSvgX(x) { return centerX + x * scale; }
+        function toSvgY(y) { return centerY - y * scale; }
+        function createSVGElement(tag) { return document.createElementNS("http://www.w3.org/2000/svg", tag); }
+        
         function drawCoordinateSystem() {
             const svg = document.getElementById('coordinate-system');
-            svg.innerHTML = ''; // 清空已有内容
-
-            // 更新SVG尺寸
-            const container = document.querySelector('.content-left');
-            svgWidth = container.offsetWidth - 40; // 减去padding
-            svgHeight = Math.max(container.offsetHeight - 80, 400); // 减去controls高度和padding
+            svg.innerHTML = '';
             
+            // 响应式SVG尺寸
+            const container = document.querySelector('.content-left');
+            svgWidth = container.offsetWidth - 40;
+            svgHeight = Math.max(container.offsetHeight - 80, 400);
             svg.setAttribute('width', svgWidth);
             svg.setAttribute('height', svgHeight);
             
-            centerX = svgWidth / 2;
-            centerY = svgHeight / 2;
-
-            // 计算可见范围（单位）
-            const margin = 2; // 边距单位
+            centerX = svgWidth / 2 - 50;
+            centerY = svgHeight / 2 + 50;
+            
+            // 可见范围
+            const margin = 2;
             const visibleWidth = svgWidth / scale;
             const visibleHeight = svgHeight / scale;
             const xMin = Math.floor(-visibleWidth / 2) - margin;
             const xMax = Math.ceil(visibleWidth / 2) + margin;
             const yMin = Math.floor(-visibleHeight / 2) - margin;
             const yMax = Math.ceil(visibleHeight / 2) + margin;
-
-            // 绘制网格线
+            
+            // 网格线
             const gridGroup = createSVGElement('g');
             gridGroup.setAttribute('stroke', '#eee');
             gridGroup.setAttribute('stroke-width', '0.5');
-
-            // 横向网格线
+            
             for (let y = yMin; y <= yMax; y++) {
-                if (y === 0) continue; // 坐标轴单独绘制
+                if (y === 0) continue;
                 const line = createSVGElement('line');
                 line.setAttribute('x1', toSvgX(xMin));
                 line.setAttribute('y1', toSvgY(y));
@@ -294,10 +281,9 @@
                 line.setAttribute('vector-effect', 'non-scaling-stroke');
                 gridGroup.appendChild(line);
             }
-
-            // 纵向网格线
+            
             for (let x = xMin; x <= xMax; x++) {
-                if (x === 0) continue; // 坐标轴单独绘制
+                if (x === 0) continue;
                 const line = createSVGElement('line');
                 line.setAttribute('x1', toSvgX(x));
                 line.setAttribute('y1', toSvgY(yMin));
@@ -306,15 +292,13 @@
                 line.setAttribute('vector-effect', 'non-scaling-stroke');
                 gridGroup.appendChild(line);
             }
-
             svg.appendChild(gridGroup);
-
-            // 绘制坐标轴
+            
+            // 坐标轴
             const axisGroup = createSVGElement('g');
             axisGroup.setAttribute('stroke', '#000');
             axisGroup.setAttribute('stroke-width', '1.5');
-
-            // x轴
+            
             const xAxis = createSVGElement('line');
             xAxis.setAttribute('x1', toSvgX(xMin));
             xAxis.setAttribute('y1', toSvgY(0));
@@ -322,8 +306,7 @@
             xAxis.setAttribute('y2', toSvgY(0));
             xAxis.setAttribute('vector-effect', 'non-scaling-stroke');
             axisGroup.appendChild(xAxis);
-
-            // y轴
+            
             const yAxis = createSVGElement('line');
             yAxis.setAttribute('x1', toSvgX(0));
             yAxis.setAttribute('y1', toSvgY(yMin));
@@ -331,16 +314,15 @@
             yAxis.setAttribute('y2', toSvgY(yMax));
             yAxis.setAttribute('vector-effect', 'non-scaling-stroke');
             axisGroup.appendChild(yAxis);
-
+            
             svg.appendChild(axisGroup);
-
-            // 绘制刻度标签
+            
+            // 刻度标签
             const labelsGroup = createSVGElement('g');
             labelsGroup.setAttribute('font-size', '14');
             labelsGroup.setAttribute('font-family', 'Arial');
             labelsGroup.setAttribute('fill', '#666');
-
-            // x轴刻度标签
+            
             for (let x = xMin; x <= xMax; x++) {
                 if (x === 0) continue;
                 const text = createSVGElement('text');
@@ -350,8 +332,7 @@
                 text.textContent = x;
                 labelsGroup.appendChild(text);
             }
-
-            // y轴刻度标签
+            
             for (let y = yMin; y <= yMax; y++) {
                 if (y === 0) continue;
                 const text = createSVGElement('text');
@@ -361,277 +342,271 @@
                 text.textContent = y;
                 labelsGroup.appendChild(text);
             }
-
-            // Add origin label
+            
             const originText = createSVGElement('text');
-            originText.setAttribute('x', toSvgX(0) - 15); // Position near origin
-            originText.setAttribute('y', toSvgY(0) + 15); // Position near origin
+            originText.setAttribute('x', toSvgX(0) - 15);
+            originText.setAttribute('y', toSvgY(0) + 15);
             originText.textContent = '0';
             labelsGroup.appendChild(originText);
-
+            
             svg.appendChild(labelsGroup);
-
-            // 绘制图形元素
+            
+            // 图形元素
             const shapeGroup = createSVGElement('g');
-
-            // 直线 AB (作为对称轴，可以画长一点)
+            shapeGroup.setAttribute('stroke', '#2196F3');
+            shapeGroup.setAttribute('stroke-width', '2');
+            shapeGroup.setAttribute('vector-effect', 'non-scaling-stroke');
+            
+            // 直线AB（对称轴，虚线）
             const lineAB = createSVGElement('line');
-            // Extend the line AB for visualization
-            const ext = 10; // How much to extend
+            const ext = 10;
             const dx = pointA.x - pointB.x;
             const dy = pointA.y - pointB.y;
             const len = Math.sqrt(dx*dx + dy*dy);
             const unitDx = dx / len;
             const unitDy = dy / len;
+            
             lineAB.setAttribute('x1', toSvgX(pointB.x - unitDx * ext));
             lineAB.setAttribute('y1', toSvgY(pointB.y - unitDy * ext));
             lineAB.setAttribute('x2', toSvgX(pointA.x + unitDx * ext));
             lineAB.setAttribute('y2', toSvgY(pointA.y + unitDy * ext));
-            lineAB.setAttribute('stroke', '#2196F3'); // Blue for symmetry axis
-            lineAB.setAttribute('stroke-width', '2');
-            lineAB.setAttribute('stroke-dasharray', '4,4'); // Dashed line for axis
-            lineAB.setAttribute('vector-effect', 'non-scaling-stroke');
+            lineAB.setAttribute('stroke', '#666');
+            lineAB.setAttribute('stroke-dasharray', '4,4');
             shapeGroup.appendChild(lineAB);
-
-            // 线段 BC
+            
+            // 线段BC
             const lineBC = createSVGElement('line');
             lineBC.setAttribute('x1', toSvgX(pointB.x));
             lineBC.setAttribute('y1', toSvgY(pointB.y));
             lineBC.setAttribute('x2', toSvgX(pointC.x));
             lineBC.setAttribute('y2', toSvgY(pointC.y));
-            lineBC.setAttribute('stroke', '#2196F3');
-            lineBC.setAttribute('stroke-width', '2');
-            lineBC.setAttribute('vector-effect', 'non-scaling-stroke');
             shapeGroup.appendChild(lineBC);
-
-            // 线段 AC
+            
+            // 线段AC
             const lineAC = createSVGElement('line');
             lineAC.setAttribute('x1', toSvgX(pointA.x));
             lineAC.setAttribute('y1', toSvgY(pointA.y));
             lineAC.setAttribute('x2', toSvgX(pointC.x));
             lineAC.setAttribute('y2', toSvgY(pointC.y));
-            lineAC.setAttribute('stroke', '#2196F3');
-            lineAC.setAttribute('stroke-width', '2');
-            lineAC.setAttribute('vector-effect', 'non-scaling-stroke');
             shapeGroup.appendChild(lineAC);
-
-             // 线段 AC'
+            
+            // 线段AC'
             const lineACPrime = createSVGElement('line');
             lineACPrime.setAttribute('x1', toSvgX(pointA.x));
             lineACPrime.setAttribute('y1', toSvgY(pointA.y));
             lineACPrime.setAttribute('x2', toSvgX(pointCPrime.x));
             lineACPrime.setAttribute('y2', toSvgY(pointCPrime.y));
-            lineACPrime.setAttribute('stroke', '#2196F3');
-            lineACPrime.setAttribute('stroke-width', '2');
-            lineACPrime.setAttribute('vector-effect', 'non-scaling-stroke');
             shapeGroup.appendChild(lineACPrime);
-
-             // 线段 BC'
+            
+            // 线段BC'
             const lineBCPrime = createSVGElement('line');
             lineBCPrime.setAttribute('x1', toSvgX(pointB.x));
             lineBCPrime.setAttribute('y1', toSvgY(pointB.y));
             lineBCPrime.setAttribute('x2', toSvgX(pointCPrime.x));
             lineBCPrime.setAttribute('y2', toSvgY(pointCPrime.y));
-            lineBCPrime.setAttribute('stroke', '#2196F3');
-            lineBCPrime.setAttribute('stroke-width', '2');
-            lineBCPrime.setAttribute('vector-effect', 'non-scaling-stroke');
             shapeGroup.appendChild(lineBCPrime);
-
+            
             svg.appendChild(shapeGroup);
-
-            // 绘制垂线 CC'
-            const perpGroup = createSVGElement('g');
+            
+            // 垂线CC'和复数向量表示
+            const vectorGroup = createSVGElement('g');
+            vectorGroup.setAttribute('stroke', '#ff4444');
+            vectorGroup.setAttribute('stroke-width', '2');
+            vectorGroup.setAttribute('stroke-dasharray', '3,3');
+            
             const lineCCPrime = createSVGElement('line');
             lineCCPrime.setAttribute('x1', toSvgX(pointC.x));
             lineCCPrime.setAttribute('y1', toSvgY(pointC.y));
             lineCCPrime.setAttribute('x2', toSvgX(pointCPrime.x));
             lineCCPrime.setAttribute('y2', toSvgY(pointCPrime.y));
-            lineCCPrime.setAttribute('stroke', '#ff4444'); // Red for reflection line
-            lineCCPrime.setAttribute('stroke-width', '2');
-            lineCCPrime.setAttribute('stroke-dasharray', '3,3');
-            lineCCPrime.setAttribute('vector-effect', 'non-scaling-stroke');
-            perpGroup.appendChild(lineCCPrime);
-            svg.appendChild(perpGroup);
-
-            // 绘制垂足：过 M 和 C' 分别作 X 轴的垂线
-            const footGroup = createSVGElement('g');
-            footGroup.setAttribute('stroke', '#0066cc');
-            footGroup.setAttribute('stroke-width', '1');
-            footGroup.setAttribute('stroke-dasharray', '4,2');
-
-            // M 到 X 轴的垂线
-            const footM = createSVGElement('line');
-            footM.setAttribute('x1', toSvgX(pointM.x));
-            footM.setAttribute('y1', toSvgY(pointM.y));
-            footM.setAttribute('x2', toSvgX(pointM.x));
-            footM.setAttribute('y2', toSvgY(0));
-            footM.setAttribute('vector-effect', 'non-scaling-stroke');
-            footGroup.appendChild(footM);
-
-            // C' 到 X 轴的垂线
-            const footCPrime = createSVGElement('line');
-            footCPrime.setAttribute('x1', toSvgX(pointCPrime.x));
-            footCPrime.setAttribute('y1', toSvgY(pointCPrime.y));
-            footCPrime.setAttribute('x2', toSvgX(pointCPrime.x));
-            footCPrime.setAttribute('y2', toSvgY(0));
-            footCPrime.setAttribute('vector-effect', 'non-scaling-stroke');
-            footGroup.appendChild(footCPrime);
-
-            svg.appendChild(footGroup);
-
-            // 绘制垂足点 P（来自 M）和 Q（来自 C'）
-            const footPointsGroup = createSVGElement('g');
-
-            // 点 P：M 在 x 轴上的垂足
-            const circleP = createSVGElement('circle');
-            circleP.setAttribute('cx', toSvgX(pointM.x));
-            circleP.setAttribute('cy', toSvgY(0));
-            circleP.setAttribute('r', '3');
-            circleP.setAttribute('fill', '#0066cc');
-            footPointsGroup.appendChild(circleP);
-
-            const textP = createSVGElement('text');
-            textP.setAttribute('x', toSvgX(pointM.x) - 5);
-            textP.setAttribute('y', toSvgY(0) + 15);
-            textP.setAttribute('font-size', '14');
-            textP.setAttribute('fill', '#0066cc');
-            textP.textContent = 'P';
-            footPointsGroup.appendChild(textP);
-
-            // 点 Q：C' 在 x 轴上的垂足
-            const circleQ = createSVGElement('circle');
-            circleQ.setAttribute('cx', toSvgX(pointCPrime.x));
-            circleQ.setAttribute('cy', toSvgY(0));
-            circleQ.setAttribute('r', '3');
-            circleQ.setAttribute('fill', '#0066cc');
-            footPointsGroup.appendChild(circleQ);
-
-            const textQ = createSVGElement('text');
-            textQ.setAttribute('x', toSvgX(pointCPrime.x) - 5);
-            textQ.setAttribute('y', toSvgY(0) + 15);
-            textQ.setAttribute('font-size', '14');
-            textQ.setAttribute('fill', '#0066cc');
-            textQ.textContent = 'Q';
-            footPointsGroup.appendChild(textQ);
-
-            svg.appendChild(footPointsGroup);
-
-            // 绘制点
+            vectorGroup.appendChild(lineCCPrime);
+            
+            // 添加复数向量箭头（从原点到各点）
+            function drawArrow(fromX, fromY, toX, toY, color = '#ff4444') {
+                const arrowGroup = createSVGElement('g');
+                arrowGroup.setAttribute('stroke', color);
+                arrowGroup.setAttribute('fill', color);
+                arrowGroup.setAttribute('stroke-width', '1.5');
+                
+                // 主线
+                const line = createSVGElement('line');
+                line.setAttribute('x1', toSvgX(fromX));
+                line.setAttribute('y1', toSvgY(fromY));
+                line.setAttribute('x2', toSvgX(toX));
+                line.setAttribute('y2', toSvgY(toY));
+                arrowGroup.appendChild(line);
+                
+                // 箭头
+                const dx = toX - fromX;
+                const dy = toY - fromY;
+                const len = Math.sqrt(dx*dx + dy*dy);
+                if (len > 0) {
+                    const unitX = dx / len;
+                    const unitY = dy / len;
+                    const arrowLen = 0.3;
+                    
+                    const arrow1X = toX - arrowLen * (unitX + unitY * 0.5);
+                    const arrow1Y = toY - arrowLen * (unitY - unitX * 0.5);
+                    const arrow2X = toX - arrowLen * (unitX - unitY * 0.5);
+                    const arrow2Y = toY - arrowLen * (unitY + unitX * 0.5);
+                    
+                    const arrowHead = createSVGElement('polygon');
+                    arrowHead.setAttribute('points', 
+                        `${toSvgX(toX)},${toSvgY(toY)} ${toSvgX(arrow1X)},${toSvgY(arrow1Y)} ${toSvgX(arrow2X)},${toSvgY(arrow2Y)}`);
+                    arrowGroup.appendChild(arrowHead);
+                }
+                
+                return arrowGroup;
+            }
+            
+            // 复数向量：从原点到各点
+            vectorGroup.appendChild(drawArrow(0, 0, pointC.x, pointC.y, '#9C27B0')); // 紫色：z_C
+            vectorGroup.appendChild(drawArrow(0, 0, pointA.x, pointA.y, '#FF9800')); // 橙色：z_A
+            vectorGroup.appendChild(drawArrow(0, 0, pointCPrime.x, pointCPrime.y, '#E91E63')); // 粉色：z_C'
+            
+            svg.appendChild(vectorGroup);
+            
+            // 点
             const pointsGroup = createSVGElement('g');
-
-            // 点 B
+            
+            // B
             const circleB = createSVGElement('circle');
             circleB.setAttribute('cx', toSvgX(pointB.x));
             circleB.setAttribute('cy', toSvgY(pointB.y));
             circleB.setAttribute('r', '6');
             circleB.setAttribute('fill', '#4CAF50');
             pointsGroup.appendChild(circleB);
-
-            // 点 C
+            
+            // C
             const circleC = createSVGElement('circle');
             circleC.setAttribute('cx', toSvgX(pointC.x));
             circleC.setAttribute('cy', toSvgY(pointC.y));
             circleC.setAttribute('r', '6');
             circleC.setAttribute('fill', '#4CAF50');
             pointsGroup.appendChild(circleC);
-
-            // 点 A
+            
+            // A
             const circleA = createSVGElement('circle');
             circleA.setAttribute('cx', toSvgX(pointA.x));
             circleA.setAttribute('cy', toSvgY(pointA.y));
             circleA.setAttribute('r', '6');
             circleA.setAttribute('fill', '#4CAF50');
             pointsGroup.appendChild(circleA);
-
-            // 点 M (交点)
+            
+            // M
             const circleM = createSVGElement('circle');
             circleM.setAttribute('cx', toSvgX(pointM.x));
             circleM.setAttribute('cy', toSvgY(pointM.y));
             circleM.setAttribute('r', '4');
             circleM.setAttribute('fill', '#4CAF50');
             pointsGroup.appendChild(circleM);
-
-            // 点 C' (对称点)
+            
+            // C'
             const circleCPrime = createSVGElement('circle');
             circleCPrime.setAttribute('cx', toSvgX(pointCPrime.x));
             circleCPrime.setAttribute('cy', toSvgY(pointCPrime.y));
             circleCPrime.setAttribute('r', '6');
-            circleCPrime.setAttribute('fill', '#ff4444'); // Different color for C'
+            circleCPrime.setAttribute('fill', '#ff4444');
             pointsGroup.appendChild(circleCPrime);
-
+            
             svg.appendChild(pointsGroup);
-
-            // 标记点
+            
+            // 标记
             const markersGroup = createSVGElement('g');
             markersGroup.setAttribute('font-size', '14');
             markersGroup.setAttribute('font-family', 'Arial');
             markersGroup.setAttribute('font-weight', 'bold');
             markersGroup.setAttribute('fill', '#666');
-
-            // 标记 B
+            
+            // B
             const textB = createSVGElement('text');
             textB.setAttribute('x', toSvgX(pointB.x) - 25);
             textB.setAttribute('y', toSvgY(pointB.y) + 15);
             textB.textContent = 'B(0,0)';
             markersGroup.appendChild(textB);
-
-            // 标记 C
+            
+            // C
             const textC = createSVGElement('text');
             textC.setAttribute('x', toSvgX(pointC.x) + 10);
             textC.setAttribute('y', toSvgY(pointC.y) + 20);
             textC.textContent = 'C(3,0)';
             markersGroup.appendChild(textC);
-
-            // 标记 A
+            
+            // A
             const textA = createSVGElement('text');
             textA.setAttribute('x', toSvgX(pointA.x) + 10);
             textA.setAttribute('y', toSvgY(pointA.y) - 10);
             textA.textContent = 'A(3,1)';
             markersGroup.appendChild(textA);
-
-            // 标记 M
+            
+            // M
             const textM = createSVGElement('text');
             textM.setAttribute('x', toSvgX(pointM.x) + 8);
             textM.setAttribute('y', toSvgY(pointM.y) - 8);
-            textM.setAttribute('fill', '#4CAF50');
             textM.textContent = 'M';
+            textM.setAttribute('fill', '#4CAF50');
             markersGroup.appendChild(textM);
-
-            // 标记 C'
+            
+            // C'
             const textCPrime = createSVGElement('text');
             textCPrime.setAttribute('x', toSvgX(pointCPrime.x) + 5);
             textCPrime.setAttribute('y', toSvgY(pointCPrime.y) - 15);
+            textCPrime.textContent = "C'(" + pointCPrime.x.toFixed(1) + "," + pointCPrime.y.toFixed(1) + ")";
             textCPrime.setAttribute('fill', '#ff4444');
-            const cPrimeXText = '12/5';
-            const cPrimeYText = '9/5';
-            textCPrime.textContent = `C'(${cPrimeXText},${cPrimeYText})`;
             markersGroup.appendChild(textCPrime);
-
+            
+            // 复数标记
+            const complexTextC = createSVGElement('text');
+            complexTextC.setAttribute('x', toSvgX(pointC.x/2) - 10);
+            complexTextC.setAttribute('y', toSvgY(pointC.y/2) - 10);
+            complexTextC.textContent = 'z_C=3';
+            complexTextC.setAttribute('fill', '#9C27B0');
+            complexTextC.setAttribute('font-size', '12');
+            markersGroup.appendChild(complexTextC);
+            
+            const complexTextA = createSVGElement('text');
+            complexTextA.setAttribute('x', toSvgX(pointA.x/2) + 10);
+            complexTextA.setAttribute('y', toSvgY(pointA.y/2) + 5);
+            complexTextA.textContent = 'z_A=3+i';
+            complexTextA.setAttribute('fill', '#FF9800');
+            complexTextA.setAttribute('font-size', '12');
+            markersGroup.appendChild(complexTextA);
+            
+            const complexTextCPrime = createSVGElement('text');
+            complexTextCPrime.setAttribute('x', toSvgX(pointCPrime.x/2) - 20);
+            complexTextCPrime.setAttribute('y', toSvgY(pointCPrime.y/2) + 20);
+            complexTextCPrime.textContent = "z_C'=" + pointCPrime.x.toFixed(1) + "+" + pointCPrime.y.toFixed(1) + "i";
+            complexTextCPrime.setAttribute('fill', '#E91E63');
+            complexTextCPrime.setAttribute('font-size', '12');
+            markersGroup.appendChild(complexTextCPrime);
+            
             svg.appendChild(markersGroup);
         }
-
-        // 监听缩放变化
+        
         document.getElementById('scale').addEventListener('input', function() {
             scale = parseInt(this.value);
             document.getElementById('scaleValue').textContent = scale;
             drawCoordinateSystem();
         });
-
-        // 监听窗口大小变化
+        
         window.addEventListener('resize', function() {
             drawCoordinateSystem();
         });
-
+        
+        drawCoordinateSystem();
+        
         // 拖拽手柄JS
         (function() {
             const handle = document.querySelector('.handle');
             const left = document.querySelector('.content-left');
             const right = document.querySelector('.content-right');
             let dragging = false;
+            
             handle.addEventListener('mousedown', function(e) {
                 dragging = true;
                 document.body.style.cursor = 'col-resize';
             });
+            
             document.addEventListener('mousemove', function(e) {
                 if (!dragging) return;
                 const container = document.querySelector('.container');
@@ -641,6 +616,7 @@
                 left.style.width = (percent * 100) + '%';
                 right.style.width = ((1 - percent) * 100) + '%';
             });
+            
             document.addEventListener('mouseup', function() {
                 if (dragging) {
                     dragging = false;
@@ -648,9 +624,6 @@
                 }
             });
         })();
-
-        // 初始化绘图
-        drawCoordinateSystem();
     </script>
 </body>
 </html> 

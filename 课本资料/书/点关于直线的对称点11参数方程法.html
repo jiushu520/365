@@ -4,25 +4,154 @@
     <meta charset="UTF-8">
     <title>点关于直线的对称点11参数方程法</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .problem { margin-bottom: 20px; }
-        .solution { margin-top: 20px; }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* 左右分栏布局 */
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 左栏 - 图形区域 */
+        .content-left {
+            width: 50%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: #f9f9f9;
+            overflow-y: auto;
+        }
+        
+        /* 右栏 - 解题区域 */
+        .content-right {
+            width: 50%;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: white;
+            border-left: 1px solid #ddd;
+        }
+        
+        .problem { 
+            margin-bottom: 20px; 
+        }
+        
+        .problem h2 {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .solution { 
+            margin-top: 20px; 
+        }
+        
+        .solution h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
         svg {
             border: 1px solid #ddd;
             display: block;
             margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .step { margin: 10px 0; }
-        .hint { color: #0066cc; font-style: italic; }
-        .math { font-style: italic; }
+        
+        .step { 
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+        
+        .hint { 
+            color: #0066cc; 
+            font-style: italic;
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-left: 4px solid #0066cc;
+            margin: 20px 0;
+        }
+        
+        .hint ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .hint li {
+            margin: 5px 0;
+        }
+        
         #controls {
-            margin-bottom: 10px;
-            padding: 10px;
-            background-color: #f5f5f5;
-            border-radius: 5px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #ffffff;
+            border-radius: 8px;
             text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .reference { font-size: 0.9em; color: #555; margin-top: 15px; }
+        
+        #controls label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        #controls input[type="range"] {
+            width: 200px;
+            margin: 0 10px;
+        }
+        
+        #scaleValue {
+            display: inline-block;
+            width: 30px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .reference { 
+            font-size: 0.9em; 
+            color: #555; 
+            margin-top: 15px; 
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+            .content-left, .content-right {
+                width: 100%;
+                height: 50%;
+            }
+            .content-right {
+                border-left: none;
+                border-top: 1px solid #ddd;
+            }
+            .handle {
+                display: none !important;
+            }
+        }
+        /* 拖拽手柄样式 */
+        .handle {
+            width: 8px;
+            background: #ddd;
+            cursor: col-resize;
+            position: relative;
+            z-index: 10;
+            transition: background 0.2s;
+        }
+        .handle:hover {
+            background: #bbb;
+        }
     </style>
     <!-- 添加MathJax支持 -->
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -38,77 +167,84 @@
     </script>
 </head>
 <body>
-    <div class="problem">
-        <h2>已知：$B(0,0)$，$C(3,0)$，$A(3,1)$。点 $C'$ 是点 $C$ 关于直线 $AB$ 的对称点，求点 $C'$ 的坐标。</h2>
-
-        <div id="controls">
-            <label>坐标缩放: <input type="range" id="scale" min="20" max="100" value="60"></label>
-            <span id="scaleValue">60</span>
+    <div class="container">
+        <!-- 左栏：控制区和图形 -->
+        <div class="content-left">
+            <div id="controls">
+                <label>坐标缩放: <input type="range" id="scale" min="20" max="100" value="60"></label>
+                <span id="scaleValue">60</span>
+            </div>
+            <svg id="coordinate-system" width="100%" height="600"></svg>
         </div>
+        <div class="handle"></div>
+        <!-- 右栏：问题和解题步骤 -->
+        <div class="content-right">
+            <div class="problem">
+                <h2>已知：$B(0,0)$，$C(3,0)$，$A(3,1)$。点 $C'$ 是点 $C$ 关于直线 $AB$ 的对称点，求点 $C'$ 的坐标。</h2>
+            </div>
 
-        <svg id="coordinate-system" width="800" height="600"></svg>
-    </div>
+            <div class="solution">
+                <h3>参数方程法解题</h3>
+                <p class="reference">方法参考自 Bilibili 视频：<a href="https://www.bilibili.com/video/BV1Tu4m1G7YU?t=11.1" target="_blank">https://www.bilibili.com/video/BV1Tu4m1G7YU?t=11.1</a></p>
 
-    <div class="solution">
-        <h3>参数方程法解题</h3>
-        <p class="reference">方法参考自 Bilibili 视频：<a href="https://www.bilibili.com/video/BV1Tu4m1G7YU?t=11.1" target="_blank">https://www.bilibili.com/video/BV1Tu4m1G7YU?t=11.1</a></p>
+                <div class="step">
+                    <p>1. 确定直线 $AB$ 的参数方程：
+                       <br>• 直线经过 $B(0,0)$，方向向量为 $\vec{v} = \vec{BA} = (3, 1)$。
+                       <br>• 直线 $AB$ 的参数方程为：
+                         \[ \begin{cases} x = 0 + 3t \\ y = 0 + 1t \end{cases} \implies \begin{cases} x = 3t \\ y = t \end{cases} \]
+                       <br>• 直线 $AB$ 上任意一点 $M$ 可表示为 $(3t, t)$。</p>
 
-        <div class="step">
-            <p>1. 确定直线 $AB$ 的参数方程：
-               <br>• 直线经过 $B(0,0)$，方向向量为 $\vec{v} = \vec{BA} = (3, 1)$。
-               <br>• 直线 $AB$ 的参数方程为：
-                 \[ \begin{cases} x = 0 + 3t \\ y = 0 + 1t \end{cases} \implies \begin{cases} x = 3t \\ y = t \end{cases} \]
-               <br>• 直线 $AB$ 上任意一点 $M$ 可表示为 $(3t, t)$。</p>
+                    <p>2. 确定过点 $C$ 且垂直于 $AB$ 的直线 $L$ 的参数方程：
+                       <br>• 直线 $L$ 经过点 $C(3,0)$。
+                       <br>• 直线 $L$ 的方向向量 $\vec{n}$ 垂直于 $\vec{v}=(3,1)$。可以选择 $\vec{n}=(1, -3)$ （因为 $\vec{v} \cdot \vec{n} = 3(1) + 1(-3) = 0$）。
+                       <br>• 直线 $L$ 的参数方程为（使用参数 $s$）：
+                         \[ \begin{cases} x = 3 + 1s \\ y = 0 - 3s \end{cases} \implies \begin{cases} x = 3 + s \\ y = -3s \end{cases} \]
+                    </p>
 
-            <p>2. 确定过点 $C$ 且垂直于 $AB$ 的直线 $L$ 的参数方程：
-               <br>• 直线 $L$ 经过点 $C(3,0)$。
-               <br>• 直线 $L$ 的方向向量 $\vec{n}$ 垂直于 $\vec{v}=(3,1)$。可以选择 $\vec{n}=(1, -3)$ （因为 $\vec{v} \cdot \vec{n} = 3(1) + 1(-3) = 0$）。
-               <br>• 直线 $L$ 的参数方程为（使用参数 $s$）：
-                 \[ \begin{cases} x = 3 + 1s \\ y = 0 - 3s \end{cases} \implies \begin{cases} x = 3 + s \\ y = -3s \end{cases} \]
-            </p>
+                    <p>3. 求直线 $AB$ 与直线 $L$ 的交点 $M$：
+                       <br>• 交点 $M$ 同时满足两组参数方程，设 $M$ 对应直线 $AB$ 的参数为 $t_M$，对应直线 $L$ 的参数为 $s_M$。
+                       <br>• $x_M = 3t_M = 3 + s_M$
+                       <br>• $y_M = t_M = -3s_M$
+                       <br>• 从第二个方程解得 $s_M = -\frac{t_M}{3}$。
+                       <br>• 代入第一个方程：$3t_M = 3 + (-\frac{t_M}{3})$
+                       <br>• $3t_M = 3 - \frac{t_M}{3}$
+                       <br>• 乘以 3：$9t_M = 9 - t_M$
+                       <br>• $10t_M = 9 \implies t_M = \frac{9}{10}$。
+                       <br>• 代回 $M$ 的坐标表达式（用直线AB的参数方程）：
+                         \[ M = (3t_M, t_M) = (3 \times \frac{9}{10}, \frac{9}{10}) = (\frac{27}{10}, \frac{9}{10}) \]
+                    </p>
 
-            <p>3. 求直线 $AB$ 与直线 $L$ 的交点 $M$：
-               <br>• 交点 $M$ 同时满足两组参数方程，设 $M$ 对应直线 $AB$ 的参数为 $t_M$，对应直线 $L$ 的参数为 $s_M$。
-               <br>• $x_M = 3t_M = 3 + s_M$
-               <br>• $y_M = t_M = -3s_M$
-               <br>• 从第二个方程解得 $s_M = -\frac{t_M}{3}$。
-               <br>• 代入第一个方程：$3t_M = 3 + (-\frac{t_M}{3})$
-               <br>• $3t_M = 3 - \frac{t_M}{3}$
-               <br>• 乘以 3：$9t_M = 9 - t_M$
-               <br>• $10t_M = 9 \implies t_M = \frac{9}{10}$。
-               <br>• 代回 $M$ 的坐标表达式（用直线AB的参数方程）：
-                 \[ M = (3t_M, t_M) = (3 \times \frac{9}{10}, \frac{9}{10}) = (\frac{27}{10}, \frac{9}{10}) \]
-            </p>
+                    <p>4. 利用中点关系求对称点 $C'$：
+                       <br>• 点 $M$ 是线段 $CC'$ 的中点。
+                       <br>• $C' = 2M - C$
+                       <br>• $C' = 2 (\frac{27}{10}, \frac{9}{10}) - (3, 0)$
+                       <br>• $C' = (\frac{54}{10}, \frac{18}{10}) - (\frac{30}{10}, 0)$
+                       <br>• $C' = (\frac{24}{10}, \frac{18}{10}) = (\frac{12}{5}, \frac{9}{5})$。
+                    </p>
 
-            <p>4. 利用中点关系求对称点 $C'$：
-               <br>• 点 $M$ 是线段 $CC'$ 的中点。
-               <br>• $C' = 2M - C$
-               <br>• $C' = 2 (\frac{27}{10}, \frac{9}{10}) - (3, 0)$
-               <br>• $C' = (\frac{54}{10}, \frac{18}{10}) - (\frac{30}{10}, 0)$
-               <br>• $C' = (\frac{24}{10}, \frac{18}{10}) = (\frac{12}{5}, \frac{9}{5})$。
-            </p>
+                    <p>5. 结论：
+                       <br>• 对称点 $C'$ 的坐标为 $(\frac{12}{5}, \frac{9}{5})$。</p>
+                </div>
 
-            <p>5. 结论：
-               <br>• 对称点 $C'$ 的坐标为 $(\frac{12}{5}, \frac{9}{5})$。</p>
-        </div>
-
-        <div class="hint">
-            <p>要点：</p>
-            <ul>
-                <li>使用参数方程表示直线。</li>
-                <li>找到与原直线垂直的直线的方向向量。</li>
-                <li>联立两直线的参数方程（或将其一转换为普通方程代入）求解交点 $M$ 对应的参数值。</li>
-                <li>利用中点公式 $C' = 2M - C$ 求解对称点。</li>
-            </ul>
+                <div class="hint">
+                    <p>要点：</p>
+                    <ul>
+                        <li>使用参数方程表示直线。</li>
+                        <li>找到与原直线垂直的直线的方向向量。</li>
+                        <li>联立两直线的参数方程（或将其一转换为普通方程代入）求解交点 $M$ 对应的参数值。</li>
+                        <li>利用中点公式 $C' = 2M - C$ 求解对称点。</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         // (JavaScript SVG code is the same as in previous files)
-        const svgWidth = 800;
-        const svgHeight = 600;
-        const centerX = svgWidth / 2 - 50;
-        const centerY = svgHeight / 2 + 50;
+        let svgWidth = 800;
+        let svgHeight = 600;
+        let centerX = svgWidth / 2;
+        let centerY = svgHeight / 2;
         let scale = 60;
         const pointB = {x: 0, y: 0};
         const pointC = {x: 3, y: 0};
@@ -121,52 +257,71 @@
         function drawCoordinateSystem() {
             const svg = document.getElementById('coordinate-system');
             svg.innerHTML = '';
+            
+            // 更新SVG尺寸
+            const container = document.querySelector('.content-left');
+            svgWidth = container.offsetWidth - 40;
+            svgHeight = Math.max(container.offsetHeight - 80, 400);
+            
+            svg.setAttribute('width', svgWidth);
+            svg.setAttribute('height', svgHeight);
+            
+            centerX = svgWidth / 2;
+            centerY = svgHeight / 2;
+            
+            const margin = 2;
             const visibleWidth = svgWidth / scale;
             const visibleHeight = svgHeight / scale;
-            const xMin = -centerX / scale;
-            const xMax = (svgWidth - centerX) / scale;
-            const yMin = -(svgHeight - centerY) / scale;
-            const yMax = centerY / scale;
+            const xMin = Math.floor(-visibleWidth / 2) - margin;
+            const xMax = Math.ceil(visibleWidth / 2) + margin;
+            const yMin = Math.floor(-visibleHeight / 2) - margin;
+            const yMax = Math.ceil(visibleHeight / 2) + margin;
             const gridGroup = createSVGElement('g');
             gridGroup.setAttribute('stroke', '#eee');
-            gridGroup.setAttribute('stroke-width', '1');
-            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+            gridGroup.setAttribute('stroke-width', '0.5');
+            for (let y = yMin; y <= yMax; y++) {
                 if (y === 0) continue;
                 const line = createSVGElement('line');
                 line.setAttribute('x1', toSvgX(xMin)); line.setAttribute('y1', toSvgY(y));
                 line.setAttribute('x2', toSvgX(xMax)); line.setAttribute('y2', toSvgY(y));
+                line.setAttribute('vector-effect', 'non-scaling-stroke');
                 gridGroup.appendChild(line);
             }
-            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+            for (let x = xMin; x <= xMax; x++) {
                 if (x === 0) continue;
                 const line = createSVGElement('line');
                 line.setAttribute('x1', toSvgX(x)); line.setAttribute('y1', toSvgY(yMin));
                 line.setAttribute('x2', toSvgX(x)); line.setAttribute('y2', toSvgY(yMax));
+                line.setAttribute('vector-effect', 'non-scaling-stroke');
                 gridGroup.appendChild(line);
             }
             svg.appendChild(gridGroup);
             const axisGroup = createSVGElement('g');
-            axisGroup.setAttribute('stroke', '#999');
-            axisGroup.setAttribute('stroke-width', '1');
+            axisGroup.setAttribute('stroke', '#000');
+            axisGroup.setAttribute('stroke-width', '1.5');
             const xAxis = createSVGElement('line');
             xAxis.setAttribute('x1', toSvgX(xMin)); xAxis.setAttribute('y1', toSvgY(0));
             xAxis.setAttribute('x2', toSvgX(xMax)); xAxis.setAttribute('y2', toSvgY(0));
+            xAxis.setAttribute('vector-effect', 'non-scaling-stroke');
             axisGroup.appendChild(xAxis);
             const yAxis = createSVGElement('line');
             yAxis.setAttribute('x1', toSvgX(0)); yAxis.setAttribute('y1', toSvgY(yMin));
             yAxis.setAttribute('x2', toSvgX(0)); yAxis.setAttribute('y2', toSvgY(yMax));
+            yAxis.setAttribute('vector-effect', 'non-scaling-stroke');
             axisGroup.appendChild(yAxis);
             svg.appendChild(axisGroup);
             const labelsGroup = createSVGElement('g');
-            labelsGroup.setAttribute('font-size', '12');
-            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x++) {
+            labelsGroup.setAttribute('font-size', '14');
+            labelsGroup.setAttribute('font-family', 'Arial');
+            labelsGroup.setAttribute('fill', '#666');
+            for (let x = xMin; x <= xMax; x++) {
                 if (x === 0) continue;
                 const text = createSVGElement('text');
                 text.setAttribute('x', toSvgX(x)); text.setAttribute('y', toSvgY(0) + 15);
                 text.setAttribute('text-anchor', 'middle'); text.textContent = x;
                 labelsGroup.appendChild(text);
             }
-            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y++) {
+            for (let y = yMin; y <= yMax; y++) {
                 if (y === 0) continue;
                 const text = createSVGElement('text');
                 text.setAttribute('x', toSvgX(0) - 10); text.setAttribute('y', toSvgY(y) + 5);
@@ -188,28 +343,38 @@
             const unitDx = dx / len; const unitDy = dy / len;
             lineAB.setAttribute('x1', toSvgX(pointB.x - unitDx * ext)); lineAB.setAttribute('y1', toSvgY(pointB.y - unitDy * ext));
             lineAB.setAttribute('x2', toSvgX(pointA.x + unitDx * ext)); lineAB.setAttribute('y2', toSvgY(pointA.y + unitDy * ext));
-            lineAB.setAttribute('stroke', '#666'); lineAB.setAttribute('stroke-dasharray', '4,4');
+            lineAB.setAttribute('stroke', '#2196F3'); lineAB.setAttribute('stroke-dasharray', '4,4');
+            lineAB.setAttribute('vector-effect', 'non-scaling-stroke');
             mainGroup.appendChild(lineAB);
             const lineBC = createSVGElement('line');
             lineBC.setAttribute('x1', toSvgX(pointB.x)); lineBC.setAttribute('y1', toSvgY(pointB.y));
             lineBC.setAttribute('x2', toSvgX(pointC.x)); lineBC.setAttribute('y2', toSvgY(pointC.y));
+            lineBC.setAttribute('stroke', '#2196F3');
+            lineBC.setAttribute('vector-effect', 'non-scaling-stroke');
             mainGroup.appendChild(lineBC);
             const lineAC = createSVGElement('line');
             lineAC.setAttribute('x1', toSvgX(pointA.x)); lineAC.setAttribute('y1', toSvgY(pointA.y));
             lineAC.setAttribute('x2', toSvgX(pointC.x)); lineAC.setAttribute('y2', toSvgY(pointC.y));
+            lineAC.setAttribute('stroke', '#2196F3');
+            lineAC.setAttribute('vector-effect', 'non-scaling-stroke');
             mainGroup.appendChild(lineAC);
             const lineACPrime = createSVGElement('line');
             lineACPrime.setAttribute('x1', toSvgX(pointA.x)); lineACPrime.setAttribute('y1', toSvgY(pointA.y));
             lineACPrime.setAttribute('x2', toSvgX(pointCPrime.x)); lineACPrime.setAttribute('y2', toSvgY(pointCPrime.y));
+            lineACPrime.setAttribute('stroke', '#2196F3');
+            lineACPrime.setAttribute('vector-effect', 'non-scaling-stroke');
             mainGroup.appendChild(lineACPrime);
             const lineBCPrime = createSVGElement('line');
             lineBCPrime.setAttribute('x1', toSvgX(pointB.x)); lineBCPrime.setAttribute('y1', toSvgY(pointB.y));
             lineBCPrime.setAttribute('x2', toSvgX(pointCPrime.x)); lineBCPrime.setAttribute('y2', toSvgY(pointCPrime.y));
+            lineBCPrime.setAttribute('stroke', '#2196F3');
+            lineBCPrime.setAttribute('vector-effect', 'non-scaling-stroke');
             mainGroup.appendChild(lineBCPrime);
             svg.appendChild(mainGroup);
             const perpGroup = createSVGElement('g');
-            perpGroup.setAttribute('stroke', '#cc0000'); perpGroup.setAttribute('stroke-width', '1');
+            perpGroup.setAttribute('stroke', '#ff4444'); perpGroup.setAttribute('stroke-width', '2');
             perpGroup.setAttribute('stroke-dasharray', '3,3');
+            perpGroup.setAttribute('vector-effect', 'non-scaling-stroke');
             const lineCCPrime = createSVGElement('line');
             lineCCPrime.setAttribute('x1', toSvgX(pointC.x)); lineCCPrime.setAttribute('y1', toSvgY(pointC.y));
             lineCCPrime.setAttribute('x2', toSvgX(pointCPrime.x)); lineCCPrime.setAttribute('y2', toSvgY(pointCPrime.y));
@@ -218,27 +383,29 @@
             const pointsGroup = createSVGElement('g');
             const circleB = createSVGElement('circle');
             circleB.setAttribute('cx', toSvgX(pointB.x)); circleB.setAttribute('cy', toSvgY(pointB.y));
-            circleB.setAttribute('r', '5'); circleB.setAttribute('fill', 'blue');
+            circleB.setAttribute('r', '6'); circleB.setAttribute('fill', '#4CAF50');
             pointsGroup.appendChild(circleB);
             const circleC = createSVGElement('circle');
             circleC.setAttribute('cx', toSvgX(pointC.x)); circleC.setAttribute('cy', toSvgY(pointC.y));
-            circleC.setAttribute('r', '5'); circleC.setAttribute('fill', 'blue');
+            circleC.setAttribute('r', '6'); circleC.setAttribute('fill', '#4CAF50');
             pointsGroup.appendChild(circleC);
             const circleA = createSVGElement('circle');
             circleA.setAttribute('cx', toSvgX(pointA.x)); circleA.setAttribute('cy', toSvgY(pointA.y));
-            circleA.setAttribute('r', '5'); circleA.setAttribute('fill', 'blue');
+            circleA.setAttribute('r', '6'); circleA.setAttribute('fill', '#4CAF50');
             pointsGroup.appendChild(circleA);
             const circleM = createSVGElement('circle');
             circleM.setAttribute('cx', toSvgX(pointM.x)); circleM.setAttribute('cy', toSvgY(pointM.y));
-            circleM.setAttribute('r', '3'); circleM.setAttribute('fill', 'green');
+            circleM.setAttribute('r', '4'); circleM.setAttribute('fill', '#4CAF50');
             pointsGroup.appendChild(circleM);
             const circleCPrime = createSVGElement('circle');
             circleCPrime.setAttribute('cx', toSvgX(pointCPrime.x)); circleCPrime.setAttribute('cy', toSvgY(pointCPrime.y));
-            circleCPrime.setAttribute('r', '5'); circleCPrime.setAttribute('fill', 'magenta');
+            circleCPrime.setAttribute('r', '6'); circleCPrime.setAttribute('fill', '#ff4444');
             pointsGroup.appendChild(circleCPrime);
             svg.appendChild(pointsGroup);
             const markersGroup = createSVGElement('g');
-            markersGroup.setAttribute('font-size', '14'); markersGroup.setAttribute('fill', '#333');
+            markersGroup.setAttribute('font-size', '14'); markersGroup.setAttribute('fill', '#666');
+            markersGroup.setAttribute('font-family', 'Arial');
+            markersGroup.setAttribute('font-weight', 'bold');
             const textB = createSVGElement('text');
             textB.setAttribute('x', toSvgX(pointB.x) - 25); textB.setAttribute('y', toSvgY(pointB.y) + 15);
             textB.textContent = 'B(0,0)';
@@ -253,13 +420,13 @@
             markersGroup.appendChild(textA);
             const textM = createSVGElement('text');
             textM.setAttribute('x', toSvgX(pointM.x) + 8); textM.setAttribute('y', toSvgY(pointM.y) - 8);
-            textM.textContent = 'M'; textM.setAttribute('fill', 'green');
+            textM.textContent = 'M'; textM.setAttribute('fill', '#4CAF50');
             markersGroup.appendChild(textM);
             const textCPrime = createSVGElement('text');
             textCPrime.setAttribute('x', toSvgX(pointCPrime.x) + 5); textCPrime.setAttribute('y', toSvgY(pointCPrime.y) - 15);
             const cPrimeXText = '12/5'; const cPrimeYText = '9/5';
             textCPrime.textContent = `C'(${cPrimeXText},${cPrimeYText})`;
-            textCPrime.setAttribute('fill', 'magenta');
+            textCPrime.setAttribute('fill', '#ff4444');
             markersGroup.appendChild(textCPrime);
             svg.appendChild(markersGroup);
         }
@@ -268,7 +435,36 @@
             document.getElementById('scaleValue').textContent = scale;
             drawCoordinateSystem();
         });
+        window.addEventListener('resize', function() {
+            drawCoordinateSystem();
+        });
         drawCoordinateSystem();
+        // 拖拽手柄JS
+        (function() {
+            const handle = document.querySelector('.handle');
+            const left = document.querySelector('.content-left');
+            const right = document.querySelector('.content-right');
+            let dragging = false;
+            handle.addEventListener('mousedown', function(e) {
+                dragging = true;
+                document.body.style.cursor = 'col-resize';
+            });
+            document.addEventListener('mousemove', function(e) {
+                if (!dragging) return;
+                const container = document.querySelector('.container');
+                const rect = container.getBoundingClientRect();
+                let percent = (e.clientX - rect.left) / rect.width;
+                percent = Math.max(0.15, Math.min(0.85, percent));
+                left.style.width = (percent * 100) + '%';
+                right.style.width = ((1 - percent) * 100) + '%';
+            });
+            document.addEventListener('mouseup', function() {
+                if (dragging) {
+                    dragging = false;
+                    document.body.style.cursor = '';
+                }
+            });
+        })();
     </script>
 </body>
 </html> 

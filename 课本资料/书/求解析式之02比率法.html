@@ -275,6 +275,91 @@
             lineAB.setAttribute('stroke-width', '2');
             shapeGroup.appendChild(lineAB);
 
+            // 线段AC
+            const lineAC = createSVGElement('line');
+            lineAC.setAttribute('x1', toSvgX(pointA.x));
+            lineAC.setAttribute('y1', toSvgY(pointA.y));
+            lineAC.setAttribute('x2', toSvgX(pointA.x));
+            lineAC.setAttribute('y2', toSvgY(pointB.y));
+            lineAC.setAttribute('stroke', '#2196F3');
+            lineAC.setAttribute('stroke-width', '2');
+            shapeGroup.appendChild(lineAC);
+            
+            // 线段BC
+            const lineBC = createSVGElement('line');
+            lineBC.setAttribute('x1', toSvgX(pointB.x));
+            lineBC.setAttribute('y1', toSvgY(pointB.y));
+            lineBC.setAttribute('x2', toSvgX(pointA.x));
+            lineBC.setAttribute('y2', toSvgY(pointB.y));
+            lineBC.setAttribute('stroke', '#2196F3');
+            lineBC.setAttribute('stroke-width', '2');
+            shapeGroup.appendChild(lineBC);
+
+            // 添加右角标记 (at point C)
+            const rightAngle = createSVGElement('path');
+            rightAngle.setAttribute('d', 
+                `M ${toSvgX(pointA.x) + 10} ${toSvgY(pointB.y)}
+                 L ${toSvgX(pointA.x) + 10} ${toSvgY(pointB.y) - 10}
+                 L ${toSvgX(pointA.x)} ${toSvgY(pointB.y) - 10}`);
+            rightAngle.setAttribute('fill', 'none');
+            rightAngle.setAttribute('stroke', '#666');
+            rightAngle.setAttribute('stroke-width', '1.5');
+            shapeGroup.appendChild(rightAngle);
+
+            // 添加水平和垂直距离标记
+            const dx = Math.abs(pointB.x - pointA.x);
+            const dy = Math.abs(pointB.y - pointA.y);
+            
+            // 水平距离标记
+            const horDistText = createSVGElement('text');
+            horDistText.setAttribute('x', toSvgX(pointA.x + dx/2));
+            horDistText.setAttribute('y', toSvgY(pointB.y) + 20);
+            horDistText.setAttribute('text-anchor', 'middle');
+            horDistText.setAttribute('fill', '#4CAF50');
+            horDistText.setAttribute('font-weight', 'bold');
+            horDistText.textContent = `dx = ${dx}`;
+            markersGroup.appendChild(horDistText);
+            
+            // 垂直距离标记
+            const verDistText = createSVGElement('text');
+            verDistText.setAttribute('x', toSvgX(pointA.x) - 15);
+            verDistText.setAttribute('y', toSvgY(pointA.y - dy/2));
+            verDistText.setAttribute('text-anchor', 'end');
+            verDistText.setAttribute('fill', '#4CAF50');
+            verDistText.setAttribute('font-weight', 'bold');
+            verDistText.textContent = `dy = ${dy}`;
+            markersGroup.appendChild(verDistText);
+            
+            // 斜率标记
+            const slopeText = createSVGElement('text');
+            slopeText.setAttribute('x', toSvgX((pointA.x + pointB.x)/2 + 0.5));
+            slopeText.setAttribute('y', toSvgY((pointA.y + pointB.y)/2 + 0.5));
+            slopeText.setAttribute('fill', '#ff4444');
+            slopeText.setAttribute('font-weight', 'bold');
+            slopeText.textContent = `斜率 = dy/dx = -${dy}/${dx} = -${dy/dx}`;
+            markersGroup.appendChild(slopeText);
+            
+            // 添加箭头标记 (for the line direction)
+            const defs = createSVGElement('defs');
+            svg.appendChild(defs);
+            
+            const arrowMarker = createSVGElement('marker');
+            arrowMarker.setAttribute('id', 'arrowhead');
+            arrowMarker.setAttribute('markerWidth', '10');
+            arrowMarker.setAttribute('markerHeight', '7');
+            arrowMarker.setAttribute('refX', '10');
+            arrowMarker.setAttribute('refY', '3.5');
+            arrowMarker.setAttribute('orient', 'auto');
+            
+            const polygon = createSVGElement('polygon');
+            polygon.setAttribute('points', '0 0, 10 3.5, 0 7');
+            polygon.setAttribute('fill', '#000');
+            arrowMarker.appendChild(polygon);
+            defs.appendChild(arrowMarker);
+            
+            // 给直线添加箭头
+            lineAB.setAttribute('marker-end', 'url(#arrowhead)');
+
             // 点A
             const circleA = createSVGElement('circle');
             circleA.setAttribute('cx', toSvgX(pointA.x));
@@ -290,6 +375,14 @@
             circleB.setAttribute('r', '5');
             circleB.setAttribute('fill', 'blue');
             pointsGroup.appendChild(circleB);
+            // 点C
+            const circleC = createSVGElement('circle');
+            circleC.setAttribute('cx', toSvgX(pointA.x));
+            circleC.setAttribute('cy', toSvgY(pointB.y));
+            circleC.setAttribute('r', '5');
+            circleC.setAttribute('fill', 'blue');
+            pointsGroup.appendChild(circleC);
+            
 
             // 标记A
             const textA = createSVGElement('text');
@@ -304,6 +397,15 @@
             textB.setAttribute('y', toSvgY(pointB.y) - 10);
             textB.textContent = 'B(6,1)';
             markersGroup.appendChild(textB);
+
+            // 标记C
+            const textC = createSVGElement('text');
+            textC.setAttribute('x', toSvgX(pointA.x) + 10);
+            textC.setAttribute('y', toSvgY(pointB.y) - 10);
+            textC.textContent = 'C(3,1)';
+            markersGroup.appendChild(textC);
+
+            
             
             // 按顺序添加所有组到SVG
             svg.appendChild(gridGroup);
