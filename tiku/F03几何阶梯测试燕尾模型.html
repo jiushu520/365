@@ -1696,8 +1696,8 @@
 
         
         function generateLevel3Question() {//一外一内
-            // 生成随机比例
-            let ratioA = Math.floor(Math.random() * 3) + 1;  // 1 to 3
+             // 生成随机比例
+             let ratioA = Math.floor(Math.random() * 3) + 1;  // 1 to 3
             let ratioB = Math.floor(Math.random() * 3) + 1;  // 1 to 3
             
             // 计算最大公约数
@@ -1722,8 +1722,9 @@
             // 生成一个随机的三角形BCO面积
             let areaBCO = (Math.floor(Math.random() * 4) + 1) * 5;  // 5, 10, 15, 或 20
             
-            // 计算三角形ABC的面积 = areaBCO * (ac+ad+bd)/bd
-            let areaABC = areaBCO * (ratioA*ratioC + ratioA*ratioD + ratioB*ratioD) / (ratioB*ratioD);
+            // 根据燕尾模型，计算三角形ABC的面积
+            // S_ABC = S_BCO * (ac + ad + bd) / bd
+            let areaABC = areaBCO * (simplifiedRatioA*simplifiedRatioC + simplifiedRatioA*simplifiedRatioD + simplifiedRatioB*simplifiedRatioD) / (simplifiedRatioB*simplifiedRatioD);
             
             // 确保面积是整数
             areaABC = Math.round(areaABC);
@@ -1812,13 +1813,22 @@
             </svg>
             `;
             
+            // 计算BD:DC的比例（根据燕尾模型）
+            let bdRatio = simplifiedRatioA * simplifiedRatioC + simplifiedRatioB * simplifiedRatioD;
+            let dcRatio = simplifiedRatioA * simplifiedRatioD;
+            
+            // 化简BD:DC比例
+            let gcdBDDC = gcd(bdRatio, dcRatio);
+            let simplifiedBDRatio = bdRatio / gcdBDDC;
+            let simplifiedDCRatio = dcRatio / gcdBDDC;
+            
             // 格式化问题文本
             const question = `
             <div style="text-align: center;">
                 \\begin{array}{cc} 
                 如图，三角形ABC中，\\\\
                 AG:GB = ${simplifiedRatioA}:${simplifiedRatioB}，
-                BO:OE = ${simplifiedRatioA*simplifiedRatioC+simplifiedRatioB*simplifiedRatioD}:${simplifiedRatioA*simplifiedRatioD}，\\\\
+                BD:DC = ${simplifiedBDRatio}:${simplifiedDCRatio}，\\\\
                 S_{\\triangle BCO} = ${areaBCO}平方厘米，\\\\
                 则S_{\\triangle ABC} = \\_平方厘米。
                 \\end{array}
