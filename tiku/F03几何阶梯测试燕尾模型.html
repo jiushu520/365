@@ -1696,35 +1696,37 @@
 
         
         function generateLevel3Question() {//一外一内
-             // 生成随机比例
-             let ratioA = Math.floor(Math.random() * 3) + 1;  // 1 to 3
-            let ratioB = Math.floor(Math.random() * 3) + 1;  // 1 to 3
+            // 先确定两个基本比例 AG:GB 和 BD:DC
+            // 生成AG:GB = a:b (化简后的比例)
+            let simplifiedA = Math.floor(Math.random() * 3) + 1;  // 1 to 3
+            let simplifiedB = Math.floor(Math.random() * 3) + 1;  // 1 to 3
             
-            // 计算最大公约数
-            let gcdAB = gcd(ratioA, ratioB);
+            // 生成BD:DC = m:n (化简后的比例)
+            let simplifiedM = Math.floor(Math.random() * 3) + 1;  // 1 to 3
+            let simplifiedN = Math.floor(Math.random() * 3) + 1;  // 1 to 3
             
-            // 将比例化为最简比
-            let simplifiedRatioA = ratioA / gcdAB;
-            let simplifiedRatioB = ratioB / gcdAB;
+            // 使用化简后的值作为基础比例进行所有计算
+            let a = simplifiedA;
+            let b = simplifiedB;
+            let m = simplifiedM;
+            let n = simplifiedN;
             
-            // 计算BD:DC的比例 (ac+bd):ad
-            // 这里随机选一个比例，倒推出c和d
-            let ratioC = Math.floor(Math.random() * 3) + 1;  // 1 to 3
-            let ratioD = Math.floor(Math.random() * 3) + 1;  // 1 to 3
-            
-            // 计算最大公约数
-            let gcdCD = gcd(ratioC, ratioD);
-            
-            // 将比例化为最简比
-            let simplifiedRatioC = ratioC / gcdCD;
-            let simplifiedRatioD = ratioD / gcdCD;
+            /* 燕尾模型推导说明：
+             * 已知：1. AG:GB = a:b, 2. BD:DC = m:n
+             * 推导出的4个比例：
+             * 3. CE:EA = b*n:a*m
+             * 4. AO:OD = (a*m + a*n):b*n = a*(m+n):b*n
+             * 5. BO:OE = (a*m + b*n):a*n
+             * 6. CO:OG = (b*n + a*n):a*m = (a+b)*n:a*m
+             * 面积关系：S_ABC = S_BCO * (a*(m+n) + b*m) / (b*m)
+             */
             
             // 生成一个随机的三角形BCO面积
-            let areaBCO = (Math.floor(Math.random() * 4) + 1) * 5;  // 5, 10, 15, 或 20
+            let areaBCO = (Math.floor(Math.random() * 4) + 1) * b*n;  // 5, 10, 15, 或 20
             
             // 根据燕尾模型，计算三角形ABC的面积
-            // S_ABC = S_BCO * (ac + ad + bd) / bd
-            let areaABC = areaBCO * (simplifiedRatioA*simplifiedRatioC + simplifiedRatioA*simplifiedRatioD + simplifiedRatioB*simplifiedRatioD) / (simplifiedRatioB*simplifiedRatioD);
+            // S_ABC = S_BCO * (a*n + a*m + b*m) / (b*m) = S_BCO * (a*(m+n) + b*m) / (b*m)
+            let areaABC = areaBCO * (a*(m+n) + b*m) / (b*m);
             
             // 确保面积是整数
             areaABC = Math.round(areaABC);
@@ -1738,38 +1740,60 @@
             const pointB = {x: 20, y: 130};
             const pointC = {x: 180, y: 130};
             
-            // 计算点G在AB上的位置
+            // 计算点G在AB上的位置 (AG:GB = a:b)
             const pointG = {
-                x: (ratioA * pointB.x + ratioB * pointA.x) / (ratioA + ratioB),
-                y: (ratioA * pointB.y + ratioB * pointA.y) / (ratioA + ratioB)
+                x: (a * pointB.x + b * pointA.x) / (a + b),
+                y: (a * pointB.y + b * pointA.y) / (a + b)
             };
             
-            // 计算点D在BC上的位置
+            // 计算点D在BC上的位置 (BD:DC = m:n)
             const pointD = {
-                x: (ratioC * pointC.x + ratioD * pointB.x) / (ratioC + ratioD),
-                y: (ratioC * pointC.y + ratioD * pointB.y) / (ratioC + ratioD)
+                x: (m * pointC.x + n * pointB.x) / (m + n),
+                y: (m * pointC.y + n * pointB.y) / (m + n)
             };
             
-            // 计算点E在AC上的位置 (这里使用与级别2相同的计算方式)
-            let ratioE = ratioB * ratioD;
-            let ratioF = ratioA * ratioC;
+            // 根据燕尾模型推导所有比例关系
             
-            // 计算最大公约数
-            let gcdEF = gcd(ratioE, ratioF);
+            // 3. CE:EA = b*n:a*m (注意顺序)
+            let ratioCE = b * n;
+            let ratioEA = a * m;
+            let gcdCEEA = gcd(ratioCE, ratioEA);
+            let simplifiedCE = ratioCE / gcdCEEA;
+            let simplifiedEA = ratioEA / gcdCEEA;
             
-            // 将比例化为最简比
-            let simplifiedRatioE = ratioE / gcdEF;
-            let simplifiedRatioF = ratioF / gcdEF;
+            // 4. AO:OD = (a*m + a*n):b*n
+            let ratioAO = a * m + a * n;  // a*(m+n)
+            let ratioOD = b * n;
+            let gcdAOOD = gcd(ratioAO, ratioOD);
+            let simplifiedAO = ratioAO / gcdAOOD;
+            let simplifiedOD = ratioOD / gcdAOOD;
             
             const pointE = {
-                x: (ratioF * pointC.x + ratioE * pointA.x) / (ratioE + ratioF),
-                y: (ratioF * pointC.y + ratioE * pointA.y) / (ratioE + ratioF)
+                x: (ratioEA * pointC.x + ratioCE * pointA.x) / (ratioCE + ratioEA),
+                y: (ratioEA * pointC.y + ratioCE * pointA.y) / (ratioCE + ratioEA)
             };
             
-            // 计算AD和CG的交点O (使用与级别2相同的计算方式)
+            // 计算AD和CG的交点O (使用直线交点公式)
+            // 直线AD: 从A(pointA.x, pointA.y)到D(pointD.x, pointD.y)
+            // 直线CG: 从C(pointC.x, pointC.y)到G(pointG.x, pointG.y)
+            
+            // 计算直线AD的参数方程系数
+            const adDx = pointD.x - pointA.x;
+            const adDy = pointD.y - pointA.y;
+            
+            // 计算直线CG的参数方程系数
+            const cgDx = pointG.x - pointC.x;
+            const cgDy = pointG.y - pointC.y;
+            
+            // 求解交点参数t
+            // A + t*(D-A) = C + s*(G-C)
+            // 解方程组得到t
+            const denominator = adDx * cgDy - adDy * cgDx;
+            const t = ((pointC.x - pointA.x) * cgDy - (pointC.y - pointA.y) * cgDx) / denominator;
+            
             const pointO = {
-                x: (ratioB * ratioD * pointA.x + ratioA * (ratioC + ratioD) * pointD.x) / (ratioB * ratioD + ratioA * (ratioC + ratioD)),
-                y: (ratioB * ratioD * pointA.y + ratioA * (ratioC + ratioD) * pointD.y) / (ratioB * ratioD + ratioA * (ratioC + ratioD))
+                x: pointA.x + t * adDx,
+                y: pointA.y + t * adDy
             };
             
             // 创建SVG图形
@@ -1813,22 +1837,27 @@
             </svg>
             `;
             
-            // 计算BD:DC的比例（根据燕尾模型）
-            let bdRatio = simplifiedRatioA * simplifiedRatioC + simplifiedRatioB * simplifiedRatioD;
-            let dcRatio = simplifiedRatioA * simplifiedRatioD;
+            // 5. BO:OE = (a*m + b*n):a*n
+            let ratioBO = a * m + b * n;
+            let ratioOE = a * n;
+            let gcdBOOE = gcd(ratioBO, ratioOE);
+            let simplifiedBO = ratioBO / gcdBOOE;
+            let simplifiedOE = ratioOE / gcdBOOE;
             
-            // 化简BD:DC比例
-            let gcdBDDC = gcd(bdRatio, dcRatio);
-            let simplifiedBDRatio = bdRatio / gcdBDDC;
-            let simplifiedDCRatio = dcRatio / gcdBDDC;
+            // 6. CO:OG = (b*n + a*n):a*m
+            let ratioCO = b * n + a * n;  // (b+a)*n
+            let ratioOG = a * m;
+            let gcdCOOG = gcd(ratioCO, ratioOG);
+            let simplifiedCO = ratioCO / gcdCOOG;
+            let simplifiedOG = ratioOG / gcdCOOG;
             
             // 格式化问题文本
             const question = `
             <div style="text-align: center;">
                 \\begin{array}{cc} 
                 如图，三角形ABC中，\\\\
-                AG:GB = ${simplifiedRatioA}:${simplifiedRatioB}，
-                BD:DC = ${simplifiedBDRatio}:${simplifiedDCRatio}，\\\\
+                AG:GB = ${simplifiedA}:${simplifiedB}，
+                BO:OE = ${simplifiedBO}:${simplifiedOE}，\\\\
                 S_{\\triangle BCO} = ${areaBCO}平方厘米，\\\\
                 则S_{\\triangle ABC} = \\_平方厘米。
                 \\end{array}
@@ -1849,35 +1878,36 @@
 
 
         function generateLevel4Question() {
-            // 两内比
-           // 生成随机比例
-           let ratioA = Math.floor(Math.random() * 3) + 1;  // 1 to 3
-            let ratioB = Math.floor(Math.random() * 3) + 1;  // 1 to 3
+            // 燕尾模型两内比：先确定两个基本比例 AG:GB 和 BD:DC
+            // 生成AG:GB = a:b (化简后的比例)
+            let simplifiedA = Math.floor(Math.random() * 3) + 1;  // 1 to 3
+            let simplifiedB = Math.floor(Math.random() * 3) + 1;  // 1 to 3
             
-            // 计算最大公约数
-            let gcdAB = gcd(ratioA, ratioB);
+            // 生成BD:DC = m:n (化简后的比例)
+            let simplifiedM = Math.floor(Math.random() * 3) + 1;  // 1 to 3
+            let simplifiedN = Math.floor(Math.random() * 3) + 1;  // 1 to 3
             
-            // 将比例化为最简比
-            let simplifiedRatioA = ratioA / gcdAB;
-            let simplifiedRatioB = ratioB / gcdAB;
+            // 使用化简后的值作为基础比例进行所有计算
+            let a = simplifiedA;
+            let b = simplifiedB;
+            let m = simplifiedM;
+            let n = simplifiedN;
             
-            // 计算BD:DC的比例 (ac+bd):ad
-            // 这里随机选一个比例，倒推出c和d
-            let ratioC = Math.floor(Math.random() * 3) + 1;  // 1 to 3
-            let ratioD = Math.floor(Math.random() * 3) + 1;  // 1 to 3
-            
-            // 计算最大公约数
-            let gcdCD = gcd(ratioC, ratioD);
-            
-            // 将比例化为最简比
-            let simplifiedRatioC = ratioC / gcdCD;
-            let simplifiedRatioD = ratioD / gcdCD;
-            
-            // 生成一个随机的三角形BCO面积
-            let areaBCO = (Math.floor(Math.random() * 4) + 1) * simplifiedRatioB*simplifiedRatioD;  // bd的倍数
-            
-            // 计算三角形ABC的面积 = areaBCO * (ac+ad+bd)/bd
-            let areaABC = areaBCO * (ratioA*ratioC + ratioA*ratioD + ratioB*ratioD) / (ratioB*ratioD);
+            /* 燕尾模型推导说明：
+             * 已知：1. AG:GB = a:b, 2. BD:DC = m:n
+             * 推导出的4个比例：
+             * 3. CE:EA = b*n:a*m
+             * 4. AO:OD = a*(m+n):b*n
+             * 5. BO:OE = (a*m + b*n):a*n
+             * 6. CO:OG = (a+b)*n:a*m
+             * 面积关系：S_ABC = S_BCO * (a*(m+n) + b*m) / (b*m)
+             */
+			// 生成一个随机的三角形BCO面积
+			let areaBCO = (Math.floor(Math.random() * 4) + 1) * b * n;  // b*n的倍数
+
+            // 根据燕尾模型，计算三角形ABC的面积
+            // S_ABC = S_BCO * (a*(m+n) + b*m) / (b*m)
+            let areaABC = areaBCO * (a*(m+n) + b*m) / (b*m);
             
             // 确保面积是整数
             areaABC = Math.round(areaABC);
@@ -1891,38 +1921,60 @@
             const pointB = {x: 20, y: 130};
             const pointC = {x: 180, y: 130};
             
-            // 计算点G在AB上的位置
+            // 计算点G在AB上的位置 (AG:GB = a:b)
             const pointG = {
-                x: (ratioA * pointB.x + ratioB * pointA.x) / (ratioA + ratioB),
-                y: (ratioA * pointB.y + ratioB * pointA.y) / (ratioA + ratioB)
+                x: (a * pointB.x + b * pointA.x) / (a + b),
+                y: (a * pointB.y + b * pointA.y) / (a + b)
             };
             
-            // 计算点D在BC上的位置
+            // 计算点D在BC上的位置 (BD:DC = m:n)
             const pointD = {
-                x: (ratioC * pointC.x + ratioD * pointB.x) / (ratioC + ratioD),
-                y: (ratioC * pointC.y + ratioD * pointB.y) / (ratioC + ratioD)
+                x: (m * pointC.x + n * pointB.x) / (m + n),
+                y: (m * pointC.y + n * pointB.y) / (m + n)
             };
             
-            // 计算点E在AC上的位置 (这里使用与级别2相同的计算方式)
-            let ratioE = ratioB * ratioD;
-            let ratioF = ratioA * ratioC;
+            // 根据燕尾模型推导所有比例关系
             
-            // 计算最大公约数
-            let gcdEF = gcd(ratioE, ratioF);
+            // 3. CE:EA = b*n:a*m (注意顺序)
+            let ratioCE = b * n;
+            let ratioEA = a * m;
+            let gcdCEEA = gcd(ratioCE, ratioEA);
+            let simplifiedCE = ratioCE / gcdCEEA;
+            let simplifiedEA = ratioEA / gcdCEEA;
             
-            // 将比例化为最简比
-            let simplifiedRatioE = ratioE / gcdEF;
-            let simplifiedRatioF = ratioF / gcdEF;
+            // 4. AO:OD = a*(m+n):b*n
+            let ratioAO = a * (m + n);
+            let ratioOD = b * n;
+            let gcdAOOD = gcd(ratioAO, ratioOD);
+            let simplifiedAO = ratioAO / gcdAOOD;
+            let simplifiedOD = ratioOD / gcdAOOD;
             
             const pointE = {
-                x: (ratioF * pointC.x + ratioE * pointA.x) / (ratioE + ratioF),
-                y: (ratioF * pointC.y + ratioE * pointA.y) / (ratioE + ratioF)
+                x: (ratioEA * pointC.x + ratioCE * pointA.x) / (ratioCE + ratioEA),
+                y: (ratioEA * pointC.y + ratioCE * pointA.y) / (ratioCE + ratioEA)
             };
             
-            // 计算AD和CG的交点O (使用与级别2相同的计算方式)
+            // 计算AD和CG的交点O (使用直线交点公式)
+            // 直线AD: 从A(pointA.x, pointA.y)到D(pointD.x, pointD.y)
+            // 直线CG: 从C(pointC.x, pointC.y)到G(pointG.x, pointG.y)
+            
+            // 计算直线AD的参数方程系数
+            const adDx = pointD.x - pointA.x;
+            const adDy = pointD.y - pointA.y;
+            
+            // 计算直线CG的参数方程系数
+            const cgDx = pointG.x - pointC.x;
+            const cgDy = pointG.y - pointC.y;
+            
+            // 求解交点参数t
+            // A + t*(D-A) = C + s*(G-C)
+            // 解方程组得到t
+            const denominator = adDx * cgDy - adDy * cgDx;
+            const t = ((pointC.x - pointA.x) * cgDy - (pointC.y - pointA.y) * cgDx) / denominator;
+            
             const pointO = {
-                x: (ratioB * ratioD * pointA.x + ratioA * (ratioC + ratioD) * pointD.x) / (ratioB * ratioD + ratioA * (ratioC + ratioD)),
-                y: (ratioB * ratioD * pointA.y + ratioA * (ratioC + ratioD) * pointD.y) / (ratioB * ratioD + ratioA * (ratioC + ratioD))
+                x: pointA.x + t * adDx,
+                y: pointA.y + t * adDy
             };
             
             // 创建SVG图形
@@ -1966,26 +2018,27 @@
             </svg>
             `;
             
-            // 计算BO:OE和CO:OG的比例并简化
-            let ratioBO_OE_1 = simplifiedRatioA*simplifiedRatioC+simplifiedRatioB*simplifiedRatioD;
-            let ratioBO_OE_2 = simplifiedRatioA*simplifiedRatioD;
-            let gcdBO_OE = gcd(ratioBO_OE_1, ratioBO_OE_2);
-            let simplifiedBO_OE_1 = ratioBO_OE_1 / gcdBO_OE;
-            let simplifiedBO_OE_2 = ratioBO_OE_2 / gcdBO_OE;
+            // 5. BO:OE = (a*m + b*n):a*n
+            let ratioBO = a * m + b * n;
+            let ratioOE = a * n;
+            let gcdBOOE = gcd(ratioBO, ratioOE);
+            let simplifiedBO = ratioBO / gcdBOOE;
+            let simplifiedOE = ratioOE / gcdBOOE;
             
-            let ratioCO_OG_1 = simplifiedRatioA*simplifiedRatioD+simplifiedRatioB*simplifiedRatioD;
-            let ratioCO_OG_2 = simplifiedRatioA*simplifiedRatioC;
-            let gcdCO_OG = gcd(ratioCO_OG_1, ratioCO_OG_2);
-            let simplifiedCO_OG_1 = ratioCO_OG_1 / gcdCO_OG;
-            let simplifiedCO_OG_2 = ratioCO_OG_2 / gcdCO_OG;
+            // 6. CO:OG = (a+b)*n:a*m
+            let ratioCO = (a + b) * n;
+            let ratioOG = a * m;
+            let gcdCOOG = gcd(ratioCO, ratioOG);
+            let simplifiedCO = ratioCO / gcdCOOG;
+            let simplifiedOG = ratioOG / gcdCOOG;
             
             // 格式化问题文本
             const question = `
             <div style="text-align: center;">
                 \\begin{array}{cc} 
                 如图，三角形ABC中，\\\\
-                BO:OE = ${simplifiedBO_OE_1}:${simplifiedBO_OE_2}，
-                CO:OG = ${simplifiedCO_OG_1}:${simplifiedCO_OG_2}，\\\\
+                BO:OE = ${simplifiedBO}:${simplifiedOE}，
+                CO:OG = ${simplifiedCO}:${simplifiedOG}，\\\\
                 S_{\\triangle BCO} = ${areaBCO}平方厘米，\\\\
                 则S_{\\triangle ABC} = \\_平方厘米。
                 \\end{array}
@@ -1997,7 +2050,11 @@
             // 设置正确答案
             correctAnswer = [`${areaABC}`];
             
-            return question;
+            return question;       
+
+
+
+
         }
 
 
