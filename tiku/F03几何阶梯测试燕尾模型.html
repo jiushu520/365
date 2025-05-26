@@ -1726,7 +1726,7 @@
             
             // 根据燕尾模型，计算三角形ABC的面积
             // S_ABC = S_BCO * (a*n + a*m + b*m) / (b*m) = S_BCO * (a*(m+n) + b*m) / (b*m)
-            let areaABC = areaBCO * (a*(m+n) + b*m) / (b*m);
+            let areaABC = areaBCO * (a*(m+n) + b*n) / (b*n);
             
             // 确保面积是整数
             areaABC = Math.round(areaABC);
@@ -1907,7 +1907,7 @@
 
             // 根据燕尾模型，计算三角形ABC的面积
             // S_ABC = S_BCO * (a*(m+n) + b*m) / (b*m)
-            let areaABC = areaBCO * (a*(m+n) + b*m) / (b*m);
+            let areaABC = areaBCO * (a*(m+n) + b*n) / (b*n);
             
             // 确保面积是整数
             areaABC = Math.round(areaABC);

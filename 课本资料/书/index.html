@@ -139,30 +139,45 @@
             background-color: #e0f7fa;
         }
         .toggle-menu-btn {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: rgba(0, 150, 136, 0.8);
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background-color: #009688;
             color: white;
             border: none;
-            border-radius: 4px;
-            padding: 8px 12px;
+            border-radius: 6px;
+            padding: 10px 15px;
             cursor: pointer;
             z-index: 9999;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            display: none; /* 初始隐藏 */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .toggle-menu-btn:hover {
-            background-color: rgba(0, 150, 136, 1);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            background-color: #00796b;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        .toggle-menu-btn .menu-icon {
+            font-size: 16px;
+            transition: transform 0.3s ease;
+        }
+        .main.menu-hidden .toggle-menu-btn .menu-icon {
+            transform: rotate(90deg);
         }
         
-        /* 删除之前添加的相关样式 */
-        .center:hover .toggle-menu-btn {
-            opacity: 1;
-        }
-        .hover-zone {
-            display: none; /* 不再使用 */
+        /* 响应式设计优化 */
+        @media (max-width: 1024px) {
+            .toggle-menu-btn {
+                top: 10px;
+                left: 10px;
+                padding: 8px 12px;
+                font-size: 13px;
+            }
         }
         .main.menu-hidden .left {
             flex: 0;
@@ -224,7 +239,8 @@
         
         <div class="center" id="content">
             <div class="toggle-menu-btn" id="menuToggleBtn" onclick="toggleMenu()">
-                <i class="menu-icon">☰</i> 目录
+                <span class="menu-icon">☰</span>
+                <span class="menu-text">目录</span>
             </div>
 
             <div class="top-content">
@@ -303,6 +319,15 @@
                 items: [
                     { text: '01直线方程法', url: './二倍角之01直线方程法.html' },
                     { text: '02复数法', url: './二倍角之02复数法.html' }
+                ]
+            },
+            {
+                title: '45°角问题',
+                items: [
+                    { text: '01向量余弦夹角法', url: './45°角问题01向量余弦夹角法.html' },
+                    { text: '02一线三直角法', url: './45°角问题02一线三直角法.html' },
+                    { text: '03向量点积法', url: './45°角问题03向量点积法.html' },
+                    { text: '04中点坐标比例法', url: './45°角问题04中点坐标比例法.html' }
                 ]
             }
         ];
@@ -413,8 +438,17 @@
         function toggleMenu() {
             const main = document.getElementById('main');
             const menu = document.getElementById('menu');
+            const menuText = document.querySelector('.menu-text');
+            
             main.classList.toggle('menu-hidden');
             menu.classList.toggle('hidden');
+            
+            // 更新按钮文本
+            if (main.classList.contains('menu-hidden')) {
+                menuText.textContent = '显示';
+            } else {
+                menuText.textContent = '目录';
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -423,22 +457,15 @@
             const firstUrl = menuData[0].items[0].url;
             const iframe = document.getElementById('contentIframe');
             iframe.src = firstUrl;
-            // 全新的简单实现
+            // 目录切换按钮始终可见
             const menuBtn = document.getElementById('menuToggleBtn');
-            const content = document.getElementById('content');
             
-            // 当鼠标移动到页面左侧时显示按钮
-            content.addEventListener('mousemove', function(e) {
-                if (e.clientX < 50) {
-                    menuBtn.style.display = 'block';
-                } else {
-                    menuBtn.style.display = 'none';
+            // 添加键盘快捷键支持 (Ctrl + M)
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'm') {
+                    e.preventDefault();
+                    toggleMenu();
                 }
-            });
-            
-            // 确保按钮悬停时可见
-            menuBtn.addEventListener('mouseenter', function() {
-                menuBtn.style.display = 'block';
             });
         });
     </script>
