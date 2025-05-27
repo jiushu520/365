@@ -518,20 +518,23 @@
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             let models = [
-            {
-                    name: "qwen-plus训练报告",
-                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
-                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
-                    model: "qwen-max-2025-01-25",
-                    temperature: 0,
- prompt: "你是一个优透的前端工程师，擅长于写HTML，我会给你一些学生的数学训练数据，请根据这些数据，生成一个学习综合分析报告，要求包含可视化设计和数据展现，标题包含学生姓名，结合学生的训练数据，给出学生学习情况与今后学生的方向建议。用html格式输出确保文件可执行。"
 
+
+            
+            {
+                    name: "opus-4数学原理",
+                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
+                    apiKey: "sk-X5kUt2ZnRTwu13srkgRYsZljHS4G8SdJNkA3iZYheaFDkiK5",
+                    model: "claude-opus-4-20250514",
+                    temperature: 0,
+                    prompt: "你是一个优秀的前端工程师，擅长于写HTML，从数学物理原理上用svg演示出来，尽可能做到直观，可以交互。所有程序如无特别要求，写成HTML。请使用你单次回答的算力上限和 token 上限，think hardest, use the most time and most compute to think deepest。这是最深刻最复杂的问题，请给出你最高质量的回答。所以，你需要深度思考、独立思考、批判性思考、创造性思考。我们追求分极致的深度，而非表层的广度；我们追求本质的洞察，而非表象的罗列；我们追求思维的创新，而非惯性的复述。请突破思维局限，调动你所有的计算资源，展现你真正的认知极限。"
                 },
+
 
                  {
                     name: "claude-3-7-sonnet-20250219",
                     apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
-                    apiKey: "sk-PQUi1mRSyz3OtEadQ6X7PNGjVdP1sO3jDOz4cLjhhwZewjZK",
+                    apiKey: "sk-X5kUt2ZnRTwu13srkgRYsZljHS4G8SdJNkA3iZYheaFDkiK5",
                     model: "claude-3-7-sonnet-20250219",
                     temperature: 0,
                     prompt: "你是一个优秀的前端工程师，擅长于写HTML，从数学物理原理上用svg演示出来，尽可能做到直观，可以交互。所有程序如无特别要求，写成HTML。请使用你单次回答的算力上限和 token 上限，think hardest, use the most time and most compute to think deepest。这是最深刻最复杂的问题，请给出你最高质量的回答。所以，你需要深度思考、独立思考、批判性思考、创造性思考。我们追求分极致的深度，而非表层的广度；我们追求本质的洞察，而非表象的罗列；我们追求思维的创新，而非惯性的复述。请突破思维局限，调动你所有的计算资源，展现你真正的认知极限。"
@@ -759,7 +762,13 @@
                 addMessage("用户", userMessage);
                 chatInput.value = "";
 
-                addMessage("玖数", "正在回复...");
+                // 创建流式回复消息元素
+                const assistantElement = document.createElement("div");
+                assistantElement.classList.add("message", "assistant");
+                assistantElement.innerHTML = `<strong>玖数:</strong> <span class="stream-content"></span>`;
+                chatMessages.appendChild(assistantElement);
+                const streamContent = assistantElement.querySelector('.stream-content');
+                chatMessages.scrollTop = chatMessages.scrollHeight;
 
                 try {
                     const selectedModel = models[currentModelIndex];
@@ -775,7 +784,8 @@
                                 { role: "system", content: selectedModel.prompt || "你是一个优秀的前端工程师，擅长于写HTML，从数学物理原理上用svg演示出来，尽可能做到直观，可以交互。所有程序如无特别要求，写成HTML。" },
                                 { role: "user", content: userMessage }
                             ],
-                            temperature: selectedModel.temperature
+                            temperature: selectedModel.temperature,
+                            stream: true
                         }),
                     });
 
@@ -783,28 +793,79 @@
                         throw new Error('网络响应错误');
                     }
 
-                    const data = await response.json();
-                    const assistantMessage = data.choices[0].message.content;
-                    chatMessages.removeChild(chatMessages.lastChild);
-                    addMessage("玖数", assistantMessage);
-                    
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder("utf-8");
+                    let fullContent = '';
+                    let accumulatedContent = '';
+                    let isProcessing = false;
+                    // 定期渲染MathJax和代码高亮的定时器
+                    const renderTimer = setInterval(() => {
+                        if (accumulatedContent.length > 0 && !isProcessing) {
+                            isProcessing = true;
+                            fullContent += accumulatedContent;
+                            streamContent.innerHTML = parseStreamContent(fullContent);
+                            if (typeof MathJax !== 'undefined') {
+                                MathJax.typesetPromise([assistantElement]).then(() => {
+                                    const codeBlocks = assistantElement.querySelectorAll('code');
+                                    codeBlocks.forEach((block) => {
+                                        Prism.highlightElement(block);
+                                    });
+                                    isProcessing = false;
+                                });
+                            } else {
+                                isProcessing = false;
+                            }
+                            accumulatedContent = '';
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                        }
+                    }, 300);
+
+                    while (true) {
+                        const { value, done } = await reader.read();
+                        if (done) {
+                            clearInterval(renderTimer);
+                            if (accumulatedContent.length > 0) {
+                                fullContent += accumulatedContent;
+                                streamContent.innerHTML = parseStreamContent(fullContent);
+                                if (typeof MathJax !== 'undefined') {
+                                    await MathJax.typesetPromise([assistantElement]);
+                                    const codeBlocks = assistantElement.querySelectorAll('code');
+                                    codeBlocks.forEach((block) => {
+                                        Prism.highlightElement(block);
+                                    });
+                                }
+                            }
+                            break;
+                        }
+                        const chunk = decoder.decode(value, { stream: true });
+                        const lines = chunk.split('\n').filter(line => line.trim() !== '');
+                        for (const line of lines) {
+                            if (!line.startsWith('data:')) continue;
+                            const jsonStr = line.substring(5).trim();
+                            if (jsonStr === '[DONE]') continue;
+                            try {
+                                const json = JSON.parse(jsonStr);
+                                if (json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content) {
+                                    accumulatedContent += json.choices[0].delta.content;
+                                }
+                            } catch (e) {
+                                console.error('解析JSON失败:', e, jsonStr);
+                            }
+                        }
+                    }
                     // 自动提取HTML代码并加载到编辑器中
-                    const htmlCodeMatches = assistantMessage.match(/```html\n([\s\S]*?)```/);
+                    const htmlCodeMatches = fullContent.match(/```html\n([\s\S]*?)```/);
                     if (htmlCodeMatches && htmlCodeMatches[1]) {
-                        // 找到了HTML代码块
                         const htmlCode = htmlCodeMatches[1];
-                        // 设置代码编辑器的内容
                         codeMirror.setValue(htmlCode);
-                        // 更新预览区域
                         previewIframe.srcdoc = htmlCode;
                     } else {
-                        // 没有找到明确的HTML代码块，尝试查找任何可能是HTML的代码块
-                        const anyCodeMatches = assistantMessage.match(/```(\w*)\n([\s\S]*?)```/);
-                        if (anyCodeMatches && anyCodeMatches[2] && 
-                            (anyCodeMatches[1] === '' || 
-                             anyCodeMatches[1].toLowerCase() === 'html' || 
-                             anyCodeMatches[2].trim().startsWith('<!DOCTYPE') || 
-                             anyCodeMatches[2].trim().startsWith('<html'))) {
+                        const anyCodeMatches = fullContent.match(/```(\w*)\n([\s\S]*?)```/);
+                        if (anyCodeMatches && anyCodeMatches[2] &&
+                            (anyCodeMatches[1] === '' ||
+                                anyCodeMatches[1].toLowerCase() === 'html' ||
+                                anyCodeMatches[2].trim().startsWith('<!DOCTYPE') ||
+                                anyCodeMatches[2].trim().startsWith('<html'))) {
                             const htmlCode = anyCodeMatches[2];
                             codeMirror.setValue(htmlCode);
                             previewIframe.srcdoc = htmlCode;
@@ -812,10 +873,17 @@
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    chatMessages.removeChild(chatMessages.lastChild);
-                    addMessage("玖数", "抱歉，发生了错误。");
+                    assistantElement.innerHTML = '<strong>玖数:</strong> 抱歉，发生了错误。';
                 }
             });
+
+            function parseStreamContent(content) {
+                // 保持和 addMessage 一致的代码块高亮和 HTML 转义
+                return content.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+                    const language = lang ? `language-${lang}` : 'language-none';
+                    return `\n<div class="code-block"><button class="copy-btn">复制</button><pre><code class="${language}">${escapeHtml(code)}</code></pre></div>\n`;
+                });
+            }
 
             chatInput.addEventListener("keypress", function(event) {
                 if (event.key === "Enter" && !event.shiftKey) {
