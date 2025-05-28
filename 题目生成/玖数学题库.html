@@ -509,8 +509,8 @@ function generateLevel3Question() {
     const svg = `
     <svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">
         <g id="gridGroup">
-            <line x1="0" y1="${(Ay+By)/2}" x2="${width}" y2="${(Ay+By)/2}" stroke="#eee" stroke-width="0.5" vector-effect="non-scaling-stroke"/>
-            <line x1="0" y1="${(Ay+Cy)/2}" x2="${width}" y2="${(Ay+Cy)/2}" stroke="#eee" stroke-width="0.5" vector-effect="non-scaling-stroke"/>
+            <line x1="0" y1="${(Ay+By)/2}" x2="${svgWidth}" y2="${(Ay+By)/2}" stroke="#eee" stroke-width="0.5" vector-effect="non-scaling-stroke"/>
+            <line x1="0" y1="${(Ay+Cy)/2}" x2="${svgWidth}" y2="${(Ay+Cy)/2}" stroke="#eee" stroke-width="0.5" vector-effect="non-scaling-stroke"/>
         </g>
         <g id="axisGroup">
             <line x1="${Bx}" y1="${By}" x2="${Cx}" y2="${Cy}" stroke="#000" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
