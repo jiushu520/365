@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>向量点乘的几何意义</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+        header {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+        }
+        .visualization {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            flex: 1;
+            min-width: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+        .explanation {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            flex: 1;
+            min-width: 300px;
+        }
+        .canvas-container {
+            background: rgba(0, 0, 30, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 15px;
+        }
+        #vector-canvas {
+            background: #0a0e21;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 20, 40, 0.5);
+            border-radius: 10px;
+        }
+        .vector-control {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 48%;
+        }
+        .vector-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .vector-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .vector-a-color { background: #4da6ff; }
+        .vector-b-color { background: #ff6b6b; }
+        .projection-color { background: #2ecc71; }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .slider-container input {
+            width: 100%;
+        }
+        .info-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+            background: rgba(0, 20, 40, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .info-box {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+        .info-title {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: #4da6ff;
+            font-weight: bold;
+        }
+        .info-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        .math-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 30, 60, 0.6);
+            border-radius: 10px;
+            font-family: 'Cambria', serif;
+        }
+        .formula {
+            font-size: 1.8rem;
+            text-align: center;
+            margin: 20px 0;
+            color: #ffd700;
+        }
+        .section-title {
+            font-size: 1.4rem;
+            margin: 25px 0 15px;
+            color: #4da6ff;
+            border-bottom: 2px solid #4da6ff;
+            padding-bottom: 8px;
+        }
+        .concept {
+            margin: 15px 0;
+            padding-left: 20px;
+            border-left: 3px solid #ff6b6b;
+        }
+        .concept-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2ecc71;
+        }
+        .physical-apps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .app-card {
+            background: rgba(0, 30, 60, 0.6);
+            border-radius: 10px;
+            padding: 15px;
+            transition: transform 0.3s ease;
+        }
+        .app-card:hover {
+            transform: translateY(-5px);
+            background: rgba(0, 40, 80, 0.7);
+        }
+        .app-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            color: #ff6b6b;
+        }
+        .app-icon {
+            font-size: 1.5rem;
+        }
+        button {
+            background: linear-gradient(to right, #4da6ff, #6b5ce7);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+        .reset-btn {
+            background: linear-gradient(to right, #ff6b6b, #ff9a3d);
+            margin-top: 15px;
+            width: 100%;
+        }
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            .visualization, .explanation {
+                min-width: 100%;
+            }
+            .info-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>向量点乘的几何意义</h1>
+            <p class="subtitle">点乘是向量运算的核心概念，它揭示了向量间的方向关系、投影分量和角度信息。通过交互式可视化，探索点乘在几何和物理中的本质。</p>
+        </header>
+        
+        <div class="content">
+            <div class="visualization">
+                <h2>交互式可视化</h2>
+                <p>拖动向量端点或使用滑块改变向量，观察点乘如何反映向量间的关系</p>
+                
+                <div class="canvas-container">
+                    <svg id="vector-canvas" width="500" height="400"></svg>
+                </div>
+                
+                <div class="controls">
+                    <div class="vector-control">
+                        <div class="vector-title">
+                            <span class="vector-color vector-a-color"></span>
+                            向量 A
+                        </div>
+                        <div class="slider-container">
+                            <label>方向 (θ):</label>
+                            <input type="range" id="angle-a" min="0" max="360" value="30">
+                        </div>
+                        <div class="slider-container">
+                            <label>长度 (|A|):</label>
+                            <input type="range" id="magnitude-a" min="50" max="200" value="120">
+                        </div>
+                    </div>
+                    
+                    <div class="vector-control">
+                        <div class="vector-title">
+                            <span class="vector-color vector-b-color"></span>
+                            向量 B
+                        </div>
+                        <div class="slider-container">
+                            <label>方向 (θ):</label>
+                            <input type="range" id="angle-b" min="0" max="360" value="60">
+                        </div>
+                        <div class="slider-container">
+                            <label>长度 (|B|):</label>
+                            <input type="range" id="magnitude-b" min="50" max="200" value="150">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-panel">
+                    <div class="info-box">
+                        <div class="info-title">点乘值 (A·B)</div>
+                        <div id="dot-product-value" class="info-value">0.00</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-title">向量夹角 (θ)</div>
+                        <div id="angle-value" class="info-value">0°</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-title">A在B上的投影</div>
+                        <div id="projection-value" class="info-value">0.00</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-title">点乘性质</div>
+                        <div id="property-value" class="info-value">垂直</div>
+                    </div>
+                </div>
+                
+                <div class="math-box">
+                    <div class="info-title">点乘的数学定义</div>
+                    <div class="formula">A·B = |A||B|cosθ</div>
+                    <div class="formula">A·B = A<sub>x</sub>B<sub>x</sub> + A<sub>y</sub>B<sub>y</sub></div>
+                    <p>点乘的两种等价定义：几何定义（模与夹角余弦的乘积）和代数定义（分量乘积之和）</p>
+                </div>
+                
+                <button class="reset-btn" id="reset-btn">重置向量</button>
+            </div>
+            
+            <div class="explanation">
+                <h2>点乘的几何意义</h2>
+                
+                <div class="concept">
+                    <div class="concept-title">投影分量</div>
+                    <p>点乘 A·B = |A| |B| cosθ 在几何上表示向量A在向量B方向上的投影长度（|A|cosθ）乘以向量B的长度（|B|）。</p>
+                    <p>当两向量垂直时，投影为0，点乘为0；当平行时，投影最大，点乘达到极值。</p>
+                </div>
+                
+                <div class="concept">
+                    <div class="concept-title">方向相似性度量</div>
+                    <p>点乘结果的正负号揭示了向量的方向关系：</p>
+                    <ul>
+                        <li>正点乘：锐角（0° ≤ θ < 90°）</li>
+                        <li>零：直角（θ = 90°）</li>
+                        <li>负点乘：钝角（90° < θ ≤ 180°）</li>
+                    </ul>
+                </div>
+                
+                <div class="concept">
+                    <div class="concept-title">角度计算</div>
+                    <p>点乘提供了计算两向量夹角的直接方法：</p>
+                    <p class="formula">θ = cos⁻¹(A·B / (|A||B|))</p>
+                    <p>这在计算机图形学和物理模拟中广泛应用。</p>
+                </div>
+                
+                <h2 class="section-title">物理意义与应用</h2>
+                
+                <div class="physical-apps">
+                    <div class="app-card">
+                        <div class="app-title">
+                            <span class="app-icon">⚡</span>
+                            <h3>功的计算</h3>
+                        </div>
+                        <p>在物理学中，力F所做的功W等于力向量与位移向量s的点乘：</p>
+                        <p class="formula">W = F·s = |F||s|cosθ</p>
+                        <p>这表示只有力在位移方向的分量才做功。</p>
+                    </div>
+                    
+                    <div class="app-card">
+                        <div class="app-title">
+                            <span class="app-icon">💡</span>
+                            <h3>光照计算</h3>
+                        </div>
+                        <p>在计算机图形学中，点乘用于计算光照强度：</p>
+                        <p class="formula">I = L·N = |L||N|cosθ</p>
+                        <p>其中L是光方向向量，N是表面法向量，θ是入射角。</p>
+                    </div>
+                    
+                    <div class="app-card">
+                        <div class="app-title">
+                            <span class="app-icon">📐</span>
+                            <h3>正交性测试</h3>
+                        </div>
+                        <p>点乘提供了一种高效的方法来测试两个向量是否垂直：</p>
+                        <p class="formula">A·B = 0 ⇔ A⊥B</p>
+                        <p>这在几何算法和机器学习中非常有用。</p>
+                    </div>
+                    
+                    <div class="app-card">
+                        <div class="app-title">
+                            <span class="app-icon">🧮</span>
+                            <h3>相似性度量</h3>
+                        </div>
+                        <p>在数据科学中，余弦相似度使用点乘：</p>
+                        <p class="formula">cosθ = (A·B) / (|A||B|)</p>
+                        <p>用于衡量两个向量的方向相似性，忽略大小差异。</p>
+                    </div>
+                </div>
+                
+                <h2 class="section-title">深度洞察</h2>
+                <div class="concept">
+                    <div class="concept-title">点乘的本质</div>
+                    <p>点乘本质上是一种将两个向量映射到标量的双线性函数，它满足：</p>
+                    <ul>
+                        <li>对称性：A·B = B·A</li>
+                        <li>线性性：(aA + bB)·C = a(A·C) + b(B·C)</li>
+                        <li>正定性：A·A ≥ 0，且A·A = 0 ⇔ A=0</li>
+                    </ul>
+                    <p>这些性质使点乘成为定义向量长度、角度和正交性的理想工具。</p>
+                </div>
+                
+                <div class="concept">
+                    <div class="concept-title">几何解释的普适性</div>
+                    <p>点乘的几何解释在任意维度成立。在n维空间中，A·B仍然等于A在B方向上的投影长度乘以|B|。这种不变性使点乘成为多维数据分析的基础。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const canvas = document.getElementById('vector-canvas');
+        // const ctx = canvas.getContext('2d'); // 删除canvas上下文
+        const dotProductValue = document.getElementById('dot-product-value');
+        const angleValue = document.getElementById('angle-value');
+        const projectionValue = document.getElementById('projection-value');
+        const propertyValue = document.getElementById('property-value');
+        
+        // 向量状态
+        const vectors = {
+            A: { magnitude: 120, angle: 30 * Math.PI/180 },
+            B: { magnitude:150, angle: 60 * Math.PI/180 }
+        };
+        
+        // 原点位置
+        const origin = { x: 250, y: 200 };
+        
+        // 初始化滑块
+        document.getElementById('magnitude-a').value = vectors.A.magnitude;
+        document.getElementById('magnitude-b').value = vectors.B.magnitude;
+        document.getElementById('angle-a').value = vectors.A.angle * 180/Math.PI;
+        document.getElementById('angle-b').value = vectors.B.angle * 180/Math.PI;
+        
+        // 添加事件监听器
+        document.getElementById('magnitude-a').addEventListener('input', (e) => {
+            vectors.A.magnitude = parseInt(e.target.value);
+            updateVisualization();
+        });
+        
+        document.getElementById('magnitude-b').addEventListener('input', (e) => {
+            vectors.B.magnitude = parseInt(e.target.value);
+            updateVisualization();
+        });
+        
+        document.getElementById('angle-a').addEventListener('input', (e) => {
+            vectors.A.angle = parseInt(e.target.value) * Math.PI/180;
+            updateVisualization();
+        });
+        
+        document.getElementById('angle-b').addEventListener('input', (e) => {
+            vectors.B.angle = parseInt(e.target.value) * Math.PI/180;
+            updateVisualization();
+        });
+        
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            vectors.A = { magnitude: 120, angle: 30 * Math.PI/180 };
+            vectors.B = { magnitude: 150, angle: 60 * Math.PI/180 };
+            document.getElementById('magnitude-a').value = vectors.A.magnitude;
+            document.getElementById('magnitude-b').value = vectors.B.magnitude;
+            document.getElementById('angle-a').value = 30;
+            document.getElementById('angle-b').value = 60;
+            updateVisualization();
+        });
+        
+        // 计算向量端点
+        function calculateEndpoints() {
+            return {
+                A: {
+                    x: origin.x + vectors.A.magnitude * Math.cos(vectors.A.angle),
+                    y: origin.y - vectors.A.magnitude * Math.sin(vectors.A.angle)
+                },
+                B: {
+                    x: origin.x + vectors.B.magnitude * Math.cos(vectors.B.angle),
+                    y: origin.y - vectors.B.magnitude * Math.sin(vectors.B.angle)
+                }
+            };
+        }
+        
+        // 计算点乘和相关值
+        function calculateDotProduct() {
+            // 计算向量分量
+            const Ax = vectors.A.magnitude * Math.cos(vectors.A.angle);
+            const Ay = vectors.A.magnitude * Math.sin(vectors.A.angle);
+            const Bx = vectors.B.magnitude * Math.cos(vectors.B.angle);
+            const By = vectors.B.magnitude * Math.sin(vectors.B.angle);
+            
+            // 计算点乘
+            const dotProduct = Ax * Bx + Ay * By;
+            
+            // 计算夹角
+            const angleRad = Math.acos(dotProduct / (vectors.A.magnitude * vectors.B.magnitude));
+            const angleDeg = angleRad * 180 / Math.PI;
+            
+            // 计算投影
+            const projection = dotProduct / vectors.B.magnitude;
+            
+            // 确定点乘性质
+            let property;
+            if (Math.abs(dotProduct) < 0.1) {
+                property = "垂直";
+            } else if (dotProduct > 0) {
+                property = "锐角";
+            } else {
+                property = "钝角";
+            }
+            
+            return {
+                dotProduct,
+                angleRad,
+                angleDeg,
+                projection,
+                property
+            };
+        }
+        
+        // 更新可视化
+        function updateVisualization() {
+            // 清除SVG内容
+            canvas.innerHTML = '';
+            
+            const svgNS = "http://www.w3.org/2000/svg";
+            const endpoints = calculateEndpoints();
+            const results = calculateDotProduct();
+            
+            // 更新显示值
+            dotProductValue.textContent = results.dotProduct.toFixed(2);
+            angleValue.textContent = results.angleDeg.toFixed(1) + "°";
+            projectionValue.textContent = results.projection.toFixed(2);
+            propertyValue.textContent = results.property;
+            
+            // 绘制坐标轴
+            const drawAxis = () => {
+                // X轴
+                let axis = document.createElementNS(svgNS, "line");
+                axis.setAttribute("x1", "50");
+                axis.setAttribute("y1", origin.y);
+                axis.setAttribute("x2", "450");
+                axis.setAttribute("y2", origin.y);
+                axis.setAttribute("stroke", "#555");
+                axis.setAttribute("stroke-width", "1");
+                canvas.appendChild(axis);
+                
+                // Y轴
+                axis = document.createElementNS(svgNS, "line");
+                axis.setAttribute("x1", origin.x);
+                axis.setAttribute("y1", "50");
+                axis.setAttribute("x2", origin.x);
+                axis.setAttribute("y2", "350");
+                axis.setAttribute("stroke", "#555");
+                axis.setAttribute("stroke-width", "1");
+                canvas.appendChild(axis);
+                
+                // 坐标标签
+                let text = document.createElementNS(svgNS, "text");
+                text.setAttribute("x", "460");
+                text.setAttribute("y", origin.y - 5);
+                text.setAttribute("fill", "#888");
+                text.textContent = "x";
+                canvas.appendChild(text);
+                
+                text = document.createElementNS(svgNS, "text");
+                text.setAttribute("x", origin.x + 5);
+                text.setAttribute("y", "40");
+                text.setAttribute("fill", "#888");
+                text.textContent = "y";
+                canvas.appendChild(text);
+            };
+            
+            // 绘制向量A
+            const drawVectorA = () => {
+                let line = document.createElementNS(svgNS, "line");
+                line.setAttribute("x1", origin.x);
+                line.setAttribute("y1", origin.y);
+                line.setAttribute("x2", endpoints.A.x);
+                line.setAttribute("y2", endpoints.A.y);
+                line.setAttribute("stroke", "#4da6ff");
+                line.setAttribute("stroke-width", "4");
+                line.setAttribute("marker-end", "url(#arrowhead)");
+                canvas.appendChild(line);
+                
+                let text = document.createElementNS(svgNS, "text");
+                text.setAttribute("x", endpoints.A.x + 15);
+                text.setAttribute("y", endpoints.A.y - 10);
+                text.setAttribute("fill", "#4da6ff");
+                text.setAttribute("font-weight", "bold");
+                text.textContent = "A";
+                canvas.appendChild(text);
+            };
+            
+            // 绘制向量B
+            const drawVectorB = () => {
+                let line = document.createElementNS(svgNS, "line");
+                line.setAttribute("x1", origin.x);
+                line.setAttribute("y1", origin.y);
+                line.setAttribute("x2", endpoints.B.x);
+                line.setAttribute("y2", endpoints.B.y);
+                line.setAttribute("stroke", "#ff6b6b");
+                line.setAttribute("stroke-width", "4");
+                line.setAttribute("marker-end", "url(#arrowhead)");
+                canvas.appendChild(line);
+                
+                let text = document.createElementNS(svgNS, "text");
+                text.setAttribute("x", endpoints.B.x + 15);
+                text.setAttribute("y", endpoints.B.y - 10);
+                text.setAttribute("fill", "#ff6b6b");
+                text.setAttribute("font-weight", "bold");
+                text.textContent = "B";
+                canvas.appendChild(text);
+            };
+            
+            // 绘制投影
+            const drawProjection = () => {
+                // 计算投影点
+                const Bx = endpoints.B.x - origin.x;
+                const By = endpoints.B.y - origin.y;
+                const dot = (endpoints.A.x - origin.x) * Bx + (endpoints.A.y - origin.y) * By;
+                const lenSq = Bx * Bx + By * By;
+                const projX = origin.x + (dot / lenSq) * Bx;
+                const projY = origin.y + (dot / lenSq) * By;
+                
+                // 绘制投影线
+                let line = document.createElementNS(svgNS, "line");
+                line.setAttribute("x1", endpoints.A.x);
+                line.setAttribute("y1", endpoints.A.y);
+                line.setAttribute("x2", projX);
+                line.setAttribute("y2", projY);
+                line.setAttribute("stroke", "#2ecc71");
+                line.setAttribute("stroke-width", "2");
+                line.setAttribute("stroke-dasharray", "5,5");
+                canvas.appendChild(line);
+                
+                // 绘制投影向量
+                line = document.createElementNS(svgNS, "line");
+                line.setAttribute("x1", origin.x);
+                line.setAttribute("y1", origin.y);
+                line.setAttribute("x2", projX);
+                line.setAttribute("y2", projY);
+                line.setAttribute("stroke", "#2ecc71");
+                line.setAttribute("stroke-width", "3");
+                canvas.appendChild(line);
+                
+                // 绘制投影点
+                let circle = document.createElementNS(svgNS, "circle");
+                circle.setAttribute("cx", projX);
+                circle.setAttribute("cy", projY);
+                circle.setAttribute("r", "5");
+                circle.setAttribute("fill", "#2ecc71");
+                canvas.appendChild(circle);
+                
+                // 投影标签
+                let text = document.createElementNS(svgNS, "text");
+                text.setAttribute("x", projX + 10);
+                text.setAttribute("y", projY + 5);
+                text.setAttribute("fill", "#2ecc71");
+                text.textContent = "投影";
+                canvas.appendChild(text);
+            };
+            
+            // 绘制角度弧
+            const drawAngleArc = () => {
+                const angle = Math.atan2(
+                    Math.sin(vectors.B.angle - vectors.A.angle),
+                    Math.cos(vectors.B.angle - vectors.A.angle)
+                );
+                
+                const startAngle = vectors.A.angle;
+                const endAngle = vectors.B.angle;
+                
+                const radius = 40;
+                const path = document.createElementNS(svgNS, "path");
+                path.setAttribute("d", `M ${origin.x + radius * Math.cos(startAngle)} ${origin.y - radius * Math.sin(startAngle)} A ${radius} ${radius} 0 ${Math.abs(angle) > Math.PI ? 1 : 0} ${angle > 0 ? 1 : 0} ${origin.x + radius * Math.cos(endAngle)} ${origin.y - radius * Math.sin(endAngle)}`);
+                path.setAttribute("fill", "none");
+                path.setAttribute("stroke", "#ffd700");
+                path.setAttribute("stroke-width", "2");
+                canvas.appendChild(path);
+                
+                // 角度标签
+                const midAngle = (startAngle + endAngle) / 2;
+                const textX = origin.x + (radius + 15) * Math.cos(midAngle);
+                const textY = origin.y - (radius + 15) * Math.sin(midAngle);
+                
+                let text = document.createElementNS(svgNS, "text");
+                text.setAttribute("x", textX);
+                text.setAttribute("y", textY);
+                text.setAttribute("fill", "#ffd700");
+                text.textContent = "θ";
+                canvas.appendChild(text);
+            };
+            
+            // 创建箭头标记
+            const createArrowMarker = () => {
+                const defs = document.createElementNS(svgNS, "defs");
+                const marker = document.createElementNS(svgNS, "marker");
+                marker.setAttribute("id", "arrowhead");
+                marker.setAttribute("markerWidth", "10");
+                marker.setAttribute("markerHeight", "7");
+                marker.setAttribute("refX", "10");
+                marker.setAttribute("refY", "3.5");
+                marker.setAttribute("orient", "auto");
+                
+                const polygon = document.createElementNS(svgNS, "polygon");
+                polygon.setAttribute("points", "0 0, 10 3.5, 0 7");
+                polygon.setAttribute("fill", "gray");
+                
+                marker.appendChild(polygon);
+                defs.appendChild(marker);
+                canvas.appendChild(defs);
+            };
+            
+            // 创建原点
+            const createOrigin = () => {
+                const circle = document.createElementNS(svgNS, "circle");
+                circle.setAttribute("cx", origin.x);
+                circle.setAttribute("cy", origin.y);
+                circle.setAttribute("r", "5");
+                circle.setAttribute("fill", "#ffd700");
+                canvas.appendChild(circle);
+            };
+            
+            // 执行绘图函数
+            createArrowMarker();
+            drawAxis();
+            drawProjection();
+            drawVectorB();
+            drawVectorA();
+            drawAngleArc();
+            createOrigin();
+        }
+        
+        // 初始渲染
+        updateVisualization();
+    </script>
+</body>
+</html>

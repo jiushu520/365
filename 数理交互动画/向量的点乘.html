@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>向量点乘可视化</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        svg {
+            border: 1px solid #ccc;
+            margin: 20px auto;
+            display: block;
+        }
+        .controls {
+            margin: 20px;
+        }
+        .formula {
+            font-size: 1.2em;
+            margin: 20px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .projection {
+            stroke-dasharray: 5,5;
+        }
+    </style>
+</head>
+<body>
+    <h1>向量点乘可视化</h1>
+    
+    <div class="formula">
+        <strong>点乘定义：</strong> 
+        <span id="dotProductFormula">a · b = a₁b₁ + a₂b₂ = ||a|| ||b|| cosθ</span>
+    </div>
+    
+    <div class="controls">
+        <label for="vectorA">向量 a: </label>
+        <input type="range" id="aX" min="-100" max="100" value="70"> x
+        <input type="range" id="aY" min="-100" max="100" value="40"> y
+        
+        <br><br>
+        
+        <label for="vectorB">向量 b: </label>
+        <input type="range" id="bX" min="-100" max="100" value="30"> x
+        <input type="range" id="bY" min="-100" max="100" value="80"> y
+    </div>
+    
+    <svg width="500" height="500" viewBox="-150 -150 300 300">
+        <!-- 坐标轴 -->
+        <line x1="-140" y1="0" x2="140" y2="0" stroke="gray" stroke-width="1"/>
+        <line x1="0" y1="-140" x2="0" y2="140" stroke="gray" stroke-width="1"/>
+        
+        <!-- 向量a -->
+        <line id="vectorA" x1="0" y1="0" x2="70" y2="40" stroke="red" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <text id="vectorALabel" x="35" y="20" fill="red">a</text>
+        
+        <!-- 向量b -->
+        <line id="vectorB" x1="0" y1="0" x2="30" y2="80" stroke="blue" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <text id="vectorBLabel" x="15" y="40" fill="blue">b</text>
+        
+        <!-- 投影线 -->
+        <line id="projectionLine" class="projection" x1="30" y1="80" x2="42.857" y2="57.143" stroke="green" stroke-width="1"/>
+        
+        <!-- 角度弧线 -->
+        <path id="angleArc" d="M20 0 A20 20 0 0 1 18.8 6.4" fill="none" stroke="black" stroke-width="1"/>
+        <text id="angleLabel" x="25" y="10">θ</text>
+        
+        <!-- 点乘结果矩形 -->
+        <rect id="dotRect" x="0" y="0" width="42.857" height="57.143" fill="rgba(0,255,0,0.2)" stroke="green" stroke-width="1"/>
+        
+        <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" fill="context-stroke"/>
+            </marker>
+        </defs>
+    </svg>
+    
+    <div class="formula">
+        <strong>计算结果：</strong>
+        <div>代数计算: a · b = <span id="algebraicResult">4900</span></div>
+        <div>几何计算: ||a|| × ||b|| × cosθ = <span id="geometricResult">4900</span></div>
+        <div>投影解释: ||a|| × (b在a上的投影长度) = <span id="projectionResult">4900</span></div>
+    </div>
+    
+    <script>
+        const aXSlider = document.getElementById('aX');
+        const aYSlider = document.getElementById('aY');
+        const bXSlider = document.getElementById('bX');
+        const bYSlider = document.getElementById('bY');
+        
+        const vectorA = document.getElementById('vectorA');
+        const vectorALabel = document.getElementById('vectorALabel');
+        const vectorB = document.getElementById('vectorB');
+        const vectorBLabel = document.getElementById('vectorBLabel');
+        const projectionLine = document.getElementById('projectionLine');
+        const angleArc = document.getElementById('angleArc');
+        const angleLabel = document.getElementById('angleLabel');
+        const dotRect = document.getElementById('dotRect');
+        
+        const algebraicResult = document.getElementById('algebraicResult');
+        const geometricResult = document.getElementById('geometricResult');
+        const projectionResult = document.getElementById('projectionResult');
+        
+        function updateVectors() {
+            const aX = parseInt(aXSlider.value);
+            const aY = parseInt(aYSlider.value);
+            const bX = parseInt(bXSlider.value);
+            const bY = parseInt(bYSlider.value);
+            
+            // 更新向量显示
+            vectorA.setAttribute('x2', aX);
+            vectorA.setAttribute('y2', aY);
+            vectorALabel.setAttribute('x', aX/2);
+            vectorALabel.setAttribute('y', aY/2);
+            
+            vectorB.setAttribute('x2', bX);
+            vectorB.setAttribute('y2', bY);
+            vectorBLabel.setAttribute('x', bX/2);
+            vectorBLabel.setAttribute('y', bY/2);
+            
+            // 计算点乘
+            const dotProduct = aX * bX + aY * bY;
+            algebraicResult.textContent = dotProduct;
+            
+            // 计算几何解释
+            const aLength = Math.sqrt(aX*aX + aY*aY);
+            const bLength = Math.sqrt(bX*bX + bY*bY);
+            let angle = Math.acos(dotProduct / (aLength * bLength));
+            
+            // 更新角度弧线
+            if (!isNaN(angle)) {
+                const arcRadius = 20;
+                const largeArcFlag = angle > Math.PI ? 1 : 0;
+                const endX = arcRadius * Math.cos(angle);
+                const endY = arcRadius * Math.sin(angle);
+                angleArc.setAttribute('d', `M${arcRadius} 0 A${arcRadius} ${arcRadius} 0 ${largeArcFlag} 1 ${endX} ${endY}`);
+                angleLabel.setAttribute('x', arcRadius * Math.cos(angle/2) + 5);
+                angleLabel.setAttribute('y', arcRadius * Math.sin(angle/2) + 5);
+                
+                geometricResult.textContent = Math.round(aLength * bLength * Math.cos(angle) * 100) / 100;
+            } else {
+                geometricResult.textContent = "0 (向量垂直)";
+            }
+            
+            // 计算投影解释
+            if (aLength > 0) {
+                const projectionLength = dotProduct / aLength;
+                const projectionX = (aX / aLength) * projectionLength;
+                const projectionY = (aY / aLength) * projectionLength;
+                
+                projectionLine.setAttribute('x1', bX);
+                projectionLine.setAttribute('y1', bY);
+                projectionLine.setAttribute('x2', projectionX);
+                projectionLine.setAttribute('y2', projectionY);
+                
+                // 更新矩形表示点乘面积
+                dotRect.setAttribute('width', Math.abs(projectionX));
+                dotRect.setAttribute('height', Math.abs(projectionY));
+                dotRect.setAttribute('x', projectionX > 0 ? 0 : projectionX);
+                dotRect.setAttribute('y', projectionY > 0 ? 0 : projectionY);
+                
+                projectionResult.textContent = Math.round(aLength * projectionLength * 100) / 100;
+            }
+        }
+        
+        // 添加事件监听器
+        aXSlider.addEventListener('input', updateVectors);
+        aYSlider.addEventListener('input', updateVectors);
+        bXSlider.addEventListener('input', updateVectors);
+        bYSlider.addEventListener('input', updateVectors);
+        
+        // 初始化
+        updateVectors();
+    </script>
+    
+    <div style="max-width: 800px; margin: 20px auto; text-align: left;">
+        <h2>点乘的几何解释</h2>
+        <p>点乘有几种等效的几何解释：</p>
+        
+        <h3>1. 投影解释</h3>
+        <p>向量 <strong>a</strong> 点乘向量 <strong>b</strong> 等于 <strong>a</strong> 的长度乘以 <strong>b</strong> 在 <strong>a</strong> 方向上的投影长度。</p>
+        <p>在上面的演示中，绿色虚线表示 <strong>b</strong> 在 <strong>a</strong> 上的投影，绿色矩形面积表示点乘结果。</p>
+        
+        <h3>2. 角度解释</h3>
+        <p>点乘与两向量夹角θ的余弦值相关：<strong>a·b = ||a|| ||b|| cosθ</strong></p>
+        <p>当两向量方向相同时(θ=0°)，点乘最大；垂直时(θ=90°)，点乘为0；相反时(θ=180°)，点乘最小。</p>
+        
+        <h3>3. 面积解释</h3>
+        <p>点乘可以看作是一个向量在另一个向量方向上的"有效分量"产生的面积。</p>
+    </div>
+</body>
+</html>

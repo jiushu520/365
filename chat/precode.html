@@ -697,18 +697,42 @@
                 console.log(`已选择模型: ${models[currentModelIndex].name}`);
             });
 
+            function escapeHtml(text) {
+                const map = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                };
+                return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+            }
+
+            // 封装复制按钮事件绑定函数
+            function bindCopyButtons(container) {
+                const copyButtons = container.querySelectorAll('.copy-btn');
+                copyButtons.forEach((button) => {
+                    button.onclick = function() {
+                        const codeElement = button.nextElementSibling.querySelector('code');
+                        const code = codeElement.innerText;
+                        copyToClipboard(code);
+                        button.textContent = '已复制';
+                        button.disabled = true;
+                        setTimeout(() => {
+                            button.textContent = '复制';
+                            button.disabled = false;
+                        }, 2000);
+                    };
+                });
+            }
+
             function addMessage(sender, message) {
                 const messageElement = document.createElement("div");
                 messageElement.classList.add("message", sender === "用户" ? "user" : "assistant");
 
                 let formattedMessage = message.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
                     const language = lang ? `language-${lang}` : 'language-none';
-                    return `
-                        <div class="code-block">
-                            <button class="copy-btn">复制</button>
-                            <pre><code class="${language}">${escapeHtml(code)}</code></pre>
-                        </div>
-                    `;
+                    return `\n<div class="code-block"><button class="copy-btn">复制</button><pre><code class="${language}">${escapeHtml(code)}</code></pre></div>\n`;
                 });
 
                 messageElement.innerHTML = `<strong>${sender}:</strong> ${formattedMessage}`;
@@ -725,33 +749,10 @@
                     }).catch((err) => console.error('MathJax 渲染失败: ', err.message));
                 }
 
-                const copyButtons = messageElement.querySelectorAll('.copy-btn');
-                copyButtons.forEach((button) => {
-                    button.addEventListener('click', () => {
-                        const codeElement = button.nextElementSibling.querySelector('code');
-                        const code = codeElement.innerText;
-                        copyToClipboard(code);
-                        button.textContent = '已复制';
-                        button.disabled = true;
-                        setTimeout(() => {
-                            button.textContent = '复制';
-                            button.disabled = false;
-                        }, 2000);
-                    });
-                });
+                // 绑定复制按钮事件
+                bindCopyButtons(messageElement);
 
                 chatMessages.scrollTop = chatMessages.scrollHeight;
-            }
-
-            function escapeHtml(text) {
-                const map = {
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#039;'
-                };
-                return text.replace(/[&<>"']/g, function(m) { return map[m]; });
             }
 
             function copyToClipboard(text) {
@@ -827,6 +828,8 @@
                             isProcessing = true;
                             fullContent += accumulatedContent;
                             streamContent.innerHTML = parseStreamContent(fullContent);
+                            // 绑定复制按钮事件
+                            bindCopyButtons(assistantElement);
                             if (typeof MathJax !== 'undefined') {
                                 MathJax.typesetPromise([assistantElement]).then(() => {
                                     const codeBlocks = assistantElement.querySelectorAll('code');
@@ -850,6 +853,8 @@
                             if (accumulatedContent.length > 0) {
                                 fullContent += accumulatedContent;
                                 streamContent.innerHTML = parseStreamContent(fullContent);
+                                // 绑定复制按钮事件
+                                bindCopyButtons(assistantElement);
                                 if (typeof MathJax !== 'undefined') {
                                     await MathJax.typesetPromise([assistantElement]);
                                     const codeBlocks = assistantElement.querySelectorAll('code');

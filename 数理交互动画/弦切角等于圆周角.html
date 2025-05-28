@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>弦切角定理深度探索</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .main-canvas {
+            background: #1a1a1a;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            margin-bottom: 30px;
+        }
+        
+        svg {
+            width: 100%;
+            height: 500px;
+            cursor: move;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .control-group {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #333;
+        }
+        
+        .control-group h3 {
+            margin-top: 0;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .angle-display {
+            font-size: 1.2em;
+            margin: 10px 0;
+            padding: 10px;
+            background: #222;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+        
+        .proof-section {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            border: 1px solid #333;
+        }
+        
+        .proof-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .proof-step {
+            margin: 15px 0;
+            padding: 15px;
+            background: #222;
+            border-radius: 10px;
+            border-left: 3px solid #764ba2;
+            transition: all 0.3s ease;
+        }
+        
+        .proof-step:hover {
+            transform: translateX(5px);
+            border-left-color: #667eea;
+        }
+        
+        .formula {
+            font-family: 'Courier New', monospace;
+            background: #2a2a2a;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            margin: 5px 0;
+        }
+        
+        .interactive-hint {
+            text-align: center;
+            color: #888;
+            font-style: italic;
+            margin: 20px 0;
+        }
+        
+        .special-cases {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .case-button {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .case-button:hover {
+            background: #333;
+            border-color: #667eea;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        
+        .animating {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>弦切角定理的深度探索</h1>
+        <p class="subtitle">探索切线与圆弦之间的优美关系</p>
+        
+        <div class="main-canvas">
+            <svg id="demo" viewBox="-250 -250 500 500">
+                <!-- 定义渐变和滤镜 -->
+                <defs>
+                    <radialGradient id="circleGradient">
+                        <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.1" />
+                        <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.3" />
+                    </radialGradient>
+                    
+                    <filter id="glow">
+                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+                
+                <!-- 坐标系 -->
+                <line x1="-250" y1="0" x2="250" y2="0" stroke="#333" stroke-width="1"/>
+                <line x1="0" y1="-250" x2="0" y2="250" stroke="#333" stroke-width="1"/>
+                
+                <!-- 主圆 -->
+                <circle id="mainCircle" cx="0" cy="0" r="150" 
+                        fill="url(#circleGradient)" 
+                        stroke="#667eea" 
+                        stroke-width="2"/>
+                
+                <!-- 动态元素将通过JavaScript添加 -->
+            </svg>
+            
+            <p class="interactive-hint">拖动切点T或弦的端点A来探索弦切角与圆周角的关系</p>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <h3>角度信息</h3>
+                <div class="angle-display" id="tangentAngle">弦切角: 0°</div>
+                <div class="angle-display" id="circumferenceAngle">圆周角: 0°</div>
+                <div class="angle-display" id="difference">差值: 0°</div>
+            </div>
+            
+            <div class="control-group">
+                <h3>动画控制</h3>
+                <button onclick="animateProof()">演示证明过程</button>
+                <button onclick="toggleConstruction()">显示/隐藏辅助线</button>
+                <button onclick="reset()">重置位置</button>
+            </div>
+            
+            <div class="control-group">
+                <h3>特殊情况</h3>
+                <div class="special-cases">
+                    <button class="case-button" onclick="setCase('tangent')">切线水平</button>
+                    <button class="case-button" onclick="setCase('diameter')">弦过圆心</button>
+                    <button class="case-button" onclick="setCase('perpendicular')">切线垂直</button>
+                    <button class="case-button" onclick="setCase('semicircle')">半圆弧</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="proof-section">
+            <h2>定理证明：弦切角等于圆周角</h2>
+            
+            <div class="proof-step">
+                <strong>定理陈述：</strong>
+                圆的切线与过切点的弦所成的角（弦切角）等于该弦所对的圆周角。
+            </div>
+            
+            <div class="proof-step">
+                <strong>证明思路：</strong>
+                <p>设T为切点，TA为过切点的弦，L为过T点的切线，P为弧TA上任意一点。</p>
+                <p>需要证明：<span class="formula">∠LTA = ∠TPA</span></p>
+            </div>
+            
+            <div class="proof-step">
+                <strong>关键洞察：</strong>
+                <p>1. 切线垂直于过切点的半径：<span class="formula">OT ⊥ L</span></p>
+                <p>2. 圆心角是圆周角的两倍：<span class="formula">∠TOA = 2∠TPA</span></p>
+                <p>3. 等腰三角形的性质：<span class="formula">OT = OA（半径相等）</span></p>
+            </div>
+            
+            <div class="proof-step">
+                <strong>几何本质：</strong>
+                <p>弦切角定理揭示了圆的局部切线方向与整体弧度量之间的深刻联系。</p>
+                <p>这种联系体现了微分几何中"局部与整体"的对应关系。</p>
+            </div>
+        </div>
+        
+        <div class="proof-section">
+            <h2>深层理解</h2>
+            
+            <div class="proof-step">
+                <strong>极限视角：</strong>
+                <p>弦切角可以理解为当圆周角的一个端点趋向切点时的极限情况。</p>
+                <p>这解释了为什么切线方向编码了弧的"瞬时变化率"信息。</p>
+            </div>
+            
+            <div class="proof-step">
+                <strong>对偶性：</strong>
+                <p>弦切角定理体现了点与线的对偶关系：</p>
+                <p>• 圆周角 - 通过三个点定义</p>
+                <p>• 弦切角 - 通过两个点和一条切线定义</p>
+                <p>两者在数值上的相等揭示了圆的内在对称性。</p>
+            </div>
+            
+            <div class="proof-step">
+                <strong>应用价值：</strong>
+                <p>• 光学：解释光线在圆形界面的反射</p>
+                <p>• 机械：凸轮设计中的切线运动分析</p>
+                <p>• 计算几何：圆与直线相切的判定算法</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const svg = document.getElementById('demo');
+        const svgNS = "http://www.w3.org/2000/svg";
+        
+        // 全局状态
+        let state = {
+            T: { x: 150, y: 0 },      // 切点
+            A: { x: 0, y: -150 },      // 弦的另一端
+            P: { x: -106, y: 106 },    // 圆周角的顶点
+            O: { x: 0, y: 0 },         // 圆心
+            radius: 150,
+            showConstruction: true,
+            animating: false
+        };
+        
+        // 创建SVG元素的辅助函数
+        function createSVGElement(tag, attrs) {
+            const elem = document.createElementNS(svgNS, tag);
+            for (let attr in attrs) {
+                elem.setAttribute(attr, attrs[attr]);
+            }
+            return elem;
+        }
+        
+        // 计算两点间的角度
+        function angle(p1, p2) {
+            return Math.atan2(p2.y - p1.y, p2.x - p1.x);
+        }
+        
+        // 计算角度差（考虑方向）
+        function angleDifference(a1, a2) {
+            let diff = (a2 - a1) * 180 / Math.PI;
+            while (diff > 180) diff -= 360;
+            while (diff < -180) diff += 360;
+            return Math.abs(diff);
+        }
+        
+        // 将点约束在圆上
+        function constrainToCircle(point, center, radius) {
+            const dx = point.x - center.x;
+            const dy = point.y - center.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            return {
+                x: center.x + (dx / distance) * radius,
+                y: center.y + (dy / distance) * radius
+            };
+        }
+        
+        // 计算切线的端点
+        function getTangentEndpoints(tangentPoint) {
+            const angle = Math.atan2(tangentPoint.y, tangentPoint.x);
+            const perpAngle = angle + Math.PI / 2;
+            const tangentLength = 200;
+            
+            return {
+                p1: {
+                    x: tangentPoint.x + Math.cos(perpAngle) * tangentLength,
+                    y: tangentPoint.y + Math.sin(perpAngle) * tangentLength
+                },
+                p2: {
+                    x: tangentPoint.x - Math.cos(perpAngle) * tangentLength,
+                    y: tangentPoint.y - Math.sin(perpAngle) * tangentLength
+                }
+            };
+        }
+        
+        // 计算弦切角
+        function calculateTangentChordAngle() {
+            const tangentAngle = Math.atan2(state.T.y, state.T.x) + Math.PI / 2;
+            const chordAngle = angle(state.T, state.A);
+            return angleDifference(tangentAngle, chordAngle);
+        }
+        
+        // 计算圆周角
+        function calculateCircumferenceAngle() {
+            const angle1 = angle(state.P, state.T);
+            const angle2 = angle(state.P, state.A);
+            return angleDifference(angle1, angle2);
+        }
+        
+        // 初始化图形
+        function initializeGraphics() {
+            // 清除现有的动态元素
+            const dynamicElements = svg.querySelectorAll('.dynamic');
+            dynamicElements.forEach(elem => elem.remove());
+            
+            // 添加切线
+            const tangent = getTangentEndpoints(state.T);
+            const tangentLine = createSVGElement('line', {
+                class: 'dynamic tangent',
+                x1: tangent.p1.x,
+                y1: tangent.p1.y,
+                x2: tangent.p2.x,
+                y2: tangent.p2.y,
+                stroke: '#ff6b6b',
+                'stroke-width': 3,
+                filter: 'url(#glow)'
+            });
+            svg.appendChild(tangentLine);
+            
+            // 添加弦
+            const chord = createSVGElement('line', {
+                class: 'dynamic chord',
+                x1: state.T.x,
+                y1: state.T.y,
+                x2: state.A.x,
+                y2: state.A.y,
+                stroke: '#4ecdc4',
+                'stroke-width': 3,
+                filter: 'url(#glow)'
+            });
+            svg.appendChild(chord);
+            
+            // 添加圆周角的两条边
+            const circumference1 = createSVGElement('line', {
+                class: 'dynamic circumference',
+                x1: state.P.x,
+                y1: state.P.y,
+                x2: state.T.x,
+                y2: state.T.y,
+                stroke: '#95e1d3',
+                'stroke-width': 2,
+                'stroke-dasharray': '5,5'
+            });
+            svg.appendChild(circumference1);
+            
+            const circumference2 = createSVGElement('line', {
+                class: 'dynamic circumference',
+                x1: state.P.x,
+                y1: state.P.y,
+                x2: state.A.x,
+                y2: state.A.y,
+                stroke: '#95e1d3',
+                'stroke-width': 2,
+                'stroke-dasharray': '5,5'
+            });
+            svg.appendChild(circumference2);
+            
+            // 添加辅助线（半径）
+            if (state.showConstruction) {
+                const radiusT = createSVGElement('line', {
+                    class: 'dynamic construction',
+                    x1: state.O.x,
+                    y1: state.O.y,
+                    x2: state.T.x,
+                    y2: state.T.y,
+                    stroke: '#666',
+                    'stroke-width': 1,
+                    'stroke-dasharray': '3,3'
+                });
+                svg.appendChild(radiusT);
+                
+                const radiusA = createSVGElement('line', {
+                    class: 'dynamic construction',
+                    x1: state.O.x,
+                    y1: state.O.y,
+                    x2: state.A.x,
+                    y2: state.A.y,
+                    stroke: '#666',
+                    'stroke-width': 1,
+                    'stroke-dasharray': '3,3'
+                });
+                svg.appendChild(radiusA);
+            }
+            
+            // 添加弧线表示角度
+            const tangentChordAngle = calculateTangentChordAngle();
+            const tangentAngleRad = Math.atan2(state.T.y, state.T.x) + Math.PI / 2;
+            const chordAngleRad = angle(state.T, state.A);
+            
+            const arcRadius = 40;
+            const tangentArc = createSVGElement('path', {
+                class: 'dynamic angle-arc',
+                d: describeArc(state.T.x, state.T.y, arcRadius, 
+                    tangentAngleRad * 180 / Math.PI, 
+                    chordAngleRad * 180 / Math.PI),
+                fill: 'none',
+                stroke: '#ff6b6b',
+                'stroke-width': 2,
+                opacity: 0.6
+            });
+            svg.appendChild(tangentArc);
+            
+            const circumferenceArcRadius = 30;
+            const angle1 = angle(state.P, state.T) * 180 / Math.PI;
+            const angle2 = angle(state.P, state.A) * 180 / Math.PI;
+            
+            const circumferenceArc = createSVGElement('path', {
+                class: 'dynamic angle-arc',
+                d: describeArc(state.P.x, state.P.y, circumferenceArcRadius, angle1, angle2),
+                fill: 'none',
+                stroke: '#95e1d3',
+                'stroke-width': 2,
+                opacity: 0.6
+            });
+            svg.appendChild(circumferenceArc);
+            
+            // 添加可拖动的点
+            addDraggablePoint('T', state.T, '#ff6b6b');
+            addDraggablePoint('A', state.A, '#4ecdc4');
+            addDraggablePoint('P', state.P, '#95e1d3');
+            
+            // 添加标签
+            addLabel('T', state.T, 'T (切点)');
+            addLabel('A', state.A, 'A');
+            addLabel('P', state.P, 'P');
+            addLabel('O', state.O, 'O');
+            
+            updateAngleDisplays();
+        }
+        
+        // 创建弧线路径
+        function describeArc(x, y, radius, startAngle, endAngle) {
+            // 角度归一化到0~360
+            startAngle = ((startAngle % 360) + 360) % 360;
+            endAngle = ((endAngle % 360) + 360) % 360;
+            let delta = endAngle - startAngle;
+            // 保证delta在-360~360
+            if (delta > 360) delta -= 360;
+            if (delta < -360) delta += 360;
+
+            const largeArcFlag = Math.abs(delta) > 180 ? "1" : "0";
+            const sweepFlag = delta >= 0 ? "1" : "0";
+
+            const start = polarToCartesian(x, y, radius, startAngle);
+            const end = polarToCartesian(x, y, radius, endAngle);
+
+            return [
+                "M", start.x, start.y,
+                "A", radius, radius, 0, largeArcFlag, sweepFlag, end.x, end.y
+            ].join(" ");
+        }
+        
+        function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+            const angleInRadians = angleInDegrees * Math.PI / 180.0;
+            return {
+                x: centerX + radius * Math.cos(angleInRadians),
+                y: centerY + radius * Math.sin(angleInRadians)
+            };
+        }
+        
+        // 添加可拖动的点
+        function addDraggablePoint(id, position, color) {
+            const group = createSVGElement('g', {
+                class: 'dynamic draggable',
+                id: `point-${id}`,
+                style: 'cursor: pointer;'
+            });
+            
+            const circle = createSVGElement('circle', {
+                cx: position.x,
+                cy: position.y,
+                r: 8,
+                fill: color,
+                stroke: 'white',
+                'stroke-width': 2,
+                filter: 'url(#glow)'
+            });
+            
+            group.appendChild(circle);
+            svg.appendChild(group);
+            
+            // 添加拖动功能
+            let isDragging = false;
+            
+            group.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                e.preventDefault();
+            });
+            
+            svg.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                const rect = svg.getBoundingClientRect();
+                const viewBox = svg.viewBox.baseVal;
+                const x = (e.clientX - rect.left) * viewBox.width / rect.width + viewBox.x;
+                const y = (e.clientY - rect.top) * viewBox.height / rect.height + viewBox.y;
+                
+                // 将点约束在圆上
+                const newPos = constrainToCircle({ x, y }, state.O, state.radius);
+                state[id] = newPos;
+                
+                initializeGraphics();
+            });
+            
+            svg.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+            
+            svg.addEventListener('mouseleave', () => {
+                isDragging = false;
+            });
+        }
+        
+        // 添加标签
+        function addLabel(id, position, text) {
+            const offset = 20;
+            const labelGroup = createSVGElement('g', {
+                class: 'dynamic label'
+            });
+            
+            const label = createSVGElement('text', {
+                x: position.x + offset,
+                y: position.y - offset,
+                fill: 'white',
+                'font-size': '14px',
+                'font-weight': 'bold'
+            });
+            label.textContent = text;
+            
+            labelGroup.appendChild(label);
+            svg.appendChild(labelGroup);
+        }
+        
+        // 更新角度显示
+        function updateAngleDisplays() {
+            const tangentAngle = calculateTangentChordAngle();
+            const circumferenceAngle = calculateCircumferenceAngle();
+            const difference = Math.abs(tangentAngle - circumferenceAngle);
+            
+            document.getElementById('tangentAngle').textContent = 
+                `弦切角: ${tangentAngle.toFixed(1)}°`;
+            document.getElementById('circumferenceAngle').textContent = 
+                `圆周角: ${circumferenceAngle.toFixed(1)}°`;
+            document.getElementById('difference').textContent = 
+                `差值: ${difference.toFixed(1)}°`;
+        }
+        
+        // 动画证明过程
+        function animateProof() {
+            if (state.animating) return;
+            state.animating = true;
+            
+            // 创建动画序列
+            const steps = [
+                { duration: 1000, action: highlightTangent },
+                { duration: 1000, action: highlightChord },
+                { duration: 1000, action: showRadii },
+                { duration: 1500, action: showAngles },
+                { duration: 1000, action: () => { state.animating = false; } }
+            ];
+            
+            let delay = 0;
+            steps.forEach(step => {
+                setTimeout(step.action, delay);
+                delay += step.duration;
+            });
+        }
+        
+        function highlightTangent() {
+            const tangent = svg.querySelector('.tangent');
+            tangent.classList.add('animating');
+            setTimeout(() => tangent.classList.remove('animating'), 1000);
+        }
+        
+        function highlightChord() {
+            const chord = svg.querySelector('.chord');
+            chord.classList.add('animating');
+            setTimeout(() => chord.classList.remove('animating'), 1000);
+        }
+        
+        function showRadii() {
+            state.showConstruction = true;
+            initializeGraphics();
+        }
+        
+        function showAngles() {
+            const arcs = svg.querySelectorAll('.angle-arc');
+            arcs.forEach(arc => arc.classList.add('animating'));
+            setTimeout(() => {
+                arcs.forEach(arc => arc.classList.remove('animating'));
+            }, 1500);
+        }
+        
+        // 切换辅助线显示
+        function toggleConstruction() {
+            state.showConstruction = !state.showConstruction;
+            initializeGraphics();
+        }
+        
+        // 重置位置
+        function reset() {
+            state.T = { x: 150, y: 0 };
+            state.A = { x: 0, y: -150 };
+            state.P = { x: -106, y: 106 };
+            initializeGraphics();
+        }
+        
+        // 设置特殊情况
+        function setCase(caseType) {
+            switch (caseType) {
+                case 'tangent':
+                    state.T = { x: 150, y: 0 };
+                    state.A = { x: 0, y: -150 };
+                    state.P = { x: -150, y: 0 };
+                    break;
+                case 'diameter':
+                    state.T = { x: 150, y: 0 };
+                    state.A = { x: -150, y: 0 };
+                    state.P = { x: 0, y: 150 };
+                    break;
+                case 'perpendicular':
+                    state.T = { x: 0, y: 150 };
+                    state.A = { x: 150, y: 0 };
+                    state.P = { x: -106, y: -106 };
+                    break;
+                case 'semicircle':
+                    state.T = { x: 106, y: 106 };
+                    state.A = { x: -106, y: -106 };
+                    state.P = { x: -150, y: 0 };
+                    break;
+            }
+            initializeGraphics();
+        }
+        
+        // 初始化
+        initializeGraphics();
+    </script>
+</body>
+</html>
