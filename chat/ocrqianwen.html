@@ -393,7 +393,7 @@
         let conversations = JSON.parse(localStorage.getItem('conversations')) || {};
         let conversation;
         let currentPromptId = "1"; // 默认使用数学专家英文讲稿提示词
-        let currentModel = "qwen2.5-vl-72b-instruct"; // 默认使用72b模型
+        let currentModel = "qwen-vl-max"; // 
 
         if (!Object.keys(prompts).length) {
             prompts = {
