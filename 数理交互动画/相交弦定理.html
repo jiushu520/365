@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>相交弦定理：深度交互可视化</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeIn 1s ease-out;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            font-weight: 300;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            color: #9ca3af;
+            margin-bottom: 30px;
+        }
+        
+        .theorem-box {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .theorem-text {
+            font-size: 1.1em;
+            line-height: 1.6;
+            text-align: center;
+        }
+        
+        .formula {
+            font-size: 1.3em;
+            color: #a78bfa;
+            font-weight: 500;
+            text-align: center;
+            margin: 15px 0;
+            letter-spacing: 2px;
+        }
+        
+        .visualization-container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+        
+        .svg-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .svg-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+        
+        svg {
+            position: relative;
+            z-index: 1;
+            cursor: grab;
+        }
+        
+        svg:active {
+            cursor: grabbing;
+        }
+        
+        .controls {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-label {
+            display: block;
+            margin-bottom: 5px;
+            color: #9ca3af;
+            font-size: 0.9em;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #764ba2;
+        }
+        
+        .info-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .measurements {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .measurement-item {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .measurement-item:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .measurement-label {
+            font-size: 0.9em;
+            color: #9ca3af;
+            margin-bottom: 5px;
+        }
+        
+        .measurement-value {
+            font-size: 1.4em;
+            font-weight: 500;
+            color: #a78bfa;
+        }
+        
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        
+        .mode-btn {
+            padding: 10px 20px;
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            border-radius: 8px;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+        
+        .mode-btn.active {
+            background: #667eea;
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+        
+        .mode-btn:hover:not(.active) {
+            background: rgba(102, 126, 234, 0.3);
+        }
+        
+        .proof-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+        
+        .proof-step {
+            margin-bottom: 20px;
+            padding-left: 20px;
+            border-left: 3px solid rgba(102, 126, 234, 0.5);
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        
+        .highlight {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @media (max-width: 768px) {
+            .visualization-container {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .measurements {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>相交弦定理</h1>
+            <div class="subtitle">Intersecting Chords Theorem</div>
+        </div>
+        
+        <div class="theorem-box">
+            <div class="theorem-text">
+                当两条弦在圆内相交时，每条弦被交点分成的两段长度的乘积相等
+            </div>
+            <div class="formula">PA × PB = PC × PD</div>
+        </div>
+        
+        <div class="mode-selector">
+            <button class="mode-btn active" onclick="setMode('explore')">自由探索</button>
+            <button class="mode-btn" onclick="setMode('animation')">动画演示</button>
+            <button class="mode-btn" onclick="setMode('proof')">几何证明</button>
+            <button class="mode-btn" onclick="setMode('special')">特殊情况</button>
+        </div>
+        
+        <div class="visualization-container">
+            <div class="svg-container">
+                <svg id="mainSvg" width="500" height="500" viewBox="0 0 500 500">
+                    <defs>
+                        <radialGradient id="circleGradient">
+                            <stop offset="0%" stop-color="rgba(102, 126, 234, 0.1)"/>
+                            <stop offset="100%" stop-color="rgba(102, 126, 234, 0.05)"/>
+                        </radialGradient>
+                        
+                        <filter id="glow">
+                            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                            <feMerge>
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+                    
+                    <!-- 背景网格 -->
+                    <g id="grid" opacity="0.1">
+                        <!-- 网格线将通过JS动态生成 -->
+                    </g>
+                    
+                    <!-- 主圆 -->
+                    <circle cx="250" cy="250" r="180" fill="url(#circleGradient)" 
+                            stroke="rgba(102, 126, 234, 0.5)" stroke-width="2"/>
+                    
+                    <!-- 辅助线组 -->
+                    <g id="auxiliaryLines" opacity="0">
+                        <!-- 辅助线将通过JS动态生成 -->
+                    </g>
+                    
+                    <!-- 弦和交点 -->
+                    <g id="chords">
+                        <!-- 弦将通过JS动态生成 -->
+                    </g>
+                    
+                    <!-- 标签组 -->
+                    <g id="labels">
+                        <!-- 标签将通过JS动态生成 -->
+                    </g>
+                    
+                    <!-- 动画路径 -->
+                    <g id="animationPaths" opacity="0">
+                        <!-- 动画路径将通过JS动态生成 -->
+                    </g>
+                </svg>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label class="control-label">第一条弦的角度: <span id="angle1Value">30°</span></label>
+                <input type="range" class="slider" id="angle1Slider" min="0" max="360" value="30" step="1">
+            </div>
+            <div class="control-group">
+                <label class="control-label">第二条弦的角度: <span id="angle2Value">120°</span></label>
+                <input type="range" class="slider" id="angle2Slider" min="0" max="360" value="120" step="1">
+            </div>
+            <div class="control-group">
+                <label class="control-label">交点位置（径向）: <span id="intersectionValue">50%</span></label>
+                <input type="range" class="slider" id="intersectionSlider" min="0" max="100" value="50" step="1">
+            </div>
+        </div>
+        
+        <div class="info-panel">
+            <h3 style="text-align: center; margin-bottom: 20px;">实时测量数据</h3>
+            <div class="measurements">
+                <div class="measurement-item">
+                    <div class="measurement-label">PA 长度</div>
+                    <div class="measurement-value" id="paLength">-</div>
+                </div>
+                <div class="measurement-item">
+                    <div class="measurement-label">PB 长度</div>
+                    <div class="measurement-value" id="pbLength">-</div>
+                </div>
+                <div class="measurement-item">
+                    <div class="measurement-label">PC 长度</div>
+                    <div class="measurement-value" id="pcLength">-</div>
+                </div>
+                <div class="measurement-item">
+                    <div class="measurement-label">PD 长度</div>
+                    <div class="measurement-value" id="pdLength">-</div>
+                </div>
+                <div class="measurement-item" style="grid-column: span 2;">
+                    <div class="measurement-label">PA × PB</div>
+                    <div class="measurement-value" id="product1">-</div>
+                </div>
+                <div class="measurement-item" style="grid-column: span 2;">
+                    <div class="measurement-label">PC × PD</div>
+                    <div class="measurement-value" id="product2">-</div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <div class="formula" id="verificationResult" style="font-size: 1.1em;">
+                    验证中...
+                </div>
+            </div>
+        </div>
+        
+        <div class="proof-section" id="proofSection" style="display: none;">
+            <h3 style="text-align: center; margin-bottom: 20px;">几何证明</h3>
+            <div id="proofSteps">
+                <!-- 证明步骤将通过JS动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 全局变量
+        let mode = 'explore';
+        let animationId = null;
+        let isDragging = false;
+        let dragTarget = null;
+        let dragOffset = { x: 0, y: 0 };
+        
+        // 圆的参数
+        const centerX = 250;
+        const centerY = 250;
+        const radius = 180;
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeGrid();
+            setupEventListeners();
+            updateVisualization();
+        });
+        
+        // 初始化网格
+        function initializeGrid() {
+            const grid = document.getElementById('grid');
+            const step = 25;
+            
+            for (let i = step; i < 500; i += step) {
+                // 垂直线
+                const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                vLine.setAttribute('x1', i);
+                vLine.setAttribute('y1', 0);
+                vLine.setAttribute('x2', i);
+                vLine.setAttribute('y2', 500);
+                vLine.setAttribute('stroke', '#667eea');
+                vLine.setAttribute('stroke-width', '0.5');
+                grid.appendChild(vLine);
+                
+                // 水平线
+                const hLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                hLine.setAttribute('x1', 0);
+                hLine.setAttribute('y1', i);
+                hLine.setAttribute('x2', 500);
+                hLine.setAttribute('y2', i);
+                hLine.setAttribute('stroke', '#667eea');
+                hLine.setAttribute('stroke-width', '0.5');
+                grid.appendChild(hLine);
+            }
+        }
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 滑块事件
+            document.getElementById('angle1Slider').addEventListener('input', function(e) {
+                document.getElementById('angle1Value').textContent = e.target.value + '°';
+                updateVisualization();
+            });
+            
+            document.getElementById('angle2Slider').addEventListener('input', function(e) {
+                document.getElementById('angle2Value').textContent = e.target.value + '°';
+                updateVisualization();
+            });
+            
+            document.getElementById('intersectionSlider').addEventListener('input', function(e) {
+                document.getElementById('intersectionValue').textContent = e.target.value + '%';
+                updateVisualization();
+            });
+            
+            // SVG拖拽事件
+            const svg = document.getElementById('mainSvg');
+            svg.addEventListener('mousedown', handleMouseDown);
+            svg.addEventListener('mousemove', handleMouseMove);
+            svg.addEventListener('mouseup', handleMouseUp);
+            svg.addEventListener('mouseleave', handleMouseUp);
+        }
+        
+        // 计算弦与圆的交点
+        function getChordEndpoints(angle, intersectionRatio) {
+            const angleRad = (angle * Math.PI) / 180;
+            
+            // 计算弦的端点
+            const p1 = {
+                x: centerX + radius * Math.cos(angleRad),
+                y: centerY + radius * Math.sin(angleRad)
+            };
+            const p2 = {
+                x: centerX + radius * Math.cos(angleRad + Math.PI),
+                y: centerY + radius * Math.sin(angleRad + Math.PI)
+            };
+            
+            return {
+                p1: p1,
+                p2: p2
+            };
+        }
+        
+        // 计算两条直线的交点
+        function getIntersectionPoint(chord1, chord2) {
+            const x1 = chord1.p1.x;
+            const y1 = chord1.p1.y;
+            const x2 = chord1.p2.x;
+            const y2 = chord1.p2.y;
+            const x3 = chord2.p1.x;
+            const y3 = chord2.p1.y;
+            const x4 = chord2.p2.x;
+            const y4 = chord2.p2.y;
+            
+            // 计算分母
+            const denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+            
+            // 如果分母为0，说明两直线平行
+            if (denominator === 0) {
+                return null;
+            }
+            
+            // 计算交点坐标
+            const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denominator;
+            
+            return {
+                x: x1 + t * (x2 - x1),
+                y: y1 + t * (y2 - y1)
+            };
+        }
+        
+        // 计算两点之间的距离
+        function distance(p1, p2) {
+            return Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2);
+        }
+        
+        // 更新可视化
+        function updateVisualization() {
+            const angle1 = parseFloat(document.getElementById('angle1Slider').value);
+            const angle2 = parseFloat(document.getElementById('angle2Slider').value);
+            
+            // 计算弦的端点
+            const chord1 = getChordEndpoints(angle1);
+            const chord2 = getChordEndpoints(angle2);
+            
+            // 计算交点
+            const intersection = getIntersectionPoint(chord1, chord2);
+            
+            if (!intersection) return;
+            
+            // 清空现有元素
+            const chords = document.getElementById('chords');
+            const labels = document.getElementById('labels');
+            chords.innerHTML = '';
+            labels.innerHTML = '';
+            
+            // 绘制第一条弦
+            drawChord(chord1.p1, chord1.p2, intersection, 'AB', '#667eea', chords, labels);
+            
+            // 绘制第二条弦
+            drawChord(chord2.p1, chord2.p2, intersection, 'CD', '#764ba2', chords, labels);
+            
+            // 绘制交点
+            drawIntersection(intersection, chords, labels);
+            
+            // 计算并显示长度
+            updateMeasurements(chord1, chord2, intersection);
+            
+            // 根据模式更新额外内容
+            if (mode === 'proof') {
+                showProof(chord1, chord2, intersection);
+            } else if (mode === 'animation') {
+                startAnimation(chord1, chord2, intersection);
+            } else if (mode === 'special') {
+                showSpecialCases();
+            }
+        }
+        
+        // 绘制弦
+        function drawChord(p1, p2, intersection, label, color, chordsGroup, labelsGroup) {
+            // 弦线
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', p1.x);
+            line.setAttribute('y1', p1.y);
+            line.setAttribute('x2', p2.x);
+            line.setAttribute('y2', p2.y);
+            line.setAttribute('stroke', color);
+            line.setAttribute('stroke-width', '3');
+            line.setAttribute('filter', 'url(#glow)');
+            line.setAttribute('class', 'chord-line');
+            chordsGroup.appendChild(line);
+            
+            // 端点
+            [p1, p2].forEach((point, index) => {
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', point.x);
+                circle.setAttribute('cy', point.y);
+                circle.setAttribute('r', '8');
+                circle.setAttribute('fill', color);
+                circle.setAttribute('stroke', '#fff');
+                circle.setAttribute('stroke-width', '2');
+                circle.setAttribute('class', 'draggable');
+                circle.setAttribute('data-point', label[index]);
+                chordsGroup.appendChild(circle);
+                
+                // 标签
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', point.x);
+                text.setAttribute('y', point.y - 15);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('fill', '#e0e0e0');
+                text.setAttribute('font-size', '16');
+                text.setAttribute('font-weight', '500');
+                text.textContent = label[index];
+                labelsGroup.appendChild(text);
+            });
+            
+            // 线段标记
+            drawSegmentMarks(p1, intersection, p2, color, chordsGroup);
+        }
+        
+        // 绘制线段标记
+        function drawSegmentMarks(p1, intersection, p2, color, group) {
+            // 第一段中点
+            const mid1 = {
+                x: (p1.x + intersection.x) / 2,
+                y: (p1.y + intersection.y) / 2
+            };
+            
+            // 第二段中点
+            const mid2 = {
+                x: (p2.x + intersection.x) / 2,
+                y: (p2.y + intersection.y) / 2
+            };
+            
+            // 绘制短垂线作为标记
+            [mid1, mid2].forEach(mid => {
+                const mark = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) + Math.PI / 2;
+                const len = 8;
+                
+                mark.setAttribute('x1', mid.x - len * Math.cos(angle));
+                mark.setAttribute('y1', mid.y - len * Math.sin(angle));
+                mark.setAttribute('x2', mid.x + len * Math.cos(angle));
+                mark.setAttribute('y2', mid.y + len * Math.sin(angle));
+                mark.setAttribute('stroke', color);
+                mark.setAttribute('stroke-width', '2');
+                mark.setAttribute('opacity', '0.7');
+                group.appendChild(mark);
+            });
+        }
+        
+        // 绘制交点
+        function drawIntersection(point, chordsGroup, labelsGroup) {
+            // 交点圆
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', point.x);
+            circle.setAttribute('cy', point.y);
+            circle.setAttribute('r', '10');
+            circle.setAttribute('fill', '#a78bfa');
+            circle.setAttribute('stroke', '#fff');
+            circle.setAttribute('stroke-width', '3');
+            circle.setAttribute('filter', 'url(#glow)');
+            circle.setAttribute('class', 'intersection-point');
+            chordsGroup.appendChild(circle);
+            
+            // 交点标签
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', point.x + 15);
+            text.setAttribute('y', point.y + 5);
+            text.setAttribute('fill', '#e0e0e0');
+            text.setAttribute('font-size', '18');
+            text.setAttribute('font-weight', 'bold');
+            text.textContent = 'P';
+            labelsGroup.appendChild(text);
+        }
+        
+        // 更新测量数据
+        function updateMeasurements(chord1, chord2, intersection) {
+            const pa = distance(intersection, chord1.p1);
+            const pb = distance(intersection, chord1.p2);
+            const pc = distance(intersection, chord2.p1);
+            const pd = distance(intersection, chord2.p2);
+            
+            const product1 = pa * pb;
+            const product2 = pc * pd;
+            
+            // 更新显示
+            document.getElementById('paLength').textContent = pa.toFixed(2);
+            document.getElementById('pbLength').textContent = pb.toFixed(2);
+            document.getElementById('pcLength').textContent = pc.toFixed(2);
+            document.getElementById('pdLength').textContent = pd.toFixed(2);
+            document.getElementById('product1').textContent = product1.toFixed(2);
+            document.getElementById('product2').textContent = product2.toFixed(2);
+            
+            // 验证结果
+            const difference = Math.abs(product1 - product2);
+            const verificationResult = document.getElementById('verificationResult');
+            
+            if (difference < 0.5) {
+                verificationResult.textContent = '✓ 定理验证成功！两个乘积相等';
+                verificationResult.style.color = '#4ade80';
+            } else {
+                verificationResult.textContent = '计算中...（误差: ' + difference.toFixed(2) + '）';
+                verificationResult.style.color = '#fbbf24';
+            }
+        }
+        
+        // 设置模式
+        function setMode(newMode) {
+            mode = newMode;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 清除动画
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            
+            // 显示/隐藏相关内容
+            document.getElementById('proofSection').style.display = mode === 'proof' ? 'block' : 'none';
+            document.getElementById('auxiliaryLines').style.opacity = mode === 'proof' ? '1' : '0';
+            
+            // 更新可视化
+            updateVisualization();
+        }
+        
+        // 显示几何证明
+        function showProof(chord1, chord2, intersection) {
+            const proofSteps = document.getElementById('proofSteps');
+            proofSteps.innerHTML = '';
+            
+            const steps = [
+                {
+                    title: '步骤 1：构造辅助线',
+                    content: '连接 A 与 C，B 与 D，形成两个三角形 △APC 和 △BPD'
+                },
+                {
+                    title: '步骤 2：寻找相似三角形',
+                    content: '观察 △APC 和 △DPB：∠APC = ∠DPB（对顶角相等）'
+                },
+                {
+                    title: '步骤 3：圆周角定理',
+                    content: '∠PAC = ∠PDB（同弧 BC 所对的圆周角相等）\n∠PCA = ∠PBD（同弧 AD 所对的圆周角相等）'
+                },
+                {
+                    title: '步骤 4：证明相似',
+                    content: '由 AA 相似判定，△APC ∽ △DPB'
+                },
+                {
+                    title: '步骤 5：相似比例',
+                    content: '相似三角形对应边成比例：PA/PD = PC/PB'
+                },
+                {
+                    title: '步骤 6：交叉相乘',
+                    content: 'PA × PB = PC × PD，定理得证！'
+                }
+            ];
+            
+            steps.forEach((step, index) => {
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'proof-step';
+                stepDiv.style.animationDelay = index * 0.1 + 's';
+                stepDiv.innerHTML = `
+                    <h4 style="color: #a78bfa; margin-bottom: 8px;">${step.title}</h4>
+                    <p style="line-height: 1.6;">${step.content.replace(/\n/g, '<br>')}</p>
+                `;
+                proofSteps.appendChild(stepDiv);
+            });
+            
+            // 绘制辅助线
+            drawAuxiliaryLines(chord1, chord2);
+        }
+        
+        // 绘制辅助线
+        function drawAuxiliaryLines(chord1, chord2) {
+            const auxiliaryLines = document.getElementById('auxiliaryLines');
+            auxiliaryLines.innerHTML = '';
+            
+            // AC 连线
+            const ac = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            ac.setAttribute('x1', chord1.p1.x);
+            ac.setAttribute('y1', chord1.p1.y);
+            ac.setAttribute('x2', chord2.p1.x);
+            ac.setAttribute('y2', chord2.p1.y);
+            ac.setAttribute('stroke', '#ef4444');
+            ac.setAttribute('stroke-width', '2');
+            ac.setAttribute('stroke-dasharray', '5,5');
+            ac.setAttribute('opacity', '0.6');
+            auxiliaryLines.appendChild(ac);
+            
+            // BD 连线
+            const bd = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            bd.setAttribute('x1', chord1.p2.x);
+            bd.setAttribute('y1', chord1.p2.y);
+            bd.setAttribute('x2', chord2.p2.x);
+            bd.setAttribute('y2', chord2.p2.y);
+            bd.setAttribute('stroke', '#ef4444');
+            bd.setAttribute('stroke-width', '2');
+            bd.setAttribute('stroke-dasharray', '5,5');
+            bd.setAttribute('opacity', '0.6');
+            auxiliaryLines.appendChild(bd);
+        }
+        
+        // 动画演示
+        function startAnimation(chord1, chord2, intersection) {
+            let time = 0;
+            
+            function animate() {
+                time += 0.02;
+                
+                // 创建脉冲效果
+                const pulse = Math.sin(time) * 0.5 + 0.5;
+                
+                // 更新交点大小
+                const intersectionPoint = document.querySelector('.intersection-point');
+                if (intersectionPoint) {
+                    intersectionPoint.setAttribute('r', 10 + pulse * 5);
+                }
+                
+                // 更新弦的透明度
+                const chordLines = document.querySelectorAll('.chord-line');
+                chordLines.forEach((line, index) => {
+                    line.style.opacity = 0.7 + pulse * 0.3;
+                });
+                
+                animationId = requestAnimationFrame(animate);
+            }
+            
+            animate();
+        }
+        
+        // 特殊情况展示
+        function showSpecialCases() {
+            // 设置特殊角度
+            const cases = [
+                { angle1: 0, angle2: 90, intersection: 50, name: '垂直相交' },
+                { angle1: 45, angle2: 135, intersection: 0, name: '圆心相交' },
+                { angle1: 30, angle2: 30, intersection: 70, name: '平行弦（近似）' }
+            ];
+            
+            let currentCase = 0;
+            
+            function showNextCase() {
+                const c = cases[currentCase % cases.length];
+                document.getElementById('angle1Slider').value = c.angle1;
+                document.getElementById('angle2Slider').value = c.angle2;
+                document.getElementById('intersectionSlider').value = c.intersection;
+                
+                document.getElementById('angle1Value').textContent = c.angle1 + '°';
+                document.getElementById('angle2Value').textContent = c.angle2 + '°';
+                document.getElementById('intersectionValue').textContent = c.intersection + '%';
+                
+                updateVisualization();
+                
+                // 显示案例名称
+                const info = document.createElement('div');
+                info.style.position = 'absolute';
+                info.style.top = '20px';
+                info.style.left = '50%';
+                info.style.transform = 'translateX(-50%)';
+                info.style.background = 'rgba(102, 126, 234, 0.8)';
+                info.style.padding = '10px 20px';
+                info.style.borderRadius = '20px';
+                info.style.color = '#fff';
+                info.style.fontSize = '1.1em';
+                info.textContent = '特殊情况：' + c.name;
+                document.querySelector('.svg-container').appendChild(info);
+                
+                setTimeout(() => info.remove(), 3000);
+                
+                currentCase++;
+            }
+            
+            showNextCase();
+            setInterval(showNextCase, 4000);
+        }
+        
+        // 鼠标事件处理
+        function handleMouseDown(e) {
+            const target = e.target;
+            if (target.classList.contains('draggable')) {
+                isDragging = true;
+                dragTarget = target;
+                const rect = document.getElementById('mainSvg').getBoundingClientRect();
+                dragOffset.x = e.clientX - rect.left - parseFloat(target.getAttribute('cx'));
+                dragOffset.y = e.clientY - rect.top - parseFloat(target.getAttribute('cy'));
+                e.preventDefault();
+            }
+        }
+        
+        function handleMouseMove(e) {
+            if (isDragging && dragTarget) {
+                const rect = document.getElementById('mainSvg').getBoundingClientRect();
+                const x = e.clientX - rect.left - dragOffset.x;
+                const y = e.clientY - rect.top - dragOffset.y;
+                
+                // 限制在圆内
+                const dx = x - centerX;
+                const dy = y - centerY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance <= radius - 10) {
+                    // 根据拖动更新角度和位置
+                    updateFromDrag(x, y);
+                }
+            }
+        }
+        
+        function handleMouseUp() {
+            isDragging = false;
+            dragTarget = null;
+        }
+        
+        // 根据拖动更新参数
+        function updateFromDrag(x, y) {
+            // 计算角度
+            const angle = Math.atan2(y - centerY, x - centerX) * 180 / Math.PI;
+            const normalizedAngle = (angle + 360) % 360;
+            
+            // 更新对应的滑块
+            if (dragTarget.getAttribute('data-point') === 'A' || dragTarget.getAttribute('data-point') === 'B') {
+                document.getElementById('angle1Slider').value = normalizedAngle;
+                document.getElementById('angle1Value').textContent = Math.round(normalizedAngle) + '°';
+            } else {
+                document.getElementById('angle2Slider').value = normalizedAngle;
+                document.getElementById('angle2Value').textContent = Math.round(normalizedAngle) + '°';
+            }
+            
+            updateVisualization();
+        }
+    </script>
+</body>
+</html>

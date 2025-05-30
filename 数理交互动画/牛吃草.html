@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>牛吃草问题可视化</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: white;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(0, 0, 30, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
+        }
+        .problem {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+            line-height: 1.8;
+        }
+        .math-equation {
+            font-size: 1.4rem;
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 30, 60, 0.7);
+            border-radius: 8px;
+            font-family: 'Cambria Math', serif;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin: 25px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 150px;
+        }
+        label {
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #4fc3f7;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.1rem;
+            border: 2px solid #4fc3f7;
+            border-radius: 5px;
+            background: rgba(0, 20, 40, 0.8);
+            color: white;
+            text-align: center;
+        }
+        .result {
+            text-align: center;
+            font-size: 1.8rem;
+            padding: 20px;
+            margin: 20px 0;
+            background: rgba(0, 80, 0, 0.3);
+            border-radius: 10px;
+            border: 2px solid #4caf50;
+        }
+        .highlight {
+            color: #ffcc00;
+            font-weight: bold;
+            font-size: 2.2rem;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
+        }
+        .visualization {
+            margin: 30px 0;
+            text-align: center;
+        }
+        .explanation {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            font-size: 1.1rem;
+            line-height: 1.7;
+        }
+        .explanation h3 {
+            color: #4fc3f7;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .explanation ul {
+            padding-left: 25px;
+            margin: 15px 0;
+        }
+        .explanation li {
+            margin-bottom: 10px;
+        }
+        .formula {
+            font-weight: bold;
+            color: #ffcc00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>牛吃草问题可视化分析</h1>
+        
+        <div class="problem">
+            <p>一片面积为 <span class="highlight">8</span> 公顷的草地，可供 <span class="highlight">8</span> 头牛吃 <span class="highlight">88</span> 天。</p>
+            <p>如果每头牛每天吃 <span class="highlight">1</span> 份草，那么在这 88 天内，每公顷草地一共提供了几份草？</p>
+            
+            <div class="math-equation">
+                <p>总草量消耗 = 牛的数量 × 每头牛每天消耗 × 天数</p>
+                <p>每公顷提供草量 = 总草量消耗 ÷ 草地面积</p>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="area">草地面积 (公顷)</label>
+                <input type="number" id="area" min="1" max="100" value="8">
+            </div>
+            
+            <div class="control-group">
+                <label for="cows">牛的数量 (头)</label>
+                <input type="number" id="cows" min="1" max="100" value="8">
+            </div>
+            
+            <div class="control-group">
+                <label for="days">吃草天数 (天)</label>
+                <input type="number" id="days" min="1" max="365" value="88">
+            </div>
+        </div>
+        
+        <div class="result">
+            <p>在 <span id="days-display" class="highlight">88</span> 天内，每公顷草地一共提供了 <span id="result" class="highlight">88</span> 份草</p>
+        </div>
+        
+        <div class="visualization">
+            <h2>草地草量分布可视化</h2>
+            <svg id="grass-svg" width="800" height="400"></svg>
+        </div>
+        
+        <div class="explanation">
+            <h3>数学原理与解释</h3>
+            <p>这个问题展示了资源分配的基本原理：</p>
+            <ul>
+                <li>草地作为资源提供者，牛作为资源消耗者，在时间维度上达到平衡</li>
+                <li>计算基于<span class="formula">资源守恒原理</span>：草地提供的总草量 = 牛消耗的总草量</li>
+                <li>总消耗量公式：<span class="formula">总草量 = 牛的数量 × 每头牛每日消耗 × 天数</span></li>
+                <li>每公顷提供量公式：<span class="formula">每公顷草量 = 总草量 ÷ 草地面积</span></li>
+            </ul>
+            <p>在本例中：</p>
+            <ul>
+                <li>总草量 = 8 头 × 1 份/头/天 × 88 天 = 704 份</li>
+                <li>每公顷提供量 = 704 份 ÷ 8 公顷 = 88 份/公顷</li>
+                <li>由于牛的数量（8头）和草地面积（8公顷）相等，每公顷草地恰好支持1头牛88天的消耗</li>
+            </ul>
+            <p>可视化说明：每个方块代表1公顷草地，方块高度表示该公顷提供的草量（份）。所有方块高度相同，表明草地质量均匀分布。</p>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const areaInput = document.getElementById('area');
+        const cowsInput = document.getElementById('cows');
+        const daysInput = document.getElementById('days');
+        const daysDisplay = document.getElementById('days-display');
+        const resultDisplay = document.getElementById('result');
+        const grassSvg = document.getElementById('grass-svg');
+        
+        // 初始计算
+        calculate();
+        
+        // 添加事件监听器
+        areaInput.addEventListener('input', calculate);
+        cowsInput.addEventListener('input', calculate);
+        daysInput.addEventListener('input', calculate);
+        
+        // 计算函数
+        function calculate() {
+            const area = parseFloat(areaInput.value) || 8;
+            const cows = parseFloat(cowsInput.value) || 8;
+            const days = parseFloat(daysInput.value) || 88;
+            
+            // 显示天数
+            daysDisplay.textContent = days;
+            
+            // 计算总草量和每公顷草量
+            const totalGrass = cows * days;
+            const grassPerHectare = totalGrass / area;
+            
+            // 显示结果
+            resultDisplay.textContent = grassPerHectare.toFixed(0);
+            
+            // 更新可视化
+            updateVisualization(area, grassPerHectare);
+        }
+        
+        // 更新SVG可视化
+        function updateVisualization(area, grassPerHectare) {
+            // 清空SVG
+            grassSvg.innerHTML = '';
+            
+            const svgWidth = grassSvg.getAttribute('width');
+            const svgHeight = grassSvg.getAttribute('height');
+            const maxHeight = 300;
+            const padding = 20;
+            
+            // 计算每个草地的宽度
+            const rectWidth = Math.min(80, (svgWidth - padding * 2) / area);
+            const startX = (svgWidth - (rectWidth * area + padding * (area - 1))) / 2;
+            
+            // 创建草地标题
+            const title = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            title.setAttribute('x', svgWidth / 2);
+            title.setAttribute('y', 30);
+            title.setAttribute('text-anchor', 'middle');
+            title.setAttribute('fill', '#4fc3f7');
+            title.setAttribute('font-size', '18px');
+            title.setAttribute('font-weight', 'bold');
+            title.textContent = `每公顷草地提供草量：${grassPerHectare.toFixed(0)} 份`;
+            grassSvg.appendChild(title);
+            
+            // 创建草地
+            for (let i = 0; i < area; i++) {
+                const x = startX + i * (rectWidth + padding);
+                const rectHeight = (grassPerHectare / 100) * maxHeight;
+                const y = svgHeight - rectHeight - 50;
+                
+                // 草地矩形
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('x', x);
+                rect.setAttribute('y', y);
+                rect.setAttribute('width', rectWidth);
+                rect.setAttribute('height', rectHeight);
+                rect.setAttribute('fill', `rgb(${Math.max(0, 150 - i * 10)}, ${Math.min(200, 180 + i * 5)}, 0)`);
+                rect.setAttribute('stroke', '#2E7D32');
+                rect.setAttribute('stroke-width', '2');
+                rect.setAttribute('rx', '5');
+                rect.setAttribute('ry', '5');
+                grassSvg.appendChild(rect);
+                
+                // 草地标签
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', x + rectWidth / 2);
+                label.setAttribute('y', svgHeight - 25);
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('fill', 'white');
+                label.setAttribute('font-size', '14px');
+                label.textContent = `公顷 ${i+1}`;
+                grassSvg.appendChild(label);
+                
+                // 草量数值
+                const value = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                value.setAttribute('x', x + rectWidth / 2);
+                value.setAttribute('y', y - 10);
+                value.setAttribute('text-anchor', 'middle');
+                value.setAttribute('fill', '#ffcc00');
+                value.setAttribute('font-size', '16px');
+                value.setAttribute('font-weight', 'bold');
+                value.textContent = `${grassPerHectare.toFixed(0)}份`;
+                grassSvg.appendChild(value);
+                
+                // 草叶装饰
+                for (let j = 0; j < 5; j++) {
+                    const blade = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    const bladeX = x + Math.random() * rectWidth;
+                    const bladeY = y + Math.random() * rectHeight;
+                    const height = 10 + Math.random() * 15;
+                    const width = 2 + Math.random() * 3;
+                    
+                    blade.setAttribute('d', `M${bladeX},${bladeY} 
+                                           C${bladeX + width},${bladeY - height/3} 
+                                           ${bladeX},${bladeY - height} 
+                                           ${bladeX},${bladeY - height}`);
+                    blade.setAttribute('stroke', '#2E7D32');
+                    blade.setAttribute('stroke-width', '1.5');
+                    blade.setAttribute('fill', 'none');
+                    grassSvg.appendChild(blade);
+                }
+            }
+            
+            // 添加比例尺
+            const scale = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            scale.setAttribute('x1', startX - 30);
+            scale.setAttribute('y1', svgHeight - 50);
+            scale.setAttribute('x2', startX - 30);
+            scale.setAttribute('y2', svgHeight - 50 - maxHeight);
+            scale.setAttribute('stroke', 'white');
+            scale.setAttribute('stroke-width', '2');
+            grassSvg.appendChild(scale);
+            
+            for (let i = 0; i <= 5; i++) {
+                const tick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                const tickY = svgHeight - 50 - (i * maxHeight / 5);
+                tick.setAttribute('x1', startX - 35);
+                tick.setAttribute('y1', tickY);
+                tick.setAttribute('x2', startX - 25);
+                tick.setAttribute('y2', tickY);
+                tick.setAttribute('stroke', 'white');
+                tick.setAttribute('stroke-width', '2');
+                grassSvg.appendChild(tick);
+                
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', startX - 45);
+                label.setAttribute('y', tickY + 5);
+                label.setAttribute('text-anchor', 'end');
+                label.setAttribute('fill', 'white');
+                label.setAttribute('font-size', '12px');
+                label.textContent = Math.round((i * grassPerHectare) / 5);
+                grassSvg.appendChild(label);
+            }
+            
+            const scaleLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            scaleLabel.setAttribute('x', startX - 60);
+            scaleLabel.setAttribute('y', svgHeight - 50 - maxHeight/2);
+            scaleLabel.setAttribute('text-anchor', 'middle');
+            scaleLabel.setAttribute('fill', 'white');
+            scaleLabel.setAttribute('font-size', '14px');
+            scaleLabel.setAttribute('transform', `rotate(-90, ${startX - 60}, ${svgHeight - 50 - maxHeight/2})`);
+            scaleLabel.textContent = '草量 (份)';
+            grassSvg.appendChild(scaleLabel);
+        }
+    </script>
+</body>
+</html>

@@ -136,6 +136,32 @@
             border-radius: 4px;
             font-size: 0.9em; /* 减小搜索框字体大小 */
         }
+        .category-title {
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0 5px 0;
+            padding: 5px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            user-select: none;
+            position: relative;
+        }
+        .category-title::before {
+            content: '\25B6'; /* ▶ */
+            display: inline-block;
+            margin-right: 6px;
+            transition: transform 0.2s;
+        }
+        .category.open > .category-title::before {
+            transform: rotate(90deg);
+        }
+        .subcategory {
+            margin-left: 18px;
+            display: none;
+        }
+        .category.open > .subcategory {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -145,73 +171,95 @@
             <iframe name="contentFrame" id="contentFrame" src="about:blank"></iframe>
         </div>
         <div class="sidebar-trigger" id="sidebarTrigger"></div>
-        <div class="sidebar" id="sidebar">
+        <div class="sidebar" id="sidebar" style="transform: translateX(0);">
             <h1>数理交互动画</h1>
             <input type="text" class="search-box" placeholder="搜索..." oninput="filterList()">
             <ul class="file-list">
-                <li><a href="B0304首项系数为1的十字相交叉.html" target="contentFrame">B0304首项系数为1的十字相交叉</a></li>
-                <li><a href="B0308双十字相交叉.html" target="contentFrame">B0308双十字相交叉</a></li>
-                <li><a href="C0106复数乘法.html" target="contentFrame">C0106复数乘法</a></li>
-                <li><a href="完全平方公式展开.html" target="contentFrame">完全平方公式展开</a></li>
-                <li><a href="完全平方公式.html" target="contentFrame">完全平方公式</a></li>
-                <li><a href="和立方.html" target="contentFrame">和立方方公式</a></li>
-                <li><a href="三项和立方.html" target="contentFrame">三项和立方</a></li>
-                <li><a href="多立方体.html" target="contentFrame">多立方体</a></li>
-
-                <li><a href="单位圆与三角函数.html" target="contentFrame">单位圆与三角函数</a></li>
-                <li><a href="单位圆上的三角函数.html" target="contentFrame">单位圆上的三角函数</a></li>
-                <li><a href="二次函数配方法与顶点式.html" target="contentFrame">二次函数配方法与顶点式</a></li>
-                <li><a href="复数乘法.html" target="contentFrame">复数乘法</a></li>
-                <li><a href="函数图像.html" target="contentFrame">函数图像</a></li>
-                <li><a href="动量守恒.html" target="contentFrame">动量守恒</a></li>
-                <li><a href="斜抛运动.html" target="contentFrame">斜抛运动</a></li>
-                <li><a href="两点.html" target="contentFrame">两点</a></li>
-                <li><a href="两点法向量.html" target="contentFrame">两点法向量</a></li>
-                <li><a href="两点解析式.html" target="contentFrame">两点解析式</a></li>
-                <li><a href="两点向量.html" target="contentFrame">两点向量</a></li>
-                <li><a href="两点直线解析式.html" target="contentFrame">两点直线解析式</a></li>
-                <li><a href="数轴距离.html" target="contentFrame">数轴距离</a></li>
-                <li><a href="向量加法.html" target="contentFrame">向量加法</a></li>
-                <li><a href="向量点乘的意义.html" target="contentFrame">向量点乘的意义</a></li>
-                <li><a href="行列式.html" target="contentFrame">行列式</a></li>
-                <li><a href="弦切角等于圆周角.html" target="contentFrame">弦切角等于圆周角</a></li>
-                <li><a href="雪花曲线.html" target="contentFrame">雪花曲线</a></li>
-                <li><a href="一次直线拟合.html" target="contentFrame">一次直线拟合</a></li>
-                <li><a href="直角坐标系 - 副本.html" target="contentFrame">直角坐标系 - 副本</a></li>
-                <li><a href="直角坐标系.html" target="contentFrame">直角坐标系</a></li>
-                <li><a href="直角坐标系含工具栏.html" target="contentFrame">直角坐标系含工具栏</a></li>
-                <li><a href="场.html" target="contentFrame">场</a></li>
-                <li><a href="场3D.html" target="contentFrame">场3D</a></li>
-
-
-
+              <li class="category">
+                <div class="category-title" onclick="toggleCategory(this)">代数</div>
+                <ul class="subcategory">
+                  <li><a href="完全平方公式展开.html" target="contentFrame">完全平方公式展开</a></li>
+                  <li><a href="完全平方公式.html" target="contentFrame">完全平方公式</a></li>
+                  <li><a href="和立方.html" target="contentFrame">和立方方公式</a></li>
+                  <li><a href="三项和立方.html" target="contentFrame">三项和立方</a></li>
+                  <li><a href="一次直线拟合.html" target="contentFrame">一次直线拟合</a></li>
+                  <li><a href="B0304首项系数为1的十字相交叉.html" target="contentFrame">B0304首项系数为1的十字相交叉</a></li>
+                  <li><a href="B0308双十字相交叉.html" target="contentFrame">B0308双十字相交叉</a></li>
+                  <li><a href="C0106复数乘法.html" target="contentFrame">C0106复数乘法</a></li>
+                  <li><a href="复数乘法.html" target="contentFrame">复数乘法</a></li>
+                  <li><a href="行列式.html" target="contentFrame">行列式</a></li>
+                </ul>
+              </li>
+              <li class="category">
+                <div class="category-title" onclick="toggleCategory(this)">几何</div>
+                <ul class="subcategory">
+                  <li><a href="单位圆与三角函数.html" target="contentFrame">单位圆与三角函数</a></li>
+                  <li><a href="单位圆上的三角函数.html" target="contentFrame">单位圆上的三角函数</a></li>
+                  <li><a href="弦切角等于圆周角.html" target="contentFrame">弦切角等于圆周角</a></li>
+                  <li><a href="相交弦定理.html" target="contentFrame">相交弦定理</a></li>
+                  <li><a href="雪花曲线.html" target="contentFrame">雪花曲线</a></li>
+                  <li><a href="多立方体.html" target="contentFrame">多立方体</a></li>
+                </ul>
+              </li>
+              <li class="category">
+                <div class="category-title" onclick="toggleCategory(this)">物理</div>
+                <ul class="subcategory">
+                  <li><a href="动量守恒.html" target="contentFrame">动量守恒</a></li>
+                  <li><a href="斜抛运动.html" target="contentFrame">斜抛运动</a></li>
+                  <li><a href="场.html" target="contentFrame">场</a></li>
+                  <li><a href="场3D.html" target="contentFrame">场3D</a></li>
+                </ul>
+              </li>
+              <li class="category">
+                <div class="category-title" onclick="toggleCategory(this)">向量与解析几何</div>
+                <ul class="subcategory">
+                  <li><a href="两点.html" target="contentFrame">两点</a></li>
+                  <li><a href="两点法向量.html" target="contentFrame">两点法向量</a></li>
+                  <li><a href="两点解析式.html" target="contentFrame">两点解析式</a></li>
+                  <li><a href="两点向量.html" target="contentFrame">两点向量</a></li>
+                  <li><a href="两点直线解析式.html" target="contentFrame">两点直线解析式</a></li>
+                  <li><a href="数轴距离.html" target="contentFrame">数轴距离</a></li>
+                  <li><a href="向量加法.html" target="contentFrame">向量加法</a></li>
+                  <li><a href="向量点乘的意义.html" target="contentFrame">向量点乘的意义</a></li>
+                  <li><a href="函数图像.html" target="contentFrame">函数图像</a></li>
+                  <li><a href="二次函数配方法与顶点式.html" target="contentFrame">二次函数配方法与顶点式</a></li>
+                  <li><a href="直角坐标系 - 副本.html" target="contentFrame">直角坐标系 - 副本</a></li>
+                  <li><a href="直角坐标系.html" target="contentFrame">直角坐标系</a></li>
+                  <li><a href="直角坐标系含工具栏.html" target="contentFrame">直角坐标系含工具栏</a></li>
+                </ul>
+              </li>
+              <li class="category">
+                <div class="category-title" onclick="toggleCategory(this)">其它</div>
+                <ul class="subcategory">
+                  <!-- 其它未归类条目，可补充 -->
+                </ul>
+              </li>
             </ul>
         </div>
     </div>
     <script>
-        // 页面加载时默认显示第一个文件
+        // 页面加载时默认收起所有分类，只展开第一个
         window.onload = function() {
             const firstLink = document.querySelector('.file-list a');
             if (firstLink) {
                 document.getElementById('contentFrame').src = firstLink.getAttribute('href');
             }
-            
-            // 添加鼠标悬停事件
+            // 展开所有分类
+            const allCategories = document.querySelectorAll('.file-list .category');
+            allCategories.forEach(cat => cat.classList.add('open'));
+            // 侧边栏默认显示，无需鼠标悬停
             const sidebar = document.getElementById('sidebar');
+            sidebar.classList.add('active');
+            // 保留原有事件（可选，实际已不需要）
             const sidebarTrigger = document.getElementById('sidebarTrigger');
-            
-            // 当鼠标悬停在触发区域或侧边栏上时，显示侧边栏
             sidebarTrigger.addEventListener('mouseenter', function() {
                 sidebar.classList.add('active');
             });
-            
             sidebar.addEventListener('mouseenter', function() {
                 sidebar.classList.add('active');
             });
-            
-            // 当鼠标离开侧边栏时，隐藏侧边栏
             sidebar.addEventListener('mouseleave', function() {
-                sidebar.classList.remove('active');
+                sidebar.classList.add('active'); // 不再移除active
             });
         };
 
@@ -226,14 +274,32 @@
             }
         }
 
+        function toggleCategory(titleDiv) {
+            const categoryLi = titleDiv.parentElement;
+            categoryLi.classList.toggle('open');
+        }
+
         function filterList() {
             const query = document.querySelector('.search-box').value.toLowerCase();
-            const items = document.querySelectorAll('.file-list li');
-            items.forEach(item => {
-                const text = item.textContent.toLowerCase();
-                const terms = query.split(' ').filter(term => term);
-                const matches = terms.every(term => text.includes(term));
-                item.style.display = matches ? '' : 'none';
+            const categories = document.querySelectorAll('.file-list .category');
+            categories.forEach(category => {
+                let hasVisible = false;
+                const items = category.querySelectorAll('.subcategory li');
+                items.forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    const terms = query.split(' ').filter(term => term);
+                    const matches = terms.every(term => text.includes(term));
+                    item.style.display = matches ? '' : 'none';
+                    if (matches) hasVisible = true;
+                });
+                // 分类下有可见条目则显示分类，否则隐藏
+                category.style.display = hasVisible ? '' : 'none';
+                // 有可见条目时自动展开分类，否则收起
+                if (hasVisible) {
+                    category.classList.add('open');
+                } else {
+                    category.classList.remove('open');
+                }
             });
         }
     </script>
