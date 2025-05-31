@@ -197,6 +197,31 @@ const questionDatabase = {
             answers: ["-1"],
             type: "导数"
         },
+        {
+            question: "已知函数f(x)=x^2-4x+5，求f(x)的最小值。",
+            answers: ["1"],
+            type: "导数"
+        },
+        {
+            question: "已知函数f(x)=x^3-3x^2+2，求f(x)在区间[0,3]上的最大值。",
+            answers: ["2"],
+            type: "导数"
+        },
+        {
+            question: "已知函数f(x)=2x^2-8x+7，求f(x)在x=1处的切线斜率。",
+            answers: ["-4"],
+            type: "导数"
+        },
+        {
+            question: "已知函数f(x)=x^2-6x+9，求f(x)的极小值点的横坐标。",
+            answers: ["3"],
+            type: "导数"
+        },
+        {
+            question: "已知函数f(x)=x^3-6x^2+9x+1，求f(x)在x=1处的导数值。",
+            answers: ["4"],
+            type: "导数"
+        }
     ],
     "06线性代数": [
         {
@@ -366,7 +391,18 @@ const questionDatabase = {
             answers: ["24\\sqrt{2}"],
             type: "函数代数几何综合"
         },
-        
+        {
+            question: "\\begin{array}{l}(2024·宁海县校级自主招生)如图，在平面直角坐标系中，矩形ABCD的边BC在x轴上，\\\\ 点D的坐标为（-2,6），反比例函数y= k/x（x<0）经过点D，若AC的延长线交y轴于点E，连接BE，\\\\ 则△BCE的面积为\\_\\_\\_\\_。 \\end{array}   ",
+            img: "https://img.jyeoo.net/quiz/images/svg/202403/482/f80128d4.png",
+            answers: [6],
+            type: "函数代数几何综合"
+        },
+        {
+            question: "\\begin{array}{l}(2024·鄞州区校级自主招生)如图，在△ABC中，G、E分别在AB、AC上，连接BE交AF于O，\\\\ 若\\frac{BO}{OE}=\\frac{9}{2}，\\frac{AE}{EC}=\\frac{1}{2}，G、O、C共线，△GEF的面积为11，\\\\ 则△OBC的面积为\\_\\_\\_\\_。\\end{array} ",
+            img: "https://img.jyeoo.net/quiz/images/svg/202409/154/1ab0699a.png",
+            answers: ["30"],
+            type: "函数代数几何综合"
+        },
         // ... 其余 08函数代数几何综合内容 ...
     ],
     "09概率统计": [
@@ -375,6 +411,30 @@ const questionDatabase = {
             answers: ["63"],
             type: "概率统计"
         },
-        // ... 其余 09概率统计内容 ...
+        {
+            question: "\\begin{array}{l}从1到100的整数中随机抽取一个数，求这个数是3的倍数或5的倍数的概率。\\end{array}",
+            answers: ["\\frac{47}{100}"],
+            type: "概率统计"
+        },
+        {
+            question: "\\begin{array}{l}一个袋子里有3个红球和4个白球，从中不放回地抽取2个球，求两个球颜色相同的概率。\\end{array}",
+            answers: ["\\frac{3}{7}"],
+            type: "概率统计"
+        },
+        {
+            question: "\\begin{array}{l}某班级有30名学生，其中15名男生，15名女生。从中随机抽取3名学生组成一个小组，求这个小组中至少有1名男生的概率。\\end{array}",
+            answers: ["\\frac{29}{30}"],
+            type: "概率统计"
+        },
+        {
+            question: "\\begin{array}{l}掷两个骰子，求两个骰子点数之和大于8的概率。\\end{array}",
+            answers: ["\\frac{5}{12}"],
+            type: "概率统计"
+        },
+        {
+            question: "\\begin{array}{l}某工厂生产的产品合格率为95\\%，现从中随机抽取10件产品，求恰好有8件合格品的概率。\\end{array}",
+            answers: ["C_{10}^8 \\cdot 0.95^8 \\cdot 0.05^2"],
+            type: "概率统计"
+        }
     ]
 }; 

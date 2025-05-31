@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Function Plotter</title>
+    <style>
+        body { margin: 0; font-family: sans-serif; overflow: hidden; background-color: #f0f0f0; }
+        canvas { display: block; }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px; /* Position to the left */
+            color: #000000;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 1.1em; /* Adjusted size */
+            z-index: 100;
+            max-width: 300px; /* Limit width */
+            word-wrap: break-word; /* Wrap long functions */
+        }
+        .controls {
+            position: absolute;
+            top: 10px; /* Align with info box */
+            right: 10px;
+            background-color: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 5px;
+            color: white;
+            z-index: 101;
+            width: 250px; /* Adjusted width */
+            max-height: calc(100vh - 40px); /* Limit height */
+            overflow-y: auto; /* Add scroll if needed */
+        }
+        .controls h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #555;
+            padding-bottom: 5px;
+        }
+        .controls label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+        .controls input[type="text"],
+        .controls input[type="number"] {
+            width: calc(100% - 12px); /* Full width minus padding */
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #555;
+            border-radius: 3px;
+            background-color: #333;
+            color: white;
+        }
+        .controls .range-group {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .controls .range-group div {
+            width: 48%;
+        }
+        .controls .range-group label {
+            margin-bottom: 3px;
+            font-size: 0.8em;
+        }
+        .controls .range-group input {
+            width: calc(100% - 12px); /* Full width minus padding */
+            margin-bottom: 0;
+        }
+        .controls button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 10px;
+        }
+        .controls button:hover {
+            background-color: #45a049;
+        }
+        .error-message {
+            color: #ffdddd;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+    </style>
+    <!-- Math.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+
+    <!-- MathJax Configuration -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src="./mathjax/mathjax/es5/tex-mml-chtml.js"></script>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\(', '\)']]
+        },
+        svg: {
+          fontCache: 'global'
+        }
+      };
+    </script>
+
+    <!-- polygonize for marching cubes -->
+    <script src="https://cdn.jsdelivr.net/npm/polygonize@1.0.0/polygonize.min.js"></script>
+</head>
+<body>
+    <div id="info">
+        Function: $z = f(x, y)$<br>
+        <span id="current_function">Enter a function</span>
+    </div>
+
+    <div class="controls">
+        <h4>Function Plotter</h4>
+        <label for="mode_select">模式：</label>
+        <select id="mode_select">
+            <option value="explicit">显函数 z = f(x, y)</option>
+            <option value="implicit">隐函数 f(x, y, z) = 0</option>
+        </select>
+        <div id="explicit_group">
+            <label for="function_input">z = f(x, y) = <span style="font-size:0.9em;color:#888;">（可多行输入，每行一个函数）</span></label>
+            <textarea id="function_input" rows="3" style="width:100%;resize:vertical;">sin(x) * cos(y)</textarea>
+        </div>
+        <div id="implicit_group" style="display:none;">
+            <label for="implicit_input">f(x, y, z) = 0 :</label>
+            <input type="text" id="implicit_input" value="x^2 + y^2 + z^2 - 9">
+        </div>
+        <div class="range-group">
+            <div>
+                <label for="xmin_input">x Min:</label>
+                <input type="number" id="xmin_input" value="0.1" step="0.1">
+            </div>
+            <div>
+                <label for="xmax_input">x Max:</label>
+                <input type="number" id="xmax_input" value="5" step="0.1">
+            </div>
+        </div>
+        <div class="range-group">
+            <div>
+                <label for="ymin_input">y Min:</label>
+                <input type="number" id="ymin_input" value="0.1" step="0.1">
+            </div>
+            <div>
+                <label for="ymax_input">y Max:</label>
+                <input type="number" id="ymax_input" value="5" step="0.1">
+            </div>
+        </div>
+        <div class="range-group">
+            <div>
+                <label for="zmin_input">z Min:</label>
+                <input type="number" id="zmin_input" value="-5" step="0.1">
+            </div>
+            <div>
+                <label for="zmax_input">z Max:</label>
+                <input type="number" id="zmax_input" value="5" step="0.1">
+            </div>
+        </div>
+        <label for="resolution_input">Grid Resolution (per axis):</label>
+        <input type="number" id="resolution_input" value="50" min="10" max="100" step="1">
+        <button id="plot_button">Plot Function</button>
+        <div id="error_message" class="error-message"></div>
+    </div>
+
+    <!-- Three.js Canvas will be added here by the script -->
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <!-- Three.js code -->
+    <script type="module">
+        const polygonize = window.polygonize;
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+        import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
+        import { Line2 } from 'three/addons/lines/Line2.js';
+        // import { FontLoader } from 'three/addons/loaders/FontLoader.js'; // For text labels (optional)
+        // import { TextGeometry } from 'three/addons/geometries/TextGeometry.js'; // For text labels (optional)
+
+
+        let scene, camera, renderer, controls;
+        let surfaceMeshes = []; // 支持多个mesh
+        let axesGroup = null;
+        const mathParser = math.parser(); // Create a math.js parser instance
+
+        const functionInput = document.getElementById('function_input');
+        const xminInput = document.getElementById('xmin_input');
+        const xmaxInput = document.getElementById('xmax_input');
+        const yminInput = document.getElementById('ymin_input');
+        const ymaxInput = document.getElementById('ymax_input');
+        const resolutionInput = document.getElementById('resolution_input');
+        const plotButton = document.getElementById('plot_button');
+        const infoDiv = document.getElementById('info');
+        const currentFunctionSpan = document.getElementById('current_function');
+        const errorMessageDiv = document.getElementById('error_message');
+        const modeSelect = document.getElementById('mode_select');
+        const explicitGroup = document.getElementById('explicit_group');
+        const implicitGroup = document.getElementById('implicit_group');
+        const implicitInput = document.getElementById('implicit_input');
+        const zminInput = document.getElementById('zmin_input');
+        const zmaxInput = document.getElementById('zmax_input');
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xeeeeee);
+
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
+            camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 2000);
+            camera.position.set(8, 8, 12); // Initial camera position
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            document.body.appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
+            directionalLight.position.set(0.5, 1, 0.75).normalize();
+            scene.add(directionalLight);
+
+            // Controls
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = false; // Keep panning in 3D space
+
+
+            // Create Axes
+            axesGroup = createAxes(10); // Initial axis length 10
+            scene.add(axesGroup);
+
+
+            // Event Listeners
+            plotButton.addEventListener('click', () => {
+                if (modeSelect.value === 'explicit') {
+                    plotFunction();
+                } else {
+                    plotImplicitFunction();
+                }
+            });
+            window.addEventListener('resize', onWindowResize, false);
+
+            // Initial Plot
+            plotFunction();
+
+            modeSelect.addEventListener('change', () => {
+                if (modeSelect.value === 'explicit') {
+                    explicitGroup.style.display = '';
+                    implicitGroup.style.display = 'none';
+                } else {
+                    explicitGroup.style.display = 'none';
+                    implicitGroup.style.display = '';
+                }
+            });
+
+            animate();
+        }
+
+        function createAxes(size = 10) {
+            const axes = new THREE.Group();
+
+            const origin = new THREE.Vector3(0,0,0);
+            const xColor = 0xff0000; // Red
+            const yColor = 0x00ff00; // Green
+            const zColor = 0x0000ff; // Blue
+
+            // Simple Lines (Thin)
+             const lineMat = new THREE.LineBasicMaterial({ linewidth: 2 }); // Note: linewidth > 1 only works on some platforms/drivers
+
+            // X Axis
+             const xPoints = [new THREE.Vector3(-size, 0, 0), new THREE.Vector3(size, 0, 0)];
+             const xGeo = new THREE.BufferGeometry().setFromPoints(xPoints);
+             const xAxis = new THREE.Line(xGeo, lineMat.clone().setValues({color: xColor}));
+             axes.add(xAxis);
+
+             // Y Axis
+             const yPoints = [new THREE.Vector3(0, -size, 0), new THREE.Vector3(0, size, 0)];
+             const yGeo = new THREE.BufferGeometry().setFromPoints(yPoints);
+             const yAxis = new THREE.Line(yGeo, lineMat.clone().setValues({color: yColor}));
+             axes.add(yAxis);
+
+             // Z Axis
+             const zPoints = [new THREE.Vector3(0, 0, -size), new THREE.Vector3(0, 0, size)];
+             const zGeo = new THREE.BufferGeometry().setFromPoints(zPoints);
+             const zAxis = new THREE.Line(zGeo, lineMat.clone().setValues({color: zColor}));
+             axes.add(zAxis);
+
+
+            // Add cones for arrowheads (optional but nice)
+            const coneRadius = size * 0.03;
+            const coneHeight = coneRadius * 3;
+            const coneGeo = new THREE.ConeGeometry(coneRadius, coneHeight, 16);
+
+            // X Arrow
+            const xConeMat = new THREE.MeshBasicMaterial({ color: xColor });
+            const xCone = new THREE.Mesh(coneGeo, xConeMat);
+            xCone.position.set(size, 0, 0);
+            xCone.rotation.z = -Math.PI / 2;
+            axes.add(xCone);
+
+            // Y Arrow
+            const yConeMat = new THREE.MeshBasicMaterial({ color: yColor });
+            const yCone = new THREE.Mesh(coneGeo, yConeMat);
+            yCone.position.set(0, size, 0);
+            // yCone requires no rotation
+            axes.add(yCone);
+
+            // Z Arrow
+            const zConeMat = new THREE.MeshBasicMaterial({ color: zColor });
+            const zCone = new THREE.Mesh(coneGeo, zConeMat);
+            zCone.position.set(0, 0, size);
+            zCone.rotation.x = Math.PI / 2;
+            axes.add(zCone);
+
+            // TODO: Add labels 'X', 'Y', 'Z' using TextGeometry or Sprites
+
+            return axes;
+        }
+
+
+        function plotFunction() {
+            errorMessageDiv.textContent = ''; // Clear previous errors
+            const funcStrRaw = functionInput.value.trim();
+            const xMin = parseFloat(xminInput.value);
+            const xMax = parseFloat(xmaxInput.value);
+            const yMin = parseFloat(yminInput.value);
+            const yMax = parseFloat(ymaxInput.value);
+            const resolution = parseInt(resolutionInput.value);
+
+            if (!funcStrRaw) {
+                errorMessageDiv.textContent = 'Error: Function cannot be empty.';
+                return;
+            }
+            if (isNaN(xMin) || isNaN(xMax) || isNaN(yMin) || isNaN(yMax) || isNaN(resolution)) {
+                 errorMessageDiv.textContent = 'Error: Invalid range or resolution values.';
+                 return;
+            }
+            if (xMin >= xMax || yMin >= yMax) {
+                 errorMessageDiv.textContent = 'Error: Min value must be less than Max value for ranges.';
+                 return;
+            }
+            if (resolution < 5 || resolution > 500) {
+                 errorMessageDiv.textContent = 'Error: Resolution must be between 5 and 500.';
+                 return;
+            }
+
+            // 1. 解析多行函数
+            const funcStrs = funcStrRaw.split(/\n|;/).map(s => s.trim()).filter(s => s.length > 0);
+            if (funcStrs.length === 0) {
+                errorMessageDiv.textContent = 'Error: No valid function found.';
+                return;
+            }
+
+            // 2. 移除所有旧surface
+            for (const mesh of surfaceMeshes) {
+                scene.remove(mesh);
+                if (mesh.geometry) mesh.geometry.dispose();
+                if (mesh.material) mesh.material.dispose();
+            }
+            surfaceMeshes = [];
+
+            // 3. 颜色分配
+            let colorList;
+            if (window.chroma) {
+                colorList = chroma.scale(['#1e90ff','#ff8c00','#32cd32','#e6007a','#8a2be2','#ffd700','#00ced1']).mode('lch').colors(funcStrs.length);
+            } else {
+                colorList = [0xff0000,0x00ff00,0x0000ff,0xff00ff,0x00ffff,0xffff00,0x888888];
+            }
+
+            // 4. 依次绘制每个函数
+            let infoLatex = [];
+            funcStrs.forEach((funcStr, idx) => {
+                let compiledFunc;
+                try {
+                    const node = math.parse(funcStr);
+                    compiledFunc = node.compile();
+                    compiledFunc.evaluate({ x: 1, y: 1 });
+                } catch (error) {
+                    errorMessageDiv.textContent += `\nFunction ${idx+1} Error: ${error.message}`;
+                    return;
+                }
+                // Create the surface geometry using BufferGeometry
+                const geometry = new THREE.BufferGeometry();
+                const vertices = [];
+                const indices = [];
+                const colors = [];
+                const validFlags = []; // 新增：记录每个点是否有效
+                const xRange = xMax - xMin;
+                const yRange = yMax - yMin;
+                const xStep = xRange / resolution;
+                const yStep = yRange / resolution;
+                let zMin = Infinity;
+                let zMax = -Infinity;
+                // 采样z范围
+                for (let i = 0; i <= resolution; i++) {
+                    const x = xMin + i * xStep;
+                    for (let j = 0; j <= resolution; j++) {
+                        const y = yMin + j * yStep;
+                        let func_z;
+                        let isValid = true;
+                        try {
+                            func_z = compiledFunc.evaluate({ x: x, y: y });
+                            if (typeof func_z !== 'number' || !isFinite(func_z)) {
+                                isValid = false;
+                            }
+                        } catch (evalError) {
+                            isValid = false;
+                        }
+                        if (!isValid) func_z = 0;
+                        vertices.push(x, func_z, y);
+                        validFlags.push(isValid);
+                        if (isValid) {
+                            zMin = Math.min(zMin, func_z);
+                            zMax = Math.max(zMax, func_z);
+                        }
+                    }
+                }
+                if (zMin === zMax) {
+                    zMin -= 0.1;
+                    zMax += 0.1;
+                }
+                // 颜色
+                let colorFn;
+                if (window.chroma) {
+                    colorFn = chroma.scale([colorList[idx], '#ffffff']).domain([zMin, zMax]);
+                } else {
+                    colorFn = () => new THREE.Color(colorList[idx]);
+                }
+                let k = 0;
+                for (let i = 0; i <= resolution; i++) {
+                    for (let j = 0; j <= resolution; j++) {
+                        const z = vertices[k * 3 + 2];
+                        let color;
+                        if (window.chroma) {
+                            color = colorFn(z).rgb();
+                            colors.push(color[0] / 255, color[1] / 255, color[2] / 255);
+                        } else {
+                            const c = new THREE.Color(colorList[idx]);
+                            colors.push(c.r, c.g, c.b);
+                        }
+                        k++;
+                    }
+                }
+                // 生成三角形时，只有三个顶点都有效才绘制该三角形
+                for (let i = 0; i < resolution; i++) {
+                    for (let j = 0; j < resolution; j++) {
+                        const a = i * (resolution + 1) + j;
+                        const b = a + 1;
+                        const c = (i + 1) * (resolution + 1) + j;
+                        const d = c + 1;
+                        if (validFlags[a] && validFlags[c] && validFlags[b]) {
+                            indices.push(a, c, b);
+                        }
+                        if (validFlags[b] && validFlags[c] && validFlags[d]) {
+                            indices.push(b, c, d);
+                        }
+                    }
+                }
+                geometry.setIndex(indices);
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+                geometry.computeVertexNormals();
+                const material = new THREE.MeshPhongMaterial({
+                    vertexColors: true,
+                    side: THREE.DoubleSide,
+                    shininess: 30,
+                    opacity: 0.85,
+                    transparent: true
+                });
+                const mesh = new THREE.Mesh(geometry, material);
+                scene.add(mesh);
+                surfaceMeshes.push(mesh);
+                infoLatex.push(`z = ${funcStr}`);
+            });
+
+            // --- Update UI and Axes ---
+            // Update info box
+            currentFunctionSpan.innerHTML = infoLatex.map((f,i)=>`<span style='color:${colorList[i]};'>$${f}$</span>`).join('<br>');
+            if (window.MathJax) {
+                MathJax.typesetPromise([currentFunctionSpan]).then(() => {}).catch((err) => console.log('MathJax typesetting failed: ', err));
+            } else {
+                currentFunctionSpan.textContent = infoLatex.join('; ');
+            }
+            // Update axes size based on plot range (optional, could keep fixed)
+            const maxRange = Math.max(xMax, -xMin, yMax, -yMin, 5); // 不再考虑zMax/zMin，避免多函数冲突
+            scene.remove(axesGroup); // Remove old axes
+            axesGroup.traverse(child => { if (child.geometry) child.geometry.dispose(); if (child.material) child.material.dispose(); });
+            axesGroup = createAxes(maxRange * 1.1); // Create new axes slightly larger
+            scene.add(axesGroup);
+            controls.target.set(0,0,0);
+            camera.position.set(maxRange * 1.2, maxRange * 1.2, maxRange * 1.5);
+            controls.update();
+        }
+
+        function plotImplicitFunction() {
+            errorMessageDiv.textContent = '';
+            let funcStr = implicitInput.value.trim();
+            // 支持 x^2 + y^2 + z^2 = 8 这种格式，自动转为 x^2 + y^2 + z^2 - (8)
+            const eqMatch = funcStr.match(/^(.*)=(.*)$/);
+            if (eqMatch) {
+                funcStr = `${eqMatch[1].trim()} - (${eqMatch[2].trim()})`;
+            }
+            const xMin = parseFloat(xminInput.value);
+            const xMax = parseFloat(xmaxInput.value);
+            const yMin = parseFloat(yminInput.value);
+            const yMax = parseFloat(ymaxInput.value);
+            const zMin = parseFloat(zminInput.value);
+            const zMax = parseFloat(zmaxInput.value);
+            const resolution = parseInt(resolutionInput.value);
+            if (!funcStr) {
+                errorMessageDiv.textContent = 'Error: Function cannot be empty.';
+                return;
+            }
+            if (isNaN(xMin) || isNaN(xMax) || isNaN(yMin) || isNaN(yMax) || isNaN(zMin) || isNaN(zMax) || isNaN(resolution)) {
+                errorMessageDiv.textContent = 'Error: Invalid range or resolution values.';
+                return;
+            }
+            if (xMin >= xMax || yMin >= yMax || zMin >= zMax) {
+                errorMessageDiv.textContent = 'Error: Min value must be less than Max value for ranges.';
+                return;
+            }
+            if (resolution < 10 || resolution > 100) {
+                errorMessageDiv.textContent = 'Error: Resolution must be between 10 and 100.';
+                return;
+            }
+            let compiledFunc;
+            try {
+                const node = math.parse(funcStr);
+                compiledFunc = node.compile();
+                compiledFunc.evaluate({ x: 1, y: 1, z: 1 });
+            } catch (error) {
+                errorMessageDiv.textContent = `Function Error: ${error.message}`;
+                return;
+            }
+            // Remove previous surface if it exists
+            if (surfaceMeshes.length > 0) {
+                for (const mesh of surfaceMeshes) {
+                    scene.remove(mesh);
+                    if (mesh.geometry) mesh.geometry.dispose();
+                    if (mesh.material) mesh.material.dispose();
+                }
+                surfaceMeshes = [];
+            }
+            // 采样三维标量场，注意索引顺序为[z][y][x]
+            const sizeX = resolution, sizeY = resolution, sizeZ = resolution;
+            const values = [];
+            for (let k_z_idx = 0; k_z_idx < sizeZ; k_z_idx++) { // Z dimension (outer)
+                values[k_z_idx] = [];
+                const z_coord = zMin + (zMax - zMin) * k_z_idx / (sizeZ - 1);
+                for (let j_y_idx = 0; j_y_idx < sizeY; j_y_idx++) { // Y dimension (middle)
+                    values[k_z_idx][j_y_idx] = [];
+                    const y_coord = yMin + (yMax - yMin) * j_y_idx / (sizeY - 1);
+                    for (let i_x_idx = 0; i_x_idx < sizeX; i_x_idx++) { // X dimension (inner)
+                        const x_coord = xMin + (xMax - xMin) * i_x_idx / (sizeX - 1);
+                        let v;
+                        try {
+                            v = compiledFunc.evaluate({ x: x_coord, y: y_coord, z: z_coord });
+                            if (typeof v !== 'number' || !isFinite(v)) {
+                                v = 0;
+                            }
+                        } catch (evalError) {
+                            v = 0;
+                            if (!errorMessageDiv.textContent.includes('Evaluation Error')) {
+                                errorMessageDiv.textContent += ' (Implicit evaluation error occurred - see console)';
+                            }
+                        }
+                        values[k_z_idx][j_y_idx][i_x_idx] = v;
+                    }
+                }
+            }
+            // marching cubes
+            let mesh;
+            try {
+                mesh = polygonize.marchingCubes(values, 0);
+            } catch (e) {
+                errorMessageDiv.textContent = 'Marching Cubes failed: ' + e.message;
+                console.error("Marching Cubes Error:", e);
+                return;
+            }
+            if (!mesh.vertices.length) {
+                errorMessageDiv.textContent = 'No surface found for this function and range.';
+                return;
+            }
+            // 转为 Three.js 网格
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            for (const v of mesh.vertices) {
+                const xx = xMin + (xMax - xMin) * v[0] / (sizeX - 1);
+                const yy = yMin + (yMax - yMin) * v[1] / (sizeY - 1);
+                const zz = zMin + (zMax - zMin) * v[2] / (sizeZ - 1);
+                vertices.push(xx, yy, zz);
+            }
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            const indices = [];
+            for (const f of mesh.faces) {
+                indices.push(f[0], f[1], f[2]);
+            }
+            geometry.setIndex(indices);
+            geometry.computeVertexNormals();
+            const material = new THREE.MeshPhongMaterial({ color: 0x44aaff, side: THREE.DoubleSide, shininess: 30 });
+            const surfaceMesh = new THREE.Mesh(geometry, material);
+            scene.add(surfaceMesh);
+            surfaceMeshes.push(surfaceMesh);
+            // Update info box
+            currentFunctionSpan.innerHTML = `隐函数: $${funcStr}=0$`;
+            if (window.MathJax) {
+                MathJax.typesetPromise([currentFunctionSpan]).then(() => {}).catch(() => {});
+            } else {
+                currentFunctionSpan.textContent = `隐函数: ${funcStr}=0`;
+            }
+            // Update axes size
+            const maxRange = Math.max(xMax, -xMin, yMax, -yMin, zMax, -zMin, 5);
+            scene.remove(axesGroup);
+            axesGroup.traverse(child => { if (child.geometry) child.geometry.dispose(); if (child.material) child.material.dispose(); });
+            axesGroup = createAxes(maxRange * 1.1);
+            scene.add(axesGroup);
+            controls.target.set(0,0,0);
+            camera.position.set(maxRange * 1.2, maxRange * 1.2, maxRange * 1.5);
+            controls.update();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update(); // Required if enableDamping is true
+            renderer.render(scene, camera);
+        }
+
+        // Need chroma.js for color scales - add CDN link or include locally
+        const chromaScript = document.createElement('script');
+         chromaScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js';
+         chromaScript.onload = () => {
+             console.log("Chroma.js loaded.");
+             // Start the application after chroma is loaded
+             init();
+         };
+         chromaScript.onerror = () => {
+             console.error("Failed to load Chroma.js. Colors will not work correctly.");
+             // Initialize anyway, maybe with fallback colors
+             // init();
+             errorMessageDiv.textContent = 'Error loading color library (Chroma.js). Surface colors disabled.';
+             // Modify plotFunction to use a single color if chroma is not available
+              window.chroma = null; // Ensure chroma is undefined
+             init();
+         };
+         document.head.appendChild(chromaScript);
+
+
+    </script>
+
+</body>
+</html> 
