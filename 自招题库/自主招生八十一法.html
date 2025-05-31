@@ -1062,7 +1062,7 @@
             "05导数",
             "06线性代数",
             "07解析几何",
-            "08立体几何",
+            "08函数代数几何综合",
             "09概率统计"
         ];
 
@@ -1976,157 +1976,109 @@
             return result;
         }
 
+        function renderQuestionWithSvg(selectedQuestion) {
+            const questionContainer = document.createElement('div');
+            questionContainer.className = 'question-with-svg';
+
+            // 题目文本
+            const questionText = document.createElement('div');
+            questionText.className = 'question-text';
+            questionText.innerHTML = `\\(${selectedQuestion.question}\\)`;
+            questionContainer.appendChild(questionText);
+
+            // SVG
+            if (selectedQuestion.svg) {
+                const svgContainer = document.createElement('div');
+                svgContainer.className = 'svg-container';
+                svgContainer.innerHTML = selectedQuestion.svg;
+                questionContainer.appendChild(svgContainer);
+            }
+
+            // 图片
+            if (selectedQuestion.img) {
+                const imageContainer = document.createElement('div');
+                imageContainer.className = 'image-container';
+                const imageElement = document.createElement('img');
+                imageElement.src = selectedQuestion.img;
+                imageElement.alt = '题目图片';
+                imageElement.className = 'question-image';
+                imageContainer.appendChild(imageElement);
+                questionContainer.appendChild(imageContainer);
+            }
+
+            return questionContainer.outerHTML;
+        }
+
         function generateLevel1Question() {
             const questions = questionDatabase["01代数"];
             const randomIndex = Math.floor(Math.random() * questions.length);
             const selectedQuestion = questions[randomIndex];
-
             correctAnswer = selectedQuestion.answers;
-
-            let questionHtml = `\\(${selectedQuestion.question} \\)`;
-            if (selectedQuestion.img) {
-                questionHtml += `<br><img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">`;
-            }
-
-            return questionHtml;
+            return renderQuestionWithSvg(selectedQuestion);
         }
 
         function generateLevel2Question() {
             const questions = questionDatabase["02方程"];
             const randomIndex = Math.floor(Math.random() * questions.length);
             const selectedQuestion = questions[randomIndex];
-
             correctAnswer = selectedQuestion.answers;
-
-            let questionHtml = `\\(${selectedQuestion.question} \\)`;
-            if (selectedQuestion.img) {
-                questionHtml += `<br><img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">`;
-            }
-
-            return questionHtml;
+            return renderQuestionWithSvg(selectedQuestion);
         }
 
         function generateLevel3Question() {
             const questions = questionDatabase["03函数"];
             const randomIndex = Math.floor(Math.random() * questions.length);
             const selectedQuestion = questions[randomIndex];
-
             correctAnswer = selectedQuestion.answers;
-
-            let questionHtml = `\\(${selectedQuestion.question} \\)`;
-  
-            return questionHtml;
+            return renderQuestionWithSvg(selectedQuestion);
         }
 
         function generateLevel4Question() {
             const questions = questionDatabase["04不等式"];
             const randomIndex = Math.floor(Math.random() * questions.length);
             const selectedQuestion = questions[randomIndex];
-
             correctAnswer = selectedQuestion.answers;
-
-            let questionHtml = `\\(${selectedQuestion.question} \\)`;
-  
-            return questionHtml;
+            return renderQuestionWithSvg(selectedQuestion);
         }
 
         function generateLevel5Question() {
             const questions = questionDatabase["05导数"];
             const randomIndex = Math.floor(Math.random() * questions.length);
             const selectedQuestion = questions[randomIndex];
-
             correctAnswer = selectedQuestion.answers;
-
-            let questionHtml = `\\(${selectedQuestion.question} \\)`;
-  
-            return questionHtml;
+            return renderQuestionWithSvg(selectedQuestion);
         }
 
         function generateLevel6Question() {
             const questions = questionDatabase["06线性代数"];
             const randomIndex = Math.floor(Math.random() * questions.length);
             const selectedQuestion = questions[randomIndex];
-
             correctAnswer = selectedQuestion.answers;
-
-            let questionHtml = `\\(${selectedQuestion.question} \\)`;
-  
-            return questionHtml;
+            return renderQuestionWithSvg(selectedQuestion);
         }
 
         function generateLevel7Question() {
             const questions = questionDatabase["07解析几何"];
             const randomIndex = Math.floor(Math.random() * questions.length);
             const selectedQuestion = questions[randomIndex];
-
             correctAnswer = selectedQuestion.answers;
-
-            // 创建题目容器，分为文本部分和图形部分
-            const questionContainer = document.createElement('div');
-            questionContainer.className = 'question-with-svg';
-            
-            // 题目文本部分
-            const questionText = document.createElement('div');
-            questionText.className = 'question-text';
-            questionText.innerHTML = `\\(${selectedQuestion.question}\\)`;
-            questionContainer.appendChild(questionText);
-            
-            // 如果题目包含SVG图形生成器，则生成并添加SVG
-            if (selectedQuestion.svgGenerator && typeof selectedQuestion.svgGenerator === 'function') {
-                const svgElement = selectedQuestion.svgGenerator();
-                const svgContainer = document.createElement('div');
-                svgContainer.className = 'svg-container';
-                svgContainer.appendChild(svgElement);
-                questionContainer.appendChild(svgContainer);
-            }
-            // 如果题目包含外部图片URL，则创建图片元素
-            else if (selectedQuestion.imageUrl) {
-                const imageContainer = document.createElement('div');
-                imageContainer.className = 'image-container';
-                
-                const imageElement = document.createElement('img');
-                imageElement.src = selectedQuestion.imageUrl;
-                imageElement.alt = '题目图片';
-                imageElement.className = 'question-image';
-                
-                // 添加图片加载错误处理
-                imageElement.onerror = function() {
-                    this.style.display = 'none';
-                    const errorMsg = document.createElement('div');
-                    errorMsg.className = 'image-error';
-                    errorMsg.textContent = '图片加载失败: ' + selectedQuestion.imageUrl;
-                    imageContainer.appendChild(errorMsg);
-                };
-                
-                imageContainer.appendChild(imageElement);
-                questionContainer.appendChild(imageContainer);
-            }
-  
-            return questionContainer.outerHTML;
+            return renderQuestionWithSvg(selectedQuestion);
         }
 
         function generateLevel8Question() {
-            const questions = questionDatabase["08立体几何"];
+            const questions = questionDatabase["08函数代数几何综合"];
             const randomIndex = Math.floor(Math.random() * questions.length);
             const selectedQuestion = questions[randomIndex];
-
             correctAnswer = selectedQuestion.answers;
-
-            let questionHtml = `\\(${selectedQuestion.question} \\)`;
-  
-            return questionHtml;
+            return renderQuestionWithSvg(selectedQuestion);
         }
 
         function generateLevel9Question() {
             const questions = questionDatabase["09概率统计"];
             const randomIndex = Math.floor(Math.random() * questions.length);
             const selectedQuestion = questions[randomIndex];
-
             correctAnswer = selectedQuestion.answers;
-
-            let questionHtml = `\\(${selectedQuestion.question} \\)`;
-  
-            return questionHtml;
+            return renderQuestionWithSvg(selectedQuestion);
         }
   
 
@@ -2271,49 +2223,7 @@
                     // 题目内容
                     const questionContent = document.createElement('div');
                     questionContent.className = 'question-content';
-                    
-                    // 创建题目容器
-                    const questionWithSvg = document.createElement('div');
-                    questionWithSvg.className = 'question-with-svg';
-                    
-                    // 题目文本部分
-                    const questionText = document.createElement('div');
-                    questionText.className = 'question-text';
-                    questionText.innerHTML = `\\(${questionObj.question}\\)`;
-                    questionWithSvg.appendChild(questionText);
-                    
-                    // 如果题目包含SVG图形生成器，则生成并添加SVG
-                    if (questionObj.svgGenerator && typeof questionObj.svgGenerator === 'function') {
-                        const svgElement = questionObj.svgGenerator();
-                        const svgContainer = document.createElement('div');
-                        svgContainer.className = 'svg-container';
-                        svgContainer.appendChild(svgElement);
-                        questionWithSvg.appendChild(svgContainer);
-                    }
-                    // 如果题目包含外部图片URL，则创建图片元素
-                    else if (questionObj.imageUrl) {
-                        const imageContainer = document.createElement('div');
-                        imageContainer.className = 'image-container';
-                        
-                        const imageElement = document.createElement('img');
-                        imageElement.src = questionObj.imageUrl;
-                        imageElement.alt = '题目图片';
-                        imageElement.className = 'question-image';
-                        
-                        // 添加图片加载错误处理
-                        imageElement.onerror = function() {
-                            this.style.display = 'none';
-                            const errorMsg = document.createElement('div');
-                            errorMsg.className = 'image-error';
-                            errorMsg.textContent = '图片加载失败: ' + questionObj.imageUrl;
-                            imageContainer.appendChild(errorMsg);
-                        };
-                        
-                        imageContainer.appendChild(imageElement);
-                        questionWithSvg.appendChild(imageContainer);
-                    }
-                    
-                    questionContent.appendChild(questionWithSvg);
+                    questionContent.innerHTML = renderQuestionWithSvg(questionObj);
                     questionItem.appendChild(questionContent);
                     
                     // 答案

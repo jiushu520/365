@@ -127,12 +127,6 @@ const questionDatabase = {
             answers: ["2500"],
             type: "函数"
         },
-        // 补充函数题目
-        {
-            question: "已知函数f(x) = \\frac{x}{x+1}，求f(f(x))的表达式。",
-            answers: ["\\frac{x}{2x+1}"],
-            type: "函数"
-        },
         {
             question: "若函数f(x) = ax^2 + bx + c满足f(1)=0, f(2)=3, f(3)=8，求f(4)的值。",
             answers: ["15"],
@@ -159,11 +153,6 @@ const questionDatabase = {
             type: "函数"
         },
         {
-            question: "若f(x) = \\frac{1}{x}，求f(x+1) - f(x)的表达式。",
-            answers: ["-\\frac{1}{x(x+1)}"],
-            type: "函数"
-        },
-        {
             question: "函数y = \\sqrt{x-1} + \\sqrt{3-x}的定义域为？",
             answers: ["[1,3]"],
             type: "函数"
@@ -186,7 +175,7 @@ const questionDatabase = {
             type: "不等式"
         },
         {
-            question: "\\begin{array}{l}柯西是法国伟大的数学家，他的一生在数学领域有着很高的建树，\\很多数学定理和公式都用他的名字来命名，如著名的柯西不等式：\\(ac+bd)^2 \\leq (a^2+b^2)(c^2+d^2)，\\在该式中，a,b,c,d可以是任意实数，当且仅当ad=bc时等号成立。\\根据该式，对于正实数a,b，如果a+2b=1，则(\\sqrt{a}+\\sqrt{4b})^2的最大值为\\_\\_\\_\\_。 \\end{array}",
+            question: "\\begin{array}{l}柯西是法国伟大的数学家，他的一生在数学领域有着很高的建树，\\\\很多数学定理和公式都用他的名字来命名，如著名的柯西不等式：\\\\(ac+bd)^2 \\leq (a^2+b^2)(c^2+d^2)，\\\\在该式中，a,b,c,d可以是任意实数，当且仅当ad=bc时等号成立。\\\\根据该式，对于正实数a,b，如果a+2b=1，\\\\则(\\sqrt{a}+\\sqrt{4b})^2的最大值为\\_\\_\\_\\_。 \\end{array}",
             answers: ["3"],
             type: "不等式"
         },
@@ -200,32 +189,7 @@ const questionDatabase = {
             answers: ["18"],
             type: "不等式"
         },
-        // 补充不等式题目
-        {
-            question: "解不等式: |2x-1| < |x-3|",
-            answers: ["(\\frac{4}{3}, 4)"],
-            type: "不等式"
-        },
-        {
-            question: "已知a,b>0, 证明: \\frac{a}{b} + \\frac{b}{a} \\geq 2",
-            answers: ["证明题"],
-            type: "不等式"
-        },
-        {
-            question: "若x,y,z>0且xyz=1, 证明: \\frac{1}{x} + \\frac{1}{y} + \\frac{1}{z} \\geq 3",
-            answers: ["证明题"],
-            type: "不等式"
-        },
-        {
-            question: "解不等式: \\frac{x-1}{x+2} > 0",
-            answers: ["x<-2 或 x>1"],
-            type: "不等式"
-        },
-        {
-            question: "已知a,b,c是正实数，证明: (a+b)(b+c)(c+a) \\geq 8abc",
-            answers: ["证明题"],
-            type: "不等式"
-        }
+
     ],
     "05导数": [
         {
@@ -233,47 +197,6 @@ const questionDatabase = {
             answers: ["-1"],
             type: "导数"
         },
-        // 补充导数题目
-        {
-            question: "求函数f(x) = x^3 - 3x^2 + 2的单调区间。",
-            answers: ["增区间: (-\\infty,0] \\cup [2,+\\infty); 减区间: [0,2]"],
-            type: "导数"
-        },
-        {
-            question: "求函数f(x) = \\frac{1}{3}x^3 - 2x^2 + 3x + 1的极值。",
-            answers: ["极大值f(1)=\\frac{7}{3}, 极小值f(3)=1"],
-            type: "导数"
-        },
-        {
-            question: "已知曲线y = x^3 + ax^2 + bx + c过点(1,2)，且在x=1处有水平切线，求a,b,c的值。",
-            answers: ["a=-3,b=3,c=1"],
-            type: "导数"
-        },
-        {
-            question: "求函数f(x) = x^4 - 2x^3在区间[-1,2]上的最大值和最小值。",
-            answers: ["最大值f(-1)=3, 最小值f(\\frac{3}{2})=-\\frac{27}{16}"],
-            type: "导数"
-        },
-        {
-            question: "求曲线y = x^3 - 3x^2 + 2x的拐点坐标。",
-            answers: ["(1,0)"],
-            type: "导数"
-        },
-        {
-            question: "求函数f(x) = x^2 e^{-x}的导数。",
-            answers: ["f'(x) = e^{-x}(2x - x^2)"],
-            type: "导数"
-        },
-        {
-            question: "求函数f(x) = \\ln(x^2 + 1)的导数。",
-            answers: ["f'(x) = \\frac{2x}{x^2+1}"],
-            type: "导数"
-        },
-        {
-            question: "已知函数f(x) = x^3 - 3x，求f(x)在x=1处的切线方程。",
-            answers: ["y = -2"],
-            type: "导数"
-        }
     ],
     "06线性代数": [
         {
@@ -317,33 +240,134 @@ const questionDatabase = {
             answers: ["5"],
             type: "线性代数"
         },
-        {
-            question: "已知点A(1,1), B(2,3), C(4,5)，判断三点是否共线。",
-            answers: ["是"],
-            type: "线性代数"
-        }
     ],
     "07解析几何": [
         {
-            question: "如图所示，在坐标系中，已知点A(0,0)、B(6,0)、C(6,6)、D(0,6)、E(6,3)，求点F的坐标。<div class=\"svg-container\"><svg width=\"500\" height=\"400\" viewBox=\"0 0 500 400\" style=\"border:1px solid #ddd;background-color:#fafafa;\"><g>\n<!-- 网格线 -->\n" +
+            question: "如图所示，在坐标系中，已知点A(0,0)、B(6,0)、C(6,6)、D(0,6)、E(6,3)，求点F的坐标。",
+            svg: `<svg width="500" height="400" viewBox="0 0 500 400" style="border:1px solid #ddd;background-color:#fafafa;"><g>
+<!-- 网格线 -->
+` +
                 Array.from({length:9},(_,i)=>`<line x1='${50+i*40}' y1='50' x2='${50+i*40}' y2='350' stroke='#eee' stroke-width='0.5'/>`).join('') +
                 Array.from({length:9},(_,i)=>`<line x1='50' y1='${50+i*40}' x2='370' y2='${50+i*40}' stroke='#eee' stroke-width='0.5'/>`).join('') +
-                "</g><g>\n<!-- 坐标轴 -->\n<line x1='50' y1='350' x2='370' y2='350' stroke='#000' stroke-width='1.5'/><line x1='50' y1='50' x2='50' y2='350' stroke='#000' stroke-width='1.5'/></g><g>\n<!-- 坐标轴标签 -->\n" +
+                `</g><g>
+<!-- 坐标轴 -->
+<line x1='50' y1='350' x2='370' y2='350' stroke='#000' stroke-width='1.5'/><line x1='50' y1='50' x2='50' y2='350' stroke='#000' stroke-width='1.5'/></g><g>
+<!-- 坐标轴标签 -->
+` +
                 Array.from({length:8},(_,i)=>`<text x='${50+(i+1)*40}' y='365' text-anchor='middle' font-size='12' font-family='Arial' fill='#666'>${i+1}</text>`).join('') +
                 Array.from({length:8},(_,i)=>`<text x='35' y='${350-(i+1)*40+5}' text-anchor='middle' font-size='12' font-family='Arial' fill='#666'>${i+1}</text>`).join('') +
-                "</g><g>\n<!-- 矩形ABCD -->\n<rect x='50' y='110' width='240' height='240' fill='rgba(255,182,193,0.3)' stroke='#CD853F' stroke-width='2'/></g><g>\n<!-- 对角线AF -->\n<line x1='50' y1='350' x2='130' y2='110' stroke='#333' stroke-width='2'/></g><g>\n<!-- 线段AE -->\n<line x1='50' y1='350' x2='290' y2='230' stroke='#333' stroke-width='2'/></g><g>\n<!-- 点和标签 -->\n<circle cx='50' cy='350' r='6' fill='#4CAF50' stroke='#fff' stroke-width='2'/><text x='25' y='370' font-size='14' font-family='Arial' fill='#666'>A = (0, 0)</text>\n<circle cx='290' cy='350' r='6' fill='#4CAF50' stroke='#fff' stroke-width='2'/><text x='305' y='370' font-size='14' font-family='Arial' fill='#2196F3'>B = (6, 0)</text>\n<circle cx='290' cy='110' r='6' fill='#4CAF50' stroke='#fff' stroke-width='2'/><text x='305' y='100' font-size='14' font-family='Arial' fill='#666'>C = (6, 6)</text>\n<circle cx='50' cy='110' r='6' fill='#4CAF50' stroke='#fff' stroke-width='2'/><text x='25' y='100' font-size='14' font-family='Arial' fill='#666'>D = (0, 6)</text>\n<circle cx='290' cy='230' r='6' fill='#4CAF50' stroke='#fff' stroke-width='2'/><text x='305' y='235' font-size='14' font-family='Arial' fill='#2196F3'>E = (6, 3)</text>\n<circle cx='130' cy='110' r='6' fill='#ff4444' stroke='#fff' stroke-width='2'/><text x='120' y='95' font-size='14' font-family='Arial' fill='#ff4444' font-weight='bold'>F(?,6)</text>\n</g></svg></div>",
+                `</g><g>
+<!-- 矩形ABCD -->
+<rect x='50' y='110' width='240' height='240' fill='rgba(255,182,193,0.3)' stroke='#CD853F' stroke-width='2'/></g><g>
+<!-- 对角线AF -->
+<line x1='50' y1='350' x2='130' y2='110' stroke='#333' stroke-width='2'/></g><g>
+<!-- 线段AE -->
+<line x1='50' y1='350' x2='290' y2='230' stroke='#333' stroke-width='2'/></g><g>
+<!-- 点和标签 -->
+<circle cx='50' cy='350' r='6' fill='#4CAF50' stroke='#fff' stroke-width='2'/><text x='25' y='370' font-size='14' font-family='Arial' fill='#666'>A = (0, 0)</text>
+<circle cx='290' cy='350' r='6' fill='#4CAF50' stroke='#fff' stroke-width='2'/><text x='305' y='370' font-size='14' font-family='Arial' fill='#2196F3'>B = (6, 0)</text>
+<circle cx='290' cy='110' r='6' fill='#4CAF50' stroke='#fff' stroke-width='2'/><text x='305' y='100' font-size='14' font-family='Arial' fill='#666'>C = (6, 6)</text>
+<circle cx='50' cy='110' r='6' fill='#4CAF50' stroke='#fff' stroke-width='2'/><text x='25' y='100' font-size='14' font-family='Arial' fill='#666'>D = (0, 6)</text>
+<circle cx='290' cy='230' r='6' fill='#4CAF50' stroke='#fff' stroke-width='2'/><text x='305' y='235' font-size='14' font-family='Arial' fill='#2196F3'>E = (6, 3)</text>
+<circle cx='130' cy='110' r='6' fill='#ff4444' stroke='#fff' stroke-width='2'/><text x='120' y='95' font-size='14' font-family='Arial' fill='#ff4444' font-weight='bold'>F(?,6)</text>
+</g></svg>`,
             answers: ["(2,6)", "2,6"],
             type: "解析几何"
         },
+        {
+            question: "\\begin{array}{l}已知正方形OBAC，以OB为半径作圆，\\\\\过A的直线交圆O于M，Q，交BC与P，R为PQ中点，\\\\若AP=18，PR=7，则BC=\\_\\_\\_\\_。 \\end{array}",
+            answers: ["20"],
+            type: "解析几何",
+            img:"./images/zz07.png"
+        },
         // ... 其余 07解析几何内容 ...
     ],
-    "08立体几何": [
+    "08函数代数几何综合": [
         {
-            question: "\\begin{array}{l}已知x+2y+3z=14，求x^2+y^2+z^2最小值 \\end{array}",
+            question: "已知x+2y+3z=14，求x^2+y^2+z^2最小值",
             answers: ["14"],
-            type: "立体几何"
+            type: "函数代数几何综合"
         },
-        // ... 其余 08立体几何内容 ...
+        // ... 其余 08函数代数几何综合内容 ...
+        {
+            question: "如图，⊙O的直径AB的长为10\\sqrt{2}，弦AC长为6\\sqrt{2}，∠ACB的平分线交⊙O于D，则CD长为()。",
+            svg: `<svg width='320' height='260' viewBox='0 0 320 260' style='border:1px solid #ddd;background-color:#fafafa;'>
+  <circle cx='160' cy='130' r='100' stroke='#333' stroke-width='2' fill='none'/>
+  <line x1='60' y1='130' x2='260' y2='130' stroke='#1976d2' stroke-width='2'/>
+  <line x1='60' y1='130' x2='132' y2='34' stroke='#388e3c' stroke-width='2'/>
+  <line x1='132' y1='34' x2='260' y2='130' stroke='#388e3c' stroke-width='2'/>
+  <line x1='132' y1='34' x2='160' y2='230' stroke='#d32f2f' stroke-width='2' stroke-dasharray='4 2'/>
+  <line x1='132' y1='34' x2='160' y2='130' stroke='#888' stroke-width='1' stroke-dasharray='2 2'/>
+  <circle cx='160' cy='130' r='3' fill='#000'/>
+  <text x='50' y='145' font-size='14' fill='#1976d2'>A</text>
+  <text x='265' y='145' font-size='14' fill='#1976d2'>B</text>
+  <text x='122' y='30' font-size='14' fill='#388e3c'>C</text>
+  <text x='150' y='245' font-size='14' fill='#d32f2f'>D</text>
+  <text x='167' y='125' font-size='14' fill='#000'>O</text>
+</svg>`,
+            answers: ["14", "+14"],
+            type: "函数代数几何综合"
+        },
+        {
+            question: "如图求CD的长度，AD=2,BD=3,角ACB=45度。CD垂直于AB，求CD的长度。",
+            svg: `<svg width='350' height='300' viewBox='0 0 350 300' style='border:1px solid #ddd;background-color:#fafafa;'><g>
+    <!-- 三角形ABC -->
+    <polygon points='50,250 200,250 125,60' fill='rgba(33,150,243,0.08)' stroke='#b77b2b' stroke-width='2'/>
+    <!-- CD高 -->
+    <line x1='125' y1='60' x2='125' y2='250' stroke='#d32f2f' stroke-width='2'/>
+    <!-- 点 -->
+    <circle cx='50' cy='250' r='4' fill='#1976d2'/>
+    <circle cx='200' cy='250' r='4' fill='#1976d2'/>
+    <circle cx='125' cy='60' r='4' fill='#388e3c'/>
+    <circle cx='125' cy='250' r='4' fill='#d32f2f'/>
+    <!-- 标签 -->
+    <text x='40' y='265' font-size='16' fill='#1976d2'>A</text>
+    <text x='205' y='265' font-size='16' fill='#1976d2'>B</text>
+    <text x='130' y='50' font-size='16' fill='#388e3c'>C</text>
+    <text x='120' y='265' font-size='16' fill='#d32f2f'>D</text>
+    <!-- 长度标注 -->
+    <text x='80' y='265' font-size='14' fill='#000'>2</text>
+    <text x='160' y='265' font-size='14' fill='#000'>3</text>
+    <!-- 角度标注 -->
+    <path d='M135 80 A25 25 0 0 1 115 80' fill='none' stroke='#388e3c' stroke-width='1' marker-end='url(#arrowhead)'/>
+    <text x='140' y='90' font-size='14' fill='#388e3c'>45°</text>
+    <!-- 直角标记 -->
+    <polyline points='115,250 115,240 125,240' fill='none' stroke='#1976d2' stroke-width='2'/>
+    <text x='135' y='245' font-size='13' fill='#1976d2'>90°</text>
+   
+</g></svg>`,
+            answers: ["6"],
+            type: "函数代数几何综合"
+        },
+        {
+            question: "如图，菱形OABC中，O点坐标为(0,0)，OB、AC相交于点M(x_0,y_0)，y=\\frac{k}{x}过点M，C，2\\leq x_0\\leq 4，求菱形OABC面积的最大值。",
+            svg: `<svg width="320" height="320" viewBox="0 0 320 320" style="border:1px solid #ddd;background-color:#fafafa;">
+    <line x1="50" y1="270" x2="270" y2="270" stroke="#222" stroke-width="2"/>
+  <line x1="50" y1="270" x2="50" y2="50" stroke="#222" stroke-width="2"/>
+
+<path d="M 100 90 Q 110 260 260 260" stroke="#1976d2" stroke-width="2" fill="none"/>
+    <polygon points="50,270 170,270 230,150 110,150" fill="rgba(255,182,193,0.13)" stroke="#b77b2b" stroke-width="2"/>
+
+    <line x1="50" y1="270" x2="230" y2="150" stroke="#333" stroke-width="2" stroke-dasharray="4 2"/>
+  <line x1="170" y1="270" x2="110" y2="150" stroke="#333" stroke-width="2" stroke-dasharray="4 2"/>
+
+    <line x1="230" y1="150" x2="110" y2="150" stroke="#333" stroke-width="2"/>   <line x1="50" y1="270" x2="110" y2="150" stroke="#333" stroke-width="2"/>   <line x1="170" y1="270" x2="230" y2="150" stroke="#333" stroke-width="2"/>     <circle cx="140" cy="210" r="5" fill="#d32f2f"/>
+  <text x="145" y="205" font-size="14" fill="#d32f2f">M</text>
+
+    <circle cx="50" cy="270" r="5" fill="#1976d2"/>
+  <text x="35" y="285" font-size="14" fill="#1976d2">O</text>
+  <circle cx="170" cy="270" r="5" fill="#1976d2"/>
+  <text x="165" y="285" font-size="14" fill="#1976d2">A</text>
+  <circle cx="230" cy="150" r="5" fill="#1976d2"/>
+  <text x="235" y="145" font-size="14" fill="#1976d2">B</text>
+  <circle cx="110" cy="150" r="5" fill="#1976d2"/>
+  <text x="90" y="145" font-size="14" fill="#1976d2">C</text>
+</svg>`,
+            answers: ["24\\sqrt{2}"],
+            type: "函数代数几何综合"
+        },
+        
+        // ... 其余 08函数代数几何综合内容 ...
     ],
     "09概率统计": [
         {

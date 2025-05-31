@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>45°角问题06复数法</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* 左右分栏布局 */
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 左栏 - 图形区域 */
+        .content-left {
+            width: 50%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: #f9f9f9;
+            overflow-y: auto;
+        }
+        
+        /* 右栏 - 解题区域 */
+        .content-right {
+            width: 50%;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: white;
+            border-left: 1px solid #ddd;
+        }
+        
+        .problem { 
+            margin-bottom: 20px; 
+        }
+        
+        .problem h2 {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .solution { 
+            margin-top: 20px; 
+        }
+        
+        .solution h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        svg {
+            border: 1px solid #ddd;
+            display: block;
+            margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .step { 
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+        
+        .hint { 
+            color: #0066cc; 
+            font-style: italic;
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-left: 4px solid #0066cc;
+            margin: 20px 0;
+        }
+        
+        .hint ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .hint li {
+            margin: 5px 0;
+        }
+        
+        #controls {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        #controls label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        #controls input[type="range"] {
+            width: 200px;
+            margin: 0 10px;
+        }
+        
+        #scaleValue {
+            display: inline-block;
+            width: 30px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .reference { 
+            font-size: 0.9em; 
+            color: #555; 
+            margin-top: 15px; 
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+            .content-left, .content-right {
+                width: 100%;
+                height: 50%;
+            }
+            .content-right {
+                border-left: none;
+                border-top: 1px solid #ddd;
+            }
+            .handle {
+                display: none !important;
+            }
+        }
+        /* 拖拽手柄样式 */
+        .handle {
+            width: 8px;
+            background: #ddd;
+            cursor: col-resize;
+            position: relative;
+            z-index: 10;
+            transition: background 0.2s;
+        }
+        .handle:hover {
+            background: #bbb;
+        }
+    </style>
+    <!-- 添加MathJax支持 -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- 左栏：控制区和图形 -->
+        <div class="content-left">
+            <div id="controls">
+                <label>坐标缩放: <input type="range" id="scale" min="20" max="100" value="45"></label>
+                <span id="scaleValue">45</span>
+            </div>
+            <svg id="coordinate-system" width="100%" height="600"></svg>
+        </div>
+        <div class="handle"></div>
+        <!-- 右栏：问题和解题步骤 -->
+        <div class="content-right">
+            <div class="problem">
+                <h2>已知：矩形$ABCD$中，$A(0,0)$，$B(6,0)$，$C(6,6)$，$D(0,6)$，$E(6,3)$，$F(a,6)$。如图所示，$\angle FAE = 45°$，求$a$的值。</h2>
+            </div>
+
+            <div class="solution">
+                <h3>45°角问题解法：复数法</h3>
+                <div class="step">
+                    <p>1. 建立复数坐标系：</p>
+                    <ul>
+                        <li>以$A$为原点，建立复平面</li>
+                        <li>点$A(0,0)$对应复数$0$</li>
+                        <li>点$E(6,3)$对应复数$6+3i$</li>
+                        <li>点$F(a,6)$对应复数$a+6i$</li>
+                    </ul>
+                    
+                    <p>2. 复数旋转原理：</p>
+                    <ul>
+                        <li>在复平面中，将复数逆时针旋转角度$\theta$，相当于乘以$e^{i\theta}$</li>
+                        <li>特别地，旋转45°相当于乘以$e^{i\pi/4} = \cos 45° + i\sin 45° = \frac{\sqrt{2}}{2} + \frac{\sqrt{2}}{2}i$</li>
+                        <li>为了计算方便，我们可以使用$\frac{\sqrt{2}}{2}(1+i)$，或者直接使用$(1+i)$（相差一个模长因子）</li>
+                    </ul>
+                    
+                    <p>3. 应用旋转变换：</p>
+                    <ul>
+                        <li>由于$\angle FAE = 45°$，将向量$\overrightarrow{AE}$逆时针旋转45°得到向量$\overrightarrow{AF}$的方向</li>
+                        <li>$\overrightarrow{AE}$对应复数$6+3i$</li>
+                        <li>旋转后：$(6+3i) \cdot (1+i) = 6+6i+3i+3i^2 = 6+6i+3i-3 = 3+9i$</li>
+                        <li>这表示旋转后的向量指向点$(3,9)$</li>
+                    </ul>
+                    
+                    <p>4. 确定点$F$的位置：</p>
+                    <ul>
+                        <li>旋转后得到的向量$3+9i$表示从$A$指向点$(3,9)$的方向</li>
+                        <li>点$F$在这个方向上，且$F$的纵坐标为6</li>
+                        <li>设$F(a,6)$，则$\overrightarrow{AF} = a+6i$</li>
+                        <li>由于$F$在从$A$到$(3,9)$的射线上，所以存在比例关系</li>
+                    </ul>
+                    
+                    <p>5. 建立比例关系：</p>
+                    <ul>
+                        <li>点$(3,9)$和点$F(a,6)$都在从原点出发的同一条射线上</li>
+                        <li>因此横坐标和纵坐标成比例：$\frac{a}{3} = \frac{6}{9}$</li>
+                        <li>化简得：$\frac{a}{3} = \frac{2}{3}$</li>
+                        <li>解得：$a = 2$</li>
+                    </ul>
+                    
+                    <p>6. 验证结果：</p>
+                    <ul>
+                        <li>当$a = 2$时，$F(2,6)$对应复数$2+6i$</li>
+                        <li>计算$\angle FAE$：使用复数的辐角差</li>
+                        <li>$\arg(\overrightarrow{AF}) - \arg(\overrightarrow{AE}) = \arg\left(\frac{2+6i}{6+3i}\right)$</li>
+                        <li>$\frac{2+6i}{6+3i} = \frac{(2+6i)(6-3i)}{(6+3i)(6-3i)} = \frac{12-6i+36i-18i^2}{36-9i^2} = \frac{12+30i+18}{36+9} = \frac{30+30i}{45} = \frac{2}{3}(1+i)$</li>
+                        <li>$\arg\left(\frac{2}{3}(1+i)\right) = \arg(1+i) = 45°$</li>
+                    </ul>
+                    
+                    <div class="hint">
+                        <p>复数法关键思路：</p>
+                        <ul>
+                            <li>将点转化为复数：$E(6,3) \rightarrow 6+3i$</li>
+                            <li>旋转45°：$(6+3i) \cdot (1+i) = 3+9i$</li>
+                            <li>利用比例关系：$3:9 = a:6$</li>
+                            <li>求解得：$a = 2$</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 设置变量
+        let svgWidth = 800;
+        let svgHeight = 600;
+        let centerX = svgWidth / 2;
+        let centerY = svgHeight / 2;
+        let scale = 45;
+
+        // 坐标点（数学坐标系中）
+        const pointA = {x: 0, y: 0}; // A(0,0)
+        const pointB = {x: 6, y: 0}; // B(6,0)
+        const pointC = {x: 6, y: 6}; // C(6,6)
+        const pointD = {x: 0, y: 6}; // D(0,6)
+        const pointE = {x: 6, y: 3}; // E(6,3)
+        const pointF = {x: 2, y: 6}; // F(a,6) 其中a=2为求解结果
+        const pointG = {x: 6, y: 9}; // G(6,9) 全等三角形的顶点
+        const pointH = {x: 3, y: 9}; // H(3,9) 全等三角形的顶点，使AEH为等腰直角三角形
+
+        // 转换为SVG坐标 - 原点在左下1/4位置
+        function toSvgX(x) {
+            return svgWidth / 4 + x * scale; // 原点在左边1/4处
+        }
+
+        function toSvgY(y) {
+            // SVG中y轴朝下为正，原点在下边1/4处
+            return svgHeight * 3/4 - y * scale; // 原点在下边1/4处
+        }
+
+        // 创建SVG元素
+        function createSVGElement(tag) {
+            return document.createElementNS("http://www.w3.org/2000/svg", tag);
+        }
+
+        // 绘制坐标系和图形
+        function drawCoordinateSystem() {
+            const svg = document.getElementById('coordinate-system');
+            svg.innerHTML = ''; // 清空已有内容
+
+            // 更新SVG尺寸
+            const container = document.querySelector('.content-left');
+            svgWidth = container.offsetWidth - 40; // 减去padding
+            svgHeight = Math.max(container.offsetHeight - 80, 400); // 减去controls高度和padding
+            
+            svg.setAttribute('width', svgWidth);
+            svg.setAttribute('height', svgHeight);
+            
+            centerX = svgWidth / 2;
+            centerY = svgHeight / 2;
+
+            // 计算可见范围（单位）- 原点在左下1/4位置
+            const margin = 1; // 边距单位
+            const visibleWidthLeft = svgWidth / 4 / scale; // 原点左侧可见宽度
+            const visibleWidthRight = svgWidth * 3/4 / scale; // 原点右侧可见宽度
+            const visibleHeightDown = svgHeight / 4 / scale; // 原点下方可见高度
+            const visibleHeightUp = svgHeight * 3/4 / scale; // 原点上方可见高度
+            const xMin = -Math.ceil(visibleWidthLeft) - margin;
+            const xMax = Math.ceil(visibleWidthRight) + margin;
+            const yMin = -Math.ceil(visibleHeightDown) - margin;
+            const yMax = Math.ceil(visibleHeightUp) + margin;
+
+            // 绘制网格线
+            const gridGroup = createSVGElement('g');
+            gridGroup.setAttribute('stroke', '#eee');
+            gridGroup.setAttribute('stroke-width', '0.5');
+
+            // 横向网格线
+            for (let y = yMin; y <= yMax; y++) {
+                if (y === 0) continue; // 坐标轴单独绘制
+                const line = createSVGElement('line');
+                line.setAttribute('x1', toSvgX(xMin));
+                line.setAttribute('y1', toSvgY(y));
+                line.setAttribute('x2', toSvgX(xMax));
+                line.setAttribute('y2', toSvgY(y));
+                line.setAttribute('vector-effect', 'non-scaling-stroke');
+                gridGroup.appendChild(line);
+            }
+
+            // 纵向网格线
+            for (let x = xMin; x <= xMax; x++) {
+                if (x === 0) continue; // 坐标轴单独绘制
+                const line = createSVGElement('line');
+                line.setAttribute('x1', toSvgX(x));
+                line.setAttribute('y1', toSvgY(yMin));
+                line.setAttribute('x2', toSvgX(x));
+                line.setAttribute('y2', toSvgY(yMax));
+                line.setAttribute('vector-effect', 'non-scaling-stroke');
+                gridGroup.appendChild(line);
+            }
+
+            svg.appendChild(gridGroup);
+
+            // 绘制坐标轴
+            const axisGroup = createSVGElement('g');
+            axisGroup.setAttribute('stroke', '#000');
+            axisGroup.setAttribute('stroke-width', '1.5');
+
+            // x轴
+            const xAxis = createSVGElement('line');
+            xAxis.setAttribute('x1', toSvgX(xMin));
+            xAxis.setAttribute('y1', toSvgY(0));
+            xAxis.setAttribute('x2', toSvgX(xMax));
+            xAxis.setAttribute('y2', toSvgY(0));
+            xAxis.setAttribute('vector-effect', 'non-scaling-stroke');
+            axisGroup.appendChild(xAxis);
+
+            // y轴
+            const yAxis = createSVGElement('line');
+            yAxis.setAttribute('x1', toSvgX(0));
+            yAxis.setAttribute('y1', toSvgY(yMin));
+            yAxis.setAttribute('x2', toSvgX(0));
+            yAxis.setAttribute('y2', toSvgY(yMax));
+            yAxis.setAttribute('vector-effect', 'non-scaling-stroke');
+            axisGroup.appendChild(yAxis);
+
+            svg.appendChild(axisGroup);
+
+            // 绘制刻度标签
+            const labelsGroup = createSVGElement('g');
+            labelsGroup.setAttribute('font-size', '14');
+            labelsGroup.setAttribute('font-family', 'Arial');
+            labelsGroup.setAttribute('fill', '#666');
+
+            // x轴刻度标签
+            for (let x = xMin; x <= xMax; x++) {
+                if (x === 0) continue;
+                const text = createSVGElement('text');
+                text.setAttribute('x', toSvgX(x));
+                text.setAttribute('y', toSvgY(0) + 15);
+                text.setAttribute('text-anchor', 'middle');
+                text.textContent = x;
+                labelsGroup.appendChild(text);
+            }
+
+            // y轴刻度标签
+            for (let y = yMin; y <= yMax; y++) {
+                if (y === 0) continue;
+                const text = createSVGElement('text');
+                text.setAttribute('x', toSvgX(0) - 10);
+                text.setAttribute('y', toSvgY(y) + 5);
+                text.setAttribute('text-anchor', 'end');
+                text.textContent = y;
+                labelsGroup.appendChild(text);
+            }
+
+            // Add origin label
+            const originText = createSVGElement('text');
+            originText.setAttribute('x', toSvgX(0) - 15);
+            originText.setAttribute('y', toSvgY(0) + 15);
+            originText.textContent = '0';
+            labelsGroup.appendChild(originText);
+
+            svg.appendChild(labelsGroup);
+
+            // 绘制矩形ABCD
+            const shapeGroup = createSVGElement('g');
+
+            // 矩形边框
+            const rect = createSVGElement('rect');
+            rect.setAttribute('x', toSvgX(pointA.x));
+            rect.setAttribute('y', toSvgY(pointC.y));
+            rect.setAttribute('width', (pointB.x - pointA.x) * scale);
+            rect.setAttribute('height', (pointC.y - pointA.y) * scale);
+            rect.setAttribute('fill', 'rgba(255, 200, 200, 0.3)');
+            rect.setAttribute('stroke', '#2196F3');
+            rect.setAttribute('stroke-width', '2');
+            rect.setAttribute('vector-effect', 'non-scaling-stroke');
+            shapeGroup.appendChild(rect);
+
+            // 线段AF
+            const lineAF = createSVGElement('line');
+            lineAF.setAttribute('x1', toSvgX(pointA.x));
+            lineAF.setAttribute('y1', toSvgY(pointA.y));
+            lineAF.setAttribute('x2', toSvgX(pointF.x));
+            lineAF.setAttribute('y2', toSvgY(pointF.y));
+            lineAF.setAttribute('stroke', '#4CAF50');
+            lineAF.setAttribute('stroke-width', '3');
+            lineAF.setAttribute('vector-effect', 'non-scaling-stroke');
+            shapeGroup.appendChild(lineAF);
+
+            // 线段AE
+            const lineAE = createSVGElement('line');
+            lineAE.setAttribute('x1', toSvgX(pointA.x));
+            lineAE.setAttribute('y1', toSvgY(pointA.y));
+            lineAE.setAttribute('x2', toSvgX(pointE.x));
+            lineAE.setAttribute('y2', toSvgY(pointE.y));
+            lineAE.setAttribute('stroke', '#4CAF50');
+            lineAE.setAttribute('stroke-width', '3');
+            lineAE.setAttribute('vector-effect', 'non-scaling-stroke');
+            shapeGroup.appendChild(lineAE);
+
+            // 绘制全等三角形EGH的边
+            // 线段EG
+            const lineEG = createSVGElement('line');
+            lineEG.setAttribute('x1', toSvgX(pointE.x));
+            lineEG.setAttribute('y1', toSvgY(pointE.y));
+            lineEG.setAttribute('x2', toSvgX(pointG.x));
+            lineEG.setAttribute('y2', toSvgY(pointG.y));
+            lineEG.setAttribute('stroke', '#ff6600');
+            lineEG.setAttribute('stroke-width', '2');
+            lineEG.setAttribute('stroke-dasharray', '5,5');
+            lineEG.setAttribute('vector-effect', 'non-scaling-stroke');
+            shapeGroup.appendChild(lineEG);
+
+            // 线段GH
+            const lineGH = createSVGElement('line');
+            lineGH.setAttribute('x1', toSvgX(pointG.x));
+            lineGH.setAttribute('y1', toSvgY(pointG.y));
+            lineGH.setAttribute('x2', toSvgX(pointH.x));
+            lineGH.setAttribute('y2', toSvgY(pointH.y));
+            lineGH.setAttribute('stroke', '#ff6600');
+            lineGH.setAttribute('stroke-width', '2');
+            lineGH.setAttribute('stroke-dasharray', '5,5');
+            lineGH.setAttribute('vector-effect', 'non-scaling-stroke');
+            shapeGroup.appendChild(lineGH);
+
+            // 线段HE
+            const lineHE = createSVGElement('line');
+            lineHE.setAttribute('x1', toSvgX(pointH.x));
+            lineHE.setAttribute('y1', toSvgY(pointH.y));
+            lineHE.setAttribute('x2', toSvgX(pointE.x));
+            lineHE.setAttribute('y2', toSvgY(pointE.y));
+            lineHE.setAttribute('stroke', '#ff6600');
+            lineHE.setAttribute('stroke-width', '2');
+            lineHE.setAttribute('stroke-dasharray', '5,5');
+            lineHE.setAttribute('vector-effect', 'non-scaling-stroke');
+            shapeGroup.appendChild(lineHE);
+
+            // 辅助线：延长AE到H
+            const lineAH = createSVGElement('line');
+            lineAH.setAttribute('x1', toSvgX(pointA.x));
+            lineAH.setAttribute('y1', toSvgY(pointA.y));
+            lineAH.setAttribute('x2', toSvgX(pointH.x));
+            lineAH.setAttribute('y2', toSvgY(pointH.y));
+            lineAH.setAttribute('stroke', '#9C27B0');
+            lineAH.setAttribute('stroke-width', '2');
+            lineAH.setAttribute('stroke-dasharray', '3,3');
+            lineAH.setAttribute('vector-effect', 'non-scaling-stroke');
+            shapeGroup.appendChild(lineAH);
+
+            svg.appendChild(shapeGroup);
+
+            // 绘制45°角标记
+            const angleGroup = createSVGElement('g');
+            
+            // 计算AE和AF的角度
+            const angleAE = Math.atan2(pointE.y - pointA.y, pointE.x - pointA.x); // AE方向角度
+            const angleAF = Math.atan2(pointF.y - pointA.y, pointF.x - pointA.x); // AF方向角度
+            
+            // 绘制角度弧线 - 从AE到AF
+            const arc = createSVGElement('path');
+            const radius = 50;
+            
+            // 确保从AE逆时针到AF绘制角度
+            const startAngle = angleAE;
+            const endAngle = angleAF;
+            
+            const startX = toSvgX(pointA.x) + radius * Math.cos(startAngle);
+            const startY = toSvgY(pointA.y) - radius * Math.sin(startAngle); // 注意SVG坐标系y轴反向
+            const endX = toSvgX(pointA.x) + radius * Math.cos(endAngle);
+            const endY = toSvgY(pointA.y) - radius * Math.sin(endAngle);
+            
+            // 计算角度差，确保逆时针方向
+            let angleDiff = endAngle - startAngle;
+            if (angleDiff < 0) angleDiff += 2 * Math.PI;
+            
+            // 对于45度角，应该是小弧，使用逆时针方向
+            const largeArcFlag = 0; // 小弧
+            const sweepFlag = 0; // 逆时针方向
+            
+            const pathData = `M ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${endX} ${endY}`;
+            arc.setAttribute('d', pathData);
+            arc.setAttribute('stroke', '#ff4444');
+            arc.setAttribute('stroke-width', '2');
+            arc.setAttribute('fill', 'none');
+            arc.setAttribute('vector-effect', 'non-scaling-stroke');
+            angleGroup.appendChild(arc);
+
+            // 角度标记文本 - 放在角度中间位置
+            let midAngle = (startAngle + endAngle) / 2;
+            // 如果跨越了0度线，需要调整中点角度
+            if (angleDiff > Math.PI) {
+                midAngle += Math.PI;
+            }
+            const textRadius = radius + 15;
+            const angleText = createSVGElement('text');
+            angleText.setAttribute('x', toSvgX(pointA.x) + textRadius * Math.cos(midAngle));
+            angleText.setAttribute('y', toSvgY(pointA.y) - textRadius * Math.sin(midAngle) + 5);
+            angleText.setAttribute('font-size', '16');
+            angleText.setAttribute('font-weight', 'bold');
+            angleText.setAttribute('fill', '#ff4444');
+            angleText.setAttribute('text-anchor', 'middle');
+            angleText.textContent = 'α = 45°';
+            angleGroup.appendChild(angleText);
+
+            svg.appendChild(angleGroup);
+
+            // 绘制点
+            const pointsGroup = createSVGElement('g');
+
+            // 点A
+            const circleA = createSVGElement('circle');
+            circleA.setAttribute('cx', toSvgX(pointA.x));
+            circleA.setAttribute('cy', toSvgY(pointA.y));
+            circleA.setAttribute('r', '6');
+            circleA.setAttribute('fill', '#4CAF50');
+            pointsGroup.appendChild(circleA);
+
+            // 点B
+            const circleB = createSVGElement('circle');
+            circleB.setAttribute('cx', toSvgX(pointB.x));
+            circleB.setAttribute('cy', toSvgY(pointB.y));
+            circleB.setAttribute('r', '6');
+            circleB.setAttribute('fill', '#2196F3');
+            pointsGroup.appendChild(circleB);
+
+            // 点C
+            const circleC = createSVGElement('circle');
+            circleC.setAttribute('cx', toSvgX(pointC.x));
+            circleC.setAttribute('cy', toSvgY(pointC.y));
+            circleC.setAttribute('r', '6');
+            circleC.setAttribute('fill', '#2196F3');
+            pointsGroup.appendChild(circleC);
+
+            // 点D
+            const circleD = createSVGElement('circle');
+            circleD.setAttribute('cx', toSvgX(pointD.x));
+            circleD.setAttribute('cy', toSvgY(pointD.y));
+            circleD.setAttribute('r', '6');
+            circleD.setAttribute('fill', '#2196F3');
+            pointsGroup.appendChild(circleD);
+
+            // 点E
+            const circleE = createSVGElement('circle');
+            circleE.setAttribute('cx', toSvgX(pointE.x));
+            circleE.setAttribute('cy', toSvgY(pointE.y));
+            circleE.setAttribute('r', '6');
+            circleE.setAttribute('fill', '#2196F3');
+            pointsGroup.appendChild(circleE);
+
+            // 点F
+            const circleF = createSVGElement('circle');
+            circleF.setAttribute('cx', toSvgX(pointF.x));
+            circleF.setAttribute('cy', toSvgY(pointF.y));
+            circleF.setAttribute('r', '6');
+            circleF.setAttribute('fill', '#ff4444');
+            pointsGroup.appendChild(circleF);
+
+            // 点G
+            const circleG = createSVGElement('circle');
+            circleG.setAttribute('cx', toSvgX(pointG.x));
+            circleG.setAttribute('cy', toSvgY(pointG.y));
+            circleG.setAttribute('r', '6');
+            circleG.setAttribute('fill', '#ff6600');
+            pointsGroup.appendChild(circleG);
+
+            // 点H
+            const circleH = createSVGElement('circle');
+            circleH.setAttribute('cx', toSvgX(pointH.x));
+            circleH.setAttribute('cy', toSvgY(pointH.y));
+            circleH.setAttribute('r', '6');
+            circleH.setAttribute('fill', '#ff6600');
+            pointsGroup.appendChild(circleH);
+
+            svg.appendChild(pointsGroup);
+
+            // 标记点
+            const markersGroup = createSVGElement('g');
+            markersGroup.setAttribute('font-size', '14');
+            markersGroup.setAttribute('font-family', 'Arial');
+            markersGroup.setAttribute('font-weight', 'bold');
+            markersGroup.setAttribute('fill', '#666');
+
+            // 标记A
+            const textA = createSVGElement('text');
+            textA.setAttribute('x', toSvgX(pointA.x) - 25);
+            textA.setAttribute('y', toSvgY(pointA.y) + 20);
+            textA.textContent = 'A = (0, 0)';
+            markersGroup.appendChild(textA);
+
+            // 标记B
+            const textB = createSVGElement('text');
+            textB.setAttribute('x', toSvgX(pointB.x) + 10);
+            textB.setAttribute('y', toSvgY(pointB.y) + 20);
+            textB.setAttribute('fill', '#2196F3');
+            textB.textContent = 'B = (6, 0)';
+            markersGroup.appendChild(textB);
+
+            // 标记C
+            const textC = createSVGElement('text');
+            textC.setAttribute('x', toSvgX(pointC.x) + 10);
+            textC.setAttribute('y', toSvgY(pointC.y) - 10);
+            textC.setAttribute('fill', '#2196F3');
+            textC.textContent = 'C = (6, 6)';
+            markersGroup.appendChild(textC);
+
+            // 标记D
+            const textD = createSVGElement('text');
+            textD.setAttribute('x', toSvgX(pointD.x) - 60);
+            textD.setAttribute('y', toSvgY(pointD.y) - 10);
+            textD.setAttribute('fill', '#2196F3');
+            textD.textContent = 'D = (0, 6)';
+            markersGroup.appendChild(textD);
+
+            // 标记E
+            const textE = createSVGElement('text');
+            textE.setAttribute('x', toSvgX(pointE.x) + 10);
+            textE.setAttribute('y', toSvgY(pointE.y) + 5);
+            textE.setAttribute('fill', '#2196F3');
+            textE.textContent = 'E = (6, 3)';
+            markersGroup.appendChild(textE);
+
+            // 标记F
+            const textF = createSVGElement('text');
+            textF.setAttribute('x', toSvgX(pointF.x) - 30);
+            textF.setAttribute('y', toSvgY(pointF.y) - 10);
+            textF.setAttribute('fill', '#ff4444');
+            textF.textContent = 'F(a,6)';
+            markersGroup.appendChild(textF);
+
+            // 标记G
+            const textG = createSVGElement('text');
+            textG.setAttribute('x', toSvgX(pointG.x) + 10);
+            textG.setAttribute('y', toSvgY(pointG.y) + 5);
+            textG.setAttribute('fill', '#ff6600');
+            textG.textContent = 'G(6,9)';
+            markersGroup.appendChild(textG);
+
+            // 标记H
+            const textH = createSVGElement('text');
+            textH.setAttribute('x', toSvgX(pointH.x) - 60);
+            textH.setAttribute('y', toSvgY(pointH.y) + 5);
+            textH.setAttribute('fill', '#ff6600');
+            textH.textContent = 'H(3,9)';
+            markersGroup.appendChild(textH);
+
+            // 添加答案标记
+            const answerText = createSVGElement('text');
+            answerText.setAttribute('x', toSvgX(7) + 20);
+            answerText.setAttribute('y', toSvgY(5));
+            answerText.setAttribute('font-size', '16');
+            answerText.setAttribute('font-weight', 'bold');
+            answerText.setAttribute('fill', '#ff4444');
+            answerText.textContent = '解：a = 2';
+            markersGroup.appendChild(answerText);
+
+            svg.appendChild(markersGroup);
+        }
+
+        // 监听缩放变化
+        document.getElementById('scale').addEventListener('input', function() {
+            scale = parseInt(this.value);
+            document.getElementById('scaleValue').textContent = scale;
+            drawCoordinateSystem();
+        });
+
+        // 监听窗口大小变化
+        window.addEventListener('resize', function() {
+            drawCoordinateSystem();
+        });
+
+        // 拖拽手柄JS
+        (function() {
+            const handle = document.querySelector('.handle');
+            const left = document.querySelector('.content-left');
+            const right = document.querySelector('.content-right');
+            let dragging = false;
+            handle.addEventListener('mousedown', function(e) {
+                dragging = true;
+                document.body.style.cursor = 'col-resize';
+            });
+            document.addEventListener('mousemove', function(e) {
+                if (!dragging) return;
+                const container = document.querySelector('.container');
+                const rect = container.getBoundingClientRect();
+                let percent = (e.clientX - rect.left) / rect.width;
+                percent = Math.max(0.15, Math.min(0.85, percent));
+                left.style.width = (percent * 100) + '%';
+                right.style.width = ((1 - percent) * 100) + '%';
+            });
+            document.addEventListener('mouseup', function() {
+                if (dragging) {
+                    dragging = false;
+                    document.body.style.cursor = '';
+                }
+            });
+        })();
+
+        // 初始化绘图
+        drawCoordinateSystem();
+    </script>
+</body>
+</html>
