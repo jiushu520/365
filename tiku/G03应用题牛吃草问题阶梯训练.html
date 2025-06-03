@@ -435,398 +435,64 @@
                 margin-top: 10px;
             }
         }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h3>G03应用题牛吃草问题阶梯训练</h3>
-    </div>    
-    <!-- 添加音效元素 -->
-    <audio id="playerAttackSound" preload="auto">
-        <source src="https://assets.mixkit.co/active_storage/sfx/2073/2073-preview.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="computerAttackSound" preload="auto">
-        <source src="https://assets.mixkit.co/active_storage/sfx/1293/1293-preview.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="correctSound" preload="auto">
-        <source src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="wrongSound" preload="auto">
-        <source src="https://assets.mixkit.co/active_storage/sfx/2691/2691-preview.mp3" type="audio/mpeg">
-    </audio>
-    
-    <div class="difficulty-buttons" id="difficultyButtons"></div>
-    
-    <!-- 游戏选项布局修改为一行 -->
-    <div class="game-options" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin: 10px 0;">
-        <div style="display: flex; align-items: center; margin: 0 10px;">
 
-            <button id="timer5min" class="timer-btn" onclick="selectGameDuration(5)">5分钟</button>
-            <button id="timer10min" class="timer-btn active" onclick="selectGameDuration(10)">10分钟</button>
-        </div>
+        /* 通关模式相关样式 */
+        .level-progress {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
         
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>G03应用题牛吃草问题阶梯训练</title>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
-    <style>
-        body {
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-family: Arial, sans-serif;
-        }
-
-        .header {
-            text-align: center;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-
-        .pk-container {
-            display: flex;
-            width: 100%;
-            max-width: 1200px;
-            justify-content: space-between;
-        }
-
-        .player-container, .computer-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            width: 48%;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            position: relative;
-        }
-
-        .player-container {
-            background-color: #f0f8ff; /* Light blue for player */
-        }
-
-        .computer-container {
-            background-color: #fff0f0; /* Light red for computer */
-        }
-
-        .vs-indicator {
-            position: absolute;
-            top: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 24px;
+        .level-indicator {
+            font-size: 16px;
             font-weight: bold;
-            color: #333;
-            background-color: #ffcc00;
-            padding: 5px 15px;
-            border-radius: 20px;
+            margin-right: 15px;
         }
-
-        .difficulty-buttons {
-            margin-bottom: 20px;
-            width: 100%;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .difficulty-buttons button {
-            margin: 5px;
-            padding: 8px 15px;
+        
+        .question-counter {
             font-size: 14px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            background-color: #668B8B;
         }
-
-        .difficulty-buttons button.active {
-            background-color: #45a049;
-            color: white;
-        }
-
-        .question-box {
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 10px 0;
-            padding: 10px;
-            border: 1px solid #eee;
-            border-radius: 5px;
-            background-color: white;
-            width: 90%;
-        }
-
-        .answer-input {
-            padding: 10px;
-            font-size: 16px;
-            width: 80%;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        .timer {
-            margin: 10px 0;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .computer-status {
-            margin: 10px 0;
-            font-style: italic;
-            min-height: 20px;
-        }
-
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            background-color: #007bff;
-            color: white;
-            margin: 5px;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-
-        .result {
-            min-height: 20px;
-            margin: 10px 0;
-        }
-
-        .score {
-            margin-top: 10px;
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .correct {
-            color: green;
-        }
-
-        .incorrect {
-            color: red;
-        }
-
-        .rendered-answer {
-            margin-top: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            width: 80%;
-            min-height: 30px;
-            background-color: white;
-        }
-
-        .history-container {
-            margin-top: 30px;
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: auto;
-        }
-
-        th, td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: center;
-        }
-
-        th {
-            background-color: #f4f4f4;
-        }
-
-        .copy-button {
-            margin-top: 10px;
-            padding: 8px 16px;
+        
+        .conquest-timer {
             font-size: 14px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
+            margin-left: 15px;
+            color: #007bff;
+        }
+        
+        /* 已通关的关卡高亮样式 */
+        .difficulty-buttons button.completed {
             background-color: #28a745;
             color: white;
-        }
-
-        .copy-button:hover {
-            background-color: #218838;
-        }
-
-        #copy-success {
-            display: none;
-            margin-top: 10px;
-            color: green;
-            font-size: 14px;
+            position: relative;
         }
         
-        .winner-indicator {
-            font-weight: bold;
-            font-size: 18px;
-            margin: 10px 0;
-        }
-        
-        .player-win {
-            color: blue;
-        }
-        
-        .computer-win {
-            color: red;
-        }
-        
-        .tie {
-            color: purple;
-        }
-        
-        .player-row {
-            background-color: rgba(240, 248, 255, 0.3);
-        }
-        
-        .computer-row {
-            background-color: rgba(255, 240, 240, 0.3);
-        }
-        
-        /* 新增攻击效果相关样式 */
-        .shockwave {
+        .difficulty-buttons button.completed::after {
+            content: "✓";
             position: absolute;
-            width: 60px;
-            height: 60px;
+            top: -5px;
+            right: -5px;
+            background-color: #ffc107;
+            color: #000;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
-            z-index: 100;
-            pointer-events: none;
-            opacity: 0;
-            transform: scale(0.1);
-            box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.7);
-        }
-        
-        .player-attack {
-            animation: shockwave-player 1s ease-out forwards;
-        }
-        
-        .computer-attack {
-            animation: shockwave-computer 1s ease-out forwards;
-        }
-        
-        .shake {
-            animation: shake 0.5s ease-in-out;
-        }
-        
-        @keyframes shockwave-player {
-            0% {
-                opacity: 1;
-                transform: scale(0.1);
-                background: radial-gradient(circle, rgba(0,100,255,0.8) 0%, rgba(0,100,255,0) 70%);
-                box-shadow: 0 0 20px 10px rgba(0, 100, 255, 0.7);
-                left: 35%;
-                top: 50%;
-            }
-            100% {
-                opacity: 0;
-                transform: scale(2);
-                background: radial-gradient(circle, rgba(0,100,255,0.2) 0%, rgba(0,100,255,0) 70%);
-                box-shadow: 0 0 40px 20px rgba(0, 100, 255, 0.3);
-                left: 80%;
-                top: 50%;
-            }
-        }
-        
-        @keyframes shockwave-computer {
-            0% {
-                opacity: 1;
-                transform: scale(0.1);
-                background: radial-gradient(circle, rgba(255,0,0,0.8) 0%, rgba(255,0,0,0) 70%);
-                box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.7);
-                left: 65%;
-                top: 50%;
-            }
-            100% {
-                opacity: 0;
-                transform: scale(2);
-                background: radial-gradient(circle, rgba(255,0,0,0.2) 0%, rgba(255,0,0,0) 70%);
-                box-shadow: 0 0 40px 20px rgba(255, 0, 0, 0.3);
-                left: 20%;
-                top: 50%;
-            }
-        }
-        
-        @keyframes shake {
-            0%, 100% {transform: translateX(0);}
-            10%, 30%, 50%, 70%, 90% {transform: translateX(-5px);}
-            20%, 40%, 60%, 80% {transform: translateX(5px);}
-        }
-        
-        /* 显示对诮语句的样式 */
-        .taunt-bubble {
-            position: absolute;
-            background-color: white;
-            border: 2px solid #333;
-            border-radius: 10px;
-            padding: 10px;
-            font-size: 14px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
             font-weight: bold;
-            z-index: 101;
-            opacity: 0;
-            animation: show-taunt 2s ease-out forwards;
-            min-width: 120px;
-            text-align: center;
         }
         
-        .taunt-bubble::before {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 0;
-            border: 10px solid transparent;
+        .difficulty-buttons button.current {
+            background-color: #007bff;
+            color: white;
+            animation: pulse 1.5s infinite;
         }
         
-        .player-taunt {
-            top: 20%;
-            left: 25%;
-        }
-        
-        .player-taunt::before {
-            border-left-color: #333;
-            right: -20px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-        
-        .computer-taunt {
-            top: 20%;
-            right: 25%;
-        }
-        
-        .computer-taunt::before {
-            border-right-color: #333;
-            left: -20px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-        
-        @keyframes show-taunt {
-            0% {opacity: 0; transform: translateY(20px);}
-            20% {opacity: 1; transform: translateY(0);}
-            80% {opacity: 1; transform: translateY(0);}
-            100% {opacity: 0; transform: translateY(-20px);}
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 123, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0); }
         }
         
         @media (max-width: 768px) {
@@ -839,75 +505,13 @@
                 margin-bottom: 30px;
             }
         }
-
-        .timer-btn {
-            padding: 8px 15px;
-            font-size: 14px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            background-color: #668B8B;
-            color: white;
-            margin: 0 5px;
-        }
-        
-        .timer-btn.active {
-            background-color: #45a049;
-        }
-
-        /* 模式切换按钮样式 */
-        .mode-switch {
-            display: flex;
-            justify-content: center;
-            margin: 10px 0;
-        }
-        
-        .mode-btn {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            background-color: #668B8B;
-            color: white;
-            margin: 0 10px;
-        }
-        
-        .mode-btn.active {
-            background-color: #45a049;
-        }
-        
-        /* 自学模式下的全宽玩家容器 */
-        .player-container.full-width {
-            width: 100%;
-        }
-        
-        /* 历史记录上方按钮行 */
-        .history-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 10px 0;
-            flex-wrap: wrap;
-        }
-        
-        /* 响应式布局下的历史记录按钮 */
-        @media (max-width: 768px) {
-            .history-controls {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .mode-switch {
-                margin-top: 10px;
-            }
-        }
     </style>
 </head>
 <body>
     <div class="header">
         <h3>G03应用题牛吃草问题阶梯训练</h3>
-    </div>    
+    </div>
+    
     <!-- 添加音效元素 -->
     <audio id="playerAttackSound" preload="auto">
         <source src="https://assets.mixkit.co/active_storage/sfx/2073/2073-preview.mp3" type="audio/mpeg">
@@ -927,9 +531,8 @@
     <!-- 游戏选项布局修改为一行 -->
     <div class="game-options" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin: 10px 0;">
         <div style="display: flex; align-items: center; margin: 0 10px;">
-
-            <button id="timer5min" class="timer-btn active" onclick="selectGameDuration(5)">5分钟</button>
-            <button id="timer10min" class="timer-btn" onclick="selectGameDuration(10)">10分钟</button>
+            <button id="timer5min" class="timer-btn" onclick="selectGameDuration(5)">5分钟</button>
+            <button id="timer10min" class="timer-btn active" onclick="selectGameDuration(10)">10分钟</button>
         </div>
         
         <div style="display: flex; align-items: center; margin: 0 10px;">
@@ -967,7 +570,7 @@
             <div class="result" id="computerResult"></div>
             <div class="score" id="computerScore">正确: 0 | 错误: 0 | 总题数: 0</div>
         </div>
-    </div>>
+    </div>
     
     <div class="winner-indicator" id="roundResult"></div>
     
@@ -979,6 +582,7 @@
             <div class="mode-switch">
                 <button id="selfPracticeBtn" class="mode-btn" onclick="switchMode('self')">自学练习</button>
                 <button id="pkModeBtn" class="mode-btn active" onclick="switchMode('pk')">PK模式</button>
+                <button id="conquestModeBtn" class="mode-btn" onclick="switchMode('conquest')">通关模式</button>
             </div>
         </div>
         
@@ -1022,17 +626,24 @@
         let computerThinkingTimers = [];
         
         // 新增倒计时变量
-        let gameDuration = 5; // 默认5分钟
-        let countdownTime = 5 * 60; // 默认5分钟，单位为秒
+        let gameDuration = 10; // 默认10分钟
+        let countdownTime = 10 * 60; // 默认10分钟，单位为秒
         let countdownTimer;
         
         // 新增思考时间难度变量
-        let computerThinkingDifficulty = 'easy'; // 默认为容易，可选值: 'easy'(容易)、'medium'(中等)、'hard'(困难)
+        let computerThinkingDifficulty = 'hard'; // 默认为困难，可选值: 'easy'(容易)、'medium'(中等)、'hard'(困难)
+        
+        // 通关模式变量
+        let conquestLevel = 1; // 当前关卡
+        let conquestCorrectCount = 0; // 当前关卡已答对的题目数
+        let conquestStartTime = 0; // 通关模式开始时间
+        let conquestTotalTime = 0; // 通关模式总用时
         
         // 新增游戏模式变量
-        let gameMode = 'pk'; // 默认为PK模式，可选值: 'self'(自学练习) 或 'pk'(PK模式)
+        let gameMode = 'self'; // 默认为self模式，可选值: 'self'(自学练习)、'pk'(PK模式)、'conquest'(通关模式)
 
         const difficultyNames = ["01草量的变化1", "02草量的变化2", "03最多几头牛", "04求天数",  "05经典求草数","06总效率不变水管问题1","07总效率不变水管问题2","08综合随机"];
+
         // 初始化
         document.addEventListener("DOMContentLoaded", () => {
             generateDifficultyButtons();
@@ -1051,9 +662,16 @@
             
             gameMode = mode;
             
-            // 更新UI按钮状态
-            document.getElementById('selfPracticeBtn').classList.toggle('active', mode === 'self');
-            document.getElementById('pkModeBtn').classList.toggle('active', mode === 'pk');
+            // Remove level progress indicator if not in conquest mode
+            if (mode !== 'conquest') {
+                const lp = document.getElementById('levelProgress');
+                if (lp) lp.remove();
+            }
+            
+            // 重置UI元素
+            document.getElementById('selfPracticeBtn').classList.remove('active');
+            document.getElementById('pkModeBtn').classList.remove('active');
+            document.getElementById('conquestModeBtn').classList.remove('active');
             
             const playerContainer = document.getElementById('playerContainer');
             const computerContainer = document.getElementById('computerContainer');
@@ -1061,41 +679,116 @@
             
             if (mode === 'self') {
                 // 自学练习模式
+                document.getElementById('selfPracticeBtn').classList.add('active');
                 computerContainer.style.display = 'none';
                 playerContainer.classList.add('full-width');
-                countdownDisplay.style.display = 'block'; // 修改：显示倒计时
+                countdownDisplay.style.display = 'block';
                 document.getElementById('startGameBtn').textContent = '开始练习';
                 document.getElementById('roundResult').style.display = 'none';
-            } else {
+                
+                // 恢复所有难度按钮的可点击状态
+                document.querySelectorAll('.difficulty-buttons button').forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('completed', 'current');
+                });
+                
+                // 显示当前选中的难度
+                setDifficulty(currentDifficulty);
+            } else if (mode === 'pk') {
                 // PK模式
+                document.getElementById('pkModeBtn').classList.add('active');
                 computerContainer.style.display = 'flex';
                 playerContainer.classList.remove('full-width');
                 countdownDisplay.style.display = 'block';
                 document.getElementById('startGameBtn').textContent = '开始PK';
                 document.getElementById('roundResult').style.display = 'block';
+                
+                // 恢复所有难度按钮的可点击状态
+                document.querySelectorAll('.difficulty-buttons button').forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('completed', 'current');
+                });
+                
+                // 显示当前选中的难度
+                setDifficulty(currentDifficulty);
+            } else if (mode === 'conquest') {
+                // 通关模式
+                document.getElementById('conquestModeBtn').classList.add('active');
+                computerContainer.style.display = 'none';
+                playerContainer.classList.add('full-width');
+                countdownDisplay.style.display = 'none';
+                document.getElementById('startGameBtn').textContent = '开始通关';
+                document.getElementById('roundResult').style.display = 'none';
+                
+                // 添加关卡进度显示
+                if (!document.getElementById('levelProgress')) {
+                    const levelProgress = document.createElement('div');
+                    levelProgress.id = 'levelProgress';
+                    levelProgress.className = 'level-progress';
+                    levelProgress.innerHTML = `
+                        <div class="level-indicator">当前关卡: 1</div>
+                        <div class="question-counter">完成题数: 0/5</div>
+                        <div class="conquest-timer">总用时: 0秒</div>
+                    `;
+                    document.querySelector('.player-container').insertBefore(
+                        levelProgress, 
+                        document.querySelector('.player-container .timer')
+                    );
+                }
+                
+                // 重置通关模式状态
+                conquestLevel = 1;
+                conquestCorrectCount = 0;
+                setDifficulty(conquestLevel);
+                
+                // 更新难度按钮禁用状态
+                updateDifficultyButtonsForConquest();
             }
             
             // 更新界面按钮状态
+            if (mode === 'conquest') {
+                document.querySelector('#playerContainer h3').style.display = 'none';
+            } else {
+                document.querySelector('#playerContainer h3').style.display = 'block';
+            }
             updateButtonStates();
         }
 
         function generateDifficultyButtons() {
-            const difficultyButtonsContainer = document.getElementById('difficultyButtons');
+            const buttonsContainer = document.getElementById('difficultyButtons');
+            buttonsContainer.innerHTML = '';
+            
             difficultyNames.forEach((name, index) => {
                 const button = document.createElement('button');
                 button.textContent = name;
-                button.id = `level${index + 1}`;
+                button.dataset.level = index + 1;  // 使用dataset存储难度级别
                 button.onclick = () => setDifficulty(index + 1);
-                difficultyButtonsContainer.appendChild(button);
+                buttonsContainer.appendChild(button);
             });
         }
 
         function setDifficulty(level) {
-            if (gameInProgress) return; // 游戏进行中不能更改难度
+            if (gameInProgress && gameMode !== 'conquest') {
+                alert('游戏进行中无法更改难度，请先重置游戏');
+                return;
+            }
             
             currentDifficulty = level;
-            document.querySelectorAll('.difficulty-buttons button').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`level${level}`).classList.add('active');
+            
+            // 更新按钮样式
+            document.querySelectorAll('.difficulty-buttons button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const selectedBtn = document.querySelector(`.difficulty-buttons button[data-level="${level}"]`);
+            if (selectedBtn) {
+                selectedBtn.classList.add('active');
+            }
+            
+            // 如果在通关模式下，更新通关模式UI
+            if (gameMode === 'conquest' && gameInProgress) {
+                updateDifficultyButtonsForConquest();
+            }
         }
 
         // 选择游戏时长
@@ -1168,6 +861,16 @@
             playerTime = 0;
             computerTime = 0;
             
+            // 通关模式特殊处理
+            if (gameMode === 'conquest') {
+                conquestStartTime = new Date().getTime();
+                conquestTotalTime = 0;
+                conquestLevel = 1;
+                conquestCorrectCount = 0;
+                setDifficulty(conquestLevel);
+                updateConquestUI();
+            }
+            
             // 更新UI
             document.getElementById('playerScore').innerHTML = `正确: 0 | 错误: 0 | 总题数: 0`;
             if (gameMode === 'pk') {
@@ -1193,12 +896,19 @@
             // 开始计时器
             startTimers();
             
-            // 启动倒计时 - 无论是PK模式还是自学模式
-            startCountdown();
+            // 只在PK和自学模式下启动倒计时
+            if (gameMode !== 'conquest') {
+                startCountdown();
+            }
             
             // 仅在PK模式下才生成计算机题目
             if (gameMode === 'pk') {
                 generateComputerQuestion();
+            }
+            
+            // 通关模式下禁用难度按钮
+            if (gameMode === 'conquest') {
+                updateDifficultyButtonsForConquest();
             }
         }
         
@@ -1212,8 +922,21 @@
             
             // 重置状态
             gameInProgress = false;
-            countdownTime = gameDuration * 60;
-            updateCountdownDisplay();
+            
+            // 非通关模式重置倒计时
+            if (gameMode !== 'conquest') {
+                countdownTime = gameDuration * 60;
+                updateCountdownDisplay();
+            }
+            
+            // 通关模式重置
+            if (gameMode === 'conquest') {
+                conquestLevel = 1;
+                conquestCorrectCount = 0;
+                setDifficulty(conquestLevel);
+                updateConquestUI();
+                updateDifficultyButtonsForConquest();
+            }
             
             // 更新UI
             document.getElementById('playerQuestion').innerHTML = '';
@@ -1247,6 +970,11 @@
             playerTimer = setInterval(() => {
                 playerTime++;
                 document.getElementById('playerTimer').innerHTML = `时间: ${playerTime}秒`;
+                
+                // 通关模式特殊处理
+                if (gameMode === 'conquest') {
+                    updateTimers();
+                }
             }, 1000);
             
             // 仅在PK模式下启动计算机计时器
@@ -1407,6 +1135,39 @@
                     // 显示对诮语句
                     showTaunt('player');
                 }
+                
+                // 通关模式特殊处理
+                if (gameMode === 'conquest') {
+                    conquestCorrectCount++;
+                    
+                    // 检查是否完成当前关卡(5题)
+                    if (conquestCorrectCount >= 5) {
+                        // 检查是否通关所有级别
+                        if (conquestLevel >= difficultyNames.length) {
+                            // 游戏胜利
+                            const totalTime = Math.floor((new Date().getTime() - conquestStartTime) / 1000);
+                            alert(`恭喜！你已通关所有级别！\n总用时: ${totalTime}秒`);
+                            
+                            // 最后一次更新所有按钮状态，使所有关卡都显示为已完成
+                            document.querySelectorAll('.difficulty-buttons button').forEach((btn, index) => {
+                                btn.classList.remove('active', 'current');
+                                btn.classList.add('completed');
+                            });
+                            
+                            resetGame();
+                            return;
+                        } else {
+                            // 晋级到下一关
+                            conquestLevel++;
+                            conquestCorrectCount = 0;
+                            setDifficulty(conquestLevel);
+                            updateDifficultyButtonsForConquest();
+                            alert(`恭喜！你已晋级到第${conquestLevel}关！`);
+                        }
+                    }
+                    
+                    updateConquestUI();
+                }
             } else {
                 document.getElementById('playerResult').innerHTML = '错误';
                 document.getElementById('playerResult').className = 'result incorrect';
@@ -1414,6 +1175,15 @@
                 
                 // 播放错误音效
                 document.getElementById('wrongSound').play();
+                
+                // 通关模式特殊处理 - 错一题就重新开始
+                if (gameMode === 'conquest') {
+                    setTimeout(() => {
+                        alert(`很遗憾，答错了，本关答题计数已重置`);
+                        conquestCorrectCount = 0;
+                        updateConquestUI();
+                    }, 1000);
+                }
             }
             
             // 更新总题数
@@ -1686,6 +1456,7 @@
             // 启用重置按钮
             document.getElementById('resetGameBtn').disabled = false;
         }
+
 
 
 
@@ -2439,6 +2210,7 @@ function generateLevel7Question() {
 
 
 
+
         // 创建冲击波效果
         function createShockwave(attacker) {
             const shockwave = document.createElement('div');
@@ -2489,6 +2261,59 @@ function generateLevel7Question() {
             setTimeout(() => {
                 document.body.removeChild(taunt);
             }, 2000);
+        }
+        
+        // 更新通关模式UI
+        function updateConquestUI() {
+            if (!document.getElementById('levelProgress')) return;
+            
+            document.getElementById('levelProgress').innerHTML = `
+                <div class="level-indicator">当前关卡: ${conquestLevel}</div>
+                <div class="question-counter">完成题数: ${conquestCorrectCount}/5</div>
+                <div class="conquest-timer">总用时: ${Math.floor((new Date().getTime() - conquestStartTime) / 1000)}秒</div>
+            `;
+        }
+        
+        // 更新通关模式的难度按钮状态
+        function updateDifficultyButtonsForConquest() {
+            if (gameMode !== 'conquest') return;
+            
+            // 先移除所有难度按钮的active类和completed类
+            document.querySelectorAll('.difficulty-buttons button').forEach(btn => {
+                btn.classList.remove('active', 'completed', 'current');
+                
+                // 在通关模式中，所有按钮都应该被禁用，除了当前关卡
+                if (parseInt(btn.dataset.level) === conquestLevel) {
+                    btn.disabled = false;
+                } else {
+                    btn.disabled = true;
+                }
+            });
+            
+            // 标记已完成的关卡
+            for (let i = 1; i < conquestLevel; i++) {
+                const completedBtn = document.querySelector(`.difficulty-buttons button[data-level="${i}"]`);
+                if (completedBtn) {
+                    completedBtn.classList.add('completed');
+                }
+            }
+            
+            // 找到当前难度按钮并设为活跃
+            const currentBtn = document.querySelector(`.difficulty-buttons button[data-level="${conquestLevel}"]`);
+            if (currentBtn) {
+                currentBtn.classList.add('current');
+                currentBtn.classList.add('active');
+            }
+        }
+        
+        // 更新计时器显示 - 支持通关模式
+        function updateTimers() {
+            if (gameMode === 'conquest') {
+                const currentTime = Math.floor((new Date().getTime() - conquestStartTime) / 1000);
+                if (document.querySelector('.conquest-timer')) {
+                    document.querySelector('.conquest-timer').textContent = `总用时: ${currentTime}秒`;
+                }
+            }
         }
     </script>
 </body>

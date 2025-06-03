@@ -84,9 +84,23 @@
             text-decoration: none;
             color: #333;
             display: block;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
         }
         .file-list a:hover {
             color: #0066cc;
+            background-color: #f0f8ff;
+        }
+        .file-list a.active {
+            background-color: #0066cc;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,102,204,0.3);
+        }
+        .file-list a.active:hover {
+            background-color: #0052a3;
+            color: white;
         }
         iframe {
             width: 100%;
@@ -247,6 +261,7 @@
             const firstLink = document.querySelector('.file-list a');
             if (firstLink) {
                 document.getElementById('contentFrame').src = firstLink.getAttribute('href');
+                setActiveLink(firstLink); // 设置第一个链接为活跃状态
             }
             // 展开所有分类
             const allCategories = document.querySelectorAll('.file-list .category');
@@ -265,7 +280,25 @@
             sidebar.addEventListener('mouseleave', function() {
                 sidebar.classList.add('active'); // 不再移除active
             });
+            
+            // 为所有链接添加点击事件监听器
+            const allLinks = document.querySelectorAll('.file-list a');
+            allLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    setActiveLink(this);
+                });
+            });
         };
+
+        // 设置活跃链接的函数
+        function setActiveLink(clickedLink) {
+            // 移除所有链接的active类
+            const allLinks = document.querySelectorAll('.file-list a');
+            allLinks.forEach(link => link.classList.remove('active'));
+            
+            // 为点击的链接添加active类
+            clickedLink.classList.add('active');
+        }
 
         function toggleSidebar() {
             const sidebar = document.querySelector('.sidebar');

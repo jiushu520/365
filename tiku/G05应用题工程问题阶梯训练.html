@@ -362,6 +362,65 @@
             100% {opacity: 0; transform: translateY(-20px);}
         }
         
+        /* 通关模式相关样式 */
+        .level-progress {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        
+        .level-indicator {
+            font-size: 16px;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        
+        .question-counter {
+            font-size: 14px;
+        }
+        
+        .conquest-timer {
+            font-size: 14px;
+            margin-left: 15px;
+            color: #007bff;
+        }
+        
+        /* 已通关的关卡高亮样式 */
+        .difficulty-buttons button.completed {
+            background-color: #28a745;
+            color: white;
+            position: relative;
+        }
+        
+        .difficulty-buttons button.completed::after {
+            content: "✓";
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ffc107;
+            color: #000;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .difficulty-buttons button.current {
+            background-color: #007bff;
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 123, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0); }
+        }
+        
         @media (max-width: 768px) {
             .pk-container {
                 flex-direction: column;
@@ -435,6 +494,19 @@
                 margin-top: 10px;
             }
         }
+
+
+        
+        @media (max-width: 768px) {
+            .pk-container {
+                flex-direction: column;
+            }
+            
+            .player-container, .computer-container {
+                width: 90%;
+                margin-bottom: 30px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -461,7 +533,6 @@
     <!-- 游戏选项布局修改为一行 -->
     <div class="game-options" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin: 10px 0;">
         <div style="display: flex; align-items: center; margin: 0 10px;">
-
             <button id="timer5min" class="timer-btn" onclick="selectGameDuration(5)">5分钟</button>
             <button id="timer10min" class="timer-btn active" onclick="selectGameDuration(10)">10分钟</button>
         </div>
@@ -513,6 +584,7 @@
             <div class="mode-switch">
                 <button id="selfPracticeBtn" class="mode-btn" onclick="switchMode('self')">自学练习</button>
                 <button id="pkModeBtn" class="mode-btn active" onclick="switchMode('pk')">PK模式</button>
+                <button id="conquestModeBtn" class="mode-btn" onclick="switchMode('conquest')">通关模式</button>
             </div>
         </div>
         
@@ -563,8 +635,14 @@
         // 新增思考时间难度变量
         let computerThinkingDifficulty = 'easy'; // 默认为容易，可选值: 'easy'(容易)、'medium'(中等)、'hard'(困难)
         
+        // 通关模式变量
+        let conquestLevel = 1; // 当前关卡
+        let conquestCorrectCount = 0; // 当前关卡已答对的题目数
+        let conquestStartTime = 0; // 通关模式开始时间
+        let conquestTotalTime = 0; // 通关模式总用时
+        
         // 新增游戏模式变量
-        let gameMode = 'pk'; // 默认为PK模式，可选值: 'self'(自学练习) 或 'pk'(PK模式)
+        let gameMode = 'self'; // 默认为self模式，可选值: 'self'(自学练习)、'pk'(PK模式)、'conquest'(通关模式)
 
         const difficultyNames = ["01工程合作型", "02工程分段１", "03工程分段２", "04工程分对象1", "05工程分对象2","06周期工作","07综合随机"];
 
@@ -574,7 +652,7 @@
             setDifficulty(1);
             updateCountdownDisplay();
             switchMode('self'); // 默认self模式
-            selectThinkingDifficulty('hard'); // 默认为困难难度
+            selectThinkingDifficulty('easy'); // 默认为容易难度
         });
 
         // 切换游戏模式
@@ -586,9 +664,16 @@
             
             gameMode = mode;
             
-            // 更新UI按钮状态
-            document.getElementById('selfPracticeBtn').classList.toggle('active', mode === 'self');
-            document.getElementById('pkModeBtn').classList.toggle('active', mode === 'pk');
+            // Remove level progress indicator if not in conquest mode
+            if (mode !== 'conquest') {
+                const lp = document.getElementById('levelProgress');
+                if (lp) lp.remove();
+            }
+            
+            // 重置UI元素
+            document.getElementById('selfPracticeBtn').classList.remove('active');
+            document.getElementById('pkModeBtn').classList.remove('active');
+            document.getElementById('conquestModeBtn').classList.remove('active');
             
             const playerContainer = document.getElementById('playerContainer');
             const computerContainer = document.getElementById('computerContainer');
@@ -596,21 +681,78 @@
             
             if (mode === 'self') {
                 // 自学练习模式
+                document.getElementById('selfPracticeBtn').classList.add('active');
                 computerContainer.style.display = 'none';
                 playerContainer.classList.add('full-width');
                 countdownDisplay.style.display = 'block';
                 document.getElementById('startGameBtn').textContent = '开始练习';
                 document.getElementById('roundResult').style.display = 'none';
-            } else {
+                
+                // 恢复所有难度按钮的可点击状态
+                document.querySelectorAll('.difficulty-buttons button').forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('completed', 'current');
+                });
+                
+                // 显示当前选中的难度
+                setDifficulty(currentDifficulty);
+            } else if (mode === 'pk') {
                 // PK模式
+                document.getElementById('pkModeBtn').classList.add('active');
                 computerContainer.style.display = 'flex';
                 playerContainer.classList.remove('full-width');
                 countdownDisplay.style.display = 'block';
                 document.getElementById('startGameBtn').textContent = '开始PK';
                 document.getElementById('roundResult').style.display = 'block';
+                
+                // 恢复所有难度按钮的可点击状态
+                document.querySelectorAll('.difficulty-buttons button').forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('completed', 'current');
+                });
+                
+                // 显示当前选中的难度
+                setDifficulty(currentDifficulty);
+            } else if (mode === 'conquest') {
+                // 通关模式
+                document.getElementById('conquestModeBtn').classList.add('active');
+                computerContainer.style.display = 'none';
+                playerContainer.classList.add('full-width');
+                countdownDisplay.style.display = 'none';
+                document.getElementById('startGameBtn').textContent = '开始通关';
+                document.getElementById('roundResult').style.display = 'none';
+                
+                // 添加关卡进度显示
+                if (!document.getElementById('levelProgress')) {
+                    const levelProgress = document.createElement('div');
+                    levelProgress.id = 'levelProgress';
+                    levelProgress.className = 'level-progress';
+                    levelProgress.innerHTML = `
+                        <div class="level-indicator">当前关卡: 1</div>
+                        <div class="question-counter">完成题数: 0/5</div>
+                        <div class="conquest-timer">总用时: 0秒</div>
+                    `;
+                    document.querySelector('.player-container').insertBefore(
+                        levelProgress, 
+                        document.querySelector('.player-container .timer')
+                    );
+                }
+                
+                // 重置通关模式状态
+                conquestLevel = 1;
+                conquestCorrectCount = 0;
+                setDifficulty(conquestLevel);
+                
+                // 更新难度按钮禁用状态
+                updateDifficultyButtonsForConquest();
             }
             
             // 更新界面按钮状态
+            if (mode === 'conquest') {
+                document.querySelector('#playerContainer h3').style.display = 'none';
+            } else {
+                document.querySelector('#playerContainer h3').style.display = 'block';
+            }
             updateButtonStates();
         }
 
@@ -629,8 +771,57 @@
             if (gameInProgress) return; // 游戏进行中不能更改难度
             
             currentDifficulty = level;
+            
+            // 通关模式下不允许手动选择难度
+            if (gameMode === 'conquest') return;
+            
             document.querySelectorAll('.difficulty-buttons button').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`level${level}`).classList.add('active');
+        }
+
+        // 更新通关模式的难度按钮显示
+        function updateDifficultyButtonsForConquest() {
+            const buttons = document.querySelectorAll('.difficulty-buttons button');
+            
+            buttons.forEach((btn, index) => {
+                const level = index + 1;
+                btn.classList.remove('active', 'completed', 'current');
+                
+                if (level < conquestLevel) {
+                    // 已通关的关卡
+                    btn.classList.add('completed');
+                    btn.disabled = true;
+                } else if (level === conquestLevel) {
+                    // 当前关卡
+                    btn.classList.add('current');
+                    btn.disabled = true;
+                } else {
+                    // 未解锁的关卡
+                    btn.disabled = true;
+                }
+            });
+        }
+
+        // 更新通关模式UI
+        function updateConquestUI() {
+            if (gameMode !== 'conquest') return;
+            
+            const levelIndicator = document.querySelector('.level-indicator');
+            const questionCounter = document.querySelector('.question-counter');
+            const conquestTimer = document.querySelector('.conquest-timer');
+            
+            if (levelIndicator) {
+                levelIndicator.textContent = `当前关卡: ${conquestLevel}`;
+            }
+            
+            if (questionCounter) {
+                questionCounter.textContent = `完成题数: ${conquestCorrectCount}/5`;
+            }
+            
+            if (conquestTimer) {
+                const currentTime = Math.floor((Date.now() - conquestStartTime) / 1000);
+                conquestTimer.textContent = `总用时: ${conquestTotalTime + currentTime}秒`;
+            }
         }
 
         // 选择游戏时长
@@ -692,6 +883,17 @@
             }, 1000);
         }
 
+        // 通关模式计时器
+        function startConquestTimer() {
+            const conquestTimerInterval = setInterval(() => {
+                if (!gameInProgress || gameMode !== 'conquest') {
+                    clearInterval(conquestTimerInterval);
+                    return;
+                }
+                updateConquestUI();
+            }, 1000);
+        }
+
         function startGame() {
             // 重置状态
             playerCorrectCount = 0;
@@ -703,6 +905,15 @@
             playerTime = 0;
             computerTime = 0;
             
+            // 通关模式特殊处理
+            if (gameMode === 'conquest') {
+                conquestStartTime = Date.now();
+                conquestTotalTime = 0;
+                
+                // 在通关模式下强制将当前难度设置为征服级别
+                currentDifficulty = conquestLevel;
+            }
+            
             // 更新UI
             document.getElementById('playerScore').innerHTML = `正确: 0 | 错误: 0 | 总题数: 0`;
             if (gameMode === 'pk') {
@@ -710,7 +921,9 @@
                 document.getElementById('computerTimer').innerHTML = `时间: 0秒`;
                 document.getElementById('roundResult').innerHTML = '';
             }
-            document.getElementById('playerTimer').innerHTML = `时间: 0秒`;
+            if (gameMode !== 'conquest') {
+                document.getElementById('playerTimer').innerHTML = `时间: 0秒`;
+            }
             document.getElementById('history').innerHTML = '';
             
             // 启用/禁用相关按钮
@@ -728,8 +941,14 @@
             // 开始计时器
             startTimers();
             
-            // 启动倒计时
-            startCountdown();
+            // 针对不同模式启动不同的计时
+            if (gameMode === 'conquest') {
+                // 通关模式：不启动倒计时，而是启动关卡计时
+                startConquestTimer();
+            } else {
+                // 启动倒计时
+                startCountdown();
+            }
 
             // 仅在PK模式下才生成计算机题目
             if (gameMode === 'pk') {
@@ -749,6 +968,17 @@
             gameInProgress = false;
             countdownTime = gameDuration * 60;
             updateCountdownDisplay();
+            
+            // 重置通关模式状态
+            if (gameMode === 'conquest') {
+                conquestLevel = 1;
+                conquestCorrectCount = 0;
+                conquestStartTime = 0;
+                conquestTotalTime = 0;
+                currentDifficulty = 1;
+                updateDifficultyButtonsForConquest();
+                updateConquestUI();
+            }
             
             // 更新UI
             document.getElementById('playerQuestion').innerHTML = '';
@@ -942,6 +1172,8 @@
                     // 显示对诮语句
                     showTaunt('player');
                 }
+                
+
             } else {
                 document.getElementById('playerResult').innerHTML = '错误';
                 document.getElementById('playerResult').className = 'result incorrect';
@@ -962,6 +1194,36 @@
                           document.getElementById('playerQuestion').innerHTML, 
                           userAnswer, playerCorrectAnswer.join(' 或 '), 
                           isCorrect ? '正确' : '错误', questionTime);
+            
+            // 通关模式特殊逻辑
+            if (gameMode === 'conquest') {
+                if (isCorrect) {
+                    conquestCorrectCount++;
+                    updateConquestUI();
+                    
+                    // 检查是否完成当前关卡
+                    if (conquestCorrectCount >= 5) {
+                        // 完成当前关卡
+                        conquestTotalTime += Math.floor((Date.now() - conquestStartTime) / 1000);
+                        conquestLevel++;
+                        conquestCorrectCount = 0;
+                        
+                        if (conquestLevel > difficultyNames.length - 1) { // 排除最后的综合随机关卡
+                            // 全部通关
+                            endConquest();
+                            return;
+                        } else {
+                            // 进入下一关
+                            currentDifficulty = conquestLevel;
+                            conquestStartTime = Date.now();
+                            updateDifficultyButtonsForConquest();
+                            updateConquestUI();
+                        }
+                    }
+                } else {
+                    // 通关模式下答错不影响进度，继续当前关卡
+                }
+            }
             
             // 立即生成新题目
             generatePlayerQuestion();
@@ -1178,6 +1440,33 @@
             }
         });
 
+        // 通关结束函数
+        function endConquest() {
+            // 停止所有计时器
+            clearInterval(playerTimer);
+            clearInterval(computerTimer);
+            clearInterval(countdownTimer);
+            computerThinkingTimers.forEach(timer => clearTimeout(timer));
+            computerThinkingTimers = [];
+            
+            // 更改游戏状态
+            gameInProgress = false;
+            
+            // 禁用玩家输入
+            document.getElementById('playerAnswer').disabled = true;
+            document.getElementById('playerSubmitBtn').disabled = true;
+            
+            // 显示通关结果
+            conquestTotalTime += Math.floor((Date.now() - conquestStartTime) / 1000);
+            document.getElementById('roundResult').innerHTML = 
+                `恭喜通关！总用时: ${conquestTotalTime}秒，共完成 ${difficultyNames.length - 1} 个关卡！`;
+            document.getElementById('roundResult').style.display = 'block';
+            document.getElementById('roundResult').className = 'winner-indicator player-win';
+            
+            // 启用重置按钮
+            document.getElementById('resetGameBtn').disabled = false;
+        }
+
         // 游戏结束函数
         function endGame() {
             // 停止所有计时器
@@ -1223,26 +1512,9 @@
         }
 
 
-
         // 以下是生成题目的函数，与原有代码相同
 
-        function separateSquareRoot(n) {
-            let a = 1;
-            let b = n;
-
-            for (let i = 2; i * i <= n; i++) {
-                while (b % (i * i) === 0) {
-                    a *= i;
-                    b /= i * i;
-                }
-            }
-
-            return { a: a, b: b };
-        }
-
-
-
-  function generateQuestion() {
+        function generateQuestion() {
             switch(currentDifficulty) {
                 case 1: return generateLevel1Question();
                 case 2: return generateLevel2Question();
@@ -1251,115 +1523,109 @@
                 case 5: return generateLevel5Question();
                 case 6: return generateLevel6Question();
                 case 7: return generateLevel7Question();
-            
-              
-         
-        
                 default: return "";
             }
         }
 
-// 先定义GCD函数，帮助求LCM
-function gcd(a, b) {
-    if (b === 0) {
-        return a;
-    }
-    return gcd(b, a % b);
-}
+        // 先定义GCD函数，帮助求LCM
+        function gcd(a, b) {
+            if (b === 0) {
+                return a;
+            }
+            return gcd(b, a % b);
+        }
 
-// 计算两个数的最小公倍数
-function lcm(a, b) {
-    return Math.abs(a * b) / gcd(a, b);
-}
+        // 计算两个数的最小公倍数
+        function lcm(a, b) {
+            return Math.abs(a * b) / gcd(a, b);
+        }
+
+        function generateLevel1Question() {
+            let a = Math.floor(Math.random() * 9)+1 ;//
+            let b = (Math.floor(Math.random() * 8)+a)%9+1 ;//可以得出两个不同的随机数
+            
+            let c = lcm(a,b);
+            let d=lcm(c,a+b)*(Math.floor(Math.random() * 4)+1) ;// 配上的系数
+
+            let ta=d/a;
+            let tb=d/b;
+            let q = d / (a + b);  // 两人一起完成工作所需的时间
+            
+            let textq =  `\\begin{array}{cc}             
+                        一块瓜田悟空单独种需要${ta}小时;\\\\ 
+                        八戒单独种需要${tb}小时;\\\\           
+                        悟空和八戒一起种需要几小时?\\\\            
+                       \\end{array}`;
+            correctAnswer = [`${q}`]  
+            return `\\( ${textq}  \\)`;
+        }
 
 
 
 
-   function generateLevel1Question() {
-   let a = Math.floor(Math.random() * 9)+1 ;//
-   let b = (Math.floor(Math.random() * 8)+a)%9+1 ;//可以得出两个不同的随机数
-   
-
-
-
-   let c = lcm(a,b);
-   let d=lcm(c,a+b)*(Math.floor(Math.random() * 4)+1) ;// 配上的系数
-
-
-
-   let ta=d/a;
-   let tb=d/b;
-   let q = d / (a + b);  // 两人一起完成工作所需的时间
-   
-
-  
-    let textq =  `\\begin{array}{cc}             
-                一块瓜田悟空单独种需要${ta}小时;\\\\ 
-                八戒单独种需要${tb}小时;\\\\           
-                悟空和八戒一起种需要几小时?\\\\            
-               \\end{array}`;
-    correctAnswer = [`${q}`]  
-    return `\\( ${textq}  \\)`;
-
-}
-     
-
- 
-        
 
 
 
 
         function generateLevel2Question() {
-   let a = Math.floor(Math.random() * 5)+1 ;//
-    let b = (Math.floor(Math.random() * 4)+a)%5+1 ;//可以得出两个不同的随机数
-    let c=a+b;//合作效率
-    let d = lcm(a,b);//两都最小公数数
-    let e=lcm(c,d)*(Math.floor(Math.random() * 3)+1) ;// 相当于工作一份总量
+            let a = Math.floor(Math.random() * 5)+1 ;//
+            let b = (Math.floor(Math.random() * 4)+a)%5+1 ;//可以得出两个不同的随机数
+            let c=a+b;//合作效率
+            let d = lcm(a,b);//两都最小公数数
+            let e=lcm(c,d)*(Math.floor(Math.random() * 3)+1) ;// 相当于工作一份总量
 
-   let t1=Math.floor(Math.random() * 4)+1;//用时1
-   let t2=a*Math.floor(Math.random() * 3)+a;//用时2
-   let p1=t1*e;//产量1
-   let p2=t2*e;//产量2
-   let p12=p1+p2;//工作总量
-   let  ta=p12/a;//悟空用时
-   let  tb=p12/b;//八戒用时
-   let  ta2=p2/a;//后段悟单独用时
+            let t1=Math.floor(Math.random() * 4)+1;//用时1
+            let t2=a*Math.floor(Math.random() * 3)+a;//用时2
+            let p1=t1*e;//产量1
+            let p2=t2*e;//产量2
+            let p12=p1+p2;//工作总量
+            let  ta=p12/a;//悟空用时
+            let  tb=p12/b;//八戒用时
+            let  ta2=p2/a;//后段悟单独用时
 
-  
-    let textq =  `\\begin{array}{cc}      
+            
+            let textq =  `\\begin{array}{cc}      
 
-                一块瓜田悟空单独种需要${ta}小时;\\\\ 
-                八戒单独种需要${tb}小时;\\\\    
-                悟空和八戒一起种地${t1}小时;\\\\                   
-                后来八戒不种了；\\\
-                请问悟空还要种多少种小时？\\\\ 
-                \\\\               
-               \\end{array}`;
-    correctAnswer = [`${p2/a}`]  
-    return `\\( ${textq}  \\)`;
+                        一块瓜田悟空单独种需要${ta}小时;\\\\ 
+                        八戒单独种需要${tb}小时;\\\\    
+                        悟空和八戒一起种地${t1}小时;\\\\                   
+                        后来八戒不种了；\\\
+                        请问悟空还要种多少种小时？\\\\ 
+                        \\\\               
+                       \\end{array}`;
+            correctAnswer = [`${p2/a}`]  
+            return `\\( ${textq}  \\)`;
+        }
 
-}
+
+
+     
+
+
+
+
+
+
 
 
 
 function generateLevel3Question() {
-  let a = Math.floor(Math.random() * 5)+1 ;//
+    let a = Math.floor(Math.random() * 5)+1 ;//
     let b = (Math.floor(Math.random() * 4)+a)%5+1 ;//可以得出两个不同的随机数
     let c=a+b;//合作效率
     let d = lcm(a,b);//两都最小公数数
     let e=lcm(c,d)*(Math.floor(Math.random() * 3)+1) ;// 相当于工作一份总量
 
-   let t1=Math.floor(Math.random() * 4)+1;//用时1
-   let t2=a*Math.floor(Math.random() * 3)+a;//用时2
-   let p1=t1*e;//产量1
-   let p2=t2*e;//产量2
-   let p12=p1+p2;//工作总量
-   let  ta=p12/a;//悟空用时
-   let  tb=p12/b;//八戒用时
-   let  ta2=p2/a;//后段悟单独用时
+    let t1=Math.floor(Math.random() * 4)+1;//用时1
+    let t2=a*Math.floor(Math.random() * 3)+a;//用时2
+    let p1=t1*e;//产量1
+    let p2=t2*e;//产量2
+    let p12=p1+p2;//工作总量
+    let  ta=p12/a;//悟空用时
+    let  tb=p12/b;//八戒用时
+    let  ta2=p2/a;//后段悟单独用时
 
-  
+    
     let textq =  `\\begin{array}{cc}      
 
                 一块瓜田悟空单独种需要${ta}小时;\\\\ 
@@ -1376,23 +1642,27 @@ function generateLevel3Question() {
 
 
 
+
+
+
+
 function generateLevel4Question() {
-   let a = Math.floor(Math.random() * 5)+1 ;//
+    let a = Math.floor(Math.random() * 5)+1 ;//
     let b = (Math.floor(Math.random() * 4)+a)%5+1 ;//可以得出两个不同的随机数
     let c=a+b;//合作效率
     let d = lcm(a,b);//两都最小公数数
     let e=lcm(c,d)*(Math.floor(Math.random() * 3)+1) ;// 相当于工作一份总量
 
-   let  t1=Math.floor(Math.random() * 4)+1;//用时1
-   let  t2=b*Math.floor(Math.random() * 3)+b;//用时2
-   let  p1=t1*e;//产量1
-   let  p2=t2*e;//产量2
-   let  p12=p1+p2;//工作总量
-   let  ta=p12/a;//悟空用时
-   let  tb=p12/b;//八戒用时
-   let  ta2=p2/a;//后段单独用时
+    let  t1=Math.floor(Math.random() * 4)+1;//用时1
+    let  t2=b*Math.floor(Math.random() * 3)+b;//用时2
+    let  p1=t1*e;//产量1
+    let  p2=t2*e;//产量2
+    let  p12=p1+p2;//工作总量
+    let  ta=p12/a;//悟空用时
+    let  tb=p12/b;//八戒用时
+    let  ta2=p2/a;//后段单独用时
 
-  
+    
     let textq =  `\\begin{array}{cc}      
 
                 一块瓜田悟空单独种需要${ta}小时;\\\\ 
@@ -1407,14 +1677,6 @@ function generateLevel4Question() {
     correctAnswer = [`${p1/(a+b)}`]  
     return `\\( ${textq}  \\)`;
 }
-
-
-
-
-
-
-
-
 
 
 function generateLevel5Question() {
@@ -1450,44 +1712,6 @@ function generateLevel5Question() {
 }
 
 
-function generateLevel6Question() {
-     let a = Math.floor(Math.random() * 4) + 1;  // 效率1
-    let b = (Math.floor(Math.random() * 3) + a) % 4 + 1;  // 效率2，确保与a不同
-    let m = Math.floor(Math.random() * 4) + 1;  // 时间1
-    let n  = (Math.floor(Math.random() * 3) + m) % 4 + 1;  // 时间２，确保与m不同
-    let am=a*m;//ａ每一小段完成量
-    let  bn=b*n;//ｂ每一小段完成量
-     let ab=lcm(a,b);
-
-    let f = lcm(ab,am+bn) * (Math.floor(Math.random()*3) + 1);  // 三人的最小公倍数
-
-    let ta = f / a;  // 1工作所需时间
-    let tb = f / b;  // 2完成工作所需时间
-
-    let tt = f / (a*m + b*n )*(m+n);  // 总工作时间
-
-
-    let textq = `\\begin{array}{cc}   
-   
-                悟空和八戒一起吃桃子;\\\\ 
-                悟空单独吃完需要 ${ta} 天; \\\\    
-                八戒单独吃完需要 ${tb} 天; \\\\   
-                现在悟空先吃${m}天，八戒再吃${n}天; \\\\
-                 ${m},${n},${m},${n},${m},${n}}; \\\\
-                一直这样吃下去; \\\\ 
-                请问几天吃完？\\\\               
-               \\end{array}`;
-
-    correctAnswer = [`${tt}`];  // 正确答案为悟空在西边种地的时间
-    return `\\( ${textq} \\)`;
-}
-
-
-
-
-
-
-
 
 
 
@@ -1495,25 +1719,52 @@ function generateLevel6Question() {
 
 
         
-        function generateLevel7Question() {
-            const levelFunctions = [
-                generateLevel1Question,
-                generateLevel2Question,
-                generateLevel3Question,
-                generateLevel4Question,
-                generateLevel5Question,
-                generateLevel6Question,
-            
+        function generateLevel6Question() {
+            let a = Math.floor(Math.random() * 4) + 1;  // 效率1
+            let b = (Math.floor(Math.random() * 3) + a) % 4 + 1;  // 效率2，确保与a不同
+            let m = Math.floor(Math.random() * 4) + 1;  // 时间1
+            let n  = (Math.floor(Math.random() * 3) + m) % 4 + 1;  // 时间２，确保与m不同
+            let am=a*m;//ａ每一小段完成量
+            let  bn=b*n;//ｂ每一小段完成量
+            let ab=lcm(a,b);
 
-             
-            ];
+            let f = lcm(ab,am+bn) * (Math.floor(Math.random()*3) + 1);  // 三人的最小公倍数
 
-            const randomIndex = Math.floor(Math.random() * levelFunctions.length);
-            const selectedFunction = levelFunctions[randomIndex];
+            let ta = f / a;  // 1工作所需时间
+            let tb = f / b;  // 2完成工作所需时间
 
-            return selectedFunction();
-        }
+            let tt = f / (a*m + b*n )*(m+n);  // 总工作时间
 
+            let textq = `\\begin{array}{cc}   
+           
+                        悟空和八戒一起吃桃子;\\\\ 
+                        悟空单独吃完需要 ${ta} 天; \\\\    
+                        八戒单独吃完需要 ${tb} 天; \\\\   
+                        现在悟空先吃${m}天，八戒再吃${n}天; \\\\
+                         ${m},${n},${m},${n},${m},${n}}; \\\\
+                        一直这样吃下去; \\\\ 
+                        请问几天吃完？\\\\               
+                       \\end{array}`;
+
+                         correctAnswer = [`${tt}`];  // 正确答案为悟空在西边种地的时间
+             return `\\( ${textq} \\)`;
+         }
+
+         function generateLevel7Question() {
+             const levelFunctions = [
+                 generateLevel1Question,
+                 generateLevel2Question,
+                 generateLevel3Question,
+                 generateLevel4Question,
+                 generateLevel5Question,
+                 generateLevel6Question,
+             ];
+
+             const randomIndex = Math.floor(Math.random() * levelFunctions.length);
+             const selectedFunction = levelFunctions[randomIndex];
+
+             return selectedFunction();
+         }
 
 
 
@@ -1568,6 +1819,8 @@ function generateLevel6Question() {
                 document.body.removeChild(taunt);
             }, 2000);
         }
+        
+
     </script>
 </body>
 </html>
