@@ -22,17 +22,10 @@
             padding: 15px;
             overflow-y: auto;
             border-left: 1px solid #ddd;
-            transition: transform 0.3s ease;
-            transform: translateX(100%);
-            position: absolute;
-            right: 0;
-            top: 0;
-            bottom: 0;
             z-index: 100;
             font-size: 0.9em; /* 减小字体大小 */
         }
         .sidebar:hover, .sidebar.active {
-            transform: translateX(0);
         }
         .sidebar-trigger {
             position: absolute;
@@ -72,7 +65,7 @@
         }
         .content {
             flex: 1;
-            padding: 40px 20px 20px 20px;
+            padding: 20px 10px 10px 10px; /* 缩小padding，避免内容太靠右 */
             overflow-y: auto;
             position: relative;
         }
@@ -229,6 +222,8 @@
                   <li><a href="数轴距离.html" target="contentFrame">数轴距离</a></li>
                   <li><a href="向量加法.html" target="contentFrame">向量加法</a></li>
                   <li><a href="向量点乘的意义.html" target="contentFrame">向量点乘的意义</a></li>
+                  <li><a href="45°角问题交互式滑动.html" target="contentFrame">45°角问题交互式滑动</a></li>
+                  <li><a href="45°角的正切.html" target="contentFrame">45°角的正切</a></li>
                   <li><a href="函数图像.html" target="contentFrame">函数图像</a></li>
                   <li><a href="二次函数配方法与顶点式.html" target="contentFrame">二次函数配方法与顶点式</a></li>
                   <li><a href="直角坐标系 - 副本.html" target="contentFrame">直角坐标系 - 副本</a></li>

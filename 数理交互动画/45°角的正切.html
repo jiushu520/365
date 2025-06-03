@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>交互式几何图形：可变大小正方形、角度与点G</title>
+<style>
+  body {
+    font-family: 'Arial', 'SimSun', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px;
+    background-color: #f4f4f4;
+  }
+  h1 {
+    color: #333;
+  }
+  #geometryCanvas {
+    border: 1px solid #ccc;
+    background-color: #fff;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+  }
+  #info {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #e9e9e9;
+    border-radius: 5px;
+    box-shadow: 1px 1px 4px rgba(0,0,0,0.1);
+    min-width: 320px; 
+    text-align: left;
+  }
+  #info p {
+    margin: 8px 0;
+    color: #555;
+  }
+  .draggable {
+    cursor: ns-resize;
+  }
+  .draggable-ew { /* East-West resize cursor for horizontal dragging */
+    cursor: ew-resize;
+  }
+  .point {
+    fill: blue;
+  }
+  .point-f {
+    fill: red;
+  }
+  .point-g {
+    fill: purple;
+  }
+  .label {
+    font-size: 12px;
+    font-family: "Times New Roman", serif;
+    user-select: none;
+  }
+  .coord-label-main {
+    font-size: 14px;
+    fill: navy;
+  }
+   .coord-label-dynamic {
+    font-size: 14px;
+  }
+  .angle-text {
+    fill: red;
+    font-size: 13px;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+  <h1>交互式正方形几何图形 (含点G, 可变大小) 📐</h1>
+  <svg id="geometryCanvas" width="900" height="1000"></svg>
+  <div id="info">
+    <p>拖动点 <b>E</b> 沿线段 BC 滑动。</p>
+    <p>拖动点 <b>B</b> 水平改变正方形大小。</p>
+    <p>当前边长: <span id="sideLengthText">6.00</span></p>
+    <p>点 A: (0,0)</p>
+    <p>点 B: <span id="coordBText">(6.00, 0)</span></p>
+    <p>点 C: <span id="coordCText">(6.00, 6.00)</span></p>
+    <p>点 D: <span id="coordDText">(0, 6.00)</span></p>
+    <p>点 E: <span id="coordEText">(6.00, 3.00)</span></p>
+    <p>点 F: <span id="coordFText">(2.00, 6.00)</span></p>
+    <p>点 G: <span id="coordGText">(3.00, 9.00)</span> (G(x<sub>E</sub>-y<sub>E</sub>, x<sub>E</sub>+y<sub>E</sub>))</p>
+    <p>角 EAF 保持为 <b>45°</b>。</p>
+  </div>
+
+<script>
+  const svg = document.getElementById('geometryCanvas');
+  const svgNS = "http://www.w3.org/2000/svg";
+
+  const scale = 40; 
+  const canvasWidth = parseFloat(svg.getAttribute('width')); 
+  const canvasHeight = parseFloat(svg.getAttribute('height')); 
+
+  // Adjusted origin for bottom-left placement
+  const originX_svg = 250; 
+  const originY_svg = canvasHeight - 350; // e.g., 
+
+  const coordETextElement = document.getElementById('coordEText');
+  const coordFTextElement = document.getElementById('coordFText');
+  const coordGTextElement = document.getElementById('coordGText');
+  const sideLengthTextElement = document.getElementById('sideLengthText');
+  const coordBTextElement = document.getElementById('coordBText');
+  const coordCTextElement = document.getElementById('coordCText');
+  const coordDTextElement = document.getElementById('coordDText');
+
+  let currentSideLength = 6;
+  let m_E = currentSideLength / 2; 
+
+  let A_cart = { x: 0, y: 0 };
+  let B_cart = { x: currentSideLength, y: 0 };
+  let C_cart = { x: currentSideLength, y: currentSideLength };
+  let D_cart = { x: 0, y: currentSideLength };
+  let E_cart = { x: currentSideLength, y: m_E };
+  let F_cart = { x: 0, y: currentSideLength }; 
+  let G_cart = { x: 0, y: 0 }; 
+
+  function calculateDependentPoints() {
+    E_cart.x = currentSideLength;
+    m_E = Math.max(0, Math.min(m_E, currentSideLength)); 
+    E_cart.y = m_E;
+
+    if (currentSideLength + m_E === 0) { 
+        F_cart.x = 0;
+    } else {
+        F_cart.x = currentSideLength * (currentSideLength - m_E) / (currentSideLength + m_E);
+    }
+    F_cart.x = Math.max(0, Math.min(currentSideLength, F_cart.x)); 
+    F_cart.y = currentSideLength;
+
+    G_cart.x = E_cart.x - E_cart.y;
+    G_cart.y = E_cart.x + E_cart.y;
+  }
+  calculateDependentPoints(); 
+
+  let A_svg, B_svg, C_svg, D_svg, E_svg, F_svg, G_svg;
+
+  function createSvgElement(tag, attributes) {
+    const el = document.createElementNS(svgNS, tag);
+    for (const key in attributes) {
+      el.setAttribute(key, attributes[key]);
+    }
+    return el;
+  }
+
+  function toSvgCoords(cx, cy) {
+    return {
+      x: originX_svg + cx * scale,
+      y: originY_svg - cy * scale
+    };
+  }
+  
+  let gridGroup; // Declare gridGroup globally or in a shared scope
+
+  function addGrid() {
+    if (!gridGroup) {
+        gridGroup = createSvgElement('g', { id: 'grid-group' });
+        svg.insertBefore(gridGroup, svg.firstChild); // Insert grid group once, behind other elements
+    }
+    gridGroup.innerHTML = ''; // Clear previous grid content
+
+    const maxVisibleX = Math.floor((canvasWidth - originX_svg) / scale);
+    const minVisibleX = Math.ceil(-originX_svg / scale);
+    const maxVisibleY = Math.floor(originY_svg / scale);
+    const minVisibleY = Math.ceil((originY_svg - canvasHeight) / scale);
+
+    for (let i = minVisibleX; i <= maxVisibleX; i++) {
+      const xGridSvg = toSvgCoords(i, 0).x;
+      const yMinSvgGrid = toSvgCoords(i, minVisibleY).y;
+      const yMaxSvgGrid = toSvgCoords(i, maxVisibleY).y;
+      const vertLine = createSvgElement('line', {
+        x1: xGridSvg, y1: yMinSvgGrid, x2: xGridSvg, y2: yMaxSvgGrid,
+        stroke: '#e0e0e0', 'stroke-width': 0.5
+      });
+      gridGroup.appendChild(vertLine);
+      if (i !== 0) {
+        const xLabel = createSvgElement('text', {
+          x: xGridSvg - (i < 0 ? 8: 4), y: originY_svg + 15, class: 'label', 'font-size':'10px'
+        });
+        xLabel.textContent = i;
+        gridGroup.appendChild(xLabel);
+      }
+    }
+    for (let i = minVisibleY; i <= maxVisibleY; i++) {
+      const yGridSvg = toSvgCoords(0, i).y;
+      const xMinSvgGrid = toSvgCoords(minVisibleX, i).x;
+      const xMaxSvgGrid = toSvgCoords(maxVisibleX, i).x;
+      const horizLine = createSvgElement('line', {
+        x1: xMinSvgGrid, y1: yGridSvg, x2: xMaxSvgGrid, y2: yGridSvg,
+        stroke: '#e0e0e0', 'stroke-width': 0.5
+      });
+      gridGroup.appendChild(horizLine);
+      if (i !== 0) {
+        const yLabelText = createSvgElement('text', {
+          x: originX_svg - 15 - (i >=10 ? 5:0) - (i<0 ? 3:0) , y: yGridSvg + 4, class: 'label', 'font-size':'10px'
+        });
+        yLabelText.textContent = i;
+        gridGroup.appendChild(yLabelText);
+      }
+    }
+    const xAxis = createSvgElement('line', {
+        x1: toSvgCoords(minVisibleX,0).x, y1: originY_svg,
+        x2: toSvgCoords(maxVisibleX,0).x, y2: originY_svg,
+        stroke: 'black', 'stroke-width': 1
+    });
+    gridGroup.appendChild(xAxis);
+    const yAxis = createSvgElement('line', {
+        x1: originX_svg, y1: toSvgCoords(0,minVisibleY).y,
+        x2: originX_svg, y2: toSvgCoords(0,maxVisibleY).y,
+        stroke: 'black', 'stroke-width': 1
+    });
+    gridGroup.appendChild(yAxis);
+    // Adjusted origin label position
+    const originLabel = createSvgElement('text', { 
+        x: originX_svg - 15, // Left of Y-axis
+        y: originY_svg - 5,  // Above X-axis
+        class: 'label', 'font-size':'10px', 'text-anchor': 'middle' 
+    });
+    originLabel.textContent = "0";
+    gridGroup.appendChild(originLabel);
+  }
+  addGrid(); 
+
+  const square = createSvgElement('polygon', { fill: 'rgba(255, 192, 203, 0.5)', stroke: 'blue', 'stroke-width': 2 });
+  svg.appendChild(square);
+
+  const aPoint = createSvgElement('circle', { r: 4, class: 'point' });
+  const bPoint = createSvgElement('circle', { r: 6, class: 'point draggable-ew' }); 
+  const cPoint = createSvgElement('circle', { r: 4, class: 'point' });
+  const dPoint = createSvgElement('circle', { r: 4, class: 'point' });
+  const ePoint = createSvgElement('circle', { r: 6, class: 'point draggable', id: 'pointE', fill: 'orange' });
+  const fPoint = createSvgElement('circle', { r: 6, class: 'point-f', id: 'pointF' });
+  const gPoint = createSvgElement('circle', { r: 6, class: 'point-g', id: 'pointG' });
+  [aPoint, bPoint, cPoint, dPoint, ePoint, fPoint, gPoint].forEach(p => svg.appendChild(p));
+
+  const aLabel = createSvgElement('text', { class: 'label coord-label-main' });
+  const bLabel = createSvgElement('text', { class: 'label coord-label-main' });
+  const cLabel = createSvgElement('text', { class: 'label coord-label-main' });
+  const dLabel = createSvgElement('text', { class: 'label coord-label-main' });
+  const eLabel = createSvgElement('text', { class: 'label coord-label-dynamic', fill: 'orange' });
+  const fLabel = createSvgElement('text', { class: 'label coord-label-dynamic', fill: 'red'});
+  const gLabel = createSvgElement('text', { class: 'label coord-label-dynamic', fill: 'purple'});
+  [aLabel, bLabel, cLabel, dLabel, eLabel, fLabel, gLabel].forEach(l => svg.appendChild(l));
+  
+  const lineAE = createSvgElement('line', { stroke: 'green', 'stroke-width': 2 });
+  const lineAF = createSvgElement('line', { stroke: 'green', 'stroke-width': 2 });
+  const lineGE = createSvgElement('line', { stroke: 'darkgreen', 'stroke-width': 1.5, 'stroke-dasharray': '4 2' });
+  const lineGA = createSvgElement('line', { stroke: 'darkgreen', 'stroke-width': 1.5, 'stroke-dasharray': '4 2' });
+  [lineAE, lineAF, lineGE, lineGA].forEach(l => svg.appendChild(l));
+
+  const angleArcPath = createSvgElement('path', { stroke: 'red', 'stroke-width': 1.5, fill: 'none' });
+  const angleTextLabel = createSvgElement('text', { class: 'label angle-text' });
+  angleTextLabel.textContent = 'α = 45°';
+  svg.appendChild(angleArcPath);
+  svg.appendChild(angleTextLabel);
+
+  function updateDisplay() {
+    B_cart.x = currentSideLength; B_cart.y = 0;
+    C_cart.x = currentSideLength; C_cart.y = currentSideLength;
+    D_cart.x = 0; D_cart.y = currentSideLength;
+    calculateDependentPoints(); 
+
+    A_svg = toSvgCoords(A_cart.x, A_cart.y);
+    B_svg = toSvgCoords(B_cart.x, B_cart.y);
+    C_svg = toSvgCoords(C_cart.x, C_cart.y);
+    D_svg = toSvgCoords(D_cart.x, D_cart.y);
+    E_svg = toSvgCoords(E_cart.x, E_cart.y);
+    F_svg = toSvgCoords(F_cart.x, F_cart.y);
+    G_svg = toSvgCoords(G_cart.x, G_cart.y);
+
+    square.setAttribute('points', `${A_svg.x},${A_svg.y} ${B_svg.x},${B_svg.y} ${C_svg.x},${C_svg.y} ${D_svg.x},${D_svg.y}`);
+
+    aPoint.setAttribute('cx', A_svg.x); aPoint.setAttribute('cy', A_svg.y);
+    bPoint.setAttribute('cx', B_svg.x); bPoint.setAttribute('cy', B_svg.y);
+    cPoint.setAttribute('cx', C_svg.x); cPoint.setAttribute('cy', C_svg.y);
+    dPoint.setAttribute('cx', D_svg.x); dPoint.setAttribute('cy', D_svg.y);
+    ePoint.setAttribute('cx', E_svg.x); ePoint.setAttribute('cy', E_svg.y);
+    fPoint.setAttribute('cx', F_svg.x); fPoint.setAttribute('cy', F_svg.y);
+    gPoint.setAttribute('cx', G_svg.x); gPoint.setAttribute('cy', G_svg.y);
+
+    aLabel.textContent = `A(${A_cart.x},${A_cart.y})`; aLabel.setAttribute('x', A_svg.x - 15); aLabel.setAttribute('y', A_svg.y + 15);
+    bLabel.textContent = `B(${B_cart.x.toFixed(1)},${B_cart.y})`; bLabel.setAttribute('x', B_svg.x + 5); bLabel.setAttribute('y', B_svg.y + 15);
+    cLabel.textContent = `C(${C_cart.x.toFixed(1)},${C_cart.y.toFixed(1)})`; cLabel.setAttribute('x', C_svg.x + 8); cLabel.setAttribute('y', C_svg.y - 8);
+    dLabel.textContent = `D(${D_cart.x},${D_cart.y.toFixed(1)})`; dLabel.setAttribute('x', D_svg.x - 30); dLabel.setAttribute('y', D_svg.y - 8);
+    eLabel.textContent = `E(${E_cart.x.toFixed(1)},${E_cart.y.toFixed(1)})`; eLabel.setAttribute('x', E_svg.x + 10); eLabel.setAttribute('y', E_svg.y + 5);
+    fLabel.textContent = `F(${F_cart.x.toFixed(1)},${F_cart.y.toFixed(1)})`; fLabel.setAttribute('x', F_svg.x - (F_cart.x < 1 ? 15 : 35)); fLabel.setAttribute('y', F_svg.y - 10);
+    gLabel.textContent = `G(${G_cart.x.toFixed(1)},${G_cart.y.toFixed(1)})`; gLabel.setAttribute('x', G_svg.x + 10); gLabel.setAttribute('y', G_svg.y - (G_cart.y < A_cart.y + 0.5 ? 10 : -10) );
+
+    lineAE.setAttribute('x1', A_svg.x); lineAE.setAttribute('y1', A_svg.y); lineAE.setAttribute('x2', E_svg.x); lineAE.setAttribute('y2', E_svg.y);
+    lineAF.setAttribute('x1', A_svg.x); lineAF.setAttribute('y1', A_svg.y); lineAF.setAttribute('x2', F_svg.x); lineAF.setAttribute('y2', F_svg.y);
+    lineGE.setAttribute('x1', G_svg.x); lineGE.setAttribute('y1', G_svg.y); lineGE.setAttribute('x2', E_svg.x); lineGE.setAttribute('y2', E_svg.y);
+    lineGA.setAttribute('x1', G_svg.x); lineGA.setAttribute('y1', G_svg.y); lineGA.setAttribute('x2', A_svg.x); lineGA.setAttribute('y2', A_svg.y);
+
+    const vecAE_x = E_cart.x - A_cart.x; const vecAE_y = E_cart.y - A_cart.y;
+    const vecAF_x = F_cart.x - A_cart.x; const vecAF_y = F_cart.y - A_cart.y;
+    const angleAE = Math.atan2(vecAE_y, vecAE_x); const angleAF = Math.atan2(vecAF_y, vecAF_x);
+    const arcRadius = 1.0 * scale;
+    const arcPathStartX = A_svg.x + arcRadius * Math.cos(angleAE); const arcPathStartY = A_svg.y - arcRadius * Math.sin(angleAE);
+    const arcPathEndX = A_svg.x + arcRadius * Math.cos(angleAF); const arcPathEndY = A_svg.y - arcRadius * Math.sin(angleAF);
+    angleArcPath.setAttribute('d', `M ${arcPathStartX} ${arcPathStartY} A ${arcRadius} ${arcRadius} 0 0 0 ${arcPathEndX} ${arcPathEndY}`);
+    const midAngleForText = (angleAE + angleAF) / 2;
+    const textPosSvg = toSvgCoords(A_cart.x + 0.8 * Math.cos(midAngleForText), A_cart.y + 0.8 * Math.sin(midAngleForText));
+    angleTextLabel.setAttribute('x', textPosSvg.x - 15 ); angleTextLabel.setAttribute('y', textPosSvg.y + 5 );
+
+    sideLengthTextElement.textContent = currentSideLength.toFixed(2);
+    coordBTextElement.textContent = `(${B_cart.x.toFixed(2)}, ${B_cart.y.toFixed(2)})`;
+    coordCTextElement.textContent = `(${C_cart.x.toFixed(2)}, ${C_cart.y.toFixed(2)})`;
+    coordDTextElement.textContent = `(${D_cart.x.toFixed(2)}, ${D_cart.y.toFixed(2)})`;
+    coordETextElement.textContent = `(${E_cart.x.toFixed(2)}, ${E_cart.y.toFixed(2)})`;
+    coordFTextElement.textContent = `(${F_cart.x.toFixed(2)}, ${F_cart.y.toFixed(2)})`;
+    coordGTextElement.textContent = `(${G_cart.x.toFixed(2)}, ${G_cart.y.toFixed(2)})`;
+  }
+  updateDisplay(); 
+
+  let isDraggingPointE = false;
+  let isDraggingPointB = false;
+
+  ePoint.addEventListener('mousedown', () => { isDraggingPointE = true; svg.style.cursor = 'ns-resize'; });
+  bPoint.addEventListener('mousedown', () => { isDraggingPointB = true; svg.style.cursor = 'ew-resize'; });
+
+  svg.addEventListener('mousemove', (event) => {
+    if (!isDraggingPointE && !isDraggingPointB) return;
+    const svgRect = svg.getBoundingClientRect();
+
+    if (isDraggingPointE) {
+      const mouseY_svg = event.clientY - svgRect.top;
+      let new_m_E = (originY_svg - mouseY_svg) / scale;
+      m_E = Math.max(0, Math.min(currentSideLength, new_m_E)); 
+      updateDisplay();
+    }
+
+    if (isDraggingPointB) {
+      const mouseX_svg = event.clientX - svgRect.left;
+      let new_side_length = (mouseX_svg - originX_svg) / scale;
+      currentSideLength = Math.max(1, new_side_length); 
+      addGrid(); // Redraw grid as its effective visible area might change or labels need repositioning
+      updateDisplay();
+    }
+  });
+
+  svg.addEventListener('mouseup', () => {
+    isDraggingPointE = false;
+    isDraggingPointB = false;
+    svg.style.cursor = 'default';
+  });
+
+  svg.addEventListener('mouseleave', () => { 
+    if (isDraggingPointE || isDraggingPointB) {
+        isDraggingPointE = false;
+        isDraggingPointB = false;
+        svg.style.cursor = 'default';
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>45°角问题二03交互式滑动</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* 左右分栏布局 */
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 左栏 - 图形区域 */
+        .content-left {
+            width: 50%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: #f9f9f9;
+            overflow-y: auto;
+        }
+        
+        /* 右栏 - 解题区域 */
+        .content-right {
+            width: 50%;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: white;
+            border-left: 1px solid #ddd;
+        }
+        
+        .problem { 
+            margin-bottom: 20px; 
+        }
+        
+        .problem h2 {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .solution { 
+            margin-top: 20px; 
+        }
+        
+        .solution h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        svg {
+            border: 1px solid #ddd;
+            display: block;
+            margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .step { 
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+        
+        .hint { 
+            color: #0066cc; 
+            font-style: italic;
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-left: 4px solid #0066cc;
+            margin: 20px 0;
+        }
+        
+        .hint ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .hint li {
+            margin: 5px 0;
+        }
+        
+        #controls {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        #controls label {
+            font-weight: bold;
+            color: #555;
+            margin-right: 15px;
+        }
+        
+        #controls input[type="range"] {
+            width: 200px;
+            margin: 0 10px;
+        }
+        
+        #scaleValue, #ePositionValue {
+            display: inline-block;
+            width: 30px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .reference { 
+            font-size: 0.9em; 
+            color: #555; 
+            margin-top: 15px; 
+        }
+        
+        .interactive-info {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        
+        .coordinate-display {
+            background-color: #e8f5e8;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+            .content-left, .content-right {
+                width: 100%;
+                height: 50%;
+            }
+            .content-right {
+                border-left: none;
+                border-top: 1px solid #ddd;
+            }
+            .handle {
+                display: none !important;
+            }
+        }
+        /* 拖拽手柄样式 */
+        .handle {
+            width: 8px;
+            background: #ddd;
+            cursor: col-resize;
+            position: relative;
+            z-index: 10;
+            transition: background 0.2s;
+        }
+        .handle:hover {
+            background: #bbb;
+        }
+        
+        /* 可拖拽点的样式 */
+        .draggable-point {
+            cursor: grab;
+            transition: r 0.2s;
+        }
+        .draggable-point:hover {
+            r: 8;
+        }
+        .draggable-point:active {
+            cursor: grabbing;
+        }
+        
+        /* SVG容器样式 */
+        #coordinate-system {
+            user-select: none;
+        }
+    </style>
+    <!-- 添加MathJax支持 -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async src=".\mathjax\mathjax\es5\tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- 左栏：控制区和图形 -->
+        <div class="content-left">
+
+
+            <div class="coordinate-display" id="coordinateDisplay">
+                E坐标: (6, 6) | F坐标: (6, 6) | 边长: 12
+            </div>
+            
+            <svg id="coordinate-system" width="100%" height="600"></svg>
+            <div id="controls">
+                <label>坐标缩放: <input type="range" id="scale" min="20" max="100" value="90"></label>
+                <span id="scaleValue">90</span>
+                <br><br>
+                <label>点E位置: <input type="range" id="ePosition" min="0" max="12" value="6" step="1"></label>
+                <span id="ePositionValue">6</span>
+                <br><br>
+                <label>正方形边长: <span id="squareSizeValue">12</span> (拖拽B点调整)</label>
+            </div>
+        </div>
+        <div class="handle"></div>
+        <!-- 右栏：问题和解题步骤 -->
+        <div class="content-right">
+            <div class="problem">
+                <h2>交互式45°角问题：点E在BC上滑动，保持∠EAF = 45°</h2>
+                <p id="problemDesc">设正方形ABCD，A(0,0)为原点，B(12,0)，C(12,12)，D(0,12)</p>
+                <p id="eDesc">点E在BC边上滑动，设E(12,m)，其中m∈[0,12]</p>
+                <p>点F在CD延长线上，使得∠EAF = 45°</p>
+            </div>
+
+            <div class="solution">
+                <h3>数学推导过程</h3>
+                <div class="step">
+                    <p><strong>1. 建立坐标系：</strong></p>
+                    <ul>
+                        <li id="coordSystem">正方形ABCD：A(0,0)为原点，B(12,0)，C(12,12)，D(0,12)</li>
+                        <li id="eRange">点E在BC上：E(12,m)，其中m∈[0,12]</li>
+                        <li id="fRange">点F在CD延长线上：F(n,12)，其中n可为负值</li>
+                    </ul>
+                    
+                    <p><strong>2. 向量表示：</strong></p>
+                    <ul>
+                        <li id="vectorAE">$\vec{AE} = (12-0, m-0) = (12, m)$</li>
+                        <li id="vectorAF">$\vec{AF} = (n-0, 12-0) = (n, 12)$</li>
+                    </ul>
+                    
+                    <p><strong>3. 利用角度条件：</strong></p>
+                    <ul>
+                        <li>∠EAF = 45°，所以 $\cos(45°) = \frac{\sqrt{2}}{2}$</li>
+                        <li>$\cos(\angle EAF) = \frac{\vec{AE} \cdot \vec{AF}}{|\vec{AE}| \cdot |\vec{AF}|}$</li>
+                        <li id="dotProduct">$\vec{AE} \cdot \vec{AF} = 12 \cdot n + m \cdot 12 = 12(n + m)$</li>
+                        <li id="magnitudeAE">$|\vec{AE}| = \sqrt{12^2 + m^2} = \sqrt{144 + m^2}$</li>
+                        <li id="magnitudeAF">$|\vec{AF}| = \sqrt{n^2 + 12^2} = \sqrt{n^2 + 144}$</li>
+                    </ul>
+                    
+                    <p><strong>4. 求解F坐标：</strong></p>
+                    <ul>
+                        <li id="fCoordDesc">设F(n, 12)在CD延长线上，利用$\cos(45°) = \frac{\sqrt{2}}{2}$</li>
+                        <li>$\cos(\angle EAF) = \frac{\vec{AE} \cdot \vec{AF}}{|\vec{AE}| \cdot |\vec{AF}|} = \frac{\sqrt{2}}{2}$</li>
+                        <li id="equation">代入得：$\frac{12(n + m)}{\sqrt{144 + m^2} \cdot \sqrt{n^2 + 144}} = \frac{\sqrt{2}}{2}$</li>
+                        <li>使用向量旋转法：将$\vec{AE}$逆时针旋转45°得到$\vec{AF}$的方向</li>
+                        <li>旋转公式：$(x',y') = (x\cos45° - y\sin45°, x\sin45° + y\cos45°)$</li>
+                        <li id="intersectionDesc">F点坐标通过旋转后向量与直线y=12的交点确定</li>
+                    </ul>
+                    
+                    <div class="hint">
+                        <p><strong>当前状态验证：</strong></p>
+                        <ul id="currentVerification">
+                            <li>当m=0时（E=B(12,0)），F(12,12)=C，验证：$\vec{AE}=(12,0)$旋转45°得$\vec{AF}=(12,12)$</li>
+                            <li>当m=6时（E在BC中点），F(6√2,12)≈(8.49,12)</li>
+                            <li>当m=12时（E=C(12,12)），F(0,12)=D，验证：$\vec{AE}=(12,12)$旋转45°得$\vec{AF}=(0,12)$</li>
+                            <li>通过滑块可以实时观察∠EAF始终保持45°，F点轨迹符合旋转几何</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 设置变量
+        let svgWidth = 800;
+        let svgHeight = 600;
+        let centerX = svgWidth / 2;
+        let centerY = svgHeight / 2;
+        let scale = 90;
+        let ePosition = 6; // E点在BC上的位置参数，范围[0,12]
+        let isDragging = false; // 是否正在拖拽E点
+        let dragStartY = 0; // 拖拽开始时的Y坐标
+        let squareSize = 12; // 正方形边长，默认12
+        let isDraggingB = false; // 是否正在拖拽B点
+        let dragStartX = 0; // 拖拽B点时的X坐标
+
+        // 正方形顶点（数学坐标系中，A为原点）
+        function getSquarePoints() {
+            return {
+                pointA: {x: 0, y: 0},   // A(0,0) - 原点
+                pointB: {x: squareSize, y: 0},  // B(squareSize,0)
+                pointC: {x: squareSize, y: squareSize}, // C(squareSize,squareSize)
+                pointD: {x: 0, y: squareSize}  // D(0,squareSize)
+            };
+        }
+
+        // 计算E、F和G的坐标
+        function calculatePoints() {
+            const {pointA, pointB, pointC, pointD} = getSquarePoints();
+            
+            // E在BC上，ePosition需要按比例调整到当前正方形大小
+            const eRatio = ePosition / 12; // 保持E点在BC上的相对位置
+            const pointE = {x: squareSize, y: eRatio * squareSize}; 
+            
+            // 计算G点坐标：G(x(E)-y(E), x(E)+y(E))
+            const pointG = {
+                x: pointE.x - pointE.y,  // x(E) - y(E)
+                y: pointE.x + pointE.y   // x(E) + y(E)
+            };
+            
+            // 使用向量旋转法计算F点
+            const m = pointE.y; // E点的y坐标
+            let fX;
+            
+            const cos45 = Math.sqrt(2) / 2;
+            const sin45 = Math.sqrt(2) / 2;
+            
+            // 旋转后的向量方向
+            const rotatedX = squareSize * cos45 - m * sin45;
+            const rotatedY = squareSize * sin45 + m * cos45;
+            
+            // AF应该与旋转后的方向平行
+            if (Math.abs(rotatedY) > 0.001) {
+                const t = squareSize / rotatedY; // F在y=squareSize线上
+                fX = t * rotatedX;
+            } else {
+                fX = 0;
+            }
+            
+            // 限制F在合理范围内
+            fX = Math.max(-50, Math.min(50, fX));
+            
+            const pointF = {x: fX, y: squareSize}; // F在CD延长线上，y=squareSize
+            
+            return {pointE, pointF, pointG, ...getSquarePoints()};
+        }
+
+        // 转换为SVG坐标（A为原点，位于画布左下四分之一处）
+        function toSvgX(x) {
+            return svgWidth / 4 + x * scale / 6; // 原点在画布水平1/4处
+        }
+
+        function toSvgY(y) {
+            return svgHeight * 3/4 - y * scale / 6; // 原点在画布垂直3/4处（从上往下），y轴向上为正
+        }
+
+        // 创建SVG元素
+        function createSVGElement(tag) {
+            return document.createElementNS("http://www.w3.org/2000/svg", tag);
+        }
+
+        // 绘制坐标系和图形
+        function drawCoordinateSystem() {
+            const svg = document.getElementById('coordinate-system');
+            svg.innerHTML = ''; // 清空已有内容
+
+            // 更新SVG尺寸
+            const container = document.querySelector('.content-left');
+            svgWidth = container.offsetWidth - 40;
+            svgHeight = Math.max(container.offsetHeight - 160, 400); // 减去更多高度给控件
+            
+            svg.setAttribute('width', svgWidth);
+            svg.setAttribute('height', svgHeight);
+            
+            centerX = svgWidth / 2;
+            centerY = svgHeight / 2;
+
+            const margin = 2;
+            // 计算可见范围（A为原点，位于画布左下四分之一处）
+            const leftWidth = (svgWidth / 4) / (scale / 6);
+            const rightWidth = (svgWidth * 3/4) / (scale / 6);
+            const bottomHeight = (svgHeight * 3/4) / (scale / 6);
+            const topHeight = (svgHeight / 4) / (scale / 6);
+            
+            const xMin = -leftWidth - margin;
+            const xMax = rightWidth + margin;
+            const yMin = -bottomHeight - margin;
+            const yMax = topHeight + margin;
+
+            // 绘制网格线
+            const gridGroup = createSVGElement('g');
+            gridGroup.setAttribute('stroke', '#eee');
+            gridGroup.setAttribute('stroke-width', '0.5');
+
+            // 横向网格线（水平线）
+            for (let y = Math.floor(yMin); y <= Math.ceil(yMax); y += 2) {
+                if (y === 0) continue; // 坐标轴单独绘制
+                const svgY = toSvgY(y);
+                // 确保网格线在SVG可视区域内
+                if (svgY >= 0 && svgY <= svgHeight) {
+                    const line = createSVGElement('line');
+                    line.setAttribute('x1', 0); // 从SVG左边缘开始
+                    line.setAttribute('y1', svgY);
+                    line.setAttribute('x2', svgWidth); // 到SVG右边缘结束
+                    line.setAttribute('y2', svgY);
+                    line.setAttribute('vector-effect', 'non-scaling-stroke');
+                    gridGroup.appendChild(line);
+                }
+            }
+
+            // 纵向网格线（垂直线）
+            for (let x = Math.floor(xMin); x <= Math.ceil(xMax); x += 2) {
+                if (x === 0) continue; // 坐标轴单独绘制
+                const svgX = toSvgX(x);
+                // 确保网格线在SVG可视区域内
+                if (svgX >= 0 && svgX <= svgWidth) {
+                    const line = createSVGElement('line');
+                    line.setAttribute('x1', svgX);
+                    line.setAttribute('y1', 0); // 从SVG上边缘开始
+                    line.setAttribute('x2', svgX);
+                    line.setAttribute('y2', svgHeight); // 到SVG下边缘结束
+                    line.setAttribute('vector-effect', 'non-scaling-stroke');
+                    gridGroup.appendChild(line);
+                }
+            }
+
+            svg.appendChild(gridGroup);
+
+            // 绘制坐标轴
+            const axisGroup = createSVGElement('g');
+            axisGroup.setAttribute('stroke', '#000');
+            axisGroup.setAttribute('stroke-width', '1.5');
+
+            // x轴（水平轴）
+            const xAxis = createSVGElement('line');
+            xAxis.setAttribute('x1', 0); // 从SVG左边缘开始
+            xAxis.setAttribute('y1', toSvgY(0));
+            xAxis.setAttribute('x2', svgWidth); // 到SVG右边缘结束
+            xAxis.setAttribute('y2', toSvgY(0));
+            xAxis.setAttribute('vector-effect', 'non-scaling-stroke');
+            axisGroup.appendChild(xAxis);
+
+            // y轴（垂直轴）
+            const yAxis = createSVGElement('line');
+            yAxis.setAttribute('x1', toSvgX(0));
+            yAxis.setAttribute('y1', 0); // 从SVG上边缘开始
+            yAxis.setAttribute('x2', toSvgX(0));
+            yAxis.setAttribute('y2', svgHeight); // 到SVG下边缘结束
+            yAxis.setAttribute('vector-effect', 'non-scaling-stroke');
+            axisGroup.appendChild(yAxis);
+
+            svg.appendChild(axisGroup);
+
+            // 绘制刻度标签
+            const labelsGroup = createSVGElement('g');
+            labelsGroup.setAttribute('font-size', '12');
+            labelsGroup.setAttribute('font-family', 'Arial');
+            labelsGroup.setAttribute('fill', '#666');
+
+            for (let x = Math.ceil(xMin); x <= Math.floor(xMax); x += 2) {
+                const text = createSVGElement('text');
+                text.setAttribute('x', toSvgX(x));
+                text.setAttribute('y', toSvgY(0) + 15);
+                text.setAttribute('text-anchor', 'middle');
+                if (x === 0) {
+                    text.textContent = 'A';
+                    text.setAttribute('font-weight', 'bold');
+                    text.setAttribute('fill', '#ff4444');
+                } else {
+                    text.textContent = x;
+                }
+                labelsGroup.appendChild(text);
+            }
+
+            for (let y = Math.ceil(yMin); y <= Math.floor(yMax); y += 2) {
+                if (y === 0) continue;
+                const text = createSVGElement('text');
+                text.setAttribute('x', toSvgX(0) - 10);
+                text.setAttribute('y', toSvgY(y) + 5);
+                text.setAttribute('text-anchor', 'end');
+                text.textContent = y;
+                labelsGroup.appendChild(text);
+            }
+
+            svg.appendChild(labelsGroup);
+
+            // 计算当前E、F和G的位置
+            const {pointE, pointF, pointG, pointA, pointB, pointC, pointD} = calculatePoints();
+
+            // 绘制图形
+            const shapeGroup = createSVGElement('g');
+
+            // 1. 正方形ABCD
+            const square = createSVGElement('polygon');
+            square.setAttribute('points', [
+                toSvgX(pointA.x) + ',' + toSvgY(pointA.y),
+                toSvgX(pointB.x) + ',' + toSvgY(pointB.y),
+                toSvgX(pointC.x) + ',' + toSvgY(pointC.y),
+                toSvgX(pointD.x) + ',' + toSvgY(pointD.y)
+            ].join(' '));
+            square.setAttribute('fill', 'rgba(33,150,243,0.08)');
+            square.setAttribute('stroke', '#2196F3');
+            square.setAttribute('stroke-width', '2');
+            shapeGroup.appendChild(square);
+
+            // 2. 连线AE
+            const lineAE = createSVGElement('line');
+            lineAE.setAttribute('x1', toSvgX(pointA.x));
+            lineAE.setAttribute('y1', toSvgY(pointA.y));
+            lineAE.setAttribute('x2', toSvgX(pointE.x));
+            lineAE.setAttribute('y2', toSvgY(pointE.y));
+            lineAE.setAttribute('stroke', '#ff4444');
+            lineAE.setAttribute('stroke-width', '2');
+            shapeGroup.appendChild(lineAE);
+
+            // 3. 连线AF
+            const lineAF = createSVGElement('line');
+            lineAF.setAttribute('x1', toSvgX(pointA.x));
+            lineAF.setAttribute('y1', toSvgY(pointA.y));
+            lineAF.setAttribute('x2', toSvgX(pointF.x));
+            lineAF.setAttribute('y2', toSvgY(pointF.y));
+            lineAF.setAttribute('stroke', '#ff4444');
+            lineAF.setAttribute('stroke-width', '2');
+            shapeGroup.appendChild(lineAF);
+
+            // 4. 连线EF（辅助线）
+            const lineEF = createSVGElement('line');
+            lineEF.setAttribute('x1', toSvgX(pointE.x));
+            lineEF.setAttribute('y1', toSvgY(pointE.y));
+            lineEF.setAttribute('x2', toSvgX(pointF.x));
+            lineEF.setAttribute('y2', toSvgY(pointF.y));
+            lineEF.setAttribute('stroke', '#8e24aa');
+            lineEF.setAttribute('stroke-width', '1');
+            lineEF.setAttribute('stroke-dasharray', '4,4');
+            shapeGroup.appendChild(lineEF);
+
+            // 5. 连线GE
+            const lineGE = createSVGElement('line');
+            lineGE.setAttribute('x1', toSvgX(pointG.x));
+            lineGE.setAttribute('y1', toSvgY(pointG.y));
+            lineGE.setAttribute('x2', toSvgX(pointE.x));
+            lineGE.setAttribute('y2', toSvgY(pointE.y));
+            lineGE.setAttribute('stroke', '#ff9800');
+            lineGE.setAttribute('stroke-width', '2');
+            shapeGroup.appendChild(lineGE);
+
+            // 6. 连线GA
+            const lineGA = createSVGElement('line');
+            lineGA.setAttribute('x1', toSvgX(pointG.x));
+            lineGA.setAttribute('y1', toSvgY(pointG.y));
+            lineGA.setAttribute('x2', toSvgX(pointA.x));
+            lineGA.setAttribute('y2', toSvgY(pointA.y));
+            lineGA.setAttribute('stroke', '#ff9800');
+            lineGA.setAttribute('stroke-width', '2');
+            shapeGroup.appendChild(lineGA);
+
+            // 7. 绘制所有点
+            const points = [
+                {p: pointA, color: '#1976d2', label: 'A'},
+                {p: pointB, color: '#1976d2', label: 'B'},
+                {p: pointC, color: '#1976d2', label: 'C'},
+                {p: pointD, color: '#1976d2', label: 'D'},
+                {p: pointE, color: '#4CAF50', label: 'E'},
+                {p: pointF, color: '#ff4444', label: 'F'},
+                {p: pointG, color: '#ff9800', label: 'G'}
+            ];
+
+            points.forEach(pt => {
+                const circle = createSVGElement('circle');
+                circle.setAttribute('cx', toSvgX(pt.p.x));
+                circle.setAttribute('cy', toSvgY(pt.p.y));
+                circle.setAttribute('r', 6);
+                circle.setAttribute('fill', pt.color);
+                if (pt.label === 'E') {
+                    circle.setAttribute('class', 'draggable-point');
+                    circle.setAttribute('id', 'pointE');
+                    // 添加鼠标事件监听
+                    circle.addEventListener('mousedown', startDragE);
+                } else if (pt.label === 'B') {
+                    circle.setAttribute('class', 'draggable-point');
+                    circle.setAttribute('id', 'pointB');
+                    // 添加鼠标事件监听
+                    circle.addEventListener('mousedown', startDragB);
+                }
+                shapeGroup.appendChild(circle);
+            });
+
+            // 8. 点标签
+            const labelOffsets = {
+                'A': {dx: -15, dy: -10},
+                'B': {dx: 15, dy: -10},
+                'C': {dx: 15, dy: 15},
+                'D': {dx: -15, dy: 15},
+                'E': {dx: 15, dy: 0},
+                'F': {dx: 0, dy: -15},
+                'G': {dx: 10, dy: 0}
+            };
+
+            points.forEach(pt => {
+                const text = createSVGElement('text');
+                const offset = labelOffsets[pt.label];
+                text.setAttribute('x', toSvgX(pt.p.x) + offset.dx);
+                text.setAttribute('y', toSvgY(pt.p.y) + offset.dy);
+                text.setAttribute('font-size', '16');
+                text.setAttribute('fill', pt.color);
+                text.setAttribute('font-weight', 'bold');
+                text.textContent = pt.label;
+                shapeGroup.appendChild(text);
+            });
+
+            // 9. 显示E点和G点的坐标
+            // E点坐标显示
+            const eCoordText = createSVGElement('text');
+            const ePrecision = isDragging ? 1 : 0;
+            eCoordText.setAttribute('x', toSvgX(pointE.x) + 15);
+            eCoordText.setAttribute('y', toSvgY(pointE.y) + 20);
+            eCoordText.setAttribute('font-size', '12');
+            eCoordText.setAttribute('fill', '#4CAF50');
+            eCoordText.setAttribute('font-weight', 'normal');
+            eCoordText.textContent = `(${pointE.x.toFixed(ePrecision)}, ${pointE.y.toFixed(ePrecision)})`;
+            shapeGroup.appendChild(eCoordText);
+
+            // G点坐标显示
+            const gCoordText = createSVGElement('text');
+            const gPrecision = isDragging ? 1 : 0;
+            gCoordText.setAttribute('x', toSvgX(pointG.x) - 15);
+            gCoordText.setAttribute('y', toSvgY(pointG.y) - 20);
+            gCoordText.setAttribute('font-size', '12');
+            gCoordText.setAttribute('fill', '#ff9800');
+            gCoordText.setAttribute('font-weight', 'normal');
+            gCoordText.textContent = `(${pointG.x.toFixed(gPrecision)}, ${pointG.y.toFixed(gPrecision)})`;
+            shapeGroup.appendChild(gCoordText);
+
+            // 7. 绘制45°角标记
+            const vAE = {x: pointE.x - pointA.x, y: pointE.y - pointA.y};
+            const vAF = {x: pointF.x - pointA.x, y: pointF.y - pointA.y};
+            let angleE = Math.atan2(vAE.y, vAE.x);
+            let angleF = Math.atan2(vAF.y, vAF.x);
+            
+            if (angleF < angleE) angleF += 2 * Math.PI;
+            
+            const arcRadius = 25;
+            const arcCenterX = toSvgX(pointA.x);
+            const arcCenterY = toSvgY(pointA.y);
+            const arcStartX = arcCenterX + arcRadius * Math.cos(angleE);
+            const arcStartY = arcCenterY - arcRadius * Math.sin(angleE);
+            const arcEndX = arcCenterX + arcRadius * Math.cos(angleF);
+            const arcEndY = arcCenterY - arcRadius * Math.sin(angleF);
+            
+            const arcPath = `M ${arcStartX} ${arcStartY} A ${arcRadius} ${arcRadius} 0 0 1 ${arcEndX} ${arcEndY}`;
+            const arc = createSVGElement('path');
+            arc.setAttribute('d', arcPath);
+            arc.setAttribute('stroke', '#ff4444');
+            arc.setAttribute('stroke-width', '2');
+            arc.setAttribute('fill', 'none');
+            shapeGroup.appendChild(arc);
+            
+            // 角度文字
+            const midAngle = (angleE + angleF) / 2;
+            const textRadius = arcRadius + 15;
+            const textX = arcCenterX + textRadius * Math.cos(midAngle);
+            const textY = arcCenterY - textRadius * Math.sin(midAngle);
+            const angleText = createSVGElement('text');
+            angleText.setAttribute('x', textX);
+            angleText.setAttribute('y', textY);
+            angleText.setAttribute('font-size', '14');
+            angleText.setAttribute('fill', '#ff4444');
+            angleText.setAttribute('font-weight', 'bold');
+            angleText.textContent = '45°';
+            shapeGroup.appendChild(angleText);
+
+            svg.appendChild(shapeGroup);
+
+            // 更新坐标显示
+            updateCoordinateDisplay();
+            
+            // 更新数学推导过程
+            updateMathContent();
+        }
+
+        // 更新坐标显示
+        function updateCoordinateDisplay() {
+            const {pointE, pointF, pointG} = calculatePoints();
+            const display = document.getElementById('coordinateDisplay');
+            
+            // 根据是否在拖拽状态决定显示精度
+            const eXPrecision = isDragging ? 1 : 0;
+            const eYPrecision = isDragging ? 1 : 0;
+            const gXPrecision = isDragging ? 1 : 0;
+            const gYPrecision = isDragging ? 1 : 0;
+            const sizePrecision = isDraggingB ? 1 : 0;
+            
+            display.innerHTML = `E坐标: (${pointE.x.toFixed(eXPrecision)}, ${pointE.y.toFixed(eYPrecision)}) | F坐标: (${pointF.x.toFixed(2)}, ${pointF.y}) | G坐标: (${pointG.x.toFixed(gXPrecision)}, ${pointG.y.toFixed(gYPrecision)}) | 边长: ${squareSize.toFixed(sizePrecision)}`;
+        }
+
+        // 更新数学推导过程中的动态内容
+        function updateMathContent() {
+            const {pointE, pointF, pointG, pointA, pointB, pointC, pointD} = calculatePoints();
+            const s = squareSize; // 边长
+            const m = pointE.y; // E点的y坐标
+            const n = pointF.x; // F点的x坐标
+            
+            // 精度控制
+            const precision = isDragging || isDraggingB ? 1 : 0;
+            const mStr = m.toFixed(precision);
+            const nStr = n.toFixed(2);
+            const sStr = s.toFixed(precision);
+            
+            // 更新问题描述
+            document.getElementById('problemDesc').innerHTML = 
+                `设正方形ABCD，A(0,0)为原点，B(${sStr},0)，C(${sStr},${sStr})，D(0,${sStr})`;
+            document.getElementById('eDesc').innerHTML = 
+                `点E在BC边上滑动，设E(${sStr},m)，其中m∈[0,${sStr}]`;
+            
+            // 更新坐标系描述
+            document.getElementById('coordSystem').innerHTML = 
+                `正方形ABCD：A(0,0)为原点，B(${sStr},0)，C(${sStr},${sStr})，D(0,${sStr})`;
+            document.getElementById('eRange').innerHTML = 
+                `点E在BC上：E(${sStr},m)，其中m∈[0,${sStr}]`;
+            document.getElementById('fRange').innerHTML = 
+                `点F在CD延长线上：F(n,${sStr})，其中n可为负值`;
+            
+            // 更新向量表示
+            document.getElementById('vectorAE').innerHTML = 
+                `$\\vec{AE} = (${sStr}-0, m-0) = (${sStr}, m)$`;
+            document.getElementById('vectorAF').innerHTML = 
+                `$\\vec{AF} = (n-0, ${sStr}-0) = (n, ${sStr})$`;
+            
+            // 更新计算过程
+            const s2 = s * s;
+            document.getElementById('dotProduct').innerHTML = 
+                `$\\vec{AE} \\cdot \\vec{AF} = ${sStr} \\cdot n + m \\cdot ${sStr} = ${sStr}(n + m)$`;
+            document.getElementById('magnitudeAE').innerHTML = 
+                `$|\\vec{AE}| = \\sqrt{${sStr}^2 + m^2} = \\sqrt{${s2} + m^2}$`;
+            document.getElementById('magnitudeAF').innerHTML = 
+                `$|\\vec{AF}| = \\sqrt{n^2 + ${sStr}^2} = \\sqrt{n^2 + ${s2}}$`;
+            
+            // 更新F坐标描述
+            document.getElementById('fCoordDesc').innerHTML = 
+                `设F(n, ${sStr})在CD延长线上，利用$\\cos(45°) = \\frac{\\sqrt{2}}{2}$`;
+            document.getElementById('equation').innerHTML = 
+                `代入得：$\\frac{${sStr}(n + m)}{\\sqrt{${s2} + m^2} \\cdot \\sqrt{n^2 + ${s2}}} = \\frac{\\sqrt{2}}{2}$`;
+            document.getElementById('intersectionDesc').innerHTML = 
+                `F点坐标通过旋转后向量与直线y=${sStr}的交点确定`;
+            
+            // 更新当前状态验证
+            const currentVerification = document.getElementById('currentVerification');
+            currentVerification.innerHTML = `
+                <li><strong>当前状态：</strong>E(${pointE.x.toFixed(precision)}, ${mStr})，F(${nStr}, ${sStr})，G(${pointG.x.toFixed(precision)}, ${pointG.y.toFixed(precision)})</li>
+                <li>当m=0时（E=B(${sStr},0)），F(${sStr},${sStr})=C</li>
+                <li>当m=${(s/2).toFixed(precision)}时（E在BC中点），F(${(s*Math.sqrt(2)/2).toFixed(2)},${sStr})</li>
+                <li>当m=${sStr}时（E=C(${sStr},${sStr})),F(0,${sStr})=D</li>
+                <li>通过拖拽可以实时观察∠EAF始终保持45°，F点轨迹符合旋转几何</li>
+            `;
+            
+            // 重新渲染MathJax
+            if (window.MathJax) {
+                MathJax.typesetPromise([document.querySelector('.content-right')]).catch(function (err) {
+                    console.log('MathJax typeset failed: ' + err.message);
+                });
+            }
+        }
+
+        // 监听E位置滑块变化
+        document.getElementById('ePosition').addEventListener('input', function() {
+            ePosition = parseInt(this.value); // 改为整数
+            document.getElementById('ePositionValue').textContent = ePosition.toFixed(0);
+            drawCoordinateSystem();
+        });
+
+        // 监听缩放变化
+        document.getElementById('scale').addEventListener('input', function() {
+            scale = parseInt(this.value);
+            document.getElementById('scaleValue').textContent = scale;
+            drawCoordinateSystem();
+        });
+
+        // 监听窗口大小变化
+        window.addEventListener('resize', function() {
+            drawCoordinateSystem();
+        });
+
+        // 滚轮缩放功能
+        document.getElementById('coordinate-system').addEventListener('wheel', function(e) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -5 : 5; // 滚轮向下缩小，向上放大
+            const newScale = Math.max(20, Math.min(100, scale + delta));
+            if (newScale !== scale) {
+                scale = newScale;
+                document.getElementById('scale').value = scale;
+                document.getElementById('scaleValue').textContent = scale;
+                drawCoordinateSystem();
+            }
+        });
+
+        // 拖拽功能
+        function startDragE(e) {
+            e.preventDefault();
+            isDragging = true;
+            dragStartY = e.clientY;
+            document.addEventListener('mousemove', dragE);
+            document.addEventListener('mouseup', endDragE);
+            document.body.style.cursor = 'grabbing';
+        }
+
+        function dragE(e) {
+            if (!isDragging) return;
+            
+            const deltaY = e.clientY - dragStartY;
+            const deltaPosition = -deltaY * 0.05; // 调整灵敏度，负号因为SVG坐标系Y轴向下
+            
+            let newPosition = ePosition + deltaPosition;
+            newPosition = Math.max(0, Math.min(12, newPosition)); // 限制在[0,12]范围内
+            
+            // 拖拽过程中不吸附，保持平滑移动
+            if (newPosition !== ePosition) {
+                ePosition = newPosition;
+                document.getElementById('ePosition').value = ePosition;
+                document.getElementById('ePositionValue').textContent = ePosition.toFixed(1);
+                drawCoordinateSystem();
+            }
+            
+            dragStartY = e.clientY;
+        }
+
+        function endDragE() {
+            if (isDragging) {
+                // 松手时吸附到整数点
+                const snappedPosition = Math.round(ePosition);
+                if (snappedPosition !== ePosition) {
+                    ePosition = snappedPosition;
+                    document.getElementById('ePosition').value = ePosition;
+                    document.getElementById('ePositionValue').textContent = ePosition.toFixed(0);
+                    drawCoordinateSystem();
+                }
+            }
+            isDragging = false;
+            document.removeEventListener('mousemove', dragE);
+            document.removeEventListener('mouseup', endDragE);
+            document.body.style.cursor = '';
+        }
+
+        // B点拖拽功能
+        function startDragB(e) {
+            e.preventDefault();
+            isDraggingB = true;
+            dragStartX = e.clientX;
+            document.addEventListener('mousemove', dragB);
+            document.addEventListener('mouseup', endDragB);
+            document.body.style.cursor = 'grabbing';
+        }
+
+        function dragB(e) {
+            if (!isDraggingB) return;
+            
+            const deltaX = e.clientX - dragStartX;
+            const deltaSize = deltaX * 0.05; // 调整灵敏度
+            
+            let newSize = squareSize + deltaSize;
+            newSize = Math.max(3, Math.min(30, newSize)); // 限制正方形边长在[3,30]范围内
+            
+            // 拖拽过程中不吸附，保持平滑移动
+            if (newSize !== squareSize) {
+                squareSize = newSize;
+                document.getElementById('squareSizeValue').textContent = squareSize.toFixed(1);
+                drawCoordinateSystem();
+            }
+            
+            dragStartX = e.clientX;
+        }
+
+        function endDragB() {
+            if (isDraggingB) {
+                // 松手时吸附到整数点
+                const snappedSize = Math.round(squareSize);
+                if (snappedSize !== squareSize) {
+                    squareSize = snappedSize;
+                    document.getElementById('squareSizeValue').textContent = squareSize.toFixed(0);
+                    drawCoordinateSystem();
+                }
+            }
+            isDraggingB = false;
+            document.removeEventListener('mousemove', dragB);
+            document.removeEventListener('mouseup', endDragB);
+            document.body.style.cursor = '';
+        }
+
+        // 拖拽手柄JS
+        (function() {
+            const handle = document.querySelector('.handle');
+            const left = document.querySelector('.content-left');
+            const right = document.querySelector('.content-right');
+            let dragging = false;
+            handle.addEventListener('mousedown', function(e) {
+                dragging = true;
+                document.body.style.cursor = 'col-resize';
+            });
+            document.addEventListener('mousemove', function(e) {
+                if (!dragging) return;
+                const container = document.querySelector('.container');
+                const rect = container.getBoundingClientRect();
+                let percent = (e.clientX - rect.left) / rect.width;
+                percent = Math.max(0.15, Math.min(0.85, percent));
+                left.style.width = (percent * 100) + '%';
+                right.style.width = ((1 - percent) * 100) + '%';
+            });
+            document.addEventListener('mouseup', function() {
+                if (dragging) {
+                    dragging = false;
+                    document.body.style.cursor = '';
+                }
+            });
+        })();
+
+        // 初始化绘图
+        drawCoordinateSystem();
+    </script>
+</body>
+</html> 
