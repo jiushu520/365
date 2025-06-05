@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoGebra + AI 助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        #geogebra-frame {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            border: none;
+            z-index: 1;
+        }
+
+        .right-panel {
+            position: fixed;
+            left: 40px;
+            bottom: 40px;
+            width: 400px;
+            max-width: 90vw;
+            height: 380px;
+            min-height: 320px;
+            background: rgba(245,245,245,0.85);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            border-radius: 16px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 20px 16px 20px;
+            cursor: move;
+            transition: box-shadow 0.2s, opacity 0.2s;
+        }
+        .right-panel.minimized {
+            width: 56px;
+            height: 56px;
+            min-width: 0;
+            min-height: 0;
+            padding: 0;
+            background: rgba(76,175,80,0.85);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: visible;
+        }
+        .right-panel.minimized *:not(.minimize-btn) {
+            display: none !important;
+        }
+        .minimize-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: transparent;
+            border: none;
+            font-size: 20px;
+            color: #888;
+            cursor: pointer;
+            z-index: 20;
+        }
+        .minimize-btn:hover {
+            color: #333;
+        }
+        .minimized .minimize-btn {
+            position: static;
+            color: #fff;
+            font-size: 32px;
+            margin: 0 auto;
+        }
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            min-height: 180px;
+            max-height: 260px;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        #user-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .user-message {
+            background: #e3f2fd;
+            margin-left: 20%;
+        }
+        .ai-message {
+            background: #f5f5f5;
+            margin-right: 20%;
+        }
+    </style>
+</head>
+<body>
+    <iframe id="geogebra-frame" src="https://www.geogebra.org/classic" allowfullscreen></iframe>
+    <div class="right-panel" id="chat-panel">
+        <button class="minimize-btn" id="minimizeBtn" title="最小化/还原">–</button>
+        <div class="chat-container" id="chat-container"></div>
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="输入您的问题...">
+            <button onclick="sendMessage()">发送</button>
+        </div>
+        <div id="copy-tip" style="display:none;position:fixed;top:30px;right:50%;transform:translateX(50%);background:#4CAF50;color:#fff;padding:8px 24px;border-radius:8px;font-size:16px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,0.15);pointer-events:none;">命令已复制到剪贴板！</div>
+    </div>
+
+    <script>
+        const API_KEY = "sk-d59d8a87c285475897f6d45ee00c4b3b";
+        const API_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
+
+        async function sendMessage() {
+            const userInput = document.getElementById('user-input');
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            // 添加用户消息到聊天界面
+            addMessage(message, 'user');
+            userInput.value = '';
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: "qwen-vl-max",
+                        messages: [{
+                            role: "user",
+                            content: message + "。请只输出GeoGebra作图命令，不要解释。"
+                        }],
+                        temperature: 0
+                    })
+                });
+
+                const data = await response.json();
+                const aiResponse = data.choices[0].message.content.trim();
+                addMessage(aiResponse, 'ai');
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('抱歉，发生了错误，请稍后重试。', 'ai');
+            }
+        }
+
+        function addMessage(text, sender) {
+            const chatContainer = document.getElementById('chat-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            if(sender === 'ai') {
+                // AI回复，带复制按钮，流式显示
+                const wrapper = document.createElement('div');
+                wrapper.style.position = 'relative';
+                wrapper.style.display = 'flex';
+                wrapper.style.alignItems = 'center';
+                wrapper.style.justifyContent = 'space-between';
+
+                const cmdDiv = document.createElement('span');
+                cmdDiv.style.fontFamily = 'monospace';
+                cmdDiv.style.fontSize = '16px';
+                cmdDiv.style.flex = '1';
+                cmdDiv.style.wordBreak = 'break-all';
+
+                const copyBtn = document.createElement('button');
+                copyBtn.textContent = '复制';
+                copyBtn.style.background = '#4CAF50';
+                copyBtn.style.color = '#fff';
+                copyBtn.style.border = 'none';
+                copyBtn.style.borderRadius = '6px';
+                copyBtn.style.padding = '4px 12px';
+                copyBtn.style.fontSize = '14px';
+                copyBtn.style.cursor = 'pointer';
+                copyBtn.style.marginLeft = '10px';
+                copyBtn.onclick = function() {
+                    navigator.clipboard.writeText(text).then(function() {
+                        const tip = document.getElementById('copy-tip');
+                        tip.style.display = 'block';
+                        setTimeout(() => {
+                            tip.style.display = 'none';
+                        }, 1000);
+                    });
+                };
+
+                wrapper.appendChild(cmdDiv);
+                wrapper.appendChild(copyBtn);
+                messageDiv.appendChild(wrapper);
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+
+                // 流式打字机效果
+                let i = 0;
+                function typeWriter() {
+                    if (i <= text.length) {
+                        cmdDiv.textContent = text.slice(0, i);
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                        i++;
+                        setTimeout(typeWriter, 18); // 打字速度
+                    }
+                }
+                typeWriter();
+            } else {
+                messageDiv.textContent = text;
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        }
+
+        // 添加回车键发送功能
+        document.getElementById('user-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function sendToGeoGebra() {
+            const cmd = document.getElementById('ggb-command').textContent;
+            const geogebraFrame = document.getElementById('geogebra-frame');
+            geogebraFrame.contentWindow.postMessage({
+                command: 'evalCommand',
+                commandString: cmd
+            }, '*');
+        }
+
+        // 拖动功能
+        const panel = document.querySelector('.right-panel');
+        let isDragging = false;
+        let offsetX = 0, offsetY = 0;
+        panel.addEventListener('mousedown', function(e) {
+            // 只允许在顶部24px区域拖动
+            if (e.target !== panel && e.clientY - panel.getBoundingClientRect().top > 32) return;
+            isDragging = true;
+            offsetX = e.clientX - panel.getBoundingClientRect().left;
+            offsetY = e.clientY - panel.getBoundingClientRect().top;
+            panel.style.transition = 'none';
+        });
+        document.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            let x = e.clientX - offsetX;
+            let y = e.clientY - offsetY;
+            // 限制在窗口内
+            x = Math.max(0, Math.min(window.innerWidth - panel.offsetWidth, x));
+            y = Math.max(0, Math.min(window.innerHeight - panel.offsetHeight, y));
+            panel.style.left = x + 'px';
+            panel.style.top = y + 'px';
+        });
+        document.addEventListener('mouseup', function() {
+            isDragging = false;
+            panel.style.transition = '';
+        });
+
+        // 最小化/还原功能
+        const chatPanel = document.getElementById('chat-panel');
+        const minimizeBtn = document.getElementById('minimizeBtn');
+        let minimized = false;
+        minimizeBtn.onclick = function(e) {
+            e.stopPropagation();
+            minimized = !minimized;
+            if (minimized) {
+                chatPanel.classList.add('minimized');
+                minimizeBtn.innerHTML = '&#x1f4ac;'; // 聊天气泡图标
+                minimizeBtn.title = '还原';
+            } else {
+                chatPanel.classList.remove('minimized');
+                minimizeBtn.innerHTML = '–';
+                minimizeBtn.title = '最小化';
+            }
+        };
+        // 点击最小化图标还原
+        chatPanel.addEventListener('click', function(e) {
+            if (minimized && e.target === chatPanel) {
+                minimized = false;
+                chatPanel.classList.remove('minimized');
+                minimizeBtn.innerHTML = '–';
+                minimizeBtn.title = '最小化';
+            }
+        });
+    </script>
+</body>
+</html>
