@@ -1060,9 +1060,9 @@
             "04不等式",
             "05导数",
             "06线性代数",
-            "07解析几何",
-            "08立体几何",
-            "09概率统计"
+            "07几何与解析几何",
+            "08向量空间的应用",
+            "09概率组合"
         ];
 
         // 统一的题目数据结构
@@ -1142,21 +1142,6 @@
                     type: "方程"
                 },
                 {
-                    question: "方程 \\sqrt{x-\\frac{1}{x}}+\\sqrt{1-\\frac{1}{x}}=x 的解为\\_\\_\\_\\_。",
-                    answers: ["\\frac{\\sqrt{5}+1}{2}", "\\frac{1+\\sqrt{5}}{2}"],
-                    type: "方程"
-                },
-                {
-                    question: "解方程:\\left\\{\\begin{array}{l}x - 5y + 18\\sqrt{2y} = 44 \\quad (1) \\\\6\\sqrt{2x} - x - 5y = 8 \\quad (2)\\end{array}\\right.",
-                    answers: ["18,2", "18;2", "x=18,y=2", "x=18;y=2"],
-                    type: "方程"
-                },
-                {
-                    question: "\\begin{array}{l}已知a,b是方程t^2-t-1=0的两根，解关于x,y的方程组：\\\\\\left\\{\\begin{array}{l}\\frac{x}{a}+\\frac{y}{b}=x+1 \\\\ \\frac{x}{b}+\\frac{y}{a}=y+1\\end{array}\\right.\\end{array}",
-                    answers: ["x=-\\frac{1}{2},y=-\\frac{1}{2}", "x=-\\frac{1}{2};y=-\\frac{1}{2}", "-1/2,-1/2","-1/2;-1/2","x=-\\frac{1}{2},y=-\\frac{1}{2}", "x=-\\frac{1}{2};y=-\\frac{1}{2}"],
-                    type: "方程"
-                },
-                {
                     question: "设x、y都是正整数，且\\sqrt{x-116}+\\sqrt{x+100}=y，求y的最大值。",
                     answers: ["108"],
                     type: "方程"
@@ -1194,47 +1179,6 @@
                     answers: ["2500"],
                     type: "函数"
                 },
-                // 补充函数题目
-                {
-                    question: "已知函数f(x) = \\frac{x}{x+1}，求f(f(x))的表达式。",
-                    answers: ["\\frac{x}{2x+1}"],
-                    type: "函数"
-                },
-                {
-                    question: "若函数f(x) = ax^2 + bx + c满足f(1)=0, f(2)=3, f(3)=8，求f(4)的值。",
-                    answers: ["15"],
-                    type: "函数"
-                },
-                {
-                    question: "已知f(x) = 2x - 1, g(x) = x^2 + 1, 求g(f(x))的最小值。",
-                    answers: ["1"],
-                    type: "函数"
-                },
-                {
-                    question: "函数y = \\frac{x^2 - 4x + 3}{x-1}在x=1处的极限值为？",
-                    answers: ["-2"],
-                    type: "函数"
-                },
-                {
-                    question: "已知函数f(x) = |x-1| + |x-2| + |x-3|，求f(x)的最小值。",
-                    answers: ["2"],
-                    type: "函数"
-                },
-                {
-                    question: "函数f(x) = x^2 + 2x + 3在区间[-1,2]上的最大值为？",
-                    answers: ["11"],
-                    type: "函数"
-                },
-                {
-                    question: "若f(x) = \\frac{1}{x}，求f(x+1) - f(x)的表达式。",
-                    answers: ["-\\frac{1}{x(x+1)}"],
-                    type: "函数"
-                },
-                {
-                    question: "函数y = \\sqrt{x-1} + \\sqrt{3-x}的定义域为？",
-                    answers: ["[1,3]"],
-                    type: "函数"
-                }
             ],
             "04不等式": [
                 {
@@ -1267,32 +1211,7 @@
                     answers: ["18"],
                     type: "不等式"
                 },
-                // 补充不等式题目
-                {
-                    question: "解不等式: |2x-1| < |x-3|",
-                    answers: ["(\\frac{4}{3}, 4)"],
-                    type: "不等式"
-                },
-                {
-                    question: "已知a,b>0, 证明: \\frac{a}{b} + \\frac{b}{a} \\geq 2",
-                    answers: ["证明题"],
-                    type: "不等式"
-                },
-                {
-                    question: "若x,y,z>0且xyz=1, 证明: \\frac{1}{x} + \\frac{1}{y} + \\frac{1}{z} \\geq 3",
-                    answers: ["证明题"],
-                    type: "不等式"
-                },
-                {
-                    question: "解不等式: \\frac{x-1}{x+2} > 0",
-                    answers: ["x<-2 或 x>1"],
-                    type: "不等式"
-                },
-                {
-                    question: "已知a,b,c是正实数，证明: (a+b)(b+c)(c+a) \\geq 8abc",
-                    answers: ["证明题"],
-                    type: "不等式"
-                }
+
             ],
             "05导数": [
                 {
@@ -1300,40 +1219,11 @@
                     answers: ["-1"],
                     type: "导数"
                 },
-                // 补充导数题目
-                {
-                    question: "求函数f(x) = x^3 - 3x^2 + 2的单调区间。",
-                    answers: ["增区间: (-\\infty,0] \\cup [2,+\\infty); 减区间: [0,2]"],
-                    type: "导数"
-                },
-                {
-                    question: "求函数f(x) = \\frac{1}{3}x^3 - 2x^2 + 3x + 1的极值。",
-                    answers: ["极大值f(1)=\\frac{7}{3}, 极小值f(3)=1"],
-                    type: "导数"
-                },
-                {
-                    question: "已知曲线y = x^3 + ax^2 + bx + c过点(1,2)，且在x=1处有水平切线，求a,b,c的值。",
-                    answers: ["a=-3,b=3,c=1"],
-                    type: "导数"
-                },
-                {
-                    question: "求函数f(x) = x^4 - 2x^3在区间[-1,2]上的最大值和最小值。",
-                    answers: ["最大值f(-1)=3, 最小值f(\\frac{3}{2})=-\\frac{27}{16}"],
-                    type: "导数"
-                },
+
+
                 {
                     question: "求曲线y = x^3 - 3x^2 + 2x的拐点坐标。",
                     answers: ["(1,0)"],
-                    type: "导数"
-                },
-                {
-                    question: "求函数f(x) = x^2 e^{-x}的导数。",
-                    answers: ["f'(x) = e^{-x}(2x - x^2)"],
-                    type: "导数"
-                },
-                {
-                    question: "求函数f(x) = \\ln(x^2 + 1)的导数。",
-                    answers: ["f'(x) = \\frac{2x}{x^2+1}"],
                     type: "导数"
                 },
                 {
@@ -1390,11 +1280,11 @@
                     type: "线性代数"
                 }
             ],
-            "07解析几何": [
+            "07几何与解析几何": [
                 {
                     question: "如图所示，在坐标系中，已知点A(0,0)、B(6,0)、C(6,6)、D(0,6)、E(6,3)，求点F的坐标。",
                     answers: ["(2,6)", "2,6"],
-                    type: "解析几何",
+                    type: "几何与解析几何",
                     svgGenerator: function() {
                         let svgWidth = 500;
                         let svgHeight = 400;
@@ -1602,7 +1492,7 @@
                 {
                     question: "如图所示，在坐标系中有一个三角形ABC，其中A(0,0)、B(5,0)、C(2,a),D(2,0),\\angle ACB=45°，求a。",
                     answers: ["6"],
-                    type: "解析几何",
+                    type: "几何与解析几何",
                     svgGenerator: function() {
                         return svgGenerators.createCoordinateSystem({
                             width: 400,
@@ -1631,142 +1521,163 @@
                 {
                     question: "\\begin{array}{l}已知正方形OBAC，以OB为半径作圆，\\\\\过A的直线交圆O于M，Q，交BC与P，R为PQ中点，\\\\若AP=18，PR=7，则BC=\\_\\_\\_\\_。 \\end{array}",
                     answers: ["20"],
-                    type: "解析几何",
+                    type: "几何与解析几何",
                     imageUrl: "./images/zz07.png"
                 },
                 {
                     question: "\\begin{array}{l}已知x^2+y^2=25,点(8,6)做圆的切线,交x轴于A,B,求切点弦直线AB的方程。\\end{array}",
                     answers: ["8x+6y=25", "8x+6y-25=0"],
-                    type: "解析几何",
+                    type: "几何与解析几何",
                     imageUrl: "./images/zz08.png"
                 },
-                // 补充解析几何题目
+
+
                 {
-                    question: "求过点(1,2)且与直线2x-3y+4=0平行的直线方程。",
-                    answers: ["2x-3y+4=0"],
-                    type: "解析几何"
-                },
-                {
-                    question: "已知点A(1,2), B(3,4), 求线段AB的中点坐标。",
-                    answers: ["(2,3)"],
-                    type: "解析几何"
-                },
-                {
-                    question: "求圆心为(2,3)，半径为5的圆的方程。",
-                    answers: ["(x-2)^2 + (y-3)^2 = 25"],
-                    type: "解析几何"
-                },
-                {
-                    question: "求直线3x-4y+5=0与圆x^2+y^2=25的交点坐标。",
-                    answers: ["(3,4)", "(-3,-4)"],
-                    type: "解析几何"
-                },
-                {
-                    question: "已知椭圆方程\\frac{x^2}{9} + \\frac{y^2}{4} = 1，求其焦点坐标。",
-                    answers: ["(\\sqrt{5},0)", "(-\\sqrt{5},0)"],
-                    type: "解析几何"
-                },
-                {
-                    question: "求双曲线\\frac{x^2}{4} - \\frac{y^2}{9} = 1的渐近线方程。",
-                    answers: ["y = \\pm \\frac{3}{2}x"],
-                    type: "解析几何"
+                    question: "如图，四边形ABCD内接于⊙O，对角线AC、BD相交于点E，且BC=CD=4，AE=6，线段BE和DE的长均为正整数，则BD的长等于?. ",
+                    answers: ["7"],
+                    type: "几何与解析几何",
+                    svgGenerator: function() {
+                        // 画圆、四边形、对角线、交点O、E、A、B、C、D，风格仿照用户图片
+                        const svgWidth = 320;
+                        const svgHeight = 320;
+                        const centerX = 160;
+                        const centerY = 160;
+                        const radius = 120;
+                        // 设定圆上点的角度
+                        const deg = Math.PI / 180;
+                        // 适当调整点的位置以美观
+                        const points = {
+                            A: { x: centerX + radius * Math.cos(120 * deg), y: centerY + radius * Math.sin(120 * deg) },
+                            B: { x: centerX + radius * Math.cos(200 * deg), y: centerY + radius * Math.sin(200 * deg) },
+                            C: { x: centerX + radius * Math.cos(270 * deg), y: centerY + radius * Math.sin(270 * deg) },
+                            D: { x: centerX + radius * Math.cos(340 * deg), y: centerY + radius * Math.sin(340 * deg) }
+                        };
+                        // E为AC与BD交点，O为圆心
+                        // 计算AC与BD交点E
+                        function lineIntersection(p1, p2, p3, p4) {
+                            const x1 = p1.x, y1 = p1.y, x2 = p2.x, y2 = p2.y;
+                            const x3 = p3.x, y3 = p3.y, x4 = p4.x, y4 = p4.y;
+                            const denom = (x1-x2)*(y3-y4)-(y1-y2)*(x3-x4);
+                            if (denom === 0) return {x: centerX, y: centerY};
+                            const px = ((x1*y2-y1*x2)*(x3-x4)-(x1-x2)*(x3*y4-y3*x4))/denom;
+                            const py = ((x1*y2-y1*x2)*(y3-y4)-(y1-y2)*(x3*y4-y3*x4))/denom;
+                            return {x: px, y: py};
+                        }
+                        const E = lineIntersection(points.A, points.C, points.B, points.D);
+                        // SVG元素
+                        const svgNS = 'http://www.w3.org/2000/svg';
+                        const svg = document.createElementNS(svgNS, 'svg');
+                        svg.setAttribute('width', svgWidth);
+                        svg.setAttribute('height', svgHeight);
+                        svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
+                        // 画圆
+                        const circle = document.createElementNS(svgNS, 'circle');
+                        circle.setAttribute('cx', centerX);
+                        circle.setAttribute('cy', centerY);
+                        circle.setAttribute('r', radius);
+                        circle.setAttribute('stroke', '#000');
+                        circle.setAttribute('stroke-width', '2');
+                        circle.setAttribute('fill', 'none');
+                        svg.appendChild(circle);
+                        // 画四边形ABCD
+                        const quad = document.createElementNS(svgNS, 'polygon');
+                        quad.setAttribute('points', `${points.A.x},${points.A.y} ${points.B.x},${points.B.y} ${points.C.x},${points.C.y} ${points.D.x},${points.D.y}`);
+                        quad.setAttribute('fill', 'none');
+                        quad.setAttribute('stroke', '#000');
+                        quad.setAttribute('stroke-width', '2');
+                        svg.appendChild(quad);
+                        // 画对角线AC
+                        const ac = document.createElementNS(svgNS, 'line');
+                        ac.setAttribute('x1', points.A.x);
+                        ac.setAttribute('y1', points.A.y);
+                        ac.setAttribute('x2', points.C.x);
+                        ac.setAttribute('y2', points.C.y);
+                        ac.setAttribute('stroke', '#000');
+                        ac.setAttribute('stroke-width', '2');
+                        svg.appendChild(ac);
+                        // 画对角线BD
+                        const bd = document.createElementNS(svgNS, 'line');
+                        bd.setAttribute('x1', points.B.x);
+                        bd.setAttribute('y1', points.B.y);
+                        bd.setAttribute('x2', points.D.x);
+                        bd.setAttribute('y2', points.D.y);
+                        bd.setAttribute('stroke', '#000');
+                        bd.setAttribute('stroke-width', '2');
+                        svg.appendChild(bd);
+                        // 画圆心O
+                        const o = document.createElementNS(svgNS, 'circle');
+                        o.setAttribute('cx', centerX);
+                        o.setAttribute('cy', centerY);
+                        o.setAttribute('r', 4);
+                        o.setAttribute('fill', '#000');
+                        svg.appendChild(o);
+                        // 标注O
+                        const oLabel = document.createElementNS(svgNS, 'text');
+                        oLabel.setAttribute('x', centerX + 10);
+                        oLabel.setAttribute('y', centerY - 10);
+                        oLabel.setAttribute('font-size', '18');
+                        oLabel.setAttribute('font-family', 'Times New Roman, serif');
+                        oLabel.setAttribute('fill', '#000');
+                        oLabel.textContent = 'O';
+                        svg.appendChild(oLabel);
+                        // 画交点E
+                        const e = document.createElementNS(svgNS, 'circle');
+                        e.setAttribute('cx', E.x);
+                        e.setAttribute('cy', E.y);
+                        e.setAttribute('r', 4);
+                        e.setAttribute('fill', '#000');
+                        svg.appendChild(e);
+                        // 标注E
+                        const eLabel = document.createElementNS(svgNS, 'text');
+                        eLabel.setAttribute('x', E.x + 8);
+                        eLabel.setAttribute('y', E.y + 18);
+                        eLabel.setAttribute('font-size', '18');
+                        eLabel.setAttribute('font-family', 'Times New Roman, serif');
+                        eLabel.setAttribute('fill', '#000');
+                        eLabel.textContent = 'E';
+                        svg.appendChild(eLabel);
+                        // 标注A、B、C、D
+                        const labelMap = {
+                            A: {dx: -18, dy: +18},
+                            B: {dx: -18, dy: 18},
+                            C: {dx: 0, dy: -10},
+                            D: {dx: 10, dy: 18}
+                        };
+                        for (const key of ['A','B','C','D']) {
+                            const pt = points[key];
+                            const label = document.createElementNS(svgNS, 'text');
+                            label.setAttribute('x', pt.x + labelMap[key].dx);
+                            label.setAttribute('y', pt.y + labelMap[key].dy);
+                            label.setAttribute('font-size', '20');
+                            label.setAttribute('font-family', 'Times New Roman, serif');
+                            label.setAttribute('fill', '#000');
+                            label.textContent = key;
+                            svg.appendChild(label);
+                        }
+                        return svg;
+                    }
                 }
             ],
-            "08立体几何": [
+            "08向量空间的应用": [
                 {
                     question: "\\begin{array}{l}已知x+2y+3z=14，求x^2+y^2+z^2最小值 \\end{array}",
                     answers: ["14"],
-                    type: "立体几何"
+                    type: "向量空间的应用"
                 },
                 // 补充立体几何题目
                 {
-                    question: "已知长方体的长、宽、高分别为3、4、5，求其体对角线长度。",
-                    answers: ["5\\sqrt{2}"],
-                    type: "立体几何"
+                    question: "\\begin{array}{l}已知实数x、y、z满足x+2y+4z=1, \\ x^2+2y^2+4z^2=\\frac{1}{7}, \\ 求\\frac{1}{x}+\\frac{2}{y}+\\frac{4}{z}的值。\\end{array}",
+                    answers: ["49"],
+                    type: "向量空间的应用"
                 },
-                {
-                    question: "已知圆锥底面半径为3，高为4，求其体积。",
-                    answers: ["12\\pi"],
-                    type: "立体几何"
-                },
-                {
-                    question: "已知球体表面积为36π，求其体积。",
-                    answers: ["36\\pi"],
-                    type: "立体几何"
-                },
-                {
-                    question: "已知正四面体棱长为a，求其体积。",
-                    answers: ["\\frac{\\sqrt{2}}{12}a^3"],
-                    type: "立体几何"
-                },
-                {
-                    question: "在棱长为1的正方体中，求体对角线与面对角线夹角的余弦值。",
-                    answers: ["\\frac{\\sqrt{6}}{3}"],
-                    type: "立体几何"
-                },
-                {
-                    question: "已知圆柱底面半径为r，高为h，求其侧面积。",
-                    answers: ["2\\pi r h"],
-                    type: "立体几何"
-                },
-                {
-                    question: "已知三棱锥底面是边长为3的正三角形，高为4，求其体积。",
-                    answers: ["3\\sqrt{3}"],
-                    type: "立体几何"
-                },
-                {
-                    question: "在棱长为2的正方体中，求点A到点B的最短距离，其中A是顶点，B是相对面的中心。",
-                    answers: ["\\sqrt{5}"],
-                    type: "立体几何"
-                }
             ],
-            "09概率统计": [
+            "09概率组合": [
                 {
                     question: "\\begin{array}{l}6人同时被邀请参加一项活动。必须有人去，去几个人自行决定，共有多少种不同的去法？\\end{array}",
                     answers: ["63"],
-                    type: "概率统计"
+                    type: "概率组合"
                 },
-                // 补充概率统计题目
-                {
-                    question: "抛掷两枚均匀的骰子，求点数之和为7的概率。",
-                    answers: ["\\frac{1}{6}"],
-                    type: "概率统计"
-                },
-                {
-                    question: "从1到10中随机取一个数，求取到质数的概率。",
-                    answers: ["\\frac{4}{10} = \\frac{2}{5}"],
-                    type: "概率统计"
-                },
-                {
-                    question: "一组数据为: 5, 7, 8, 10, 12, 15, 求中位数。",
-                    answers: ["9"],
-                    type: "概率统计"
-                },
-                {
-                    question: "一组数据: 2, 4, 6, 8, 10, 求方差。",
-                    answers: ["8"],
-                    type: "概率统计"
-                },
-                {
-                    question: "甲、乙两人独立射击同一目标，甲命中概率0.8，乙命中概率0.7，求目标被命中的概率。",
-                    answers: ["0.94"],
-                    type: "概率统计"
-                },
-                {
-                    question: "抛掷一枚均匀硬币3次，求恰好出现2次正面的概率。",
-                    answers: ["\\frac{3}{8}"],
-                    type: "概率统计"
-                },
-                {
-                    question: "从5男4女中选3人组成委员会，求至少有一名女性的概率。",
-                    answers: ["\\frac{37}{42}"],
-                    type: "概率统计"
-                },
-                {
-                    question: "一组数据: 10, 12, 14, 16, 18, 20, 求平均数。",
-                    answers: ["15"],
-                    type: "概率统计"
-                }
+
             ]
         };
 
@@ -3266,7 +3177,7 @@
         }
 
         function generateLevel7Question() {
-            const questions = questionDatabase["07解析几何"];
+            const questions = questionDatabase["07几何与解析几何"];
             const randomIndex = Math.floor(Math.random() * questions.length);
             const selectedQuestion = questions[randomIndex];
 
@@ -3317,7 +3228,7 @@
         }
 
         function generateLevel8Question() {
-            const questions = questionDatabase["08立体几何"];
+            const questions = questionDatabase["08向量空间的应用"];
             const randomIndex = Math.floor(Math.random() * questions.length);
             const selectedQuestion = questions[randomIndex];
 
@@ -3329,7 +3240,7 @@
         }
 
         function generateLevel9Question() {
-            const questions = questionDatabase["09概率统计"];
+            const questions = questionDatabase["09概率组合"];
             const randomIndex = Math.floor(Math.random() * questions.length);
             const selectedQuestion = questions[randomIndex];
 

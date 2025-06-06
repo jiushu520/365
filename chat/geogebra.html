@@ -97,6 +97,30 @@
         .input-container {
             display: flex;
             gap: 10px;
+            align-items: center;
+        }
+        #image-preview {
+            max-width: 60px;
+            max-height: 60px;
+            border-radius: 6px;
+            margin-right: 8px;
+            display: none;
+            object-fit: cover;
+            border: 1px solid #eee;
+        }
+        #image-remove {
+            display: none;
+            background: #f44336;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-left: -28px;
+            margin-right: 8px;
+            z-index: 2;
         }
         #user-input {
             flex: 1;
@@ -138,6 +162,12 @@
         <button class="minimize-btn" id="minimizeBtn" title="最小化/还原">–</button>
         <div class="chat-container" id="chat-container"></div>
         <div class="input-container">
+            <label style="display:flex;align-items:center;cursor:pointer;">
+                <input type="file" id="image-input" accept="image/*" style="display:none">
+                <span style="font-size:22px;line-height:1.2;margin-right:6px;">🖼️</span>
+            </label>
+            <img id="image-preview" src="" alt="预览">
+            <button id="image-remove" title="移除图片">×</button>
             <input type="text" id="user-input" placeholder="输入您的问题...">
             <button onclick="sendMessage()">发送</button>
         </div>
@@ -151,13 +181,38 @@
         async function sendMessage() {
             const userInput = document.getElementById('user-input');
             const message = userInput.value.trim();
-            if (!message) return;
+            const imageInput = document.getElementById('image-input');
+            const imagePreview = document.getElementById('image-preview');
+            let imageBase64 = '';
+            if (imagePreview.style.display === 'block' && imagePreview.src) {
+                imageBase64 = imagePreview.src;
+            }
+            if (!message && !imageBase64) return;
 
-            // 添加用户消息到聊天界面
-            addMessage(message, 'user');
+            // 添加用户消息到聊天界面（带图片）
+            addMessage({text: message, image: imageBase64}, 'user');
             userInput.value = '';
+            imagePreview.src = '';
+            imagePreview.style.display = 'none';
+            document.getElementById('image-remove').style.display = 'none';
+            imageInput.value = '';
 
             try {
+                let messages = [];
+                if (imageBase64) {
+                    messages.push({
+                        role: "user",
+                        content: [
+                            { type: "image_url", image_url: { url: imageBase64 } },
+                            { type: "text", text: message + "。请只输出GeoGebra作图命令，不要解释。" }
+                        ]
+                    });
+                } else {
+                    messages.push({
+                        role: "user",
+                        content: message + "。请只输出GeoGebra作图命令，不要解释。"
+                    });
+                }
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: {
@@ -166,14 +221,10 @@
                     },
                     body: JSON.stringify({
                         model: "qwen-vl-max",
-                        messages: [{
-                            role: "user",
-                            content: message + "。请只输出GeoGebra作图命令，不要解释。"
-                        }],
+                        messages,
                         temperature: 0
                     })
                 });
-
                 const data = await response.json();
                 const aiResponse = data.choices[0].message.content.trim();
                 addMessage(aiResponse, 'ai');
@@ -183,10 +234,31 @@
             }
         }
 
-        function addMessage(text, sender) {
+        function addMessage(content, sender) {
             const chatContainer = document.getElementById('chat-container');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${sender}-message`;
+            if(sender === 'user' && typeof content === 'object' && (content.image || content.text)) {
+                // 用户消息，支持图片+文本
+                if(content.image) {
+                    const img = document.createElement('img');
+                    img.src = content.image;
+                    img.style.maxWidth = '120px';
+                    img.style.maxHeight = '120px';
+                    img.style.borderRadius = '8px';
+                    img.style.marginRight = '8px';
+                    img.style.display = 'block';
+                    messageDiv.appendChild(img);
+                }
+                if(content.text) {
+                    const span = document.createElement('span');
+                    span.textContent = content.text;
+                    messageDiv.appendChild(span);
+                }
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                return;
+            }
             if(sender === 'ai') {
                 // AI回复，带复制按钮，流式显示
                 const wrapper = document.createElement('div');
@@ -195,11 +267,15 @@
                 wrapper.style.alignItems = 'center';
                 wrapper.style.justifyContent = 'space-between';
 
-                const cmdDiv = document.createElement('span');
+                const cmdDiv = document.createElement('pre');
                 cmdDiv.style.fontFamily = 'monospace';
                 cmdDiv.style.fontSize = '16px';
                 cmdDiv.style.flex = '1';
                 cmdDiv.style.wordBreak = 'break-all';
+                cmdDiv.style.margin = 0;
+                cmdDiv.style.background = 'none';
+                cmdDiv.style.border = 'none';
+                cmdDiv.style.whiteSpace = 'pre-wrap';
 
                 const copyBtn = document.createElement('button');
                 copyBtn.textContent = '复制';
@@ -212,7 +288,7 @@
                 copyBtn.style.cursor = 'pointer';
                 copyBtn.style.marginLeft = '10px';
                 copyBtn.onclick = function() {
-                    navigator.clipboard.writeText(text).then(function() {
+                    navigator.clipboard.writeText(content).then(function() {
                         const tip = document.getElementById('copy-tip');
                         tip.style.display = 'block';
                         setTimeout(() => {
@@ -230,18 +306,15 @@
                 // 流式打字机效果
                 let i = 0;
                 function typeWriter() {
-                    if (i <= text.length) {
-                        cmdDiv.textContent = text.slice(0, i);
+                    if (i <= content.length) {
+                        // 保证换行符实时渲染
+                        cmdDiv.textContent = content.slice(0, i);
                         chatContainer.scrollTop = chatContainer.scrollHeight;
                         i++;
                         setTimeout(typeWriter, 18); // 打字速度
                     }
                 }
                 typeWriter();
-            } else {
-                messageDiv.textContent = text;
-                chatContainer.appendChild(messageDiv);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
             }
         }
 
@@ -312,6 +385,48 @@
                 chatPanel.classList.remove('minimized');
                 minimizeBtn.innerHTML = '–';
                 minimizeBtn.title = '最小化';
+            }
+        });
+
+        // 图片上传和预览逻辑
+        const imageInput = document.getElementById('image-input');
+        const imagePreview = document.getElementById('image-preview');
+        const imageRemove = document.getElementById('image-remove');
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                imagePreview.src = evt.target.result;
+                imagePreview.style.display = 'block';
+                imageRemove.style.display = 'inline-block';
+            };
+            reader.readAsDataURL(file);
+        });
+        imageRemove.addEventListener('click', function() {
+            imagePreview.src = '';
+            imagePreview.style.display = 'none';
+            imageRemove.style.display = 'none';
+            imageInput.value = '';
+        });
+
+        // 输入框粘贴图片支持
+        document.getElementById('user-input').addEventListener('paste', function(e) {
+            const items = (e.clipboardData || window.clipboardData).items;
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                if (item.kind === 'file' && item.type.startsWith('image/')) {
+                    const file = item.getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        imagePreview.src = evt.target.result;
+                        imagePreview.style.display = 'block';
+                        imageRemove.style.display = 'inline-block';
+                    };
+                    reader.readAsDataURL(file);
+                    e.preventDefault();
+                    break;
+                }
             }
         });
     </script>
