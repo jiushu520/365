@@ -1016,10 +1016,225 @@
     </div>
 
     <script>
+        function createSVGElement(tag, attributes) {
+            const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+            for (const key in attributes) {
+                el.setAttribute(key, attributes[key]);
+            }
+            return el;
+        }
+
+        function createDynamicSVG(config) {
+            const {
+                width = 500,
+                height = 400,
+                viewBox = `0 0 ${width} ${height}`,
+                elements,
+                scale = 40,
+                origin = { x: 50, y: height - 50 },
+                grid,
+                axes,
+                points = [],
+                lines = [],
+                shapes = [],
+                labels = []
+            } = config;
+
+            const svg = createSVGElement('svg', {
+                width,
+                height,
+                viewBox,
+                style: 'border: 1px solid #ddd; background-color: #fafafa;'
+            });
+
+            if (elements) {
+                function buildElements(parent, elementConfigs) {
+                    elementConfigs.forEach(elConfig => {
+                        const el = createSVGElement(elConfig.tag, elConfig.attrs);
+                        if (elConfig.content) {
+                            el.textContent = elConfig.content;
+                        }
+                        if (elConfig.children) {
+                            buildElements(el, elConfig.children);
+                        }
+                        parent.appendChild(el);
+                    });
+                }
+                buildElements(svg, elements);
+                return svg;
+            }
+            
+            const groups = {
+                grid: createSVGElement('g'),
+                axes: createSVGElement('g'),
+                shapes: createSVGElement('g'),
+                lines: createSVGElement('g'),
+                points: createSVGElement('g'),
+                labels: createSVGElement('g')
+            };
+
+            const toSvgCoords = (p) => ({
+                x: origin.x + p.x * scale,
+                y: origin.y - p.y * scale
+            });
+
+            const pointCoords = {};
+            points.forEach(p => {
+                if(p.name){
+                    pointCoords[p.name] = { x: p.x, y: p.y };
+                }
+            });
+
+            if (grid && grid.show) {
+                const xMax = grid.xMax || Math.floor((width - origin.x) / scale);
+                const yMax = grid.yMax || Math.floor(origin.y / scale);
+                const xMin = grid.xMin || Math.floor(-origin.x / scale);
+                const yMin = grid.yMin || Math.floor(-(height - origin.y) / scale);
+
+                for (let i = xMin; i <= xMax; i++) {
+                    if (i === 0 && axes && axes.show) continue;
+                    const vLine = createSVGElement('line', {
+                        x1: origin.x + i * scale, y1: 0,
+                        x2: origin.x + i * scale, y2: height,
+                        stroke: '#eee', 'stroke-width': '0.5'
+                    });
+                    groups.grid.appendChild(vLine);
+                }
+                for (let i = yMin; i <= yMax; i++) {
+                    if (i === 0 && axes && axes.show) continue;
+                    const hLine = createSVGElement('line', {
+                        x1: 0, y1: origin.y - i * scale,
+                        x2: width, y2: origin.y - i * scale,
+                        stroke: '#eee', 'stroke-width': '0.5'
+                    });
+                    groups.grid.appendChild(hLine);
+                }
+            }
+
+            if (axes && axes.show) {
+                const xAxis = createSVGElement('line', {
+                    x1: 0, y1: origin.y, x2: width, y2: origin.y,
+                    stroke: '#000', 'stroke-width': '1.5'
+                });
+                const yAxis = createSVGElement('line', {
+                    x1: origin.x, y1: 0, x2: origin.x, y2: height,
+                    stroke: '#000', 'stroke-width': '1.5'
+                });
+                groups.axes.appendChild(xAxis);
+                groups.axes.appendChild(yAxis);
+                
+                const xMax = axes.xMax || Math.floor((width - origin.x) / scale);
+                const yMax = axes.yMax || Math.floor(origin.y / scale);
+                const xMin = axes.xMin || 0;
+                const yMin = axes.yMin || 0;
+
+                for (let i = xMin; i <= xMax; i++) {
+                    if(i === 0) continue;
+                    const numLabel = createSVGElement('text', {
+                        x: origin.x + i * scale, y: origin.y + 20,
+                        'text-anchor': 'middle', 'font-size': '12', fill: '#666'
+                    });
+                    numLabel.textContent = i;
+                    groups.labels.appendChild(numLabel);
+                }
+                for (let i = yMin; i <= yMax; i++) {
+                    if(i === 0) continue;
+                    const numLabel = createSVGElement('text', {
+                        x: origin.x - 15, y: origin.y - i * scale + 5,
+                        'text-anchor': 'middle', 'font-size': '12', fill: '#666'
+                    });
+                    numLabel.textContent = i;
+                    groups.labels.appendChild(numLabel);
+                }
+            }
+
+            shapes.forEach(shape => {
+                if (shape.type === 'rect') {
+                    const svgPos = toSvgCoords({x: shape.x, y: shape.y + shape.height});
+                    const rect = createSVGElement('rect', {
+                        x: svgPos.x,
+                        y: svgPos.y,
+                        width: shape.width * scale,
+                        height: shape.height * scale,
+                        fill: shape.fill || 'none',
+                        stroke: shape.stroke || 'black',
+                        'stroke-width': shape.strokeWidth || '2'
+                    });
+                    groups.shapes.appendChild(rect);
+                }
+            });
+
+            lines.forEach(line => {
+                let p1, p2;
+                if (line.p1 && line.p2 && pointCoords[line.p1] && pointCoords[line.p2]) {
+                    p1 = toSvgCoords(pointCoords[line.p1]);
+                    p2 = toSvgCoords(pointCoords[line.p2]);
+                } else {
+                    p1 = toSvgCoords({ x: line.x1, y: line.y1 });
+                    p2 = toSvgCoords({ x: line.x2, y: line.y2 });
+                }
+                const lineEl = createSVGElement('line', {
+                    x1: p1.x, y1: p1.y,
+                    x2: p2.x, y2: p2.y,
+                    stroke: line.color || '#333',
+                    'stroke-width': line.strokeWidth || '2',
+                    'stroke-dasharray': line.strokeDasharray || 'none'
+                });
+                groups.lines.appendChild(lineEl);
+            });
+
+            points.forEach(point => {
+                const svgPos = toSvgCoords(point);
+                const circle = createSVGElement('circle', {
+                    cx: svgPos.x,
+                    cy: svgPos.y,
+                    r: point.radius || '6',
+                    fill: point.color || '#4CAF50',
+                    stroke: '#fff',
+                    'stroke-width': '2'
+                });
+                groups.points.appendChild(circle);
+
+                if (point.label) {
+                    const labelEl = createSVGElement('text', {
+                        x: svgPos.x + (point.labelOffset?.x || 15),
+                        y: svgPos.y + (point.labelOffset?.y || -10),
+                        'font-size': point.fontSize || '14',
+                        fill: point.labelColor || '#666',
+                        'font-weight': point.labelBold ? 'bold' : 'normal'
+                    });
+                    labelEl.textContent = point.label;
+                    groups.labels.appendChild(labelEl);
+                }
+            });
+
+            labels.forEach(label => {
+                const svgPos = toSvgCoords(label);
+                const labelEl = createSVGElement('text', {
+                    x: svgPos.x + (label.offset?.x || 0),
+                    y: svgPos.y + (label.offset?.y || 0),
+                    'font-size': label.fontSize || '14',
+                    fill: label.color || '#666',
+                    'font-weight': label.bold ? 'bold' : 'normal',
+                    'text-anchor': label.textAnchor || 'start'
+                });
+                labelEl.textContent = label.text;
+                groups.labels.appendChild(labelEl);
+            });
+
+            svg.appendChild(groups.grid);
+            svg.appendChild(groups.axes);
+            svg.appendChild(groups.shapes);
+            svg.appendChild(groups.lines);
+            svg.appendChild(groups.points);
+            svg.appendChild(groups.labels);
+
+            return svg;
+        }
+
         // 全局变量
         let playerCorrectAnswer; // 玩家题目的正确答案
         let computerCorrectAnswer; // 计算机题目的正确答案
-        let correctAnswer; // 保留此变量用于兼容原有函数
         let playerCorrectCount = 0;
         let playerIncorrectCount = 0;
         let computerCorrectCount = 0;
@@ -1179,6 +1394,97 @@
                     answers: ["2500"],
                     type: "函数"
                 },
+                {
+                    question: "如图, A为双曲线 y = \\frac{4}{x} (x>0)上一点, B为x轴正半轴上一点, 线段AB的中点C恰好在双曲线上, 则\\triangle OBC的面积为\\_\\_\\_\\_。",
+                    answers: ["3"],
+                    type: "函数",
+                    svgConfig: {
+                        width: 400,
+                        height: 380,
+                        viewBox: '0 0 400 380',
+                        elements: [
+                            // Axes
+                            { tag: 'path', attrs: { d: 'M 50 20 L 50 350 L 380 350', stroke: '#000', 'stroke-width': '1.5', fill: 'none' } },
+                            { tag: 'path', attrs: { d: 'M 45 30 L 50 20 L 55 30', stroke: '#000', 'stroke-width': '1.5', fill: 'none' } }, // y-arrow
+                            { tag: 'path', attrs: { d: 'M 370 345 L 380 350 L 370 355', stroke: '#000', 'stroke-width': '1.5', fill: 'none' } }, // x-arrow
+                            { tag: 'text', attrs: { x: 60, y: 35, 'font-size': '16', 'font-family': 'Arial' }, content: 'y' },
+                            { tag: 'text', attrs: { x: 370, y: 370, 'font-size': '16', 'font-family': 'Arial' }, content: 'x' },
+
+                            // Hyperbola Curve: y = 4/x
+                            { tag: 'path', attrs: { d: 'M 90 190 L 100 222 L 110 243 L 120 259 L 130 270 L 150 286 L 170 297 L 190 304 L 210 310 L 250 318 L 290 323 L 330 327 L 370 330', stroke: '#2196F3', 'stroke-width': '2', fill: 'none' } },
+                            
+                            // Coords: A(2,2), B(6,0), C(4,1) -> scale 40, origin(50,350)
+                            // A -> (130, 270)
+                            // B -> (290, 350)
+                            // C -> (210, 310)
+                            
+                            // Triangle OBC shaded
+                            { tag: 'path', attrs: { d: 'M 50,350 L 290,350 L 210,310 Z', fill: 'rgba(76, 175, 80, 0.3)', stroke: '#4CAF50', 'stroke-width': '1' } },
+                            
+                            // Line AB
+                            { tag: 'line', attrs: { x1: 130, y1: 270, x2: 290, y2: 350, stroke: '#666', 'stroke-width': '1.5' } },
+
+                            // Points
+                            { tag: 'circle', attrs: { cx: 130, cy: 270, r: '5', fill: '#4CAF50' } }, // A
+                            { tag: 'circle', attrs: { cx: 290, cy: 350, r: '5', fill: '#4CAF50' } }, // B
+                            { tag: 'circle', attrs: { cx: 210, cy: 310, r: '5', fill: '#4CAF50' } }, // C
+                            { tag: 'circle', attrs: { cx: 50, cy: 350, r: '5', fill: 'black' } }, // O
+
+                            // Labels
+                            { tag: 'text', attrs: { x: 125, y: 260, 'font-size': '16', 'font-family': 'Arial', fill: '#666' }, content: 'A' },
+                            { tag: 'text', attrs: { x: 295, y: 345, 'font-size': '16', 'font-family': 'Arial', fill: '#666' }, content: 'B' },
+                            { tag: 'text', attrs: { x: 215, y: 300, 'font-size': '16', 'font-family': 'Arial', fill: '#666' }, content: 'C' },
+                            { tag: 'text', attrs: { x: 35, y: 355, 'font-size': '16', 'font-family': 'Arial', fill: 'black' }, content: 'O' },
+                        ]
+                    }
+                },
+                {
+                    question: "已知, 直线y=kx-2与抛物线y=ax²(a<0)交于点A、点B, 连接AO、BO, 若∠AOB=90°, 则a的值为\\_\\_\\_\\_.",
+                    answers: ["-0.5", "-1/2","\\frac{-1}{2}","-\\frac{1}{2}"],
+                    type: "函数",
+                    svgConfig: {
+                        width: 400,
+                        height: 500,
+                        viewBox: '0 0 400 500',
+                        elements: [
+                            // Grid lines (scale=30, origin=(200,180))
+                            { tag: 'path', attrs: { d: 'M 20 120 L 380 120 M 20 240 L 380 240 M 20 300 L 380 300 M 20 360 L 380 360 M 20 420 L 380 420', 'stroke': '#eee', 'stroke-width': '1'}},
+                            { tag: 'path', attrs: { d: 'M 80 20 L 80 480 M 140 20 L 140 480 M 260 20 L 260 480', 'stroke': '#eee', 'stroke-width': '1'}},
+                            // Axes
+                            { tag: 'path', attrs: { d: 'M 200 20 L 200 480 M 20 180 L 380 180', 'stroke': '#000', 'stroke-width': '1.5'}},
+                            { tag: 'path', attrs: { d: 'M 195 30 L 200 20 L 205 30', stroke: '#000', 'stroke-width': '1.5', fill: 'none'}}, // Y-arrow
+                            { tag: 'path', attrs: { d: 'M 370 175 L 380 180 L 370 185', stroke: '#000', 'stroke-width': '1.5', fill: 'none'}}, // X-arrow
+                            // Axis Labels
+                            { tag: 'text', attrs: { x: 205, y: 125, 'font-size': '14'}, content: '2' },
+                            { tag: 'text', attrs: { x: 205, y: 245, 'font-size': '14'}, content: '-2' },
+                            { tag: 'text', attrs: { x: 205, y: 305, 'font-size': '14'}, content: '-4' },
+                            { tag: 'text', attrs: { x: 205, y: 365, 'font-size': '14'}, content: '-6' },
+                            { tag: 'text', attrs: { x: 205, y: 425, 'font-size': '14'}, content: '-8' },
+                            { tag: 'text', attrs: { x: 185, y: 175, 'font-size': '16', 'font-weight': 'bold'}, content: 'O' },
+
+                            // Parabola y = -0.5x^2, smoothed and extended
+                            { tag: 'path', attrs: { d: 'M 65,483.75 Q 132.5,180 200,180 T 335,483.75', 'stroke': '#2196F3', 'stroke-width': '2', fill: 'none'}},
+                            
+                            // Line y=1.5x-2, extended
+                            { tag: 'line', attrs: { x1: 65, y1: 442.5, x2: 275, y2: 127.5, 'stroke': '#666', 'stroke-width': '1.5'}},
+                            
+                            // Vectors OA, OB
+                            { tag: 'line', attrs: { x1: 200, y1: 180, x2: 80, y2: 420, 'stroke': '#333', 'stroke-width': '1'}}, // OA
+                            { tag: 'line', attrs: { x1: 200, y1: 180, x2: 230, y2: 195, 'stroke': '#333', 'stroke-width': '1'}}, // OB
+                            
+                            // Right angle marker at O, between OA and OB
+                            { tag: 'path', attrs: { d: 'M 193,193 L 207,200 L 213,187', 'stroke': '#4CAF50', 'stroke-width': '1.5', fill: 'rgba(76, 175, 80, 0.3)'}},
+
+                            // Points A and B
+                            { tag: 'circle', attrs: { cx: 80, cy: 420, r: '5', fill: '#4CAF50'}}, // A(-4,-8)
+                            { tag: 'circle', attrs: { cx: 230, cy: 195, r: '5', fill: '#4CAF50'}}, // B(1,-0.5)
+
+                            // Point Labels A and B
+                            { tag: 'text', attrs: { x: 70, y: 415, 'font-size': '16', 'font-style': 'italic' }, content: 'A' },
+                            { tag: 'text', attrs: { x: 235, y: 190, 'font-size': '16', 'font-style': 'italic' }, content: 'B' }
+                        ]
+                    }
+                }
             ],
             "04不等式": [
                 {
@@ -1285,237 +1591,56 @@
                     question: "如图所示，在坐标系中，已知点A(0,0)、B(6,0)、C(6,6)、D(0,6)、E(6,3)，求点F的坐标。",
                     answers: ["(2,6)", "2,6"],
                     type: "几何与解析几何",
-                    svgGenerator: function() {
-                        let svgWidth = 500;
-                        let svgHeight = 400;
-                        let scale = 40; // 每个单位的像素数
-                        
-                        // 创建SVG元素
-                        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                        svg.setAttribute('width', svgWidth);
-                        svg.setAttribute('height', svgHeight);
-                        svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
-                        svg.style.border = '1px solid #ddd';
-                        svg.style.backgroundColor = '#fafafa';
-                        
-                        // 创建分组
-                        const gridGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                        const axisGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                        const labelsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                        const shapeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                        const pointsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                        const markersGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                        
-                        // 绘制网格线
-                        for (let i = 0; i <= 8; i++) {
-                            // 垂直网格线
-                            const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                            vLine.setAttribute('x1', 50 + i * scale);
-                            vLine.setAttribute('y1', 50);
-                            vLine.setAttribute('x2', 50 + i * scale);
-                            vLine.setAttribute('y2', 350);
-                            vLine.setAttribute('stroke', '#eee');
-                            vLine.setAttribute('stroke-width', '0.5');
-                            vLine.setAttribute('vector-effect', 'non-scaling-stroke');
-                            gridGroup.appendChild(vLine);
-                            
-                            // 水平网格线
-                            const hLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                            hLine.setAttribute('x1', 50);
-                            hLine.setAttribute('y1', 50 + i * scale);
-                            hLine.setAttribute('x2', 370);
-                            hLine.setAttribute('y2', 50 + i * scale);
-                            hLine.setAttribute('stroke', '#eee');
-                            hLine.setAttribute('stroke-width', '0.5');
-                            hLine.setAttribute('vector-effect', 'non-scaling-stroke');
-                            gridGroup.appendChild(hLine);
-                        }
-                        
-                        // 绘制坐标轴
-                        const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                        xAxis.setAttribute('x1', 50);
-                        xAxis.setAttribute('y1', 350);
-                        xAxis.setAttribute('x2', 370);
-                        xAxis.setAttribute('y2', 350);
-                        xAxis.setAttribute('stroke', '#000');
-                        xAxis.setAttribute('stroke-width', '1.5');
-                        xAxis.setAttribute('vector-effect', 'non-scaling-stroke');
-                        axisGroup.appendChild(xAxis);
-                        
-                        const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                        yAxis.setAttribute('x1', 50);
-                        yAxis.setAttribute('y1', 50);
-                        yAxis.setAttribute('x2', 50);
-                        yAxis.setAttribute('y2', 350);
-                        yAxis.setAttribute('stroke', '#000');
-                        yAxis.setAttribute('stroke-width', '1.5');
-                        yAxis.setAttribute('vector-effect', 'non-scaling-stroke');
-                        axisGroup.appendChild(yAxis);
-                        
-                        // 添加坐标轴标签
-                        for (let i = 0; i <= 8; i++) {
-                            if (i > 0) {
-                                // X轴标签
-                                const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                                xLabel.setAttribute('x', 50 + i * scale);
-                                xLabel.setAttribute('y', 365);
-                                xLabel.setAttribute('text-anchor', 'middle');
-                                xLabel.setAttribute('font-size', '12');
-                                xLabel.setAttribute('font-family', 'Arial');
-                                xLabel.setAttribute('fill', '#666');
-                                xLabel.textContent = i;
-                                labelsGroup.appendChild(xLabel);
-                                
-                                // Y轴标签
-                                const yLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                                yLabel.setAttribute('x', 35);
-                                yLabel.setAttribute('y', 350 - i * scale + 5);
-                                yLabel.setAttribute('text-anchor', 'middle');
-                                yLabel.setAttribute('font-size', '12');
-                                yLabel.setAttribute('font-family', 'Arial');
-                                yLabel.setAttribute('fill', '#666');
-                                yLabel.textContent = i;
-                                labelsGroup.appendChild(yLabel);
-                            }
-                        }
-                        
-                        // 定义点的坐标
-                        const points = {
-                            A: {x: 0, y: 0, label: 'A = (0, 0)'},
-                            B: {x: 6, y: 0, label: 'B = (6, 0)'},
-                            C: {x: 6, y: 6, label: 'C = (6, 6)'},
-                            D: {x: 0, y: 6, label: 'D = (0, 6)'},
-                            E: {x: 6, y: 3, label: 'E = (6, 3)'},
-                            F: {x: 2, y: 6, label: 'F(?,6)', color: '#ff4444'}
-                        };
-                        
-                        // 绘制矩形ABCD
-                        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                        rect.setAttribute('x', 50);
-                        rect.setAttribute('y', 350 - 6 * scale);
-                        rect.setAttribute('width', 6 * scale);
-                        rect.setAttribute('height', 6 * scale);
-                        rect.setAttribute('fill', 'rgba(255, 182, 193, 0.3)');
-                        rect.setAttribute('stroke', '#CD853F');
-                        rect.setAttribute('stroke-width', '2');
-                        rect.setAttribute('vector-effect', 'non-scaling-stroke');
-                        shapeGroup.appendChild(rect);
-                        
-                        // 绘制对角线AF
-                        const diagonalAF = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                        diagonalAF.setAttribute('x1', 50);
-                        diagonalAF.setAttribute('y1', 350);
-                        diagonalAF.setAttribute('x2', 50 + 2 * scale);
-                        diagonalAF.setAttribute('y2', 350 - 6 * scale);
-                        diagonalAF.setAttribute('stroke', '#333');
-                        diagonalAF.setAttribute('stroke-width', '2');
-                        diagonalAF.setAttribute('vector-effect', 'non-scaling-stroke');
-                        shapeGroup.appendChild(diagonalAF);
-                        
-                        // 绘制线段AE
-                        const lineAE = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                        lineAE.setAttribute('x1', 50);
-                        lineAE.setAttribute('y1', 350);
-                        lineAE.setAttribute('x2', 50 + 6 * scale);
-                        lineAE.setAttribute('y2', 350 - 3 * scale);
-                        lineAE.setAttribute('stroke', '#333');
-                        lineAE.setAttribute('stroke-width', '2');
-                        lineAE.setAttribute('vector-effect', 'non-scaling-stroke');
-                        shapeGroup.appendChild(lineAE);
-                        
-                        // 绘制点和标签
-                        Object.keys(points).forEach(pointName => {
-                            const point = points[pointName];
-                            const pixelX = 50 + point.x * scale;
-                            const pixelY = 350 - point.y * scale;
-                            
-                            // 绘制点
-                            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                            circle.setAttribute('cx', pixelX);
-                            circle.setAttribute('cy', pixelY);
-                            circle.setAttribute('r', '6');
-                            circle.setAttribute('fill', point.color || '#4CAF50');
-                            circle.setAttribute('stroke', '#fff');
-                            circle.setAttribute('stroke-width', '2');
-                            pointsGroup.appendChild(circle);
-                            
-                            // 添加点标签
-                            const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                            let labelX = pixelX;
-                            let labelY = pixelY;
-                            
-                            // 根据点的位置调整标签位置
-                            if (pointName === 'A') {
-                                labelX -= 25;
-                                labelY += 20;
-                            } else if (pointName === 'B') {
-                                labelX += 15;
-                                labelY += 20;
-                                label.setAttribute('fill', '#2196F3');
-                            } else if (pointName === 'C') {
-                                labelX += 15;
-                                labelY -= 10;
-                            } else if (pointName === 'D') {
-                                labelX -= 25;
-                                labelY -= 10;
-                            } else if (pointName === 'E') {
-                                labelX += 15;
-                                labelY += 5;
-                                label.setAttribute('fill', '#2196F3');
-                            } else if (pointName === 'F') {
-                                labelX -= 10;
-                                labelY -= 15;
-                                label.setAttribute('fill', '#ff4444');
-                                label.setAttribute('font-weight', 'bold');
-                            }
-                            
-                            label.setAttribute('x', labelX);
-                            label.setAttribute('y', labelY);
-                            label.setAttribute('font-size', '14');
-                            label.setAttribute('font-family', 'Arial');
-                            label.setAttribute('fill', label.getAttribute('fill') || '#666');
-                            label.textContent = point.label;
-                            markersGroup.appendChild(label);
-                        });
-                        
-                        // 按顺序添加所有分组
-                        svg.appendChild(gridGroup);
-                        svg.appendChild(axisGroup);
-                        svg.appendChild(labelsGroup);
-                        svg.appendChild(shapeGroup);
-                        svg.appendChild(pointsGroup);
-                        svg.appendChild(markersGroup);
-                        
-                        return svg;
+                    svgConfig: {
+                        width: 500,
+                        height: 400,
+                        scale: 40,
+                        origin: { x: 50, y: 350 },
+                        grid: { show: true, xMax: 8, yMax: 8, xMin: 0, yMin: 0},
+                        axes: { show: true, xMax: 8, yMax: 8 },
+                        points: [
+                            { name: 'A', x: 0, y: 0, label: 'A(0,0)', labelOffset: { x: -35, y: 20 } },
+                            { name: 'B', x: 6, y: 0, label: 'B(6,0)', labelOffset: { x: 15, y: 20 }, labelColor: '#2196F3' },
+                            { name: 'C', x: 6, y: 6, label: 'C(6,6)', labelOffset: { x: 15, y: -10 } },
+                            { name: 'D', x: 0, y: 6, label: 'D(0,6)', labelOffset: { x: -35, y: -10 } },
+                            { name: 'E', x: 6, y: 3, label: 'E(6,3)', labelOffset: { x: 15, y: 5 }, labelColor: '#2196F3' },
+                            { name: 'F', x: 2, y: 6, label: 'F(?,6)', color: '#ff4444', labelOffset: { x: 0, y: -15 }, labelColor: '#ff4444', labelBold: true }
+                        ],
+                        lines: [
+                            { p1: 'A', p2: 'F', color: '#333' },
+                            { p1: 'A', p2: 'E', color: '#333' }
+                        ],
+                        shapes: [
+                            { type: 'rect', x: 0, y: 0, width: 6, height: 6, fill: 'rgba(255, 182, 193, 0.3)', stroke: '#CD853F' }
+                        ]
                     }
                 },
                 {
                     question: "如图所示，在坐标系中有一个三角形ABC，其中A(0,0)、B(5,0)、C(2,a),D(2,0),\\angle ACB=45°，求a。",
                     answers: ["6"],
                     type: "几何与解析几何",
-                    svgGenerator: function() {
-                        return svgGenerators.createCoordinateSystem({
-                            width: 400,
-                            height: 450,
-                            scale: 50,
-                            maxX: 6,
-                            maxY: 7,
-                            points: {
-                                A: {x: 0, y: 0, label: 'A(0,0)', color: '#4CAF50', labelOffset: {x: -30, y: 20}},
-                                B: {x: 5, y: 0, label: 'B(5,0)', color: '#4CAF50', labelOffset: {x: 10, y: 20}},
-                                C: {x: 2, y: 6, label: 'C(2,a)', color: '#4CAF50', labelOffset: {x: 10, y: -10}},
-                                D: {x: 2, y: 0, label: 'D(2,0)', color: '#4CAF50', labelOffset: {x: 10, y: -10}},
-                                E: {x: 2, y: 6, label: '∠ACB=45°', color: 'red', labelOffset: {x: 0, y: 10}},
-                            },
-                            lines: [
-                                {x1: 0, y1: 0, x2: 5, y2: 0, color: '#2196F3'},
-                                {x1: 0, y1: 0, x2: 2, y2: 6, color: '#2196F3'},
-                                {x1: 2, y1: 6, x2: 2, y2: 0, color: '#2196F3'},
-                                {x1: 2, y1: 0, x2: 5, y2: 0, color: '#2196F3'},
-                                {x1: 2, y1: 6, x2: 5, y2: 0, color: '#2196F3'},
-
-                            ]
-                        });
+                    svgConfig: {
+                        width: 400,
+                        height: 450,
+                        scale: 50,
+                        origin: { x: 50, y: 400 },
+                        grid: { show: true, xMax: 6, yMax: 7, xMin:0, yMin:0 },
+                        axes: { show: true, xMax: 6, yMax: 7, xMin:1, yMin:1 },
+                        points: [
+                            { name: 'A', x: 0, y: 0, label: 'A(0,0)', labelOffset: {x: -30, y: 20} },
+                            { name: 'B', x: 5, y: 0, label: 'B(5,0)', labelOffset: {x: 10, y: 20} },
+                            { name: 'C', x: 2, y: 6, label: 'C(2,a)', labelOffset: {x: 10, y: -10} },
+                            { name: 'D', x: 2, y: 0, label: 'D(2,0)', labelOffset: {x: -30, y: -10} }
+                        ],
+                        lines: [
+                            { p1: 'A', p2: 'B', color: '#2196F3' },
+                            { p1: 'A', p2: 'C', color: '#2196F3' },
+                            { p1: 'C', p2: 'D', color: '#2196F3', strokeDasharray: '4' },
+                            { p1: 'C', p2: 'B', color: '#2196F3' }
+                        ],
+                        labels: [
+                            { x: 2.1, y: 5.5, text: '∠ACB=45°', color: 'red' }
+                        ]
                     }
                 },
                 {
@@ -1536,125 +1661,27 @@
                     question: "如图，四边形ABCD内接于⊙O，对角线AC、BD相交于点E，且BC=CD=4，AE=6，线段BE和DE的长均为正整数，则BD的长等于?. ",
                     answers: ["7"],
                     type: "几何与解析几何",
-                    svgGenerator: function() {
-                        // 画圆、四边形、对角线、交点O、E、A、B、C、D，风格仿照用户图片
-                        const svgWidth = 320;
-                        const svgHeight = 320;
-                        const centerX = 160;
-                        const centerY = 160;
-                        const radius = 120;
-                        // 设定圆上点的角度
-                        const deg = Math.PI / 180;
-                        // 适当调整点的位置以美观
-                        const points = {
-                            A: { x: centerX + radius * Math.cos(120 * deg), y: centerY + radius * Math.sin(120 * deg) },
-                            B: { x: centerX + radius * Math.cos(200 * deg), y: centerY + radius * Math.sin(200 * deg) },
-                            C: { x: centerX + radius * Math.cos(270 * deg), y: centerY + radius * Math.sin(270 * deg) },
-                            D: { x: centerX + radius * Math.cos(340 * deg), y: centerY + radius * Math.sin(340 * deg) }
-                        };
-                        // E为AC与BD交点，O为圆心
-                        // 计算AC与BD交点E
-                        function lineIntersection(p1, p2, p3, p4) {
-                            const x1 = p1.x, y1 = p1.y, x2 = p2.x, y2 = p2.y;
-                            const x3 = p3.x, y3 = p3.y, x4 = p4.x, y4 = p4.y;
-                            const denom = (x1-x2)*(y3-y4)-(y1-y2)*(x3-x4);
-                            if (denom === 0) return {x: centerX, y: centerY};
-                            const px = ((x1*y2-y1*x2)*(x3-x4)-(x1-x2)*(x3*y4-y3*x4))/denom;
-                            const py = ((x1*y2-y1*x2)*(y3-y4)-(y1-y2)*(x3*y4-y3*x4))/denom;
-                            return {x: px, y: py};
-                        }
-                        const E = lineIntersection(points.A, points.C, points.B, points.D);
-                        // SVG元素
-                        const svgNS = 'http://www.w3.org/2000/svg';
-                        const svg = document.createElementNS(svgNS, 'svg');
-                        svg.setAttribute('width', svgWidth);
-                        svg.setAttribute('height', svgHeight);
-                        svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
-                        // 画圆
-                        const circle = document.createElementNS(svgNS, 'circle');
-                        circle.setAttribute('cx', centerX);
-                        circle.setAttribute('cy', centerY);
-                        circle.setAttribute('r', radius);
-                        circle.setAttribute('stroke', '#000');
-                        circle.setAttribute('stroke-width', '2');
-                        circle.setAttribute('fill', 'none');
-                        svg.appendChild(circle);
-                        // 画四边形ABCD
-                        const quad = document.createElementNS(svgNS, 'polygon');
-                        quad.setAttribute('points', `${points.A.x},${points.A.y} ${points.B.x},${points.B.y} ${points.C.x},${points.C.y} ${points.D.x},${points.D.y}`);
-                        quad.setAttribute('fill', 'none');
-                        quad.setAttribute('stroke', '#000');
-                        quad.setAttribute('stroke-width', '2');
-                        svg.appendChild(quad);
-                        // 画对角线AC
-                        const ac = document.createElementNS(svgNS, 'line');
-                        ac.setAttribute('x1', points.A.x);
-                        ac.setAttribute('y1', points.A.y);
-                        ac.setAttribute('x2', points.C.x);
-                        ac.setAttribute('y2', points.C.y);
-                        ac.setAttribute('stroke', '#000');
-                        ac.setAttribute('stroke-width', '2');
-                        svg.appendChild(ac);
-                        // 画对角线BD
-                        const bd = document.createElementNS(svgNS, 'line');
-                        bd.setAttribute('x1', points.B.x);
-                        bd.setAttribute('y1', points.B.y);
-                        bd.setAttribute('x2', points.D.x);
-                        bd.setAttribute('y2', points.D.y);
-                        bd.setAttribute('stroke', '#000');
-                        bd.setAttribute('stroke-width', '2');
-                        svg.appendChild(bd);
-                        // 画圆心O
-                        const o = document.createElementNS(svgNS, 'circle');
-                        o.setAttribute('cx', centerX);
-                        o.setAttribute('cy', centerY);
-                        o.setAttribute('r', 4);
-                        o.setAttribute('fill', '#000');
-                        svg.appendChild(o);
-                        // 标注O
-                        const oLabel = document.createElementNS(svgNS, 'text');
-                        oLabel.setAttribute('x', centerX + 10);
-                        oLabel.setAttribute('y', centerY - 10);
-                        oLabel.setAttribute('font-size', '18');
-                        oLabel.setAttribute('font-family', 'Times New Roman, serif');
-                        oLabel.setAttribute('fill', '#000');
-                        oLabel.textContent = 'O';
-                        svg.appendChild(oLabel);
-                        // 画交点E
-                        const e = document.createElementNS(svgNS, 'circle');
-                        e.setAttribute('cx', E.x);
-                        e.setAttribute('cy', E.y);
-                        e.setAttribute('r', 4);
-                        e.setAttribute('fill', '#000');
-                        svg.appendChild(e);
-                        // 标注E
-                        const eLabel = document.createElementNS(svgNS, 'text');
-                        eLabel.setAttribute('x', E.x + 8);
-                        eLabel.setAttribute('y', E.y + 18);
-                        eLabel.setAttribute('font-size', '18');
-                        eLabel.setAttribute('font-family', 'Times New Roman, serif');
-                        eLabel.setAttribute('fill', '#000');
-                        eLabel.textContent = 'E';
-                        svg.appendChild(eLabel);
-                        // 标注A、B、C、D
-                        const labelMap = {
-                            A: {dx: -18, dy: +18},
-                            B: {dx: -18, dy: 18},
-                            C: {dx: 0, dy: -10},
-                            D: {dx: 10, dy: 18}
-                        };
-                        for (const key of ['A','B','C','D']) {
-                            const pt = points[key];
-                            const label = document.createElementNS(svgNS, 'text');
-                            label.setAttribute('x', pt.x + labelMap[key].dx);
-                            label.setAttribute('y', pt.y + labelMap[key].dy);
-                            label.setAttribute('font-size', '20');
-                            label.setAttribute('font-family', 'Times New Roman, serif');
-                            label.setAttribute('fill', '#000');
-                            label.textContent = key;
-                            svg.appendChild(label);
-                        }
-                        return svg;
+                    svgConfig: {
+                        width: 424,
+                        height: 424,
+                        viewBox: '0 0 424 424',
+                        elements: [
+                            { tag: 'g', attrs: {stroke: 'black', 'stroke-width': '2', fill: 'none'}, children: [
+                                { tag: 'circle', attrs: {cx: '212', cy: '212', r: '200'}},
+                                { tag: 'path', attrs: {d: 'M 115,37 L 20,268 L 240,410 L 408,250 Z'}},
+                                { tag: 'path', attrs: {d: 'M 115,37 L 240,410'}},
+                                { tag: 'path', attrs: {d: 'M 20,268 L 408,250'}},
+                            ]},
+                            { tag: 'circle', attrs: {cx: '212', cy: '212', r: '3', fill: 'black'}},
+                            { tag: 'g', attrs: {'font-family': 'Times New Roman, serif', 'font-size': '28', 'font-style': 'italic', fill: 'black', stroke: 'none'}, children: [
+                                { tag: 'text', attrs: { x: 100, y: 45}, content: 'A' },
+                                { tag: 'text', attrs: { x: 20,  y: 265}, content: 'B' },
+                                { tag: 'text', attrs: { x: 240, y: 420}, content: 'C' },
+                                { tag: 'text', attrs: { x: 400, y: 255}, content: 'D' },
+                                { tag: 'text', attrs: { x: 220, y: 210}, content: 'O' },
+                                { tag: 'text', attrs: { x: 190, y: 275}, content: 'E' }
+                            ]}
+                        ]
                     }
                 }
             ],
@@ -1681,407 +1708,7 @@
             ]
         };
 
-        // SVG图形生成器
-        const svgGenerators = {
-            coordinateGeometry1: function() {
-                let svgWidth = 500;
-                let svgHeight = 400;
-                let centerX = svgWidth / 2;
-                let centerY = svgHeight / 2;
-                let scale = 40; // 每个单位的像素数
-                
-                // 创建SVG元素
-                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                svg.setAttribute('width', svgWidth);
-                svg.setAttribute('height', svgHeight);
-                svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
-                svg.style.border = '1px solid #ddd';
-                svg.style.backgroundColor = '#fafafa';
-                
-                // 创建分组
-                const gridGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                const axisGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                const labelsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                const shapeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                const pointsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                const markersGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                
-                // 绘制网格线
-                for (let i = 0; i <= 8; i++) {
-                    // 垂直网格线
-                    const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                    vLine.setAttribute('x1', 50 + i * scale);
-                    vLine.setAttribute('y1', 50);
-                    vLine.setAttribute('x2', 50 + i * scale);
-                    vLine.setAttribute('y2', 350);
-                    vLine.setAttribute('stroke', '#eee');
-                    vLine.setAttribute('stroke-width', '0.5');
-                    vLine.setAttribute('vector-effect', 'non-scaling-stroke');
-                    gridGroup.appendChild(vLine);
-                    
-                    // 水平网格线
-                    const hLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                    hLine.setAttribute('x1', 50);
-                    hLine.setAttribute('y1', 50 + i * scale);
-                    hLine.setAttribute('x2', 370);
-                    hLine.setAttribute('y2', 50 + i * scale);
-                    hLine.setAttribute('stroke', '#eee');
-                    hLine.setAttribute('stroke-width', '0.5');
-                    hLine.setAttribute('vector-effect', 'non-scaling-stroke');
-                    gridGroup.appendChild(hLine);
-                }
-                
-                // 绘制坐标轴
-                // X轴
-                const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                xAxis.setAttribute('x1', 50);
-                xAxis.setAttribute('y1', 350);
-                xAxis.setAttribute('x2', 370);
-                xAxis.setAttribute('y2', 350);
-                xAxis.setAttribute('stroke', '#000');
-                xAxis.setAttribute('stroke-width', '1.5');
-                xAxis.setAttribute('vector-effect', 'non-scaling-stroke');
-                axisGroup.appendChild(xAxis);
-                
-                // Y轴
-                const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                yAxis.setAttribute('x1', 50);
-                yAxis.setAttribute('y1', 50);
-                yAxis.setAttribute('x2', 50);
-                yAxis.setAttribute('y2', 350);
-                yAxis.setAttribute('stroke', '#000');
-                yAxis.setAttribute('stroke-width', '1.5');
-                yAxis.setAttribute('vector-effect', 'non-scaling-stroke');
-                axisGroup.appendChild(yAxis);
-                
-                // 添加坐标轴标签
-                for (let i = 0; i <= 8; i++) {
-                    if (i > 0) {
-                        // X轴标签
-                        const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                        xLabel.setAttribute('x', 50 + i * scale);
-                        xLabel.setAttribute('y', 365);
-                        xLabel.setAttribute('text-anchor', 'middle');
-                        xLabel.setAttribute('font-size', '12');
-                        xLabel.setAttribute('font-family', 'Arial');
-                        xLabel.setAttribute('fill', '#666');
-                        xLabel.textContent = i;
-                        labelsGroup.appendChild(xLabel);
-                        
-                        // Y轴标签
-                        const yLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                        yLabel.setAttribute('x', 35);
-                        yLabel.setAttribute('y', 350 - i * scale + 5);
-                        yLabel.setAttribute('text-anchor', 'middle');
-                        yLabel.setAttribute('font-size', '12');
-                        yLabel.setAttribute('font-family', 'Arial');
-                        yLabel.setAttribute('fill', '#666');
-                        yLabel.textContent = i;
-                        labelsGroup.appendChild(yLabel);
-                    }
-                }
-                
-                // 定义点的坐标
-                const points = {
-                    A: {x: 0, y: 0, label: 'A = (0, 0)'},
-                    B: {x: 6, y: 0, label: 'B = (6, 0)'},
-                    C: {x: 6, y: 6, label: 'C = (6, 6)'},
-                    D: {x: 0, y: 6, label: 'D = (0, 6)'},
-                    E: {x: 6, y: 3, label: 'E = (6, 3)'},
-                    F: {x: 2, y: 6, label: 'F(?,6)', color: '#ff4444'}
-                };
-                
-                // 绘制矩形ABCD
-                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                rect.setAttribute('x', 50);
-                rect.setAttribute('y', 350 - 6 * scale);
-                rect.setAttribute('width', 6 * scale);
-                rect.setAttribute('height', 6 * scale);
-                rect.setAttribute('fill', 'rgba(255, 182, 193, 0.3)');
-                rect.setAttribute('stroke', '#CD853F');
-                rect.setAttribute('stroke-width', '2');
-                rect.setAttribute('vector-effect', 'non-scaling-stroke');
-                shapeGroup.appendChild(rect);
-                
-                // 绘制对角线AF
-                const diagonalAF = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                diagonalAF.setAttribute('x1', 50);
-                diagonalAF.setAttribute('y1', 350);
-                diagonalAF.setAttribute('x2', 50 + 2 * scale);
-                diagonalAF.setAttribute('y2', 350 - 6 * scale);
-                diagonalAF.setAttribute('stroke', '#333');
-                diagonalAF.setAttribute('stroke-width', '2');
-                diagonalAF.setAttribute('vector-effect', 'non-scaling-stroke');
-                shapeGroup.appendChild(diagonalAF);
-                
-                // 绘制线段AE
-                const lineAE = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                lineAE.setAttribute('x1', 50);
-                lineAE.setAttribute('y1', 350);
-                lineAE.setAttribute('x2', 50 + 6 * scale);
-                lineAE.setAttribute('y2', 350 - 3 * scale);
-                lineAE.setAttribute('stroke', '#333');
-                lineAE.setAttribute('stroke-width', '2');
-                lineAE.setAttribute('vector-effect', 'non-scaling-stroke');
-                shapeGroup.appendChild(lineAE);
-                
-                // 绘制点和标签
-                Object.keys(points).forEach(pointName => {
-                    const point = points[pointName];
-                    const pixelX = 50 + point.x * scale;
-                    const pixelY = 350 - point.y * scale;
-                    
-                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    circle.setAttribute('cx', pixelX);
-                    circle.setAttribute('cy', pixelY);
-                    circle.setAttribute('r', '6');
-                    circle.setAttribute('fill', point.color || '#4CAF50');
-                    circle.setAttribute('stroke', '#fff');
-                    circle.setAttribute('stroke-width', '2');
-                    pointsGroup.appendChild(circle);
-                    
-                    if (point.label) {
-                        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                        label.setAttribute('x', pixelX + (point.labelOffset?.x || 15));
-                        label.setAttribute('y', pixelY + (point.labelOffset?.y || -10));
-                        label.setAttribute('font-size', '14');
-                        label.setAttribute('font-family', 'Arial');
-                        label.setAttribute('fill', point.labelColor || '#666');
-                        if (point.labelBold) label.setAttribute('font-weight', 'bold');
-                        label.textContent = point.label;
-                        markersGroup.appendChild(label);
-                    }
-                });
-                
-                // 按顺序添加所有分组
-                svg.appendChild(gridGroup);
-                svg.appendChild(axisGroup);
-                svg.appendChild(labelsGroup);
-                svg.appendChild(shapeGroup);
-                svg.appendChild(pointsGroup);
-                svg.appendChild(markersGroup);
-                
-                return svg;
-            },
-            
-            // 使用通用坐标系生成器的三角形示例
-            triangleExample: function() {
-                return svgGenerators.createCoordinateSystem({
-                    width: 400,
-                    height: 350,
-                    scale: 50,
-                    maxX: 6,
-                    maxY: 5,
-                    points: {
-                        A: {
-                            x: 1, y: 1, 
-                            label: 'A(1,1)', 
-                            color: '#4CAF50',
-                            labelOffset: {x: -30, y: 20}
-                        },
-                        B: {
-                            x: 5, y: 1, 
-                            label: 'B(5,1)', 
-                            color: '#4CAF50',
-                            labelOffset: {x: 10, y: 20}
-                        },
-                        C: {
-                            x: 3, y: 4, 
-                            label: 'C(3,4)', 
-                            color: '#4CAF50',
-                            labelOffset: {x: 10, y: -10}
-                        },
-                        G: {
-                            x: 3, y: 2, 
-                            label: 'G(?,?)', 
-                            color: '#ff4444',
-                            labelColor: '#ff4444',
-                            labelBold: true,
-                            labelOffset: {x: 10, y: -10}
-                        }
-                    },
-                    lines: [
-                        {x1: 1, y1: 1, x2: 5, y2: 1, color: '#2196F3'}, // AB
-                        {x1: 5, y1: 1, x2: 3, y2: 4, color: '#2196F3'}, // BC
-                        {x1: 3, y1: 4, x2: 1, y2: 1, color: '#2196F3'}, // CA
-                        {x1: 1, y1: 1, x2: 3, y2: 2.5, color: '#999', strokeDasharray: '5,5'}, // 中线1
-                        {x1: 5, y1: 1, x2: 2, y2: 2.5, color: '#999', strokeDasharray: '5,5'}, // 中线2
-                        {x1: 3, y1: 4, x2: 3, y2: 1, color: '#999', strokeDasharray: '5,5'}  // 中线3
-                    ]
-                });
-            },
-            // 通用坐标系生成器
-            createCoordinateSystem: function(config) {
-                const {
-                    width = 500,
-                    height = 400,
-                    scale = 40,
-                    maxX = 8,
-                    maxY = 8,
-                    points = {},
-                    lines = [],
-                    shapes = []
-                } = config;
-                
-                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                svg.setAttribute('width', width);
-                svg.setAttribute('height', height);
-                svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-                svg.style.border = '1px solid #ddd';
-                svg.style.backgroundColor = '#fafafa';
-                
-                const margin = 50;
-                
-                // 创建分组
-                const gridGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                const axisGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                const labelsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                const shapeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                const pointsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                const markersGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                
-                // 绘制网格线
-                for (let i = 0; i <= maxX; i++) {
-                    const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                    vLine.setAttribute('x1', margin + i * scale);
-                    vLine.setAttribute('y1', margin);
-                    vLine.setAttribute('x2', margin + i * scale);
-                    vLine.setAttribute('y2', height - margin);
-                    vLine.setAttribute('stroke', '#eee');
-                    vLine.setAttribute('stroke-width', '0.5');
-                    vLine.setAttribute('vector-effect', 'non-scaling-stroke');
-                    gridGroup.appendChild(vLine);
-                }
-                
-                for (let i = 0; i <= maxY; i++) {
-                    const hLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                    hLine.setAttribute('x1', margin);
-                    hLine.setAttribute('y1', margin + i * scale);
-                    hLine.setAttribute('x2', width - margin);
-                    hLine.setAttribute('y2', margin + i * scale);
-                    hLine.setAttribute('stroke', '#eee');
-                    hLine.setAttribute('stroke-width', '0.5');
-                    hLine.setAttribute('vector-effect', 'non-scaling-stroke');
-                    gridGroup.appendChild(hLine);
-                }
-                
-                // 绘制坐标轴
-                const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                xAxis.setAttribute('x1', margin);
-                xAxis.setAttribute('y1', height - margin);
-                xAxis.setAttribute('x2', width - margin);
-                xAxis.setAttribute('y2', height - margin);
-                xAxis.setAttribute('stroke', '#000');
-                xAxis.setAttribute('stroke-width', '1.5');
-                xAxis.setAttribute('vector-effect', 'non-scaling-stroke');
-                axisGroup.appendChild(xAxis);
-                
-                const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                yAxis.setAttribute('x1', margin);
-                yAxis.setAttribute('y1', margin);
-                yAxis.setAttribute('x2', margin);
-                yAxis.setAttribute('y2', height - margin);
-                yAxis.setAttribute('stroke', '#000');
-                yAxis.setAttribute('stroke-width', '1.5');
-                yAxis.setAttribute('vector-effect', 'non-scaling-stroke');
-                axisGroup.appendChild(yAxis);
-                
-                // 添加坐标轴标签
-                for (let i = 1; i <= maxX; i++) {
-                    const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                    xLabel.setAttribute('x', margin + i * scale);
-                    xLabel.setAttribute('y', height - margin + 15);
-                    xLabel.setAttribute('text-anchor', 'middle');
-                    xLabel.setAttribute('font-size', '12');
-                    xLabel.setAttribute('font-family', 'Arial');
-                    xLabel.setAttribute('fill', '#666');
-                    xLabel.textContent = i;
-                    labelsGroup.appendChild(xLabel);
-                }
-                
-                for (let i = 1; i <= maxY; i++) {
-                    const yLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                    yLabel.setAttribute('x', margin - 15);
-                    yLabel.setAttribute('y', height - margin - i * scale + 5);
-                    yLabel.setAttribute('text-anchor', 'middle');
-                    yLabel.setAttribute('font-size', '12');
-                    yLabel.setAttribute('font-family', 'Arial');
-                    yLabel.setAttribute('fill', '#666');
-                    yLabel.textContent = i;
-                    labelsGroup.appendChild(yLabel);
-                }
-                
-                // 绘制形状
-                shapes.forEach(shape => {
-                    if (shape.type === 'rectangle') {
-                        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                        rect.setAttribute('x', margin + shape.x * scale);
-                        rect.setAttribute('y', height - margin - (shape.y + shape.height) * scale);
-                        rect.setAttribute('width', shape.width * scale);
-                        rect.setAttribute('height', shape.height * scale);
-                        rect.setAttribute('fill', shape.fill || 'rgba(255, 182, 193, 0.3)');
-                        rect.setAttribute('stroke', shape.stroke || '#CD853F');
-                        rect.setAttribute('stroke-width', '2');
-                        rect.setAttribute('vector-effect', 'non-scaling-stroke');
-                        shapeGroup.appendChild(rect);
-                    }
-                });
-                
-                // 绘制线段
-                lines.forEach(line => {
-                    const lineElement = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                    lineElement.setAttribute('x1', margin + line.x1 * scale);
-                    lineElement.setAttribute('y1', height - margin - line.y1 * scale);
-                    lineElement.setAttribute('x2', margin + line.x2 * scale);
-                    lineElement.setAttribute('y2', height - margin - line.y2 * scale);
-                    lineElement.setAttribute('stroke', line.color || '#333');
-                    lineElement.setAttribute('stroke-width', '2');
-                    lineElement.setAttribute('vector-effect', 'non-scaling-stroke');
-                    if (line.strokeDasharray) {
-                        lineElement.setAttribute('stroke-dasharray', line.strokeDasharray);
-                    }
-                    shapeGroup.appendChild(lineElement);
-                });
-                
-                // 绘制点和标签
-                Object.keys(points).forEach(pointName => {
-                    const point = points[pointName];
-                    const pixelX = margin + point.x * scale;
-                    const pixelY = height - margin - point.y * scale;
-                    
-                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    circle.setAttribute('cx', pixelX);
-                    circle.setAttribute('cy', pixelY);
-                    circle.setAttribute('r', '6');
-                    circle.setAttribute('fill', point.color || '#4CAF50');
-                    circle.setAttribute('stroke', '#fff');
-                    circle.setAttribute('stroke-width', '2');
-                    pointsGroup.appendChild(circle);
-                    
-                    if (point.label) {
-                        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                        label.setAttribute('x', pixelX + (point.labelOffset?.x || 15));
-                        label.setAttribute('y', pixelY + (point.labelOffset?.y || -10));
-                        label.setAttribute('font-size', '14');
-                        label.setAttribute('font-family', 'Arial');
-                        label.setAttribute('fill', point.labelColor || '#666');
-                        if (point.labelBold) label.setAttribute('font-weight', 'bold');
-                        label.textContent = point.label;
-                        markersGroup.appendChild(label);
-                    }
-                });
-                
-                // 按顺序添加所有分组
-                svg.appendChild(gridGroup);
-                svg.appendChild(axisGroup);
-                svg.appendChild(labelsGroup);
-                svg.appendChild(shapeGroup);
-                svg.appendChild(pointsGroup);
-                svg.appendChild(markersGroup);
-                
-                return svg;
-            }
-        };
+
 
         // PDF导出功能
         function exportQuestionsPDF() {
@@ -2534,12 +2161,11 @@
             document.getElementById('playerResult').innerHTML = '';
             
             // 生成新题目
-            const playerQuestion = generateQuestion();
-            // 保存玩家题目的正确答案
-            playerCorrectAnswer = [...correctAnswer];
+            const questionData = generateQuestion();
+            playerCorrectAnswer = questionData.answers;
             
             // 更新界面上的题目
-            document.getElementById('playerQuestion').innerHTML = playerQuestion;
+            document.getElementById('playerQuestion').innerHTML = questionData.questionHtml;
             
             // 记录题目开始时间
             playerQuestionStartTime = playerTime;
@@ -2562,12 +2188,11 @@
             document.getElementById('computerResult').innerHTML = '';
             
             // 生成新题目
-            const computerQuestion = generateQuestion();
-            // 保存计算机题目的正确答案
-            computerCorrectAnswer = [...correctAnswer];
+            const questionData = generateQuestion();
+            computerCorrectAnswer = questionData.answers;
             
             // 更新界面上的题目
-            document.getElementById('computerQuestion').innerHTML = computerQuestion;
+            document.getElementById('computerQuestion').innerHTML = questionData.questionHtml;
             
             // 更新计算机状态
             document.getElementById('computerStatus').innerHTML = `正在思考...`;
@@ -2690,7 +2315,7 @@
             
             // 更新分数显示
             document.getElementById('playerScore').innerHTML = 
-                `正确: ${playerCorrectCount} | 错误: ${playerIncorrectCount} | 总题数: ${playerTotalCount}`;
+                `正确: ${playerCorrectCount} | 错误: ${playerIncorrectCount} | 总题数: ${playerTotalCount}| 得分: ${playerCorrectCount - playerIncorrectCount} `;
             
             // 添加到历史记录
             addToHistory('玩家', currentDifficulty, 
@@ -2798,7 +2423,7 @@
             computerTotalCount++;
             
             // 更新分数
-            updateComputerScore();
+            document.getElementById('computerScore').innerHTML = `正确: ${computerCorrectCount} | 错误: ${computerIncorrectCount} | 总题数: ${computerTotalCount}| 得分: ${computerCorrectCount - computerIncorrectCount} `;
             
             // 添加到历史记录
             addToHistory('计算机', difficultyNames[currentDifficulty - 1], 
@@ -2814,14 +2439,6 @@
                     }, 8000);
                 }
             }, 500); // 每500毫秒显示一个字符，相当于每秒显示2个字符
-        }
-        
-        function updatePlayerScore() {
-            document.getElementById('playerScore').innerHTML = `正确: ${playerCorrectCount} | 错误: ${playerIncorrectCount} | 总题数: ${playerTotalCount}| 得分: ${playerCorrectCount - playerIncorrectCount} `;
-        }
-        
-        function updateComputerScore() {
-            document.getElementById('computerScore').innerHTML = `正确: ${computerCorrectCount} | 错误: ${computerIncorrectCount} | 总题数: ${computerTotalCount}| 得分: ${computerCorrectCount - computerIncorrectCount} `;
         }
         
         function addToHistory(participant, level, question, answer, correctAnswer, result, time) {
@@ -2976,232 +2593,34 @@
        // 以下是生成题目的函数，与原有代码相同
 
        function generateQuestion() {
-            switch(currentDifficulty) {
-                case 1: return generateLevel1Question();
-                case 2: return generateLevel2Question();
-                case 3: return generateLevel3Question();
-                case 4: return generateLevel4Question();
-                case 5: return generateLevel5Question();
-                case 6: return generateLevel6Question();
-                case 7: return generateLevel7Question();
-                case 8: return generateLevel8Question();
-                case 9: return generateLevel9Question();
-                default: return "";
+            const categoryName = difficultyNames[currentDifficulty - 1];
+            if (!categoryName) {
+                return { questionHtml: "无效的难度级别。", answers: [] };
             }
-        }
 
-        function gcd(x, y) {
-            while (y != 0) {
-                let temp = y;
-                y = x % y;
-                x = temp;
+            const questions = questionDatabase[categoryName];
+            if (!questions || questions.length === 0) {
+                return { questionHtml: "该级别暂无题目。", answers: [] };
             }
-            return x;
-        }
 
-        // 格式化多项式显示
-        function formatPolynomial(coefficients, variables) {
-            // 确保coefficients和variables数组长度相同
-            if (coefficients.length !== variables.length) {
-                console.error("系数和变量数组长度不一致");
-                return "";
-            }
-            
-            let result = "";
-            
-            for (let i = 0; i < coefficients.length; i++) {
-                const coef = coefficients[i];
-                const variable = variables[i];
-                
-                // 系数为0，跳过该项
-                if (coef === 0) continue;
-                
-                // 处理第一项（首项）
-                if (result === "") {
-                    if (coef === 1 && variable !== "") {
-                        // 首项系数为1且不是常数项，不显示1
-                        result += variable;
-                    } else if (coef === -1 && variable !== "") {
-                        // 首项系数为-1且不是常数项，显示负号
-                        result += "-" + variable;
-                    } else {
-                        // 其他情况，显示系数
-                        result += coef + variable;
-                    }
-                } else {
-                    // 处理中间项和末项
-                    if (coef === 1) {
-                        // 系数为1，只显示+和变量
-                        result += "+" + variable;
-                    } else if (coef === -1) {
-                        // 系数为-1，只显示-和变量
-                        result += "-" + variable;
-                    } else if (coef > 0) {
-                        // 正系数，显示+和系数和变量
-                        result += "+" + coef + variable;
-                    } else {
-                        // 负系数，显示系数和变量（系数本身已带负号）
-                        result += coef + variable;
-                    }
-                }
-            }
-            
-            // 如果结果为空（所有系数都为0），则返回0
-            return result || "0";
-        }
-
-        // 格式化向量显示
-        function formatVector(components, variables) {
-            const coefficients = [];
-            const vars = [];
-            
-            for (let i = 0; i < components.length; i++) {
-                coefficients.push(components[i]);
-                vars.push(variables[i]);
-            }
-            
-            return formatPolynomial(coefficients, vars);
-        }
-
-        // 格式化复数显示
-        function formatComplex(real, imag) {
-            // 处理实部和虚部都为0的情况
-            if (real === 0 && imag === 0) {
-                return "0";
-            }
-            
-            // 当实部为0时
-            if (real === 0) {
-                if (imag === 1) return "i";
-                if (imag === -1) return "-i";
-                return imag + "i";
-            }
-            
-            // 当虚部为0时
-            if (imag === 0) {
-                return real.toString();
-            }
-            
-            // 处理实部不为0且虚部不为0的情况
-            let result = real.toString();
-            
-            if (imag === 1) {
-                result += "+i";
-            } else if (imag === -1) {
-                result += "-i";
-            } else if (imag > 0) {
-                result += "+" + imag + "i";
-            } else {
-                result += imag + "i";
-            }
-            
-            return result;
-        }
-
-        function generateLevel1Question() {
-            const questions = questionDatabase["01代数"];
             const randomIndex = Math.floor(Math.random() * questions.length);
             const selectedQuestion = questions[randomIndex];
 
-            correctAnswer = selectedQuestion.answers;
-
-            let questionHtml = `\\(${selectedQuestion.question} \\)`;
-            if (selectedQuestion.img) {
-                questionHtml += `<br><img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">`;
-            }
-
-            return questionHtml;
-        }
-
-        function generateLevel2Question() {
-            const questions = questionDatabase["02方程"];
-            const randomIndex = Math.floor(Math.random() * questions.length);
-            const selectedQuestion = questions[randomIndex];
-
-            correctAnswer = selectedQuestion.answers;
-
-            let questionHtml = `\\(${selectedQuestion.question} \\)`;
-            if (selectedQuestion.img) {
-                questionHtml += `<br><img src="${selectedQuestion.img}" alt="问题图片" style="max-width: 100%; height: auto;">`;
-            }
-
-            return questionHtml;
-        }
-
-        function generateLevel3Question() {
-            const questions = questionDatabase["03函数"];
-            const randomIndex = Math.floor(Math.random() * questions.length);
-            const selectedQuestion = questions[randomIndex];
-
-            correctAnswer = selectedQuestion.answers;
-
-            let questionHtml = `\\(${selectedQuestion.question} \\)`;
-  
-            return questionHtml;
-        }
-
-        function generateLevel4Question() {
-            const questions = questionDatabase["04不等式"];
-            const randomIndex = Math.floor(Math.random() * questions.length);
-            const selectedQuestion = questions[randomIndex];
-
-            correctAnswer = selectedQuestion.answers;
-
-            let questionHtml = `\\(${selectedQuestion.question} \\)`;
-  
-            return questionHtml;
-        }
-
-        function generateLevel5Question() {
-            const questions = questionDatabase["05导数"];
-            const randomIndex = Math.floor(Math.random() * questions.length);
-            const selectedQuestion = questions[randomIndex];
-
-            correctAnswer = selectedQuestion.answers;
-
-            let questionHtml = `\\(${selectedQuestion.question} \\)`;
-  
-            return questionHtml;
-        }
-
-        function generateLevel6Question() {
-            const questions = questionDatabase["06线性代数"];
-            const randomIndex = Math.floor(Math.random() * questions.length);
-            const selectedQuestion = questions[randomIndex];
-
-            correctAnswer = selectedQuestion.answers;
-
-            let questionHtml = `\\(${selectedQuestion.question} \\)`;
-  
-            return questionHtml;
-        }
-
-        function generateLevel7Question() {
-            const questions = questionDatabase["07几何与解析几何"];
-            const randomIndex = Math.floor(Math.random() * questions.length);
-            const selectedQuestion = questions[randomIndex];
-
-            correctAnswer = selectedQuestion.answers;
-
-            // 创建题目容器，分为文本部分和图形部分
             const questionContainer = document.createElement('div');
             questionContainer.className = 'question-with-svg';
             
-            // 题目文本部分
             const questionText = document.createElement('div');
             questionText.className = 'question-text';
             questionText.innerHTML = `\\(${selectedQuestion.question}\\)`;
             questionContainer.appendChild(questionText);
             
-            // 如果题目包含SVG图形生成器，则生成并添加SVG
-            if (selectedQuestion.svgGenerator && typeof selectedQuestion.svgGenerator === 'function') {
-                const svgElement = selectedQuestion.svgGenerator();
+            if (selectedQuestion.svgConfig) {
+                const svgElement = createDynamicSVG(selectedQuestion.svgConfig);
                 const svgContainer = document.createElement('div');
                 svgContainer.className = 'svg-container';
                 svgContainer.appendChild(svgElement);
                 questionContainer.appendChild(svgContainer);
             }
-            // 如果题目包含外部图片URL，则创建图片元素
             else if (selectedQuestion.imageUrl) {
                 const imageContainer = document.createElement('div');
                 imageContainer.className = 'image-container';
@@ -3211,7 +2630,6 @@
                 imageElement.alt = '题目图片';
                 imageElement.className = 'question-image';
                 
-                // 添加图片加载错误处理
                 imageElement.onerror = function() {
                     this.style.display = 'none';
                     const errorMsg = document.createElement('div');
@@ -3222,38 +2640,23 @@
                 
                 imageContainer.appendChild(imageElement);
                 questionContainer.appendChild(imageContainer);
+            } else if (selectedQuestion.img) { // Legacy img support
+                const imageContainer = document.createElement('div');
+                imageContainer.className = 'image-container';
+                const imageElement = document.createElement('img');
+                imageElement.src = selectedQuestion.img;
+                imageElement.alt = '问题图片';
+                imageElement.className = 'question-image';
+                imageContainer.appendChild(imageElement);
+                questionContainer.appendChild(imageContainer);
             }
-  
-            return questionContainer.outerHTML;
-        }
-
-        function generateLevel8Question() {
-            const questions = questionDatabase["08向量空间的应用"];
-            const randomIndex = Math.floor(Math.random() * questions.length);
-            const selectedQuestion = questions[randomIndex];
-
-            correctAnswer = selectedQuestion.answers;
-
-            let questionHtml = `\\(${selectedQuestion.question} \\)`;
-  
-            return questionHtml;
-        }
-
-        function generateLevel9Question() {
-            const questions = questionDatabase["09概率组合"];
-            const randomIndex = Math.floor(Math.random() * questions.length);
-            const selectedQuestion = questions[randomIndex];
-
-            correctAnswer = selectedQuestion.answers;
-
-            let questionHtml = `\\(${selectedQuestion.question} \\)`;
-  
-            return questionHtml;
+            
+            return {
+                questionHtml: questionContainer.outerHTML,
+                answers: selectedQuestion.answers
+            };
         }
   
-
-
-
         // 创建冲击波效果
         function createShockwave(attacker) {
             const shockwave = document.createElement('div');
@@ -3405,8 +2808,8 @@
                     questionWithSvg.appendChild(questionText);
                     
                     // 如果题目包含SVG图形生成器，则生成并添加SVG
-                    if (questionObj.svgGenerator && typeof questionObj.svgGenerator === 'function') {
-                        const svgElement = questionObj.svgGenerator();
+                    if (questionObj.svgConfig) {
+                        const svgElement = createDynamicSVG(questionObj.svgConfig);
                         const svgContainer = document.createElement('div');
                         svgContainer.className = 'svg-container';
                         svgContainer.appendChild(svgElement);
@@ -3526,6 +2929,4 @@
         }
     </script>
 </body>
-</html>
-</html>
 </html>
