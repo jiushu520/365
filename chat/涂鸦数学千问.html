@@ -680,19 +680,45 @@
             max-height: 400px;
         }
         .message {
-            padding: 10px 15px;
-            border-radius: 10px;
+            padding: 0;
+            border-radius: 0;
             max-width: 85%;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            box-shadow: none;
             word-wrap: break-word;
+            display: flex;
+            align-items: flex-start;
         }
         .user-message {
             align-self: flex-end;
-            background-color: #dceafc;
-            border-bottom-right-radius: 0;
+            background-color: transparent;
+            flex-direction: row-reverse;
         }
         .assistant-message {
             align-self: flex-start;
+            background-color: transparent;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .user-message .avatar {
+            margin-left: 10px;
+        }
+        .assistant-message .avatar {
+            margin-right: 10px;
+        }
+        .message-bubble {
+            padding: 10px 15px;
+            border-radius: 10px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .user-message .message-bubble {
+            background-color: #dceafc;
+            border-bottom-right-radius: 0;
+        }
+        .assistant-message .message-bubble {
             background-color: white;
             border-bottom-left-radius: 0;
         }
@@ -1414,25 +1440,63 @@
             const targetDisplayArea = isFollowUp ? null : textResultDiv; // For main response, use textResultDiv
             let assistantMessageDivForFollowUp = null; // For follow-up, use this
             let accumulatedResponse = '';
-
-            if (targetDisplayArea) {
-                targetDisplayArea.innerHTML = '<div class="loading-indicator" style="display: block; position: relative; margin: 20px auto;"></div>'; // Clear and show loading
-                resultArea.style.display = 'block'; // Ensure result area is visible
-            }
+            let renderTarget = null;
 
             if (isFollowUp) {
                 // Create and append the assistant's message container for follow-up
                 assistantMessageDivForFollowUp = document.createElement('div');
                 assistantMessageDivForFollowUp.className = 'message assistant-message';
-                const contentP = document.createElement('div'); // Use div for better MathJax/SVG handling
-                contentP.innerHTML = '<p>正在思考...</p>'; // Placeholder
-                assistantMessageDivForFollowUp.appendChild(contentP);
+
+                const avatar = document.createElement('img');
+                avatar.className = 'avatar';
+                avatar.src = 'images/加油.png';
+                assistantMessageDivForFollowUp.appendChild(avatar);
+
+                const messageBubble = document.createElement('div');
+                messageBubble.className = 'message-bubble';
+
+                renderTarget = document.createElement('div');
+                renderTarget.innerHTML = '<p>正在思考...</p>'; // Placeholder
+                messageBubble.appendChild(renderTarget);
+
                 const timeSpan = document.createElement('span');
                 timeSpan.className = 'message-time';
                 timeSpan.textContent = new Date().toLocaleTimeString();
-                assistantMessageDivForFollowUp.appendChild(timeSpan);
+                messageBubble.appendChild(timeSpan);
+                assistantMessageDivForFollowUp.appendChild(messageBubble);
+
                 conversationMessages.appendChild(assistantMessageDivForFollowUp);
                 conversationMessages.scrollTop = conversationMessages.scrollHeight;
+            } else {
+                 if (targetDisplayArea) {
+                    targetDisplayArea.innerHTML = ''; // Clear "Welcome" or previous result
+
+                    const assistantMessageDiv = document.createElement('div');
+                    assistantMessageDiv.className = 'message assistant-message';
+
+                    const avatar = document.createElement('img');
+                    avatar.className = 'avatar';
+                    avatar.src = 'images/加油.png';
+                    assistantMessageDiv.appendChild(avatar);
+
+                    const messageBubble = document.createElement('div');
+                    messageBubble.className = 'message-bubble';
+
+                    const contentDiv = document.createElement('div');
+                    contentDiv.innerHTML = '<div class="loading-indicator" style="display: block; position: relative; margin: 20px auto;"></div>';
+                    messageBubble.appendChild(contentDiv);
+                    renderTarget = contentDiv;
+
+                    const timeSpan = document.createElement('span');
+                    timeSpan.className = 'message-time';
+                    timeSpan.textContent = new Date().toLocaleTimeString();
+                    messageBubble.appendChild(timeSpan);
+                    
+                    assistantMessageDiv.appendChild(messageBubble);
+
+                    targetDisplayArea.appendChild(assistantMessageDiv);
+                    resultArea.style.display = 'block';
+                }
             }
             
             const contentPayload = [{ type: "text", text: prompt }];
@@ -1481,9 +1545,9 @@
                 const decoder = new TextDecoder("utf-8");
                 let buffer = '';
                 
-                // Determine where to render the streaming content
-                const renderTarget = isFollowUp ? assistantMessageDivForFollowUp.firstChild : targetDisplayArea;
-                if (isFollowUp) renderTarget.innerHTML = ''; // Clear "正在思考..."
+                if (renderTarget && renderTarget.querySelector('.loading-indicator')) {
+                    renderTarget.innerHTML = ''; // clear loading indicator
+                }
 
                 while (true) {
                     const { done, value } = await reader.read();
@@ -1509,31 +1573,36 @@
                             const delta = data.choices[0].delta;
                             if (delta && delta.content) {
                                 accumulatedResponse += delta.content;
-                                renderTarget.innerHTML = accumulatedResponse; // Update UI incrementally
-                                
-                                processSvgContent(renderTarget);
-                                if (window.MathJax) {
-                                    window.MathJax.typesetPromise([renderTarget]).catch(err => console.log('MathJax error:', err));
-                                }
-                                if (isFollowUp) {
-                                    conversationMessages.scrollTop = conversationMessages.scrollHeight;
-                                } else {
-                                    targetDisplayArea.scrollTop = targetDisplayArea.scrollHeight;
-                                }
                             }
                         }
                     }
-                }
-                // Final MathJax pass after stream completion for safety
-                if (window.MathJax) {
-                    window.MathJax.typesetPromise([renderTarget]).catch(err => console.log('Final MathJax error:', err));
+                    if (renderTarget) {
+                        renderTarget.innerHTML = accumulatedResponse; // Update UI incrementally
+                        if (isFollowUp) {
+                            conversationMessages.scrollTop = conversationMessages.scrollHeight;
+                        } else if (targetDisplayArea) {
+                            targetDisplayArea.scrollTop = targetDisplayArea.scrollHeight;
+                        }
+                    }
                 }
 
+                // Final processing after stream is complete
+                if(renderTarget) {
+                    renderTarget.innerHTML = accumulatedResponse;
+                    processSvgContent(renderTarget);
+                    if (window.MathJax) {
+                        window.MathJax.typesetPromise([renderTarget]).catch(err => console.log('Final MathJax error:', err));
+                    }
+                }
 
                 if (isFollowUp && assistantMessageDivForFollowUp) {
-                     assistantMessageDivForFollowUp.lastChild.textContent = new Date().toLocaleTimeString(); // Update timestamp
+                     const timeSpan = assistantMessageDivForFollowUp.querySelector('.message-time');
+                     if(timeSpan) timeSpan.textContent = new Date().toLocaleTimeString(); // Update timestamp
+                } else if (!isFollowUp && renderTarget) {
+                    const timeSpan = renderTarget.closest('.message-bubble').querySelector('.message-time');
+                    if (timeSpan) timeSpan.textContent = new Date().toLocaleTimeString();
                 } else if (targetDisplayArea) {
-                    // Remove loading indicator if it's still there
+                    // Fallback to remove loading indicator if something went wrong
                     const loadingIndicator = targetDisplayArea.querySelector('.loading-indicator');
                     if (loadingIndicator) loadingIndicator.remove();
                 }
@@ -1807,12 +1876,20 @@
             messageDiv.className = 'message';
             messageDiv.classList.add(role === 'user' ? 'user-message' : 'assistant-message');
             
+            const avatar = document.createElement('img');
+            avatar.className = 'avatar';
+            avatar.src = role === 'user' ? 'images/01.jpg' : 'images/加油.png';
+            messageDiv.appendChild(avatar);
+
+            const messageBubble = document.createElement('div');
+            messageBubble.className = 'message-bubble';
+
             if (imageBase64) { // Always add image first if present
                  const imgElement = document.createElement('img');
                  imgElement.src = imageBase64;
                  imgElement.alt = role === 'user' ? "User image" : "Assistant image";
                  // style is already in CSS: .message img
-                 messageDiv.appendChild(imgElement);
+                 messageBubble.appendChild(imgElement);
             }
             
             // Sanitize messageText before adding as innerHTML if it can contain user-input HTML
@@ -1824,15 +1901,16 @@
             }
 
             if (textContentDiv.innerHTML || !imageBase64) { // Add text div if it has content or if there's no image
-                 messageDiv.appendChild(textContentDiv);
+                 messageBubble.appendChild(textContentDiv);
             }
 
 
             const timeSpan = document.createElement('span');
             timeSpan.className = 'message-time';
             timeSpan.textContent = new Date().toLocaleTimeString();
-            messageDiv.appendChild(timeSpan);
+            messageBubble.appendChild(timeSpan);
             
+            messageDiv.appendChild(messageBubble);
             conversationMessages.appendChild(messageDiv);
             conversationMessages.scrollTop = conversationMessages.scrollHeight;
 
