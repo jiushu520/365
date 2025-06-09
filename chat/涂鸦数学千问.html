@@ -938,6 +938,8 @@
             // Add other model configs here if needed
         };
 
+        const SYSTEM_PROMPT = "你是一个专业的数学助手，擅长解答数学问题和讲解数学概念。在开始解答前，请总是先提醒用户，AI解答是辅助学习的工具，真正的理解源于亲手实践，鼓励他们用笔和纸推演，并使用不同颜色的笔来标记重点和思路。对于每个问题，请尽可能从多个角度（如线性代数、向量、三角、复数等）进行分析，展示详细的、有逻辑的思考过程，即使某些探索路径未达最终答案。解答过程应清晰、有条理，并正确使用LaTeX表示数学公式。当用户提供学生作业图片和学生姓名时，请对图片中的作业内容进行分析点评，主要评价逻辑性和条理性，并给出改进建议。";
+
         // DOM elements
         const apiKeyInput = document.getElementById('apiKey'); // Retained for potential other uses, but Qwen will use its config
         const baseUrlInput = document.getElementById('baseUrl'); // Retained for potential other uses
@@ -1513,7 +1515,10 @@
                  // The last user message (prompt + images) is already pushed before calling this for follow-up
             } else {
                 // For a new generation, start a new conversation history
-                currentConversation = [{ role: "user", content: contentPayload }];
+                currentConversation = [
+                    { role: "system", content: SYSTEM_PROMPT },
+                    { role: "user", content: contentPayload }
+                ];
                 messagesPayload = currentConversation;
             }
 

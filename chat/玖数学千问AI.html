@@ -72,41 +72,20 @@
             overflow: auto;
         }
         .message {
-            display: flex;
-            align-items: flex-start;
+            padding: 10px 15px;
             margin-bottom: 10px;
+            border-radius: 15px;
             max-width: 80%;
             word-wrap: break-word;
         }
         .user-message {
-            flex-direction: row-reverse;
-            margin-left: auto;
-        }
-        .ai-message {
-            margin-right: auto;
-        }
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        .user-message .avatar {
-            margin-left: 10px;
-        }
-        .ai-message .avatar {
-            margin-right: 10px;
-        }
-        .message-bubble {
-            padding: 10px 15px;
-            border-radius: 15px;
-        }
-        .user-message .message-bubble {
             background-color: #dcf8c6;
+            margin-left: auto;
             border-bottom-right-radius: 5px;
         }
-        .ai-message .message-bubble {
+        .ai-message {
             background-color: #f1f0f0;
+            margin-right: auto;
             border-bottom-left-radius: 5px;
         }
         .message-input {
@@ -554,9 +533,7 @@
                     <label for="model">Model:</label>
                     <select id="model">
 
-
                         <option value="claude-sonnet-4-20250514">claude-sonnet-4-20250514</option>
-                        <option value="gemini-2.5-pro-preview-06-05">gemini-2.5-pro-preview-06-05</option>
                         <option value="gemini-2.5-pro-preview-05-06">gemini-2.5-pro-preview-05-06</option>
                         <option value="gpt-4.1-nano">GPT-4.1-nano</option>
                         <option value="gpt-4.1-mini">GPT-4.1-mini</option>
@@ -716,36 +693,26 @@
             function addMessage(text, isAi = false, imageData = null) {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message ${isAi ? 'ai-message' : 'user-message'}`;
-
-                const avatar = document.createElement('img');
-                avatar.className = 'avatar';
-                avatar.src = isAi ? 'images/加油.png' : 'images/01.jpg';
-                messageDiv.appendChild(avatar);
-
-                const messageBubble = document.createElement('div');
-                messageBubble.className = 'message-bubble';
                 
                 // Process the text for MathJax
                 let processedText = text;
                 
-                messageBubble.innerHTML = processedText;
+                messageDiv.innerHTML = processedText;
                 
                 // 如果有图片数据，添加图片
                 if (imageData) {
                     const imgElement = document.createElement('img');
                     imgElement.src = imageData;
                     imgElement.alt = "Attached image";
-                    messageBubble.appendChild(imgElement);
+                    messageDiv.appendChild(imgElement);
                 }
                 
-                messageDiv.appendChild(messageBubble);
-
                 chatContainer.appendChild(messageDiv);
                 chatContainer.scrollTop = chatContainer.scrollHeight;
                 
                 // Process MathJax rendering
                 if (window.MathJax) {
-                    window.MathJax.typeset([messageBubble]);
+                    window.MathJax.typeset([messageDiv]);
                 }
                 
                 // Store message for API
@@ -795,20 +762,10 @@
                 updateStatus('Waiting for response...');
                 
                 // 预先创建AI消息占位符，以便流式更新
-                const aiMessageContainer = document.createElement('div');
-                aiMessageContainer.className = 'message ai-message';
-
-                const avatar = document.createElement('img');
-                avatar.className = 'avatar';
-                avatar.src = 'images/加油.png';
-                aiMessageContainer.appendChild(avatar);
-
-                const aiMessageBubble = document.createElement('div');
-                aiMessageBubble.className = 'message-bubble';
-                aiMessageBubble.innerHTML = '<div class="typing-indicator">AI正在思考...</div>';
-                aiMessageContainer.appendChild(aiMessageBubble);
-                
-                chatContainer.appendChild(aiMessageContainer);
+                const aiMessageDiv = document.createElement('div');
+                aiMessageDiv.className = 'message ai-message';
+                aiMessageDiv.innerHTML = '<div class="typing-indicator">AI正在思考...</div>';
+                chatContainer.appendChild(aiMessageDiv);
                 chatContainer.scrollTop = chatContainer.scrollHeight;
                 
                 try {
@@ -850,12 +807,12 @@
                     const decoder = new TextDecoder('utf-8');
                     
                     // 移除占位符
-                    aiMessageBubble.innerHTML = '';
+                    aiMessageDiv.innerHTML = '';
                     
                     // 创建内容容器
                     const contentElement = document.createElement('div');
                     contentElement.className = 'message-content';
-                    aiMessageBubble.appendChild(contentElement);
+                    aiMessageDiv.appendChild(contentElement);
                     
                     let fullResponse = '';
                     
@@ -1072,28 +1029,17 @@
                     // 显示消息在聊天区域
                     const messageDiv = document.createElement('div');
                     messageDiv.className = 'message user-message';
-
-                    const avatar = document.createElement('img');
-                    avatar.className = 'avatar';
-                    avatar.src = 'images/01.jpg';
-                    messageDiv.appendChild(avatar);
-
-                    const messageBubble = document.createElement('div');
-                    messageBubble.className = 'message-bubble';
-
                     if (text) {
-                        messageBubble.innerHTML = text;
+                        messageDiv.innerHTML = text;
                     }
                     images.forEach(img => {
                         const imgClone = img.cloneNode(true);
-                        messageBubble.appendChild(imgClone);
+                        messageDiv.appendChild(imgClone);
                     });
                     audioElements.forEach(audio => {
                         const audioClone = audio.cloneNode(true);
-                        messageBubble.appendChild(audioClone);
+                        messageDiv.appendChild(audioClone);
                     });
-
-                    messageDiv.appendChild(messageBubble);
                     chatContainer.appendChild(messageDiv);
                     chatContainer.scrollTop = chatContainer.scrollHeight;
                     
@@ -1495,29 +1441,20 @@
                         const messageDiv = document.createElement('div');
                         messageDiv.className = `message ${isAi ? 'ai-message' : 'user-message'}`;
                         
-                        const avatar = document.createElement('img');
-                        avatar.className = 'avatar';
-                        avatar.src = isAi ? 'images/加油.png' : 'images/01.jpg';
-                        messageDiv.appendChild(avatar);
-                        
-                        const messageBubble = document.createElement('div');
-                        messageBubble.className = 'message-bubble';
-
-                        messageBubble.innerHTML = content;
+                        messageDiv.innerHTML = content;
                         
                         if (imageData) {
                             const imgElement = document.createElement('img');
                             imgElement.src = imageData;
                             imgElement.alt = "Attached image";
-                            messageBubble.appendChild(imgElement);
+                            messageDiv.appendChild(imgElement);
                         }
                         
-                        messageDiv.appendChild(messageBubble);
                         chatContainer.appendChild(messageDiv);
                         
                         // 渲染LaTeX
                         if (window.MathJax) {
-                            window.MathJax.typeset([messageBubble]);
+                            window.MathJax.typeset([messageDiv]);
                         }
                         
                         // 更新最后的AI响应
