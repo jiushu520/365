@@ -51,22 +51,42 @@
         }
         .message {
             margin: 10px 0;
+            display: flex;
+            align-items: flex-start;
+            max-width: 90%;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .user-message {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        .user-message .avatar {
+            margin-left: 10px;
+        }
+        .assistant-message {
+            align-self: flex-start;
+        }
+        .assistant-message .avatar {
+            margin-right: 10px;
+        }
+        .message-bubble {
             padding: 10px;
             border-radius: 8px;
             display: flex;
-            align-items: flex-start;
-            flex-wrap: wrap;
+            flex-direction: column;
         }
-        .user-message {
+        .user-message .message-bubble {
             background-color: #daf7a6;
-            align-self: flex-end;
         }
-        .assistant-message {
+        .assistant-message .message-bubble {
             background-color: #ffeb99;
-            align-self: flex-start;
         }
         .message-content {
-            flex: 1 1 100%;
             word-break: break-word;
         }
         #input-container {
@@ -167,6 +187,8 @@
             font-size: 0.8em;
             color: #555;
             margin-left: 10px;
+            align-self: flex-end;
+            margin-top: 5px;
         }
         #history-list {
             background-color: #f0f0f0;
@@ -653,7 +675,7 @@
             const userMessage = this.userInput.value.trim();
             if (!userMessage) return;
 
-            this.displayMessage(`我：${userMessage}`, 'user-message');
+            this.displayMessage(userMessage, 'user-message');
             this.messages.push({ "role": "user", "content": userMessage });
             this.userInput.value = '';
             this.updateSendButtonState();
@@ -668,16 +690,26 @@
             const messageElement = document.createElement('div');
             messageElement.className = `message assistant-message`;
             
-            // 用于存放所有段落的容器
+            const avatar = document.createElement('img');
+            avatar.className = 'avatar';
+            avatar.src = 'images/加油.png';
+
+            const messageBubble = document.createElement('div');
+            messageBubble.className = 'message-bubble';
+
             const contentElement = document.createElement('div');
             contentElement.className = 'message-content';
-            messageElement.appendChild(contentElement);
+            messageBubble.appendChild(contentElement);
             
             const timestamp = document.createElement('span');
             timestamp.className = 'timestamp';
             timestamp.textContent = new Date().toLocaleTimeString();
             
-            messageElement.appendChild(timestamp);
+            messageBubble.appendChild(timestamp);
+
+            messageElement.appendChild(avatar);
+            messageElement.appendChild(messageBubble);
+
             this.messagesContainer.appendChild(messageElement);
             this.scrollToBottom();
             
@@ -833,7 +865,7 @@
                 if (currentParagraph.trim()) {
                     await appendParagraph(currentParagraph);
                 }
-                messageElement.dataset.originalContent = '玖数：' + fullResponse;
+                messageElement.dataset.originalContent = fullResponse;
                 this.messages.push({ "role": "assistant", "content": fullResponse });
 
                 // 新增：如果是代码块，替换为代码高亮显示，不渲染 MathJax
@@ -856,6 +888,17 @@
             messageElement.className = `message ${className}`;
             messageElement.dataset.originalContent = message;
 
+            const avatar = document.createElement('img');
+            avatar.className = 'avatar';
+            if (className === 'user-message') {
+                avatar.src = 'images/01.jpg';
+            } else {
+                avatar.src = 'images/加油.png';
+            }
+
+            const messageBubble = document.createElement('div');
+            messageBubble.className = 'message-bubble';
+
             const contentElement = document.createElement('div');
             contentElement.className = 'message-content';
             contentElement.textContent = message;
@@ -864,8 +907,12 @@
             timestamp.className = 'timestamp';
             timestamp.textContent = new Date().toLocaleTimeString();
 
-            messageElement.appendChild(contentElement);
-            messageElement.appendChild(timestamp);
+            messageBubble.appendChild(contentElement);
+            messageBubble.appendChild(timestamp);
+            
+            messageElement.appendChild(avatar);
+            messageElement.appendChild(messageBubble);
+
             this.messagesContainer.appendChild(messageElement);
             this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
 
@@ -1011,8 +1058,9 @@
                 this.clearMessages();
                 this.messages = historyData.messages;
                 this.messages.forEach(msg => {
+                    if (msg.role === 'system') return;
                     const className = msg.role === 'user' ? 'user-message' : 'assistant-message';
-                    this.displayMessage(`${msg.role === 'user' ? '我' : '玖数'}：${msg.content}`, className);
+                    this.displayMessage(msg.content, className);
                 });
                 this.historyList.style.display = 'none';
             }
