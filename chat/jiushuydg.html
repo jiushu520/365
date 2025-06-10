@@ -86,25 +86,80 @@
         .assistant-message .message-bubble {
             background-color: #ffeb99;
         }
-        .message-content {
+        #message-content {
             word-break: break-word;
+        }
+        #image-preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 5px;
+            max-height: 120px;
+            overflow-y: auto;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 5px;
+        }
+        #image-preview-container:empty {
+            display: none;
+        }
+        .image-preview-item {
+            position: relative;
+            width: 60px;
+            height: 60px;
+        }
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .image-preview-item .remove-image-btn {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            line-height: 20px;
         }
         #input-container {
             display: flex;
-            align-items: center;
+            align-items: flex-end;
             flex-shrink: 0;
+            position: relative;
+        }
+        #input-wrapper {
+            flex: 1;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            padding: 5px;
+            background-color: #fff;
+        }
+        #input-wrapper:focus-within {
+            border-color: #007bff;
         }
         #user-input {
             flex: 1;
-            padding: 10px;
-            border-radius: 5px;
-            border: 2px solid #ccc;
+            border: none;
             resize: vertical;
             font-size: 1em;
-            margin-right: 10px;
             min-height: 40px;
             max-height: 33%;
             overflow-y: auto;
+            outline: none;
+            background-color: transparent;
         }
         #send-btn {
             padding: 10px 10px;
@@ -113,9 +168,10 @@
             color: #fff;
             border-radius: 5px;
             cursor: pointer;
-            margin-left: 2px;
+            margin-left: 10px;
             font-size: 1em;
             flex-shrink: 0;
+            height: 44px;
         }
         #send-btn:disabled {
             background-color: grey;
@@ -293,7 +349,10 @@
         <div id="loading">正在思考中...</div>
 
         <div id="input-container" style="position: relative;">
-            <textarea id="user-input" placeholder="输入你的消息..." rows="1"></textarea>
+            <div id="input-wrapper">
+                <div id="image-preview-container"></div>
+                <textarea id="user-input" placeholder="输入你的消息..." rows="1"></textarea>
+            </div>
             <button id="send-btn" disabled>发送</button>
             <button id="copy-all-reply-btn" class="copy-btn" style="position:absolute;top:-22px;right:2px;z-index:10;">复制回复</button>
         </div>
@@ -317,18 +376,120 @@
                     apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
                     apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
                     model: "glm-4-flash-250414",
-                    temperature: 0
+                    temperature: 0,
+                    supports_image_input: false
                 },
 
 
 
 
+
+                {
+                    name: "glm-z1-flash",
+                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
+                    model: "glm-z1-flash",
+                    temperature: 0,
+                    supports_image_input: false
+                },
+
+
+               {
+                    name: "glm-z1-airx",
+                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
+                    model: "glm-z1-airx",
+                    temperature: 0,
+                    supports_image_input: false
+                },
+
+
+                {
+                    name: "glm-z1-air",
+                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
+                    model: "glm-z1-air",
+                    temperature: 0,
+                    supports_image_input: false
+                },
+
+                {
+                    name: "glm-zero-preview",
+                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
+                    model: "glm-zero-preview",
+                    temperature: 0,
+                    supports_image_input: false
+                },
+
+                {
+                    name: "glm-4-flashX",
+                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
+                    model: "glm-4-flashX",
+                    temperature: 0,
+                    supports_image_input: false
+                },
+                {
+                    name: "glm-4-plus",
+                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
+                    model: "glm-4-plus",
+                    temperature: 0,
+                    supports_image_input: false
+                },
+
+                {
+                    name: "gpt-4.1-mini(视觉模型)",
+                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
+                    apiKey: "sk-X5kUt2ZnRTwu13srkgRYsZljHS4G8SdJNkA3iZYheaFDkiK5",
+                    model: "gpt-4.1-mini",
+                    temperature: 0,
+                    supports_image_input: true
+                },
+
+
+
           {
-                    name: "gemini-2.5-pro-preview-06-05",
+                    name: "gemini-2.5-pro-preview-06-05(视觉模型)",
                     apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
                     apiKey: "sk-X5kUt2ZnRTwu13srkgRYsZljHS4G8SdJNkA3iZYheaFDkiK5",
                     model: "gemini-2.5-pro-preview-06-05",
-                    temperature: 0
+                    temperature: 0,
+                    supports_image_input: true
+                },
+
+                {
+                    name: "gpt-4o-mini(视觉模型)",
+                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
+                    apiKey: "sk-X5kUt2ZnRTwu13srkgRYsZljHS4G8SdJNkA3iZYheaFDkiK5",
+                    model: "gpt-4o-mini",
+                    temperature: 0,
+                    supports_image_input: true
+                },
+         {
+                    name: "gpt-4.1-nano(视觉模型)",
+                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
+                    apiKey: "sk-X5kUt2ZnRTwu13srkgRYsZljHS4G8SdJNkA3iZYheaFDkiK5",
+                    model: "gpt-4.1-nano",
+                    temperature: 0,
+                    supports_image_input: true
+                },
+              {
+                    name: "gpt-4.1(视觉模型)",
+                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
+                    apiKey: "sk-X5kUt2ZnRTwu13srkgRYsZljHS4G8SdJNkA3iZYheaFDkiK5",
+                    model: "gpt-4.1",
+                    temperature: 0,
+                    supports_image_input: true
+                },
+              {
+                    name: "grok-3-mini-fast-beta",
+                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
+                    apiKey: "sk-X5kUt2ZnRTwu13srkgRYsZljHS4G8SdJNkA3iZYheaFDkiK5",
+                    model: "grok-3-mini-fast-beta",
+                    temperature: 0,
+                    supports_image_input: false
                 },
                 {
                     name: "deepseek-chat",
@@ -336,6 +497,7 @@
                     apiKey: "sk-eafb6da8cb3948ebbbd239f3bc40f2e2",
                     model: "deepseek-chat",
                     temperature: 0,
+                    supports_image_input: false,
                 },
 
                 {
@@ -344,24 +506,30 @@
                     apiKey: "sk-eafb6da8cb3948ebbbd239f3bc40f2e2",
                     model: "deepseek-reasoner",
                     temperature: 0,
+                    supports_image_input: false,
                 },
 
-                {
-                    name: "gpt-4.1-mini",
-                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
-                    apiKey: "sk-X5kUt2ZnRTwu13srkgRYsZljHS4G8SdJNkA3iZYheaFDkiK5",
-                    model: "gpt-4.1-mini",
-                    temperature: 0
-                },
+
+
 
 
                 {
-                    name: "glm-4-flashX",
-                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
-                    model: "glm-4-flashX",
-                    temperature: 0
+                    name: "qvq-max(视觉模型)",
+                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
+                    model: "qvq-max",
+                    temperature: 0,
+                    supports_image_input: true
                 },
+                {
+                    name: "qvq-max-latest(视觉模型)",
+                    apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+                    apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
+                    model: "qvq-max-latest",
+                    temperature: 0,
+                    supports_image_input: true
+                },
+
 
 
                 {
@@ -369,25 +537,15 @@
                     apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
                     apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
                     model: "qwen-turbo-latest",
-                    temperature: 0
+                    temperature: 0,
+                    supports_image_input: false
                 },
 
 
-               {
-                    name: "glm-4-plus",
-                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
-                    model: "glm-4-plus",
-                    temperature: 0
-                },
 
-                {
-                    name: "glm-z1-flash",
-                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
-                    model: "glm-z1-flash",
-                    temperature: 0
-                },
+
+
+
 
 
              {
@@ -395,7 +553,8 @@
                     apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
                     apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
                     model: "qwen-plus-latest",
-                    temperature: 0
+                    temperature: 0,
+                    supports_image_input: false
                 },
 
              {
@@ -403,7 +562,8 @@
                     apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
                     apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
                     model: "qwen-turbo-latest",
-                    temperature: 0
+                    temperature: 0,
+                    supports_image_input: false
                 },
 
 
@@ -412,7 +572,8 @@
                     apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
                     apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
                     model: "qwen-max",
-                    temperature: 0
+                    temperature: 0,
+                    supports_image_input: false
                 },
 
                 {
@@ -420,30 +581,9 @@
                     apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
                     apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
                     model: "qwen3-235b-a22b",
-                    temperature: 0
+                    temperature: 0,
+                    supports_image_input: false
                 },
-
-
-
-
-
-
-
-                {
-                    name: "glm-z1-air",
-                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
-                    model: "glm-z1-air",
-                    temperature: 0
-                },
-                {
-                    name: "glm-z1-airx",
-                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
-                    model: "glm-z1-airx",
-                    temperature: 0
-                },
-
 
 
 
@@ -455,60 +595,30 @@
                     apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
                     apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
                     model: "qwen-plus",
-                    temperature: 0
+                    temperature: 0,
+                    supports_image_input: false
                 },
 
-                {
-                    name: "glm-zero-preview",
-                    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-                    apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
-                    model: "glm-zero-preview",
-                    temperature: 0
-                },
+
                {
                     name: "ali-deepseek-r1",
                     apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
                     apiKey: "sk-56f75127a91347509775ef3f3a7573d6",
                     model: "deepseek-r1",
-                    temperature: 0
+                    temperature: 0,
+                    supports_image_input: false
                 },
 
 
                 
 
  
-                 {
-                    name: "gpt-4o-mini",
-                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
-                    apiKey: "sk-X5kUt2ZnRTwu13srkgRYsZljHS4G8SdJNkA3iZYheaFDkiK5",
-                    model: "gpt-4o-mini",
-                    temperature: 0
-                },
-         {
-                    name: "gpt-4.1-nano",
-                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
-                    apiKey: "sk-X5kUt2ZnRTwu13srkgRYsZljHS4G8SdJNkA3iZYheaFDkiK5",
-                    model: "gpt-4.1-nano",
-                    temperature: 0
-                },
-              {
-                    name: "gpt-4.1",
-                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
-                    apiKey: "sk-X5kUt2ZnRTwu13srkgRYsZljHS4G8SdJNkA3iZYheaFDkiK5",
-                    model: "gpt-4.1",
-                    temperature: 0
-                },
-              {
-                    name: "grok-3-mini-fast-beta",
-                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
-                    apiKey: "sk-X5kUt2ZnRTwu13srkgRYsZljHS4G8SdJNkA3iZYheaFDkiK5",
-                    model: "grok-3-mini-fast-beta",
-                    temperature: 0
-                },
+
 
 
             ];
             this.currentConfigIndex = 0;
+            this.pastedImages = [];
 
             this.selectedSubject = localStorage.getItem('selectedSubject') || '数学';
             this.selectedStyle = localStorage.getItem('selectedStyle') || '详细步骤';
@@ -554,6 +664,7 @@
             this.applyPromptBtn = document.getElementById('apply-prompt-btn');
             this.favoritePromptsSelect = document.getElementById('favorite-prompts');
             this.copyAllReplyBtn = document.getElementById('copy-all-reply-btn');
+            this.imagePreviewContainer = document.getElementById('image-preview-container');
         }
 
         populateModelSelector() {
@@ -583,6 +694,7 @@
                 this.updateSendButtonState();
                 this.autoResizeTextarea();
             });
+            this.userInput.addEventListener('paste', (e) => this.handlePaste(e));
             this.sendBtn.addEventListener('click', () => this.sendMessage());
             this.refreshBtn.addEventListener('click', () => this.clearMessages());
             this.newConversationBtn.addEventListener('click', () => this.newConversation());
@@ -656,7 +768,7 @@
         }
 
         updateSendButtonState() {
-            const hasContent = this.userInput.value.trim().length > 0;
+            const hasContent = this.userInput.value.trim().length > 0 || this.pastedImages.length > 0;
             this.sendBtn.disabled = !hasContent;
         }
 
@@ -672,13 +784,39 @@
         }
 
         async sendMessage() {
-            const userMessage = this.userInput.value.trim();
-            if (!userMessage) return;
+            const userMessageText = this.userInput.value.trim();
+            const userImages = [...this.pastedImages];
 
-            this.displayMessage(userMessage, 'user-message');
-            this.messages.push({ "role": "user", "content": userMessage });
+            if (!userMessageText && userImages.length === 0) return;
+
+            const config = this.CONFIG[this.currentConfigIndex];
+            if (userImages.length > 0 && !config.supports_image_input) {
+                alert(`当前选择的模型 "${config.name}" 不支持图片输入。请选择支持多模态输入的模型 (如 glm-4v-flash, gpt-4o-mini 等) 或移除图片。`);
+                return;
+            }
+
+            // Display user message in the UI
+            this.displayMessage({ text: userMessageText, images: userImages }, 'user-message');
+
+            // Prepare message for API
+            let apiContent;
+            if (userImages.length > 0) {
+                apiContent = [{ type: 'text', text: userMessageText }];
+                userImages.forEach(imgBase64 => {
+                    apiContent.push({ type: 'image_url', image_url: { url: imgBase64 } });
+                });
+            } else {
+                apiContent = userMessageText;
+            }
+
+            this.messages.push({ "role": "user", "content": apiContent });
+
+            // Reset input
             this.userInput.value = '';
+            this.pastedImages = [];
+            this.updateImagePreviews();
             this.updateSendButtonState();
+            this.autoResizeTextarea();
 
             await this.getAssistantReply();
         }
@@ -883,41 +1021,111 @@
             this.loadingIndicator.style.display = 'none';
         }
 
-        displayMessage(message, className) {
+        displayMessage(messageData, className) {
             const messageElement = document.createElement('div');
             messageElement.className = `message ${className}`;
-            messageElement.dataset.originalContent = message;
-
+        
             const avatar = document.createElement('img');
             avatar.className = 'avatar';
-            if (className === 'user-message') {
-                avatar.src = 'images/01.jpg';
-            } else {
-                avatar.src = 'images/加油.png';
-            }
-
+            avatar.src = className === 'user-message' ? 'images/01.jpg' : 'images/加油.png';
+        
             const messageBubble = document.createElement('div');
             messageBubble.className = 'message-bubble';
-
+        
             const contentElement = document.createElement('div');
             contentElement.className = 'message-content';
-            contentElement.textContent = message;
-
+        
+            let originalText = '';
+        
+            const processContent = (content) => {
+                if (typeof content === 'string') {
+                    originalText = content;
+                    contentElement.textContent = originalText;
+                } else if (Array.isArray(content)) { // For history with multi-modal content
+                    const textPart = content.find(p => p.type === 'text');
+                    const imageParts = content.filter(p => p.type === 'image_url');
+                    originalText = textPart ? textPart.text : '';
+        
+                    if (imageParts.length > 0) {
+                        const imageContainer = document.createElement('div');
+                        imageContainer.style.display = 'flex';
+                        imageContainer.style.flexWrap = 'wrap';
+                        imageContainer.style.gap = '5px';
+                        imageContainer.style.marginBottom = originalText ? '10px' : '0';
+        
+                        imageParts.forEach(p => {
+                            const img = document.createElement('img');
+                            img.src = p.image_url.url;
+                            img.style.maxWidth = '100px';
+                            img.style.maxHeight = '100px';
+                            img.style.objectFit = 'cover';
+                            img.style.borderRadius = '5px';
+                            imageContainer.appendChild(img);
+                        });
+                        contentElement.appendChild(imageContainer);
+                    }
+                    if (originalText) {
+                        const textDiv = document.createElement('div');
+                        textDiv.textContent = originalText;
+                        contentElement.appendChild(textDiv);
+                    }
+                } else if (typeof content === 'object' && content !== null) { // For new user messages
+                    const { text, images } = content;
+                    originalText = text || '';
+        
+                    if (images && images.length > 0) {
+                        const imageContainer = document.createElement('div');
+                        imageContainer.style.display = 'flex';
+                        imageContainer.style.flexWrap = 'wrap';
+                        imageContainer.style.gap = '5px';
+                        imageContainer.style.marginBottom = text ? '10px' : '0';
+        
+                        images.forEach(imgSrc => {
+                            const img = document.createElement('img');
+                            img.src = imgSrc;
+                            img.style.maxWidth = '100px';
+                            img.style.maxHeight = '100px';
+                            img.style.objectFit = 'cover';
+                            img.style.borderRadius = '5px';
+                            imageContainer.appendChild(img);
+                        });
+                        contentElement.appendChild(imageContainer);
+                    }
+                    if (text) {
+                        const textDiv = document.createElement('div');
+                        textDiv.textContent = text;
+                        contentElement.appendChild(textDiv);
+                    }
+                }
+            };
+        
+            processContent(messageData);
+            messageElement.dataset.originalContent = originalText;
+        
             const timestamp = document.createElement('span');
             timestamp.className = 'timestamp';
             timestamp.textContent = new Date().toLocaleTimeString();
-
+        
             messageBubble.appendChild(contentElement);
             messageBubble.appendChild(timestamp);
             
-            messageElement.appendChild(avatar);
-            messageElement.appendChild(messageBubble);
-
+            if (className === 'user-message') {
+                messageElement.appendChild(messageBubble);
+                messageElement.appendChild(avatar);
+            } else {
+                messageElement.appendChild(avatar);
+                messageElement.appendChild(messageBubble);
+            }
+        
             this.messagesContainer.appendChild(messageElement);
-            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
-
-            if (this.latexToggle.checked) {
-                MathJax.typesetPromise([messageElement]);
+            this.scrollToBottom();
+        
+            if (this.latexToggle.checked && (typeof messageData !== 'object' || className === 'assistant-message' || Array.isArray(messageData))) {
+                 if (contentElement.textContent) { // Only render if there is text
+                    MathJax.typesetPromise([messageElement]);
+                 }
+            } else if (this.latexToggle.checked && typeof messageData === 'object' && messageData.text) {
+                 MathJax.typesetPromise([messageElement]);
             }
         }
 
@@ -1038,6 +1246,8 @@
         clearMessages() {
             this.messagesContainer.innerHTML = '';
             this.messages = [this.SYSTEM_MESSAGE];
+            this.pastedImages = [];
+            this.updateImagePreviews();
         }
 
         saveHistory() {
@@ -1082,6 +1292,7 @@
                     this.renderHistoryList();
                 }
             }
+            this.scrollToBottom();
         }
 
         deleteHistory(key) {
@@ -1274,6 +1485,55 @@
                 this.selectedSubject = '数学';
             }
             this.updateSystemMessage();
+        }
+
+        handlePaste(event) {
+            const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+            let blob = null;
+            for (const item of items) {
+                if (item.type.indexOf('image') === 0) {
+                    blob = item.getAsFile();
+                    break; // Handle first image
+                }
+            }
+        
+            if (blob) {
+                event.preventDefault();
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.pastedImages.push(e.target.result);
+                    this.updateImagePreviews();
+                    this.updateSendButtonState();
+                };
+                reader.readAsDataURL(blob);
+            }
+        }
+        
+        updateImagePreviews() {
+            if (!this.imagePreviewContainer) return;
+            this.imagePreviewContainer.innerHTML = '';
+            this.pastedImages.forEach((imageData, index) => {
+                const item = document.createElement('div');
+                item.className = 'image-preview-item';
+                
+                const img = document.createElement('img');
+                img.src = imageData;
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-image-btn';
+                removeBtn.innerHTML = '&times;';
+                removeBtn.onclick = () => this.removeImage(index);
+                
+                item.appendChild(img);
+                item.appendChild(removeBtn);
+                this.imagePreviewContainer.appendChild(item);
+            });
+        }
+        
+        removeImage(index) {
+            this.pastedImages.splice(index, 1);
+            this.updateImagePreviews();
+            this.updateSendButtonState();
         }
     }
 

@@ -1,0 +1,2049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数学解题工具</title>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            width: 100%;
+            max-width: 1500px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            box-sizing: border-box;
+        }
+        .left-panel {
+            flex: 1;
+            min-width: 300px;
+            width: 100%;
+            padding: 15px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+        .right-panel {
+            flex: 1;
+            min-width: 300px;
+            width: 100%;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        
+        /* 响应式布局 */
+        @media screen and (max-width: 992px) {
+            .container {
+                padding: 15px;
+                gap: 10px;
+            }
+            .left-panel, .right-panel {
+                flex: 100%;
+                min-width: 100%;
+            }
+        }
+        
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 10px;
+            }
+        }
+        
+        @media screen and (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            .container {
+                padding: 8px;
+                border-radius: 5px;
+            }
+            .canvas-buttons {
+                flex-direction: column;
+            }
+            .canvas-buttons button {
+                margin-bottom: 5px;
+            }
+            input, select, textarea {
+                padding: 8px;
+                font-size: 14px;
+            }
+            button {
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+        }
+        h1 {
+            color: #2a2a72;
+            text-align: center;
+            margin-bottom: 30px;
+            width: 100%;
+            font-size: 28px;
+        }
+        h2 {
+            color: #2a2a72;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+        h3 {
+            color: #2a2a72;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+        .panel-title {
+            margin-top: 0;
+            margin-bottom: 8px;
+            color: #2a2a72;
+            border-bottom: 2px solid #eaeaea;
+            padding-bottom: 8px;
+            font-weight: 600;
+        }
+        .panel-description {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-style: italic;
+            color: #666;
+            font-size: 14px;
+        }
+        @media screen and (max-width: 768px) {
+            h1 {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+            h2 {
+                font-size: 20px;
+            }
+            h3 {
+                font-size: 16px;
+            }
+        }
+        @media screen and (max-width: 480px) {
+            h1 {
+                font-size: 22px;
+                margin-bottom: 15px;
+            }
+            h2 {
+                font-size: 18px;
+            }
+            h3 {
+                font-size: 16px;
+            }
+        }
+        .form-group {
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 100px;
+        }
+        button {
+            background-color: #2a2a72;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #1a1a62;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .status-area {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+        .status-message {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #2a2a72;
+        }
+        .error-message {
+            color: #d9534f;
+            border-left: 3px solid #d9534f;
+        }
+        .result-area {
+            margin-top: 30px;
+            text-align: center;
+            width: 100%;
+            min-height: 900px; /* 添加最小高度 */
+        }
+        .result-image {
+            max-width: 100%;
+            height: auto;
+            max-height: calc(100vh - 300px);
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            object-fit: contain;
+        }
+        /* 粘贴区域的样式 */
+        .paste-area {
+            width: 100%;
+            height: 150px;
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: #f9f9f9;
+            margin-bottom: 10px;
+        }
+        .paste-area:hover {
+            border-color: #2a2a72;
+            background-color: #f1f1f9;
+        }
+        .paste-area p {
+            margin: 0;
+            color: #666;
+        }
+        .paste-img-preview {
+            max-width: 100%;
+            max-height: 140px;
+            margin-top: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        /* 历史记录样式 */
+        .history-panel {
+            margin-top: 30px;
+            width: 100%;
+        }
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .history-toggle {
+            cursor: pointer;
+            font-weight: 600;
+            color: #2a2a72;
+            display: flex;
+            align-items: center;
+        }
+        .history-toggle::after {
+            content: '▼';
+            margin-left: 8px;
+            font-size: 12px;
+        }
+        .history-toggle.collapsed::after {
+            content: '▶';
+        }
+        .history-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+        @media screen and (min-width: 992px) {
+            .history-content {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+        }
+        .history-content.collapsed {
+            display: none;
+        }
+        .history-clear {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            border: 1px solid #f5c6cb;
+        }
+        .history-clear:hover {
+            background-color: #f5c6cb;
+        }
+        .history-item {
+            position: relative;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .history-item:hover {
+            transform: translateY(-5px);
+        }
+        .history-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        .history-info {
+            padding: 8px;
+            font-size: 12px;
+            background-color: rgba(0,0,0,0.03);
+        }
+        .history-prompt {
+            margin: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .history-date {
+            margin: 3px 0 0;
+            color: #666;
+            font-size: 11px;
+        }
+        .history-actions {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            display: flex;
+            gap: 5px;
+        }
+        .history-action-btn {
+            width: 25px;
+            height: 25px;
+            background-color: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .history-action-btn:hover {
+            background-color: white;
+        }
+        .no-history {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        /* 批量生成进度样式 */
+        .batch-progress {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 3px solid #2a2a72;
+        }
+        .progress-bar-container {
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #2a2a72;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* Canvas styles */
+        .canvas-container {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            position: relative;
+            overflow: hidden;
+            background-color: #fff;
+            margin-bottom: 15px;
+            transition: height 0.3s ease;
+        }
+        @media screen and (min-width: 1200px) {
+            .canvas-container {
+                height: 400px;
+            }
+        }
+        @media screen and (max-width: 768px) {
+            .canvas-container {
+                height: 250px;
+            }
+        }
+        #drawingCanvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+            cursor: crosshair;
+        }
+        .canvas-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .canvas-buttons button {
+            flex: 1;
+            min-width: 80px;
+            margin: 0;
+            font-size: 14px;
+            padding: 8px 12px;
+        }
+        #eraserBtn {
+            background-color: #ff9800;
+        }
+        #eraserBtn.active {
+            background-color: #e65100;
+        }
+        #clearCanvasBtn {
+            background-color: #f44336;
+        }
+        /* 调色板样式 */
+        .color-palette {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+            border: 2px solid #f5f5f5;
+        }
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+        .color-option.active {
+            border: 2px solid #333;
+            transform: scale(1.1);
+        }
+        .color-picker {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+        }
+        .color-picker input {
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            background: transparent;
+        }
+        .color-picker label {
+            margin-top: 4px;
+            color: #666;
+            font-size: 10px;
+            font-weight: normal;
+        }
+        /* Notification styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #323232;
+            color: #fff;
+            padding: 15px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+            z-index: 1000;
+        }
+        .notification.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .notification.success {
+            background-color: #4CAF50;
+        }
+        .notification.error {
+            background-color: #f44336;
+        }
+        .text-result {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            text-align: left;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-height: 1600px;
+            min-height: 750px; /* 添加最小高度 */
+            height: 750px; /* 添加初始高度 */
+            overflow-y: auto;
+            position: relative;
+        }
+        .text-result svg {
+            display: block;
+            margin: 10px auto;
+            max-width: 100%;
+            height: auto;
+        }
+        .text-result img {
+            max-width: 100%;
+            height: auto;
+            margin: 10px auto;
+            display: block;
+        }
+        .text-result * {
+            max-width: 100%;
+        }
+        .text-result code {
+            background: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        .text-result pre {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        .text-result table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+        }
+        .text-result th, .text-result td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .text-result th {
+            background-color: #f2f2f2;
+        }
+        .svg-container {
+            margin: 15px 0;
+            text-align: center;
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #eee;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: relative;
+            min-height: 50px; /* 确保有足够的空间放置按钮 */
+        }
+        .svg-container svg {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 10px auto;
+        }
+        .svg-copy-btn {
+            margin-top: 5px;
+            padding: 4px 8px;
+            background-color: #2a2a72;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .svg-copy-btn:hover {
+            background-color: #1a1a62;
+        }
+        .loading-indicator {
+            display: none;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #2a2a72;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .image-loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+            display: none;
+        }
+        /* 历史记录标签样式 */
+        .history-img-container {
+            position: relative;
+            width: 100%;
+            height: 150px;
+        }
+        .history-type-label {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 3px 8px;
+            font-size: 12px;
+            border-radius: 12px;
+            color: white;
+            background-color: rgba(0,0,0,0.6);
+        }
+        .combined-label {
+            background-color: rgba(33, 150, 243, 0.8);
+        }
+        .text-label {
+            background-color: rgba(76, 175, 80, 0.8);
+        }
+        .image-label {
+            background-color: rgba(156, 39, 176, 0.8);
+        }
+        
+        /* 对话历史样式 */
+        .conversation-container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 500px;
+        }
+        .conversation-messages {
+            overflow-y: auto;
+            padding: 10px;
+            flex-grow: 1;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 400px;
+        }
+        .message {
+            padding: 0;
+            border-radius: 0;
+            max-width: 85%;
+            box-shadow: none;
+            word-wrap: break-word;
+            display: flex;
+            align-items: flex-start;
+        }
+        .user-message {
+            align-self: flex-end;
+            background-color: transparent;
+            flex-direction: row-reverse;
+        }
+        .assistant-message {
+            align-self: flex-start;
+            background-color: transparent;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .user-message .avatar {
+            margin-left: 10px;
+        }
+        .assistant-message .avatar {
+            margin-right: 10px;
+        }
+        .message-bubble {
+            padding: 10px 15px;
+            border-radius: 10px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .user-message .message-bubble {
+            background-color: #dceafc;
+            border-bottom-right-radius: 0;
+        }
+        .assistant-message .message-bubble {
+            background-color: white;
+            border-bottom-left-radius: 0;
+        }
+        .message-time {
+            font-size: 11px;
+            color: #888;
+            margin-top: 4px;
+            text-align: right;
+            display: block;
+        }
+        .conversation-input {
+            display: flex;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-top: 1px solid #ddd;
+        }
+        .conversation-input input {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        .conversation-input button {
+            margin: 0;
+            white-space: nowrap;
+        }
+        .initial-message {
+            color: #666;
+            text-align: center;
+            padding: 20px;
+            font-style: normal;
+            line-height: 1.6;
+        }
+        .initial-message p {
+            margin: 10px 0;
+        }
+        .initial-message ul {
+            margin: 15px 0;
+        }
+        .initial-message li {
+            margin: 8px 0;
+            color: #2a2a72;
+        }
+        .prompt-container {
+            position: relative;
+            width: 100%;
+            min-height: 100px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+            margin-bottom: 15px;
+        }
+
+        #prompt {
+            width: 100%;
+            min-height: 100px;
+            border: none;
+            resize: vertical;
+            padding: 10px;
+            font-size: 16px;
+            background: transparent;
+        }
+
+        .prompt-image-preview {
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .prompt-image-item {
+            position: relative;
+            width: 200px;
+            margin: 5px;
+        }
+
+        .prompt-image-item img {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .prompt-image-item .remove-image {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 20px;
+            height: 20px;
+            background-color: #ff4444;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .prompt-image-item .remove-image:hover {
+            background-color: #ff0000;
+        }
+        /* 其他样式 */
+        .message img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 5px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            display: block; /* Ensure image is block for centering or layout */
+        }
+        .assistant-message div > p { /* Target paragraphs directly inside the content div of assistant messages */
+             margin: 0; /* Remove default paragraph margins if not desired */
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <div class="left-panel">
+            <h3 class="panel-title">玖数学手绘问题</h3>
+            <div class="form-group">
+                <div class="prompt-container">
+                    <textarea id="prompt" placeholder="请输入您的数学问题，可以直接粘贴(Ctrl+V)图片...">如图,求解图中的数学问题</textarea>
+                    <div id="promptImagePreview" class="prompt-image-preview"></div>
+
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label for="modelSelect">选择模型:</label>
+                <select id="modelSelect"></select>
+            </div>
+            <div class="canvas-container">
+                <canvas id="drawingCanvas" tabindex="0"></canvas>
+            </div>
+            <div class="canvas-buttons">
+                <button id="clearCanvasBtn">清除</button>
+                <button id="eraserBtn">橡皮擦</button>
+                <button id="sendCanvasBtn">上传图片</button>
+                <button id="generateBtn">解答问题</button>
+            </div>
+            
+            <div class="color-palette">
+                <div class="color-option active" data-color="#000000" style="background-color: #000000;"></div>
+                <div class="color-option" data-color="#ff0000" style="background-color: #ff0000;"></div>
+                <div class="color-option" data-color="#ff9900" style="background-color: #ff9900;"></div>
+                <div class="color-option" data-color="#33cc33" style="background-color: #33cc33;"></div>
+                <div class="color-option" data-color="#3366ff" style="background-color: #3366ff;"></div>
+                <div class="color-option" data-color="#9933ff" style="background-color: #9933ff;"></div>
+                <div class="color-option" data-color="#ff66cc" style="background-color: #ff66cc;"></div>
+                <div class="color-option" data-color="#663300" style="background-color: #663300;"></div>
+                <div class="color-picker">
+                    <input type="color" id="customColorPicker" value="#000000">
+                    <label for="customColorPicker">自定义</label>
+                </div>
+            </div>
+            
+            <div class="form-group" style="display: none;">
+                <label for="apiKey">OpenAI API Key:</label>
+                <input type="password" id="apiKey" value="sk-56f75127a91347509775ef3f3a7573d6" placeholder="Enter your OpenAI API key here">
+            </div>
+            
+            <div class="form-group" style="display: none;">
+                <label for="baseUrl">Base URL:</label>
+                <input type="text" id="baseUrl" value="https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions" placeholder="API base URL">
+            </div>
+            
+        
+        </div>
+        
+        <div class="right-panel">
+            <div class="result-area" id="resultArea">
+                <div id="textResult" class="text-result">
+                    </div>
+                
+                <div class="conversation-container" id="conversationContainer" style="display: none;">
+                    <div class="conversation-messages" id="conversationMessages">
+                        </div>
+                    <div class="conversation-input">
+                        <input type="text" id="followupQuestion" placeholder="输入后续问题...">
+                        <button id="sendFollowupBtn">继续提问</button>
+                    </div>
+                </div>
+                
+                <div>
+                    <button id="saveBtn" style="display: none;">保存结果</button>
+                    <button id="continueConversationBtn" style="display: none;">继续对话</button>
+                </div>
+            </div>
+
+            <div class="history-panel">
+                <div class="status-area" id="statusArea"style="display: none;">
+                    <div class="status-message">可直接生成图像。</div>
+                </div>
+                <div class="history-header">
+                    <div class="history-toggle" id="historyToggle">历史记录</div>
+                    <button class="history-clear" id="historyClear">清空历史</button>
+                </div>
+                <div class="history-content" id="historyContent">
+                    <div class="no-history">暂无历史记录</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Model configurations
+        const MODEL_CONFIGS = {
+            "glm-4v-flash": {
+                apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+                apiKey: "046acb99c5a6dd6680049c766c8b454b.Jc1U4euX045uExXU",
+                model: "glm-4v-flash",
+                temperature: 0,
+                supports_image_input: true,
+                description: "GLM-4V-Flash"
+            },
+
+
+
+            "gemini-2.5-pro-preview-06-05": {
+                    name: "gemini-2.5-pro-preview-06-05",
+                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
+                    apiKey: "sk-X5kUt2ZnRTwu13srkgRYsZljHS4G8SdJNkA3iZYheaFDkiK5",
+                    model: "gemini-2.5-pro-preview-06-05",
+                    temperature: 0,
+                    supports_image_input: true,
+                    description: "Gemini-2.5-Pro-Preview-06-05"
+                },
+
+
+            "gpt-4o-mini": {
+                    name: "gpt-4o-mini",
+                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
+                    apiKey: "sk-X5kUt2ZnRTwu13srkgRYsZljHS4G8SdJNkA3iZYheaFDkiK5",
+                    model: "gpt-4o-mini",
+                    temperature: 0,
+                    supports_image_input: true,
+                    description: "GPT-4o-mini"
+                },
+            "gpt-4.1-nano": {
+                    name: "gpt-4.1-nano",
+                    apiUrl: "https://open.xiaojingai.com/v1/chat/completions",
+                    apiKey: "sk-X5kUt2ZnRTwu13srkgRYsZljHS4G8SdJNkA3iZYheaFDkiK5",
+                    model: "gpt-4.1-nano",
+                    temperature: 0,
+                    supports_image_input: true,
+                    description: "GPT-4.1-nano"
+                },
+                
+            "qwen-vl-max": {
+                apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+                apiKey: "sk-56f75127a91347509775ef3f3a7573d6", // API Key for this model
+                model: "qwen-vl-max", // Model identifier
+                temperature: 0,
+                supports_image_input: true,
+                description: "Qwen-VL-Max (阿里千问多模态)"
+            },
+
+            "qvq-plus-latest": {
+                apiUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+                apiKey: "sk-56f75127a91347509775ef3f3a7573d6", // API Key for this model
+                model: "qvq-plus-latest", // Model identifier
+                temperature: 0,
+                supports_image_input: true,
+                description: "qvq-plus-latest (阿里千问多模态)"
+            },
+
+        };
+
+        const SYSTEM_PROMPT = "你是一个专业的数学助手，擅长解答数学问题和讲解数学概念。在开始解答前，请总是先提醒用户，AI解答是辅助学习的工具，真正的理解源于亲手实践，鼓励他们用笔和纸推演，并使用不同颜色的笔来标记重点和思路。只要进行推导，标注出每一步的推导过程，就会有进步。对于每个问题，请尽可能从多个角度（如线性代数、向量、三角、复数等）进行分析，展示详细的、有逻辑的思考过程，即使某些探索路径未达最终答案。解答过程应清晰、有条理，并正确使用LaTeX表示数学公式。当用户提供学生作业图片和学生姓名时，请对图片中的作业内容进行分析点评，主要评价逻辑性和条理性，并给出改进建议。";
+
+        // DOM elements
+        const modelSelect = document.getElementById('modelSelect');
+        const apiKeyInput = document.getElementById('apiKey'); // Retained for potential other uses, but Qwen will use its config
+        const baseUrlInput = document.getElementById('baseUrl'); // Retained for potential other uses
+        const promptInput = document.getElementById('prompt');
+        // const modelSelect = document.getElementById('model'); // Assuming model is fixed to qwen-vl-max-latest for this tool
+        // const sizeSelect = document.getElementById('size'); // Assuming size is not relevant for text/VL model
+        const generateBtn = document.getElementById('generateBtn');
+        const statusArea = document.getElementById('statusArea');
+        const resultArea = document.getElementById('resultArea');
+        // const resultImage = document.getElementById('resultImage'); // Not used for text/VL model output in this way
+        const saveBtn = document.getElementById('saveBtn');
+        // const inputImageOptionsDiv = document.getElementById('inputImageOptions'); // Not directly used, image handling is integrated
+        // const inputImageDiv = document.getElementById('inputImage');
+        // const imageUrlInput = document.getElementById('imageUrl');
+        // const pasteArea = document.getElementById('pasteArea'); // This was for a different image input method
+        // const pastePreview = document.getElementById('pastePreview'); // This was for a different image input method
+        const historyToggle = document.getElementById('historyToggle');
+        const historyContent = document.getElementById('historyContent');
+        const historyClear = document.getElementById('historyClear');
+        const drawingCanvas = document.getElementById('drawingCanvas');
+        const clearCanvasBtn = document.getElementById('clearCanvasBtn');
+        const eraserBtn = document.getElementById('eraserBtn');
+        const sendCanvasBtn = document.getElementById('sendCanvasBtn'); // This button's functionality might need review if it's for the main prompt
+        const notification = document.getElementById('notification');
+        const conversationContainer = document.getElementById('conversationContainer');
+        const conversationMessages = document.getElementById('conversationMessages');
+        const followupQuestion = document.getElementById('followupQuestion');
+        const sendFollowupBtn = document.getElementById('sendFollowupBtn');
+        const continueConversationBtn = document.getElementById('continueConversationBtn');
+        const textResultDiv = document.getElementById('textResult'); // For main response
+        const promptImagePreviewDiv = document.getElementById('promptImagePreview');
+
+
+        // 存储当前对话历史
+        let currentConversation = [];
+        
+        // 存储多个图片数据的数组 (for prompt input)
+        let pastedImagesData = []; // Base64 strings
+        
+        // Canvas drawing functionality
+        const ctx = drawingCanvas.getContext('2d');
+        let drawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let isEraser = false;
+        let lastTime = 0;
+        let lastSpeed = 0;
+        const MIN_LINE_WIDTH = 0.5;
+        const MAX_LINE_WIDTH = 16;
+        let currentColor = '#000000'; // 当前选择的颜色
+
+        // Initialize canvas
+        function initializeCanvas() {
+            drawingCanvas.width = drawingCanvas.offsetWidth;
+            drawingCanvas.height = drawingCanvas.offsetHeight;
+            ctx.fillStyle = '#ffffff'; // Set background to white
+            ctx.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = currentColor;
+        }
+
+        // Drawing functions
+        function startDrawing(x, y) {
+            drawing = true;
+            [lastX, lastY] = [x, y];
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+        }
+
+        function stopDrawing() {
+            drawing = false;
+        }
+
+        function draw(x, y, pressure = 1) {
+            if (!drawing) return;
+            
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            
+            if (isEraser) {
+                const currentTime = Date.now();
+                const timeDiff = currentTime - lastTime;
+                const distance = Math.sqrt(Math.pow(x - lastX, 2) + Math.pow(y - lastY, 2));
+                const speed = timeDiff > 0 ? distance / timeDiff : 0;
+                
+                lastSpeed = lastSpeed * 0.7 + speed * 0.3;
+                
+                const baseWidth = 20;
+                const speedFactor = Math.min(lastSpeed * 2, 3);
+                const pressureFactor = pressure > 0 ? pressure : 1;
+                ctx.lineWidth = baseWidth * (speedFactor + pressureFactor);
+                ctx.strokeStyle = '#ffffff'; // Eraser color (background)
+                
+                lastTime = currentTime;
+            } else {
+                ctx.strokeStyle = currentColor; // 使用当前选择的颜色
+                ctx.lineWidth = pressure > 0 ? 
+                    Math.min(MAX_LINE_WIDTH, Math.max(MIN_LINE_WIDTH, pressure * MAX_LINE_WIDTH)) : 2;
+            }
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            [lastX, lastY] = [x, y];
+        }
+
+        // Canvas event listeners
+        drawingCanvas.addEventListener('mousedown', (e) => {
+            startDrawing(e.offsetX, e.offsetY);
+        });
+
+        drawingCanvas.addEventListener('mousemove', (e) => {
+            draw(e.offsetX, e.offsetY);
+        });
+
+        drawingCanvas.addEventListener('mouseup', stopDrawing);
+        drawingCanvas.addEventListener('mouseout', stopDrawing);
+
+        // Add paste event listener to canvas
+        drawingCanvas.addEventListener('paste', (e) => {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            let blob = null;
+            
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') === 0) {
+                    blob = items[i].getAsFile();
+                    break;
+                }
+            }
+            
+            if (blob) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                        
+                        let width = img.width;
+                        let height = img.height;
+                        let x = 0;
+                        let y = 0;
+                        
+                        const maxWidth = drawingCanvas.width * 0.9; 
+                        const maxHeight = drawingCanvas.height * 0.9; 
+                        
+                        if (width > maxWidth || height > maxHeight) {
+                            const ratio = Math.min(maxWidth / width, maxHeight / height);
+                            width *= ratio;
+                            height *= ratio;
+                        }
+                        
+                        x = (drawingCanvas.width - width) / 2;
+                        y = (drawingCanvas.height - height) / 2;
+                        
+                        ctx.drawImage(img, x, y, width, height);
+                        
+                        showNotification('图片已粘贴到画布上并居中显示');
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(blob);
+            }
+        });
+        
+        drawingCanvas.setAttribute("tabindex", "0");
+        drawingCanvas.addEventListener('click', function() {
+            this.focus();
+        });
+
+        // Touch events
+        drawingCanvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = drawingCanvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            startDrawing(x, y);
+        });
+
+        drawingCanvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = drawingCanvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            draw(x, y, touch.force || 1);
+        });
+
+        drawingCanvas.addEventListener('touchend', stopDrawing);
+        drawingCanvas.addEventListener('touchcancel', stopDrawing);
+
+        // Pointer events
+        drawingCanvas.addEventListener('pointerdown', (e) => {
+            if (e.pointerType === 'pen' || e.pointerType === 'touch' || e.pointerType === 'mouse') {
+                e.preventDefault();
+                if (e.buttons === 32 || eraserBtn.classList.contains('active')) { // Check active class for eraser
+                    isEraser = true; // Ensure isEraser is true if button is active
+                    lastTime = Date.now();
+                    lastSpeed = 0;
+                }
+                startDrawing(e.offsetX, e.offsetY);
+            }
+        });
+
+        drawingCanvas.addEventListener('pointermove', (e) => {
+            if (!drawing) return;
+            e.preventDefault();
+            draw(e.offsetX, e.offsetY, e.pressure);
+        });
+
+        drawingCanvas.addEventListener('pointerup', (e) => {
+            stopDrawing();
+            // Only turn off eraser if it was activated by pen pressure and button is not active
+            if (isEraser && !eraserBtn.classList.contains('active') && e.buttons !==32) { 
+                isEraser = false;
+                ctx.strokeStyle = currentColor;
+                ctx.lineWidth = 2; // Reset to default or chosen line width
+            }
+        });
+
+        drawingCanvas.addEventListener('pointerout', stopDrawing);
+        drawingCanvas.addEventListener('pointercancel', stopDrawing);
+
+        // Canvas button events
+        clearCanvasBtn.addEventListener('click', () => {
+            // ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height); // This makes it transparent
+            ctx.fillStyle = '#ffffff'; // Set background to white
+            ctx.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            showNotification('画布已清除');
+        });
+
+        eraserBtn.addEventListener('click', () => {
+            isEraser = !isEraser;
+            eraserBtn.classList.toggle('active');
+            
+            if (isEraser) {
+                ctx.strokeStyle = '#ffffff'; // Eraser color (background)
+                drawingCanvas.style.cursor = 'not-allowed'; // Or a custom eraser cursor
+                showNotification('橡皮擦模式已启用');
+            } else {
+                ctx.strokeStyle = currentColor; // 恢复为当前选择的颜色
+                drawingCanvas.style.cursor = 'crosshair';
+                showNotification('绘图模式已启用');
+            }
+        });
+
+        sendCanvasBtn.addEventListener('click', () => { // "上传图片" button
+            drawingCanvas.toBlob((blob) => {
+                if (!blob) {
+                    showNotification('无法从画布创建图片', 'error');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    const base64data = reader.result;
+                    pastedImagesData.push(base64data); // Add to the list of images for the prompt
+                    updateImagePreviews(); // Update the preview area
+                    showNotification('画布图片已添加到问题描述');
+                    addStatus('画布图片已添加到问题描述。');
+                };
+                reader.readAsDataURL(blob);
+            }, 'image/png'); // Specify image format
+        });
+
+
+        // Notification function
+        function showNotification(message, type = 'success') {
+            notification.textContent = message;
+            notification.className = `notification show ${type}`;
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+
+        // Window resize handler for canvas
+        window.addEventListener('resize', () => {
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = drawingCanvas.width;
+            tempCanvas.height = drawingCanvas.height;
+            if (drawingCanvas.width > 0 && drawingCanvas.height > 0) { // Ensure canvas has dimensions
+                tempCtx.drawImage(drawingCanvas, 0, 0);
+            }
+
+
+            drawingCanvas.width = drawingCanvas.offsetWidth;
+            drawingCanvas.height = drawingCanvas.offsetHeight;
+
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.lineWidth = 2; // Reset line width or use current setting
+            ctx.strokeStyle = currentColor;
+
+            if (tempCanvas.width > 0 && tempCanvas.height > 0) { // Ensure temp canvas has content
+                 ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, 0, 0, drawingCanvas.width, drawingCanvas.height);
+            }
+        });
+        
+        window.onload = function() {
+            initializeCanvas();
+            initializeModelSelector();
+            addStatus('提示: 点击画布后可直接使用Ctrl+V粘贴图片到画布上');
+            loadHistory(); // Initializes history display to empty
+            initializeColorPalette();
+            
+            continueConversationBtn.style.display = 'none';
+            conversationContainer.style.display = 'none';
+
+            // Initial welcome message in textResultDiv
+            textResultDiv.innerHTML = `<div class="initial-message">
+                <p>欢迎使用玖数学手绘问题解答工具！</p>
+                <p>您可以通过以下方式提出问题：</p>
+                <ul>
+                    <li>在左侧文本框输入文字描述您的问题。</li>
+                    <li>在下方画布上绘制图形或手写问题。</li>
+                    <li>直接粘贴图片到文本框或画布中。</li>
+                </ul>
+                <p>完成后，点击"解答问题"按钮获取答案。</p>
+            </div>`;
+        };
+
+        function initializeModelSelector() {
+            for (const modelKey in MODEL_CONFIGS) {
+                const option = document.createElement('option');
+                option.value = modelKey;
+                option.textContent = MODEL_CONFIGS[modelKey].description;
+                modelSelect.appendChild(option);
+            }
+        }
+
+        // 历史记录相关函数 (History related functions - modified to not save/load persisted history)
+        function loadHistory() {
+            updateHistoryDisplay([]); // Always display empty history
+        }
+        
+        function saveToHistory(data) {
+            // This function will not save any history to persistent storage.
+            // console.log("History saving is disabled. Data not saved:", data); 
+        }
+        
+        function updateHistoryDisplay(history) { // 'history' will always be an empty array
+            historyContent.innerHTML = ''; 
+            
+            if (history.length === 0) {
+                const noHistory = document.createElement('div');
+                noHistory.className = 'no-history';
+                noHistory.textContent = '暂无历史记录'; // "No history records"
+                historyContent.appendChild(noHistory);
+                return;
+            }
+            
+            // The following code for displaying history items will not be reached
+            // because 'history' array will always be empty.
+            history.forEach((item, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'history-info';
+                
+                const promptP = document.createElement('p');
+                promptP.className = 'history-prompt';
+                promptP.title = item.prompt;
+                promptP.textContent = item.prompt.substring(0, 50) + (item.prompt.length > 50 ? '...' : ''); // Show snippet
+                
+                const dateP = document.createElement('p');
+                dateP.className = 'history-date';
+                dateP.textContent = new Date(item.timestamp).toLocaleString();
+                
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'history-actions';
+                
+                const deleteBtn = document.createElement('div');
+                deleteBtn.className = 'history-action-btn';
+                deleteBtn.innerHTML = '&#x2715;'; // ×
+                deleteBtn.title = '删除';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    removeHistoryItem(index);
+                };
+                
+                const usePromptBtn = document.createElement('div');
+                usePromptBtn.className = 'history-action-btn';
+                usePromptBtn.innerHTML = '&#x270E;'; // ✏️
+                usePromptBtn.title = '使用此问题';
+                usePromptBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    promptInput.value = item.prompt;
+                    pastedImagesData = item.images || []; // Load images from history
+                    updateImagePreviews();
+                    textResultDiv.innerHTML = item.textResponse || '<p>从历史记录加载...</p>';
+                    if (item.textResponse && window.MathJax) {
+                         setTimeout(() => window.MathJax.typesetPromise([textResultDiv]), 100);
+                    }
+                    processSvgContent(textResultDiv);
+                    currentConversation = item.conversation || [];
+                    addStatus(`已加载历史问题: "${item.prompt.substring(0,30)}..."`);
+                };
+                
+                historyItem.onclick = () => {
+                    resultArea.style.display = 'block';
+                    textResultDiv.innerHTML = ''; // Clear previous
+                    
+                    if (item.textResponse) {
+                        textResultDiv.style.display = 'block';
+                        const responseContainer = document.createElement('div');
+                        responseContainer.innerHTML = item.textResponse;
+                        textResultDiv.appendChild(responseContainer);
+                        
+                        processSvgContent(responseContainer);
+                        setTimeout(() => {
+                            if (window.MathJax) {
+                                window.MathJax.typesetPromise([textResultDiv]);
+                            }
+                        }, 100);
+                    } else {
+                        textResultDiv.innerHTML = '<p>无文字解答记录。</p>';
+                    }
+                     // Restore conversation history if available
+                    if (item.conversation && item.conversation.length > 0) {
+                        currentConversation = JSON.parse(JSON.stringify(item.conversation)); // Deep copy
+                        continueConversationBtn.style.display = 'inline-block';
+                        // Optionally, re-populate conversation UI if needed, or let "Continue Conversation" handle it
+                    } else {
+                        currentConversation = [];
+                        continueConversationBtn.style.display = 'none';
+                        conversationContainer.style.display = 'none';
+                    }
+                };
+                
+                actionsDiv.appendChild(usePromptBtn);
+                actionsDiv.appendChild(deleteBtn);
+                
+                infoDiv.appendChild(promptP);
+                infoDiv.appendChild(dateP);
+                
+                historyItem.appendChild(infoDiv);
+                historyItem.appendChild(actionsDiv);
+                
+                historyContent.appendChild(historyItem);
+            });
+        }
+        
+        function removeHistoryItem(index) {
+            // This function will not remove any history from persistent storage.
+            // console.log("History item removal is disabled for index:", index);
+        }
+        
+        historyToggle.addEventListener('click', function() {
+            this.classList.toggle('collapsed');
+            historyContent.classList.toggle('collapsed');
+        });
+        
+        historyClear.addEventListener('click', function() {
+            if (window.confirm('确定要清空所有历史记录吗？此操作不可恢复。')) {
+                // localStorage.removeItem('qwen_math_history'); // Persistent storage interaction removed
+                updateHistoryDisplay([]); // Refresh display to show "No history"
+                // addStatus('历史记录已清空'); // Status message removed as no persistent data is cleared
+            }
+        });
+
+        function initializeColorPalette() {
+            const colorOptions = document.querySelectorAll('.color-option');
+            const customColorPicker = document.getElementById('customColorPicker');
+            
+            colorOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    colorOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    currentColor = this.getAttribute('data-color');
+                    customColorPicker.value = currentColor;
+                    if (!isEraser) {
+                        ctx.strokeStyle = currentColor;
+                    }
+                    showNotification(`颜色已切换为: ${currentColor}`);
+                });
+            });
+            
+            customColorPicker.addEventListener('input', function() {
+                currentColor = this.value;
+                colorOptions.forEach(opt => opt.classList.remove('active'));
+                if (!isEraser) {
+                    ctx.strokeStyle = currentColor;
+                }
+                showNotification(`自定义颜色: ${currentColor}`);
+            });
+        }
+
+        function addStatus(message, isError = false) {
+            // Ensure statusArea is visible if it was hidden
+            if (statusArea.style.display === 'none') {
+                statusArea.style.display = 'block';
+            }
+            const statusMessage = document.createElement('div');
+            statusMessage.className = isError ? 'status-message error-message' : 'status-message';
+            statusMessage.textContent = message;
+            statusArea.appendChild(statusMessage);
+            statusArea.scrollTop = statusArea.scrollHeight; // Scroll to the latest message
+        }
+        
+        // Main function to generate response using AI model (streaming)
+        async function generateStreamingResponse(apiKey, endpointUrl, modelName, prompt, imagesBase64 = [], isFollowUp = false) {
+            const targetDisplayArea = isFollowUp ? null : textResultDiv; // For main response, use textResultDiv
+            let assistantMessageDivForFollowUp = null; // For follow-up, use this
+            let accumulatedResponse = '';
+            let renderTarget = null;
+
+            if (isFollowUp) {
+                // Create and append the assistant's message container for follow-up
+                assistantMessageDivForFollowUp = document.createElement('div');
+                assistantMessageDivForFollowUp.className = 'message assistant-message';
+
+                const avatar = document.createElement('img');
+                avatar.className = 'avatar';
+                avatar.src = 'images/加油.png';
+                assistantMessageDivForFollowUp.appendChild(avatar);
+
+                const messageBubble = document.createElement('div');
+                messageBubble.className = 'message-bubble';
+
+                renderTarget = document.createElement('div');
+                renderTarget.innerHTML = '<p>正在思考...</p>'; // Placeholder
+                messageBubble.appendChild(renderTarget);
+
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'message-time';
+                timeSpan.textContent = new Date().toLocaleTimeString();
+                messageBubble.appendChild(timeSpan);
+                assistantMessageDivForFollowUp.appendChild(messageBubble);
+
+                conversationMessages.appendChild(assistantMessageDivForFollowUp);
+                conversationMessages.scrollTop = conversationMessages.scrollHeight;
+            } else {
+                 if (targetDisplayArea) {
+                    targetDisplayArea.innerHTML = ''; // Clear "Welcome" or previous result
+
+                    const assistantMessageDiv = document.createElement('div');
+                    assistantMessageDiv.className = 'message assistant-message';
+
+                    const avatar = document.createElement('img');
+                    avatar.className = 'avatar';
+                    avatar.src = 'images/加油.png';
+                    assistantMessageDiv.appendChild(avatar);
+
+                    const messageBubble = document.createElement('div');
+                    messageBubble.className = 'message-bubble';
+
+                    const contentDiv = document.createElement('div');
+                    contentDiv.innerHTML = '<div class="loading-indicator" style="display: block; position: relative; margin: 20px auto;"></div>';
+                    messageBubble.appendChild(contentDiv);
+                    renderTarget = contentDiv;
+
+                    const timeSpan = document.createElement('span');
+                    timeSpan.className = 'message-time';
+                    timeSpan.textContent = new Date().toLocaleTimeString();
+                    messageBubble.appendChild(timeSpan);
+                    
+                    assistantMessageDiv.appendChild(messageBubble);
+
+                    targetDisplayArea.appendChild(assistantMessageDiv);
+                    resultArea.style.display = 'block';
+                }
+            }
+            
+            const contentPayload = [{ type: "text", text: prompt }];
+            imagesBase64.forEach(imgBase64 => {
+                contentPayload.unshift({ // Add images before text, as per some API recommendations
+                    type: "image_url",
+                    image_url: { url: imgBase64 }
+                });
+            });
+
+            let messagesPayload;
+            if (isFollowUp) {
+                messagesPayload = [...currentConversation]; // Use existing history
+                 // The last user message (prompt + images) is already pushed before calling this for follow-up
+            } else {
+                // For a new generation, start a new conversation history
+                currentConversation = [
+                    { role: "system", content: SYSTEM_PROMPT },
+                    { role: "user", content: contentPayload }
+                ];
+                messagesPayload = currentConversation;
+            }
+
+
+            try {
+                const response = await fetch(endpointUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: modelName,
+                        messages: messagesPayload.map(msg => ({ // Ensure correct message format
+                            role: msg.role,
+                            content: Array.isArray(msg.content) ? msg.content : [{type: "text", text: msg.content}]
+                        })),
+                        stream: true,
+                        // max_tokens: 10000 // Max tokens can be set if needed
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: { message: `API error: ${response.status} ${response.statusText}` } }));
+                    throw new Error(errorData.error?.message || `API error: ${response.status}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+                let buffer = '';
+                
+                if (renderTarget && renderTarget.querySelector('.loading-indicator')) {
+                    renderTarget.innerHTML = ''; // clear loading indicator
+                }
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || ''; 
+                    
+                    for (const line of lines) {
+                        if (line.trim() === '' || line.trim() === 'data: [DONE]') continue;
+                        
+                        let data;
+                        try {
+                            const jsonStr = line.replace(/^data: /, '');
+                            data = JSON.parse(jsonStr);
+                        } catch (error) {
+                            console.warn('Failed to parse JSON from line:', line, error);
+                            continue;
+                        }
+                        
+                        if (data.choices && data.choices.length > 0) {
+                            const delta = data.choices[0].delta;
+                            if (delta && delta.content) {
+                                accumulatedResponse += delta.content;
+                            }
+                        }
+                    }
+                    if (renderTarget) {
+                        renderTarget.innerHTML = accumulatedResponse; // Update UI incrementally
+                        if (isFollowUp) {
+                            conversationMessages.scrollTop = conversationMessages.scrollHeight;
+                        } else if (targetDisplayArea) {
+                            targetDisplayArea.scrollTop = targetDisplayArea.scrollHeight;
+                        }
+                    }
+                }
+
+                // Final processing after stream is complete
+                if(renderTarget) {
+                    renderTarget.innerHTML = accumulatedResponse;
+                    processSvgContent(renderTarget);
+                    if (window.MathJax) {
+                        window.MathJax.typesetPromise([renderTarget]).catch(err => console.log('Final MathJax error:', err));
+                    }
+                }
+
+                if (isFollowUp && assistantMessageDivForFollowUp) {
+                     const timeSpan = assistantMessageDivForFollowUp.querySelector('.message-time');
+                     if(timeSpan) timeSpan.textContent = new Date().toLocaleTimeString(); // Update timestamp
+                } else if (!isFollowUp && renderTarget) {
+                    const timeSpan = renderTarget.closest('.message-bubble').querySelector('.message-time');
+                    if (timeSpan) timeSpan.textContent = new Date().toLocaleTimeString();
+                } else if (targetDisplayArea) {
+                    // Fallback to remove loading indicator if something went wrong
+                    const loadingIndicator = targetDisplayArea.querySelector('.loading-indicator');
+                    if (loadingIndicator) loadingIndicator.remove();
+                }
+                
+                currentConversation.push({ role: 'assistant', content: accumulatedResponse });
+
+                if (!isFollowUp) { // Only for main generation
+                    // saveToHistory is NOT called here anymore, as per request.
+                    // Example of what was removed:
+                    /*
+                    saveToHistory({
+                        prompt: prompt,
+                        textResponse: accumulatedResponse,
+                        timestamp: Date.now(),
+                        images: pastedImagesData,
+                        conversation: JSON.parse(JSON.stringify(currentConversation)) // Deep copy conversation
+                    });
+                    */
+                    continueConversationBtn.style.display = 'inline-block';
+                }
+                
+                return { success: true, textResponse: accumulatedResponse };
+
+            } catch (error) {
+                console.error('Error generating streaming response:', error);
+                const errorMessage = `解答失败: ${error.message}`;
+                if (isFollowUp && assistantMessageDivForFollowUp) {
+                    assistantMessageDivForFollowUp.firstChild.innerHTML = `<p>${errorMessage}</p>`;
+                } else if (targetDisplayArea) {
+                    targetDisplayArea.innerHTML = `<p class="error-message">${errorMessage}</p>`;
+                }
+                addStatus(errorMessage, true);
+                return { success: false, error: error.message };
+            }
+        }
+        
+        function processSvgContent(container) {
+            const codeBlocks = container.querySelectorAll('pre');
+            codeBlocks.forEach(block => {
+                const codeContent = block.querySelector('code');
+                const content = codeContent ? codeContent.textContent : block.textContent;
+                if (content.trim().startsWith('<svg') && content.includes('</svg>')) {
+                    try {
+                        const svgContainer = document.createElement('div');
+                        svgContainer.classList.add('svg-container');
+                        svgContainer.innerHTML = content; 
+                        block.parentNode.replaceChild(svgContainer, block);
+                        addCopyButtonsToSvgs(svgContainer);
+                    } catch (err) {
+                        console.error('Error processing SVG from code block:', err);
+                    }
+                }
+            });
+            addCopyButtonsToSvgs(container); // Process SVGs not in code blocks
+        }
+        
+        function addCopyButtonsToSvgs(container) {
+            const svgs = container.querySelectorAll('svg:not([data-copy-initialized])');
+            svgs.forEach(svg => {
+                svg.setAttribute('data-copy-initialized', 'true');
+                const btn = document.createElement('button');
+                btn.className = 'svg-copy-btn';
+                btn.textContent = '复制SVG';
+                btn.addEventListener('click', () => {
+                    const svgCode = svg.outerHTML;
+                    // Use document.execCommand for broader compatibility in iframes
+                    const textarea = document.createElement('textarea');
+                    textarea.value = svgCode;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    try {
+                        document.execCommand('copy');
+                        btn.textContent = '已复制!';
+                        showNotification('SVG代码已复制到剪贴板', 'success');
+                    } catch (err) {
+                        console.error('复制失败', err);
+                        btn.textContent = '复制失败';
+                        showNotification('复制失败，请重试', 'error');
+                    }
+                    document.body.removeChild(textarea);
+                    setTimeout(() => btn.textContent = '复制SVG', 1500);
+                });
+                svg.parentNode.insertBefore(btn, svg.nextSibling);
+            });
+        }
+        
+        window.addEventListener('load', function() {
+            if (window.MathJax && window.MathJax.startup && window.MathJax.startup.promise) {
+                window.MathJax.startup.promise.then(() => {
+                    processSvgContent(document.body);
+                    if (window.MathJax.typesetPromise) {
+                        const origTypesetPromise = window.MathJax.typesetPromise;
+                        window.MathJax.typesetPromise = function(...args) {
+                            return origTypesetPromise.apply(this, args).then(() => {
+                                setTimeout(() => {
+                                    processSvgContent(document.body);
+                                }, 100); 
+                            });
+                        };
+                    }
+                });
+            }
+        });
+        
+        continueConversationBtn.addEventListener('click', function() {
+            conversationContainer.style.display = 'flex';
+            if (conversationMessages.children.length === 0 && currentConversation.length > 0) {
+                currentConversation.forEach(msg => {
+                    let displayContent = '';
+                    let imageForDisplay = null;
+                    if (Array.isArray(msg.content)) { // Handle complex content array
+                        const textPart = msg.content.find(part => part.type === 'text');
+                        const imagePart = msg.content.find(part => part.type === 'image_url');
+                        if (textPart) displayContent += textPart.text;
+                        if (imagePart) {
+                             imageForDisplay = imagePart.image_url.url;
+                             if(!textPart) displayContent = '(图片)'; // Placeholder if only image
+                        }
+                    } else {
+                        displayContent = msg.content;
+                    }
+                    addConversationMessageToUI(displayContent, msg.role, imageForDisplay);
+                });
+            }
+            followupQuestion.focus();
+        });
+
+        generateBtn.addEventListener('click', async function() {
+            const promptText = promptInput.value.trim();
+            
+            // Consolidate images: from canvas (if sendCanvasBtn was used and added to pastedImagesData)
+            // and directly pasted images into promptImagePreview
+            let allImagesBase64 = [...pastedImagesData]; // Start with images from prompt text area
+
+            // Check if canvas has non-background content and add it if not already added by "上传图片"
+            const isCanvasBlank = () => {
+                const blank = document.createElement('canvas');
+                blank.width = drawingCanvas.width;
+                blank.height = drawingCanvas.height;
+                const blankCtx = blank.getContext('2d');
+                blankCtx.fillStyle = '#ffffff'; // Assuming white background
+                blankCtx.fillRect(0,0,blank.width, blank.height);
+                return drawingCanvas.toDataURL() === blank.toDataURL();
+            };
+
+            // If "上传图片" button was not the last source of an image in pastedImagesData from canvas
+            // and canvas is not blank, consider adding it.
+            // This logic can be complex. For simplicity, if pastedImagesData is empty and canvas is not blank, add canvas.
+            // Or, rely on user explicitly clicking "上传图片" to add canvas content to pastedImagesData.
+            // Current `sendCanvasBtn` adds to `pastedImagesData`.
+
+            if (!promptText && allImagesBase64.length === 0 && isCanvasBlank()) {
+                addStatus('请输入问题描述或添加/绘制图片。', true);
+                showNotification('请输入问题或提供图片', 'error');
+                return;
+            }
+             if (allImagesBase64.length === 0 && !isCanvasBlank()) {
+                // If no images in preview but canvas has drawing, add canvas drawing
+                allImagesBase64.push(drawingCanvas.toDataURL('image/png'));
+                addStatus('已自动将画布内容作为图片。');
+            }
+
+
+            generateBtn.disabled = true;
+            const selectedModelKey = modelSelect.value;
+            const modelConfig = MODEL_CONFIGS[selectedModelKey];
+            addStatus(`正在请求${modelConfig.description}模型（流式回复）...`);
+            
+            const result = await generateStreamingResponse(
+                modelConfig.apiKey,
+                modelConfig.apiUrl,
+                modelConfig.model,
+                promptText,
+                allImagesBase64, // Pass all collected images
+                false // Not a follow-up
+            );
+            
+            if (result.success) {
+                addStatus('解答成功!');
+            } else {
+                addStatus('解答失败: ' + result.error, true);
+            }
+            generateBtn.disabled = false;
+        });
+
+        promptInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault(); 
+                generateBtn.click(); 
+            }
+        });
+
+        followupQuestion.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendFollowupBtn.click();
+            }
+        });
+
+        followupQuestion.addEventListener('paste', async function(e) {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            let blob = null;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') === 0) {
+                    blob = items[i].getAsFile();
+                    break;
+                }
+            }
+            
+            if (blob) {
+                e.preventDefault(); 
+                const reader = new FileReader();
+                reader.onload = async function(event) {
+                    const imageData = event.target.result;
+                    addConversationMessageToUI("请分析这张新图片中的问题", 'user', imageData); // Display image in UI
+                    
+                    // Add user message with image to conversation history
+                    currentConversation.push({
+                        role: 'user',
+                        content: [
+                            { type: "image_url", image_url: { url: imageData } },
+                            { type: "text", text: "请分析这张新图片中的问题" }
+                        ]
+                    });
+                    await handleSendFollowup(true); // Pass true if it's an image-only follow-up
+                };
+                reader.readAsDataURL(blob);
+            }
+        });
+        
+        sendFollowupBtn.addEventListener('click', async () => {
+            await handleSendFollowup(false);
+        });
+
+        async function handleSendFollowup(isImageFollowUp = false) {
+            const followupQuestionText = followupQuestion.value.trim();
+            
+            if (!followupQuestionText && !isImageFollowUp) { // if not image and no text, do nothing
+                showNotification('请输入后续问题', 'error');
+                return;
+            }
+
+            if (!isImageFollowUp) { // If it's a text follow-up
+                addConversationMessageToUI(followupQuestionText, 'user');
+                currentConversation.push({ role: 'user', content: [{ type: "text", text: followupQuestionText }] });
+            }
+            followupQuestion.value = ''; // Clear input after processing
+            
+            sendFollowupBtn.disabled = true;
+            const selectedModelKey = modelSelect.value;
+            const modelConfig = MODEL_CONFIGS[selectedModelKey];
+            
+            // The prompt for the API will be the entire currentConversation history
+            // The generateStreamingResponse function handles constructing the messages payload from currentConversation
+            const result = await generateStreamingResponse(
+                modelConfig.apiKey,
+                modelConfig.apiUrl,
+                modelConfig.model,
+                isImageFollowUp ? "请分析这张新图片中的问题" : followupQuestionText, // This prompt text is part of the last user message in currentConversation
+                [], // Images are already part of currentConversation for image follow-ups
+                true // This is a follow-up
+            );
+            sendFollowupBtn.disabled = false;
+            if (result.success) {
+                addStatus('后续回复已生成');
+            } else {
+                addStatus(`后续回复生成失败: ${result.error}`, true);
+            }
+        }
+
+        function addConversationMessageToUI(messageText, role, imageBase64 = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.classList.add(role === 'user' ? 'user-message' : 'assistant-message');
+            
+            const avatar = document.createElement('img');
+            avatar.className = 'avatar';
+            avatar.src = role === 'user' ? 'images/01.jpg' : 'images/加油.png';
+            messageDiv.appendChild(avatar);
+
+            const messageBubble = document.createElement('div');
+            messageBubble.className = 'message-bubble';
+
+            if (imageBase64) { // Always add image first if present
+                 const imgElement = document.createElement('img');
+                 imgElement.src = imageBase64;
+                 imgElement.alt = role === 'user' ? "User image" : "Assistant image";
+                 // style is already in CSS: .message img
+                 messageBubble.appendChild(imgElement);
+            }
+            
+            // Sanitize messageText before adding as innerHTML if it can contain user-input HTML
+            // For now, assuming messageText is plain text or safe HTML from model
+            const textContentDiv = document.createElement('div');
+            // If it's just a placeholder like "(图片)" and an image is already displayed, don't show redundant text.
+            if (!(imageBase64 && messageText.trim() === "(图片)")) {
+                 textContentDiv.innerHTML = messageText; // Use innerHTML to render potential markdown/HTML from model
+            }
+
+            if (textContentDiv.innerHTML || !imageBase64) { // Add text div if it has content or if there's no image
+                 messageBubble.appendChild(textContentDiv);
+            }
+
+
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'message-time';
+            timeSpan.textContent = new Date().toLocaleTimeString();
+            messageBubble.appendChild(timeSpan);
+            
+            messageDiv.appendChild(messageBubble);
+            conversationMessages.appendChild(messageDiv);
+            conversationMessages.scrollTop = conversationMessages.scrollHeight;
+
+            // Process MathJax and SVG for assistant messages
+            if (role === 'assistant') {
+                processSvgContent(textContentDiv);
+                if (window.MathJax) {
+                    window.MathJax.typesetPromise([textContentDiv]).catch(err => console.log('MathJax error in conversation UI:', err));
+                }
+            }
+        }
+
+        promptInput.addEventListener('paste', function(e) {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            let blob = null;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') === 0) {
+                    blob = items[i].getAsFile();
+                    break; // Handle first image
+                }
+            }
+            if (blob) {
+                e.preventDefault(); // Prevent pasting image as text
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const imageData = event.target.result;
+                    pastedImagesData.push(imageData);
+                    updateImagePreviews();
+                    showNotification('图片已添加到问题描述中');
+                    addStatus('图片已添加到问题描述中');
+                };
+                reader.readAsDataURL(blob);
+            }
+        });
+
+        function updateImagePreviews() {
+            promptImagePreviewDiv.innerHTML = '';
+            pastedImagesData.forEach((imageData, index) => {
+                const imageItem = document.createElement('div');
+                imageItem.className = 'prompt-image-item';
+                
+                const img = document.createElement('img');
+                img.src = imageData;
+                
+                const removeBtn = document.createElement('div');
+                removeBtn.className = 'remove-image';
+                removeBtn.innerHTML = '×';
+                removeBtn.onclick = () => removeImage(index);
+                
+                imageItem.appendChild(img);
+                imageItem.appendChild(removeBtn);
+                promptImagePreviewDiv.appendChild(imageItem);
+            });
+        }
+
+        function removeImage(index) {
+            pastedImagesData.splice(index, 1);
+            updateImagePreviews();
+            showNotification('图片已移除');
+            addStatus('已移除一张图片');
+        }
+
+    </script>
+</body>
+</html> 

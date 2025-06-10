@@ -554,11 +554,11 @@
                     <label for="model">Model:</label>
                     <select id="model">
 
-
+                        <option value="gpt-4.1-nano">GPT-4.1-nano</option>
                         <option value="claude-sonnet-4-20250514">claude-sonnet-4-20250514</option>
                         <option value="gemini-2.5-pro-preview-06-05">gemini-2.5-pro-preview-06-05</option>
                         <option value="gemini-2.5-pro-preview-05-06">gemini-2.5-pro-preview-05-06</option>
-                        <option value="gpt-4.1-nano">GPT-4.1-nano</option>
+
                         <option value="gpt-4.1-mini">GPT-4.1-mini</option>
                         <option value="gpt-4.1">GPT-4.1</option>
                         <option value="gpt-4o-mini">GPT-4o-mini</option>
@@ -694,7 +694,7 @@
             // 初始化系统消息
             const DEFAULT_SYSTEM_MESSAGE = {
                 "role": "system",
-                "content": "你是一个专业的数学助手，擅长解答数学问题和讲解数学概念。在开始解答前，请总是先提醒用户，AI解答是辅助学习的工具，真正的理解源于亲手实践，鼓励他们用笔和纸推演，并使用不同颜色的笔来标记重点和思路。对于每个问题，请尽可能从多个角度（如线性代数、向量、三角、复数等）进行分析，展示详细的、有逻辑的思考过程，即使某些探索路径未达最终答案。解答过程应清晰、有条理，并正确使用LaTeX表示数学公式。当用户提供学生作业图片和学生姓名时，请对图片中的作业内容进行分析点评，主要评价逻辑性和条理性，并给出改进建议。"
+                "content": "你是一个专业的数学助手，擅长解答数学问题和讲解数学概念。在开始解答前，请总是先提醒用户，AI解答是辅助学习的工具，真正的理解源于亲手实践，鼓励他们用笔和纸推演，并使用不同颜色的笔来标记重点和思路。只要进行推导，标注出每一步的推导过程，就会有进步。对于每个问题，请尽可能从多个角度（如线性代数、向量、三角、复数等）进行分析，展示详细的、有逻辑的思考过程，即使某些探索路径未达最终答案。解答过程应清晰、有条理，并正确使用LaTeX表示数学公式。当用户提供学生作业图片和学生姓名时，请对图片中的作业内容进行分析点评，主要评价逻辑性和条理性，并给出改进建议。"
             };
             
             // 当前系统消息
