@@ -740,6 +740,313 @@
         }
         // 结构化题目数据库 - 只保留角的证明题型
         const questionDatabase = {
+            parallel: [
+                {
+                    id: 'parallel_006',
+                    title: '平行线的性质与判定',
+                    description: '如图，直线c与直线a、b相交，请根据平行线的性质与判定，完成下列填空。',
+                    imageUrl: '',
+                    svg: `<svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .line {
+      stroke: black;
+      stroke-width: 2;
+      fill: none;
+    }
+    .label {
+      font-family: serif;
+      font-size: 22px;
+      fill: black;
+      text-anchor: middle;
+    }
+    .angle-arc {
+        stroke: black;
+        stroke-width: 1.5;
+        fill: none;
+    }
+  </style>
+
+  <line class="line" x1="0" y1="100" x2="400" y2="100" />
+  <line class="line" x1="0" y1="200" x2="400" y2="200" />
+  <line class="line" x1="250" y1="0" x2="100" y2="300" />
+
+  <path class="angle-arc" d="M 230 100 A 30 30 0 0 1 186.6 126.8" />   <path class="angle-arc" d="M 189.9 120.3 A 22 22 0 0 1 178 100" />   <path class="angle-arc" d="M 209.8 80.3 A 22 22 0 0 1 222 100" />    <path class="angle-arc" d="M 170 100 A 30 30 0 0 1 213.4 77.6" />   <path class="angle-arc" d="M 120 200 A 30 30 0 0 1 163.4 173.2" />   <path class="angle-arc" d="M 160.1 179.7 A 22 22 0 0 1 172 200" />   <path class="angle-arc" d="M 139.9 219.7 A 22 22 0 0 1 128 200" />   <path class="angle-arc" d="M 180 200 A 30 30 0 0 1 136.6 226.8" />   <text class="label" x="380" y="95">a</text>
+  <text class="label" x="380" y="195">b</text>
+  <text class="label" x="255" y="15">c</text>
+  
+  <text class="label" x="240" y="120">1</text>
+  <text class="label" x="110" y="180">2</text>
+  <text class="label" x="172" y="128">3</text>
+  <text class="label" x="178" y="188">4</text>
+  <text class="label" x="228" y="88">5</text>
+  <text class="label" x="122" y="228">6</text>
+  <text class="label" x="180" y="80">7</text>
+  <text class="label" x="185" y="240">8</text>
+
+</svg>`,
+                    steps: [
+                        { text: '性质定理：', blanks: null },
+                        { text: '若 a∥b, 则 ∠5 = ∠4, 理由是 ( __BLANK_0__ )', blanks: [{ text: "___", correct: "两直线平行，同位角相等" }] },
+                        { text: '若 a∥b, 则 ∠3 = ∠2, 理由是 ( __BLANK_0__ )', blanks: [{ text: "___", correct: "两直线平行，内错角相等" }] },
+                        { text: '若 a∥b, 则 ∠1 + ∠2 = 180°, 理由是 ( __BLANK_0__ )', blanks: [{ text: "___", correct: "两直线平行，同旁内角互补" }] },
+                        { text: '判定定理：', blanks: null },
+                        { text: '若 ∠7 = ∠2, 则 a∥b, 理由是 ( __BLANK_0__ )', blanks: [{ text: "___", correct: "同位角相等，两直线平行" }] },
+                        { text: '若 ∠1 = ∠4, 则 a∥b, 理由是 ( __BLANK_0__ )', blanks: [{ text: "___", correct: "内错角相等，两直线平行" }] },
+                        { text: '若 ∠3 + ∠4 = 180°, 则 a∥b, 理由是 ( __BLANK_0__ )', blanks: [{ text: "___", correct: "同旁内角互补，两直线平行" }] }
+                    ],
+                    options: [
+                        '两直线平行，同位角相等',
+                        '两直线平行，内错角相等',
+                        '两直线平行，同旁内角互补',
+                        '同位角相等，两直线平行',
+                        '内错角相等，两直线平行',
+                        '同旁内角互补，两直线平行'
+                    ],
+                    correctAnswers: [
+                        '两直线平行，同位角相等',
+                        '两直线平行，内错角相等',
+                        '两直线平行，同旁内角互补',
+                        '同位角相等，两直线平行',
+                        '内错角相等，两直线平行',
+                        '同旁内角互补，两直线平行'
+                    ]
+                },
+                {
+                    id: 'parallel_001',
+                    title: '平行线的性质',
+                    description: '如图，AB∥CD，∠ABE=140°，则∠C的度数为( )',
+                    imageUrl: '',
+                    svg: `<svg width="400" height="200" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .line {
+      stroke: black;
+      stroke-width: 2.5;
+    }
+    .label {
+      font-family: serif;
+      font-size: 24px;
+      fill: black;
+      text-anchor: middle;
+    }
+  </style>
+
+  <line class="line" x1="0" y1="50" x2="251" y2="50" />
+
+  <line class="line" x1="150" y1="150" x2="400" y2="150" />
+  
+  <line class="line" x1="150" y1="150" x2="275" y2="25" />
+
+  <text class="label" x="50" y="45">A</text>
+  <text class="label" x="265" y="70">B</text>
+  <text class="label" x="140" y="165">C</text>
+  <text class="label" x="350" y="165">D</text>
+  <text class="label" x="285" y="25">E</text>
+
+</svg>`,
+                    steps: [
+                        { text: '∵ ∠ABE = 140°（__BLANK_0__）', blanks: [{ text: "　　", correct: "已知" }] },
+                        { text: '∴ ∠ABC = 180° - 140° = 40°（__BLANK_0__）', blanks: [{ text: "　　", correct: "平角的定义" }] },
+                        { text: '∵ AB∥CD（__BLANK_0__）', blanks: [{ text: "　　", correct: "已知" }] },
+                        { text: '∴ ∠C = ∠ABC（__BLANK_0__）', blanks: [{ text: "　　", correct: "两直线平行，内错角相等" }] },
+                        { text: '∴ ∠C = 40°（__BLANK_0__）', blanks: [{ text: "　　", correct: "等量代换" }] }
+                    ],
+                    options: [
+                        '已知',
+                        '平角的定义',
+                        '两直线平行，内错角相等',
+                        '等量代换'
+                    ],
+                    correctAnswers: [
+                        '已知',
+                        '平角的定义',
+                        '已知',
+                        '两直线平行，内错角相等',
+                        '等量代换'
+                    ]
+                },
+                {
+                    id: 'parallel_002',
+                    title: '平行线的判定与性质',
+                    description: '如图, AB∥CD, AD平分∠BAC, 若∠BAD=70°, 那么∠ACD的度数为( )',
+                    imageUrl: '',
+                    svg: '<svg width="400" height="220" viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">\n  <style>\n    .line {\n      stroke: black;\n      stroke-width: 2;\n    }\n    .label {\n      font-family: sans-serif;\n      font-size: 18px;\n      fill: black;\n    }\n  </style>\n\n  <line class="line" x1="0" y1="50" x2="400" y2="50" />\n\n  <line class="line" x1="0" y1="150" x2="400" y2="150" />\n\n  <line class="line" x1="175" y1="0" x2="75" y2="200" />\n\n  <line class="line" x1="150" y1="50" x2="300" y2="200" />\n\n  <path d="M 120 150 A 20 20 0 0 0 108.9 132.1" fill="none" stroke="black" stroke-width="1.5"/>\n\n  <text x="160" y="48" class="label">A</text>\n  <text x="350" y="48" class="label">B</text>\n  <text x="85" y="145" class="label">C</text>\n  <text x="255" y="145" class="label">D</text>\n  <text x="122" y="140" class="label">1</text>\n\n</svg>',
+                    steps: [
+                        { text: '∵ AD平分∠BAC（__BLANK_0__）', blanks: [{ text: "　　", correct: "已知" }] },
+                        { text: '∴ ∠BAC = 2∠BAD（__BLANK_0__）', blanks: [{ text: "　　", correct: "角平分线的定义" }] },
+                        { text: '∵ ∠BAD = 70°（__BLANK_0__）', blanks: [{ text: "　　", correct: "已知" }] },
+                        { text: '∴ ∠BAC = 2 × 70° = 140°（__BLANK_0__）', blanks: [{ text: "　　", correct: "等量代换" }] },
+                        { text: '∵ AB∥CD（__BLANK_0__）', blanks: [{ text: "　　", correct: "已知" }] },
+                        { text: '∴ ∠ACD + ∠BAC = 180°（__BLANK_0__）', blanks: [{ text: "　　", correct: "两直线平行，同旁内角互补" }] },
+                        { text: '∴ ∠ACD = 180° - 140° = 40°（__BLANK_0__）', blanks: [{ text: "　　", correct: "等式的性质" }] }
+                    ],
+                    options: [
+                        '已知',
+                        '角平分线的定义',
+                        '等量代换',
+                        '两直线平行，同旁内角互补',
+                        '等式的性质'
+                    ],
+                    correctAnswers: [
+                        '已知',
+                        '角平分线的定义',
+                        '已知',
+                        '等量代换',
+                        '已知',
+                        '两直线平行，同旁内角互补',
+                        '等式的性质'
+                    ]
+                },
+                {
+                    id: 'parallel_003',
+                    title: '平行线的性质',
+                    description: '如图, 若 AB∥EF, 请根据平行线的性质，完成下面的填空。',
+
+                    svg: '<svg width="400" height="220" viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">\n  <style>\n    .line { stroke: #2196F3; stroke-width: 2; vector-effect: non-scaling-stroke; }\n    .point-dot { fill: #4CAF50; }\n    .label { font-family: Arial, sans-serif; font-size: 16px; fill: #666; font-weight: bold; }\n  </style>\n  <g id="shapeGroup">\n    <line class="line" x1="200" y1="20" x2="20" y2="180" />\n    <line class="line" x1="20" y1="180" x2="340" y2="180" />\n    <line class="line" x1="340" y1="180" x2="200" y2="20" />\n    <line class="line" x1="128" y1="84" x2="256" y2="84" />\n    <line class="line" x1="256" y1="84" x2="148" y2="180" />\n    <line class="line" x1="148" y1="180" x2="128" y2="84" />\n  </g>\n  <g id="pointsGroup">\n    <circle class="point-dot" cx="200" cy="20" r="4" />\n    <circle class="point-dot" cx="20" cy="180" r="4" />\n    <circle class="point-dot" cx="340" cy="180" r="4" />\n    <circle class="point-dot" cx="128" cy="84" r="4" />\n    <circle class="point-dot" cx="256" cy="84" r="4" />\n    <circle class="point-dot" cx="148" cy="180" r="4" />\n  </g>\n  <g id="markersGroup">\n    <text x="200" y="15" class="label">A</text>\n    <text x="5" y="185" class="label">B</text>\n    <text x="345" y="185" class="label">C</text>\n    <text x="115" y="75" class="label">D</text>\n    <text x="260" y="75" class="label">E</text>\n    <text x="143" y="200" class="label">F</text>\n  </g>\n</svg>',
+                    steps: [
+                        { text: '∵ AB∥EF（__BLANK_0__）', blanks: [{ text: '___', correct: '已知'}] },
+                        { text: '∴ ∠ADE = ∠DEF（__BLANK_0__）', blanks: [{ text: '___', correct: '两直线平行，内错角相等'}] }
+                    ],
+                    options: [
+                        '已知', 
+                        '两直线平行，内错角相等', 
+                        '两直线平行，同位角相等', 
+                        '内错角相等，两直线平行', 
+                    ],
+                    correctAnswers: [
+                        '已知', 
+                        '两直线平行，内错角相等'
+                    ]
+                },
+                {
+                    id: 'parallel_004',
+                    title: '平行线的性质判定',
+                    description: '如图，下列推理及所注明的理由都正确的是( )',
+                    imageUrl: '',
+                    svg: `<svg width="500" height="300" viewBox="0 0 500 300" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .line {
+      stroke: black;
+      stroke-width: 2;
+      fill: none;
+    }
+    .label {
+      font-family: serif;
+      font-size: 20px;
+      fill: black;
+      text-anchor: middle;
+    }
+    .angle-arc {
+        stroke: black;
+        stroke-width: 1.5;
+        fill: none;
+    }
+  </style>
+
+  <line class="line" x1="0" y1="50" x2="500" y2="50" />
+  <line class="line" x1="0" y1="250" x2="500" y2="250" />
+
+  <line class="line" x1="100" y1="50" x2="300" y2="250" /> <line class="line" x1="100" y1="50" x2="350" y2="120" /> <line class="line" x1="350" y1="120" x2="150" y2="180" /> <line class="line" x1="150" y1="180" x2="300" y2="250" /> <path class="angle-arc" d="M 125 50 A 25 25 0 0 1 124.1 56.8" />
+  <path class="angle-arc" d="M 124.1 56.8 A 25 25 0 0 1 117.7 67.7" />
+  <path class="angle-arc" d="M 282.3 232.3 A 25 25 0 0 0 277.4 239.5" />
+  <path class="angle-arc" d="M 275 250 A 25 25 0 0 1 277.4 239.5" />
+  
+  <text class="label" x="90" y="45">A</text>
+  <text class="label" x="480" y="45">B</text>
+  <text class="label" x="305" y="272">C</text>
+  <text class="label" x="20" y="272">D</text>
+  <text class="label" x="480" y="272">G</text>
+  <text class="label" x="365" y="120">E</text>
+  <text class="label" x="140" y="175">F</text>
+  
+  <text class="label" x="155" y="65">1</text>
+  <text class="label" x="140" y="80">3</text>
+  <text class="label" x="255" y="225">4</text>
+  <text class="label" x="252" y="245">2</text>
+
+</svg>`,
+                    steps: [
+                         { text: '若AB∥DG，则∠BAC=∠DCA，理由是（__BLANK_0__）', blanks: [{ text: "___", correct: "两直线平行，内错角相等" }] },
+                         { text: '若AE∥CF，则∠3=∠4，理由是（__BLANK_0__）', blanks: [{ text: "___", correct: "两直线平行，内错角相等" }] },
+                         { text: '若AE∥CF，则∠E=∠F，理由是（__BLANK_0__）', blanks: [{ text: "___", correct: "两直线平行，同位角相等" }] }
+                    ],
+                    options: [
+                        '两直线平行，内错角相等',
+                        '两直线平行，同位角相等',
+                        '内错角相等，两直线平行',
+                        '同旁内角互补，两直线平行',
+                        '对顶角相等'
+                    ],
+                    correctAnswers: [
+                        '两直线平行，内错角相等',
+                        '两直线平行，内错角相等',
+                        '两直线平行，同位角相等'
+                    ]
+                },
+                {
+                    id: 'parallel_005',
+                    title: '平行线的判定',
+                    description: '如图，已知∠1+∠4=180°，求证：a∥b。',
+                    svg: `
+<svg width="500" height="300" viewBox="0 0 500 300" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .line {
+      stroke: black;
+      stroke-width: 2;
+      fill: none;
+    }
+    .label {
+      font-family: serif;
+      font-size: 24px;
+      fill: black;
+      text-anchor: middle;
+    }
+    .angle-arc {
+        stroke: black;
+        stroke-width: 1.5;
+        fill: none;
+    }
+  </style>
+
+  <line class="line" x1="0" y1="100" x2="500" y2="100" />
+  <line class="line" x1="0" y1="200" x2="500" y2="200" />
+  <line class="line" x1="250" y1="0" x2="100" y2="300" />
+  <line class="line" x1="200" y1="100" x2="450" y2="0" />
+
+  <path class="angle-arc" d="M 170 100 A 30 30 0 0 1 213.4 73.2" /> <path class="angle-arc" d="M 180 200 A 30 30 0 0 0 163.4 173.2" /> <path class="angle-arc" d="M 230 100 A 30 30 0 0 1 186.6 126.8" /> <path class="angle-arc" d="M 209.8 80.3 A 22 22 0 0 1 220.4 91.8" />
+  <path class="angle-arc" d="M 232.5 87.0 A 35 35 0 0 1 235 100" />
+
+  <text class="label" x="480" y="95">a</text>
+  <text class="label" x="480" y="195">b</text>
+  <text class="label" x="185" y="80">1</text>
+  <text class="label" x="185" y="185">4</text>
+  <text class="label" x="205" y="125">5</text>
+  
+  <text class="label" x="225" y="85">2</text>
+  <text class="label" x="255" y="100">3</text>
+
+</svg>`,
+                    steps: [
+                        { text: '∵ ∠1+∠4=180°（__BLANK_0__）', blanks: [{ text: "　　", correct: "已知" }] },
+                        { text: '∠1 = ∠5（__BLANK_0__）', blanks: [{ text: "　　", correct: "对顶角相等" }] },
+                        { text: '∴ ∠5+∠4=180°（__BLANK_0__）', blanks: [{ text: "　　", correct: "等量代换" }] },
+                        { text: '∴ a∥b（__BLANK_0__）', blanks: [{ text: "　　", correct: "同旁内角互补，两直线平行" }] }
+                    ],
+                    options: [
+                        '已知',
+                        '对顶角相等',
+                        '等量代换',
+                        '同旁内角互补，两直线平行',
+                        '两直线平行，同旁内角互补',
+                        '内错角相等，两直线平行'
+                    ],
+                    correctAnswers: [
+                        '已知',
+                        '对顶角相等',
+                        '等量代换',
+                        '同旁内角互补，两直线平行'
+                    ]
+                }
+            ],
             angle: [
                 {
                     id: 'angle_001',
@@ -1810,179 +2117,7 @@
                     ]
                 },
             ],
-            parallel: [
-                {
-                    id: 'parallel_001',
-                    title: '平行线的性质',
-                    description: '如图，AB∥CD，∠ABE=140°，则∠C的度数为( )',
-                    imageUrl: '',
-                    svg: `<svg width="400" height="200" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
-  <style>
-    .line {
-      stroke: black;
-      stroke-width: 2.5;
-    }
-    .label {
-      font-family: serif;
-      font-size: 24px;
-      fill: black;
-      text-anchor: middle;
-    }
-  </style>
 
-  <line class="line" x1="0" y1="50" x2="251" y2="50" />
-
-  <line class="line" x1="150" y1="150" x2="400" y2="150" />
-  
-  <line class="line" x1="150" y1="150" x2="275" y2="25" />
-
-  <text class="label" x="50" y="45">A</text>
-  <text class="label" x="265" y="70">B</text>
-  <text class="label" x="140" y="165">C</text>
-  <text class="label" x="350" y="165">D</text>
-  <text class="label" x="285" y="25">E</text>
-
-</svg>`,
-                    steps: [
-                        { text: '∵ ∠ABE = 140°（__BLANK_0__）', blanks: [{ text: "　　", correct: "已知" }] },
-                        { text: '∴ ∠ABC = 180° - 140° = 40°（__BLANK_0__）', blanks: [{ text: "　　", correct: "平角的定义" }] },
-                        { text: '∵ AB∥CD（__BLANK_0__）', blanks: [{ text: "　　", correct: "已知" }] },
-                        { text: '∴ ∠C = ∠ABC（__BLANK_0__）', blanks: [{ text: "　　", correct: "两直线平行，内错角相等" }] },
-                        { text: '∴ ∠C = 40°（__BLANK_0__）', blanks: [{ text: "　　", correct: "等量代换" }] }
-                    ],
-                    options: [
-                        '已知',
-                        '平角的定义',
-                        '两直线平行，内错角相等',
-                        '等量代换'
-                    ],
-                    correctAnswers: [
-                        '已知',
-                        '平角的定义',
-                        '已知',
-                        '两直线平行，内错角相等',
-                        '等量代换'
-                    ]
-                },
-                {
-                    id: 'parallel_002',
-                    title: '平行线的判定与性质',
-                    description: '如图, AB∥CD, AD平分∠BAC, 若∠BAD=70°, 那么∠ACD的度数为( )',
-                    imageUrl: '',
-                    svg: '<svg width="400" height="220" viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">\n  <style>\n    .line {\n      stroke: black;\n      stroke-width: 2;\n    }\n    .label {\n      font-family: sans-serif;\n      font-size: 18px;\n      fill: black;\n    }\n  </style>\n\n  <line class="line" x1="0" y1="50" x2="400" y2="50" />\n\n  <line class="line" x1="0" y1="150" x2="400" y2="150" />\n\n  <line class="line" x1="175" y1="0" x2="75" y2="200" />\n\n  <line class="line" x1="150" y1="50" x2="300" y2="200" />\n\n  <path d="M 120 150 A 20 20 0 0 0 108.9 132.1" fill="none" stroke="black" stroke-width="1.5"/>\n\n  <text x="160" y="48" class="label">A</text>\n  <text x="350" y="48" class="label">B</text>\n  <text x="85" y="145" class="label">C</text>\n  <text x="255" y="145" class="label">D</text>\n  <text x="122" y="140" class="label">1</text>\n\n</svg>',
-                    steps: [
-                        { text: '∵ AD平分∠BAC（__BLANK_0__）', blanks: [{ text: "　　", correct: "已知" }] },
-                        { text: '∴ ∠BAC = 2∠BAD（__BLANK_0__）', blanks: [{ text: "　　", correct: "角平分线的定义" }] },
-                        { text: '∵ ∠BAD = 70°（__BLANK_0__）', blanks: [{ text: "　　", correct: "已知" }] },
-                        { text: '∴ ∠BAC = 2 × 70° = 140°（__BLANK_0__）', blanks: [{ text: "　　", correct: "等量代换" }] },
-                        { text: '∵ AB∥CD（__BLANK_0__）', blanks: [{ text: "　　", correct: "已知" }] },
-                        { text: '∴ ∠ACD + ∠BAC = 180°（__BLANK_0__）', blanks: [{ text: "　　", correct: "两直线平行，同旁内角互补" }] },
-                        { text: '∴ ∠ACD = 180° - 140° = 40°（__BLANK_0__）', blanks: [{ text: "　　", correct: "等式的性质" }] }
-                    ],
-                    options: [
-                        '已知',
-                        '角平分线的定义',
-                        '等量代换',
-                        '两直线平行，同旁内角互补',
-                        '等式的性质'
-                    ],
-                    correctAnswers: [
-                        '已知',
-                        '角平分线的定义',
-                        '已知',
-                        '等量代换',
-                        '已知',
-                        '两直线平行，同旁内角互补',
-                        '等式的性质'
-                    ]
-                },
-                {
-                    id: 'parallel_003',
-                    title: '平行线的性质',
-                    description: '如图, 若 AB∥EF, 请根据平行线的性质，完成下面的填空。',
-
-                    svg: '<svg width="400" height="220" viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">\n  <style>\n    .line { stroke: #2196F3; stroke-width: 2; vector-effect: non-scaling-stroke; }\n    .point-dot { fill: #4CAF50; }\n    .label { font-family: Arial, sans-serif; font-size: 16px; fill: #666; font-weight: bold; }\n  </style>\n  <g id="shapeGroup">\n    <line class="line" x1="200" y1="20" x2="20" y2="180" />\n    <line class="line" x1="20" y1="180" x2="340" y2="180" />\n    <line class="line" x1="340" y1="180" x2="200" y2="20" />\n    <line class="line" x1="128" y1="84" x2="256" y2="84" />\n    <line class="line" x1="256" y1="84" x2="148" y2="180" />\n    <line class="line" x1="148" y1="180" x2="128" y2="84" />\n  </g>\n  <g id="pointsGroup">\n    <circle class="point-dot" cx="200" cy="20" r="4" />\n    <circle class="point-dot" cx="20" cy="180" r="4" />\n    <circle class="point-dot" cx="340" cy="180" r="4" />\n    <circle class="point-dot" cx="128" cy="84" r="4" />\n    <circle class="point-dot" cx="256" cy="84" r="4" />\n    <circle class="point-dot" cx="148" cy="180" r="4" />\n  </g>\n  <g id="markersGroup">\n    <text x="200" y="15" class="label">A</text>\n    <text x="5" y="185" class="label">B</text>\n    <text x="345" y="185" class="label">C</text>\n    <text x="115" y="75" class="label">D</text>\n    <text x="260" y="75" class="label">E</text>\n    <text x="143" y="200" class="label">F</text>\n  </g>\n</svg>',
-                    steps: [
-                        { text: '∵ AB∥EF（__BLANK_0__）', blanks: [{ text: '___', correct: '已知'}] },
-                        { text: '∴ ∠ADE = ∠DEF（__BLANK_0__）', blanks: [{ text: '___', correct: '两直线平行，内错角相等'}] }
-                    ],
-                    options: [
-                        '已知', 
-                        '两直线平行，内错角相等', 
-                        '两直线平行，同位角相等', 
-                        '内错角相等，两直线平行', 
-                    ],
-                    correctAnswers: [
-                        '已知', 
-                        '两直线平行，内错角相等'
-                    ]
-                },
-                {
-                    id: 'parallel_004',
-                    title: '平行线的性质判定',
-                    description: '如图，下列推理及所注明的理由都正确的是( )',
-                    imageUrl: '',
-                    svg: `<svg width="500" height="300" viewBox="0 0 500 300" xmlns="http://www.w3.org/2000/svg">
-  <style>
-    .line {
-      stroke: black;
-      stroke-width: 2;
-      fill: none;
-    }
-    .label {
-      font-family: serif;
-      font-size: 20px;
-      fill: black;
-      text-anchor: middle;
-    }
-    .angle-arc {
-        stroke: black;
-        stroke-width: 1.5;
-        fill: none;
-    }
-  </style>
-
-  <line class="line" x1="0" y1="50" x2="500" y2="50" />
-  <line class="line" x1="0" y1="250" x2="500" y2="250" />
-
-  <line class="line" x1="100" y1="50" x2="300" y2="250" /> <line class="line" x1="100" y1="50" x2="350" y2="120" /> <line class="line" x1="350" y1="120" x2="150" y2="180" /> <line class="line" x1="150" y1="180" x2="300" y2="250" /> <path class="angle-arc" d="M 125 50 A 25 25 0 0 1 124.1 56.8" />
-  <path class="angle-arc" d="M 124.1 56.8 A 25 25 0 0 1 117.7 67.7" />
-  <path class="angle-arc" d="M 282.3 232.3 A 25 25 0 0 0 277.4 239.5" />
-  <path class="angle-arc" d="M 275 250 A 25 25 0 0 1 277.4 239.5" />
-  
-  <text class="label" x="90" y="45">A</text>
-  <text class="label" x="480" y="45">B</text>
-  <text class="label" x="305" y="272">C</text>
-  <text class="label" x="20" y="272">D</text>
-  <text class="label" x="480" y="272">G</text>
-  <text class="label" x="365" y="120">E</text>
-  <text class="label" x="140" y="175">F</text>
-  
-  <text class="label" x="155" y="65">1</text>
-  <text class="label" x="140" y="80">3</text>
-  <text class="label" x="255" y="225">4</text>
-  <text class="label" x="252" y="245">2</text>
-
-</svg>`,
-                    steps: [
-                         { text: '若AB∥DG，则∠BAC=∠DCA，理由是（__BLANK_0__）', blanks: [{ text: "___", correct: "两直线平行，内错角相等" }] },
-                         { text: '若AE∥CF，则∠3=∠4，理由是（__BLANK_0__）', blanks: [{ text: "___", correct: "两直线平行，内错角相等" }] },
-                         { text: '若AE∥CF，则∠E=∠F，理由是（__BLANK_0__）', blanks: [{ text: "___", correct: "两直线平行，同位角相等" }] }
-                    ],
-                    options: [
-                        '两直线平行，内错角相等',
-                        '两直线平行，同位角相等',
-                        '内错角相等，两直线平行',
-                        '同旁内角互补，两直线平行',
-                        '对顶角相等'
-                    ],
-                    correctAnswers: [
-                        '两直线平行，内错角相等',
-                        '两直线平行，内错角相等',
-                        '两直线平行，同位角相等'
-                    ]
-                }
-            ]
         };
         
         // 题目管理器
@@ -2085,6 +2220,7 @@
 
             // 分类中文名映射对象，便于扩展
             const categoryDisplayNameMap = {
+                parallel: '平行线的性质与判定',
                 angle: '角度证明',
                 basic: '确的辅助线证明',
                 rightangle: '90°系列转角',
@@ -2093,7 +2229,7 @@
                 circle: '圆专题',
                 oneeighty: '180°系列转角',
                 mutual: '互余互补内角和',
-                parallel: '平行线的性质与判定'
+
             };
 
             // 遍历所有分类，动态生成按钮
