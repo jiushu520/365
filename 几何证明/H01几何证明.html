@@ -741,76 +741,7 @@
         // 结构化题目数据库 - 只保留角的证明题型
         const questionDatabase = {
             parallel: [
-                {
-                    id: 'parallel_006',
-                    title: '平行线的性质与判定',
-                    description: '如图，直线c与直线a、b相交，请根据平行线的性质与判定，完成下列填空。',
-                    imageUrl: '',
-                    svg: `<svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
-  <style>
-    .line {
-      stroke: black;
-      stroke-width: 2;
-      fill: none;
-    }
-    .label {
-      font-family: serif;
-      font-size: 22px;
-      fill: black;
-      text-anchor: middle;
-    }
-    .angle-arc {
-        stroke: black;
-        stroke-width: 1.5;
-        fill: none;
-    }
-  </style>
 
-  <line class="line" x1="0" y1="100" x2="400" y2="100" />
-  <line class="line" x1="0" y1="200" x2="400" y2="200" />
-  <line class="line" x1="250" y1="0" x2="100" y2="300" />
-
-  <path class="angle-arc" d="M 230 100 A 30 30 0 0 1 186.6 126.8" />   <path class="angle-arc" d="M 189.9 120.3 A 22 22 0 0 1 178 100" />   <path class="angle-arc" d="M 209.8 80.3 A 22 22 0 0 1 222 100" />    <path class="angle-arc" d="M 170 100 A 30 30 0 0 1 213.4 77.6" />   <path class="angle-arc" d="M 120 200 A 30 30 0 0 1 163.4 173.2" />   <path class="angle-arc" d="M 160.1 179.7 A 22 22 0 0 1 172 200" />   <path class="angle-arc" d="M 139.9 219.7 A 22 22 0 0 1 128 200" />   <path class="angle-arc" d="M 180 200 A 30 30 0 0 1 136.6 226.8" />   <text class="label" x="380" y="95">a</text>
-  <text class="label" x="380" y="195">b</text>
-  <text class="label" x="255" y="15">c</text>
-  
-  <text class="label" x="240" y="120">1</text>
-  <text class="label" x="110" y="180">2</text>
-  <text class="label" x="172" y="128">3</text>
-  <text class="label" x="178" y="188">4</text>
-  <text class="label" x="228" y="88">5</text>
-  <text class="label" x="122" y="228">6</text>
-  <text class="label" x="180" y="80">7</text>
-  <text class="label" x="185" y="240">8</text>
-
-</svg>`,
-                    steps: [
-                        { text: '性质定理：', blanks: null },
-                        { text: '若 a∥b, 则 ∠5 = ∠4, 理由是 ( __BLANK_0__ )', blanks: [{ text: "___", correct: "两直线平行，同位角相等" }] },
-                        { text: '若 a∥b, 则 ∠3 = ∠2, 理由是 ( __BLANK_0__ )', blanks: [{ text: "___", correct: "两直线平行，内错角相等" }] },
-                        { text: '若 a∥b, 则 ∠1 + ∠2 = 180°, 理由是 ( __BLANK_0__ )', blanks: [{ text: "___", correct: "两直线平行，同旁内角互补" }] },
-                        { text: '判定定理：', blanks: null },
-                        { text: '若 ∠7 = ∠2, 则 a∥b, 理由是 ( __BLANK_0__ )', blanks: [{ text: "___", correct: "同位角相等，两直线平行" }] },
-                        { text: '若 ∠1 = ∠4, 则 a∥b, 理由是 ( __BLANK_0__ )', blanks: [{ text: "___", correct: "内错角相等，两直线平行" }] },
-                        { text: '若 ∠3 + ∠4 = 180°, 则 a∥b, 理由是 ( __BLANK_0__ )', blanks: [{ text: "___", correct: "同旁内角互补，两直线平行" }] }
-                    ],
-                    options: [
-                        '两直线平行，同位角相等',
-                        '两直线平行，内错角相等',
-                        '两直线平行，同旁内角互补',
-                        '同位角相等，两直线平行',
-                        '内错角相等，两直线平行',
-                        '同旁内角互补，两直线平行'
-                    ],
-                    correctAnswers: [
-                        '两直线平行，同位角相等',
-                        '两直线平行，内错角相等',
-                        '两直线平行，同旁内角互补',
-                        '同位角相等，两直线平行',
-                        '内错角相等，两直线平行',
-                        '同旁内角互补，两直线平行'
-                    ]
-                },
                 {
                     id: 'parallel_001',
                     title: '平行线的性质',
@@ -1045,8 +976,136 @@
                         '等量代换',
                         '同旁内角互补，两直线平行'
                     ]
-                }
+                },
+                {
+                    id: 'parallel_006',
+                    title: '平行线的性质与判定',
+                    description: '如图，直线c与直线a、b相交，请根据平行线的性质与判定，完成下列填空。',
+                    imageUrl: '',
+                    svg: `<svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .line {
+      stroke: black;
+      stroke-width: 2;
+      fill: none;
+    }
+    .label {
+      font-family: serif;
+      font-size: 22px;
+      fill: black;
+      text-anchor: middle;
+    }
+    .angle-arc {
+        stroke: black;
+        stroke-width: 1.5;
+        fill: none;
+    }
+  </style>
+
+  <line class="line" x1="0" y1="100" x2="400" y2="100" />
+  <line class="line" x1="0" y1="200" x2="400" y2="200" />
+  <line class="line" x1="250" y1="0" x2="100" y2="300" />
+
+  <path class="angle-arc" d="M 230 100 A 30 30 0 0 1 186.6 126.8" />   <path class="angle-arc" d="M 189.9 120.3 A 22 22 0 0 1 178 100" />   <path class="angle-arc" d="M 209.8 80.3 A 22 22 0 0 1 222 100" />    <path class="angle-arc" d="M 170 100 A 30 30 0 0 1 213.4 77.6" />   <path class="angle-arc" d="M 120 200 A 30 30 0 0 1 163.4 173.2" />   <path class="angle-arc" d="M 160.1 179.7 A 22 22 0 0 1 172 200" />   <path class="angle-arc" d="M 139.9 219.7 A 22 22 0 0 1 128 200" />   <path class="angle-arc" d="M 180 200 A 30 30 0 0 1 136.6 226.8" />   <text class="label" x="380" y="95">a</text>
+  <text class="label" x="380" y="195">b</text>
+  <text class="label" x="255" y="15">c</text>
+  
+  <text class="label" x="240" y="120">1</text>
+  <text class="label" x="110" y="180">2</text>
+  <text class="label" x="172" y="128">3</text>
+  <text class="label" x="178" y="188">4</text>
+  <text class="label" x="228" y="88">5</text>
+  <text class="label" x="122" y="228">6</text>
+  <text class="label" x="180" y="80">7</text>
+  <text class="label" x="185" y="240">8</text>
+
+</svg>`,
+                    steps: [
+                        { text: '性质定理：', blanks: null },
+                        { text: '若 a∥b, 则 ∠5 = ∠4, 理由是 ( __BLANK_0__ )', blanks: [{ text: "___", correct: "两直线平行，同位角相等" }] },
+                        { text: '若 a∥b, 则 ∠3 = ∠2, 理由是 ( __BLANK_0__ )', blanks: [{ text: "___", correct: "两直线平行，内错角相等" }] },
+                        { text: '若 a∥b, 则 ∠1 + ∠2 = 180°, 理由是 ( __BLANK_0__ )', blanks: [{ text: "___", correct: "两直线平行，同旁内角互补" }] },
+                        { text: '判定定理：', blanks: null },
+                        { text: '若 ∠7 = ∠2, 则 a∥b, 理由是 ( __BLANK_0__ )', blanks: [{ text: "___", correct: "同位角相等，两直线平行" }] },
+                        { text: '若 ∠1 = ∠4, 则 a∥b, 理由是 ( __BLANK_0__ )', blanks: [{ text: "___", correct: "内错角相等，两直线平行" }] },
+                        { text: '若 ∠3 + ∠4 = 180°, 则 a∥b, 理由是 ( __BLANK_0__ )', blanks: [{ text: "___", correct: "同旁内角互补，两直线平行" }] }
+                    ],
+                    options: [
+                        '两直线平行，同位角相等',
+                        '两直线平行，内错角相等',
+                        '两直线平行，同旁内角互补',
+                        '同位角相等，两直线平行',
+                        '内错角相等，两直线平行',
+                        '同旁内角互补，两直线平行'
+                    ],
+                    correctAnswers: [
+                        '两直线平行，同位角相等',
+                        '两直线平行，内错角相等',
+                        '两直线平行，同旁内角互补',
+                        '同位角相等，两直线平行',
+                        '内错角相等，两直线平行',
+                        '同旁内角互补，两直线平行'
+                    ]
+                },
+                {
+                    id: 'parallel_007',
+                    title: '平行线判定（DE∥BC）',
+                    description: '如图，直线 DE 经过点 A，若 DE∥BC，请根据平行线的判定，完成下列填空。',
+                    imageUrl: '',
+                    svg: `<svg width="450" height="250" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .line {
+        stroke: #000000;
+        stroke-width: 2.5;
+      }
+      .label {
+        font-family: 'Times New Roman', serif;
+        font-size: 24px;
+        font-style: italic;
+        fill: #000000;
+        text-anchor: middle;
+        dominant-baseline: middle;
+      }
+    </style>
+  </defs>
+
+  <line x1="20" y1="50" x2="430" y2="50" class="line" />
+
+  <polygon points="100,200 225,50 350,200" class="line" fill="none" />
+
+  <circle cx="225" cy="50" r="3" fill="black" />
+  <text x="225" y="30" class="label">A</text>
+
+  <circle cx="100" cy="200" r="3" fill="black" />
+  <text x="85" y="220" class="label">B</text>
+
+  <circle cx="350" cy="200" r="3" fill="black" />
+  <text x="365" y="220" class="label">C</text>
+
+  <text x="50" y="30" class="label">D</text>
+  <text x="400" y="30" class="label">E</text>
+</svg>`,
+                    steps: [
+                        { text: '若 DE∥BC, 则 ∠B = ∠DAB, 理由是 ( __BLANK_0__ )', blanks: [{ text: '___', correct: '内错角相等，两直线平行' }] },
+                        { text: '若 DE∥BC, 则 ∠C = ∠CAE, 理由是 ( __BLANK_0__ )', blanks: [{ text: '___', correct: '内错角相等，两直线平行' }] }
+                    ],
+                    options: [
+                        '内错角相等，两直线平行',
+                        '同位角相等，两直线平行',
+                        '同旁内角互补，两直线平行',
+                        '两直线平行，内错角相等',
+                        '两直线平行，同位角相等'
+                    ],
+                    correctAnswers: [
+                        '内错角相等，两直线平行',
+                        '内错角相等，两直线平行'
+                    ]
+                },
             ],
+
+
+
             angle: [
                 {
                     id: 'angle_001',
@@ -3059,7 +3118,8 @@
                     questionDiv.innerHTML = `
                         <h3>题目 ${index + 1}: ${question.title}</h3>
                         <p>${question.description}</p>
-                        ${question.imageUrl ? `<img src="${question.imageUrl}" alt="题目图片" style="max-width: 300px; margin: 10px 0;">` : ''}
+                        ${question.imageUrl ? `<img src="${question.imageUrl}" alt="题目图片" style="max-width: 300px; margin: 10px 0;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div style="display:none; max-width: 300px; margin: 10px 0;">${question.svg}</div>` : `<div style="max-width: 300px; margin: 10px 0;">${question.svg}</div>`}
                         <div class="preview-steps">
                             ${question.steps.map(step => `
                                 <div class="preview-step">
